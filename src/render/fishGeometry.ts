@@ -58,25 +58,10 @@ function flatPart(vertices: readonly number[]): BufferGeometry {
 function tailFin(proportions: BodyProportions): BufferGeometry {
   const half = (proportions.height / 2) * proportions.tail;
   // Forked tail: two triangles meeting at the tail stem.
+  // prettier-ignore
   return flatPart([
-    -0.42,
-    0,
-    0,
-    -0.66,
-    half,
-    0,
-    -0.58,
-    0,
-    0,
-    -0.42,
-    0,
-    0,
-    -0.58,
-    0,
-    0,
-    -0.66,
-    -half,
-    0,
+    -0.42, 0, 0,   -0.66, half, 0,   -0.58, 0, 0,
+    -0.42, 0, 0,   -0.58, 0, 0,      -0.66, -half, 0,
   ]);
 }
 

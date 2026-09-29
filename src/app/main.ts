@@ -24,6 +24,10 @@ async function fetchJson(path: string): Promise<unknown> {
   if (!response.ok) {
     throw new Error(`Could not load ${path} (HTTP ${response.status}).`);
   }
+  // Single-page servers answer missing files with index.html and status 200.
+  if (!(response.headers.get("content-type") ?? "").includes("json")) {
+    throw new Error(`Could not load ${path}: the file does not exist or is not JSON.`);
+  }
   return response.json();
 }
 
