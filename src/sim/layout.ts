@@ -31,7 +31,7 @@ export interface Prop {
 
 /** Keeps objects a little away from the glass and the side walls. */
 const EDGE_CLEARANCE = 0.2;
-const ROCK_SIZE: readonly [number, number] = [0.35, 1.1];
+const ROCK_SIZE: readonly [number, number] = [0.25, 0.75];
 const STARFISH_SIZE: readonly [number, number] = [0.14, 0.22];
 const ROCK_BANDS: readonly [number, number] = [1, 4];
 const STARFISH_BANDS: readonly [number, number] = [0, 1];

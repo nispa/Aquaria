@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { FULL_HD_HEIGHT, UHD_HEIGHT } from "../core/resolution";
-import { MAX_INDIVIDUALS_PER_SPECIES } from "./schema";
+import { MAX_INDIVIDUALS_PER_SPECIES, type Scene, type SpeciesCatalog } from "./schema";
 
 /** Lowest render height offered, for weak GPUs (half of Full HD). */
 const MIN_RENDER_HEIGHT = FULL_HD_HEIGHT / 2;
@@ -41,4 +41,26 @@ export function parseSettings(input: unknown): ParsedSettings {
   return result.success
     ? { settings: result.data, valid: true }
     : { settings: DEFAULT_SETTINGS, valid: false };
+}
+
+/**
+ * Returns a copy of the scene with the viewer's saved population counts.
+ * Species no longer in the catalog are ignored so old settings never break a scene.
+ */
+export function applyCountOverrides(
+  scene: Scene,
+  overrides: Readonly<Record<string, number>>,
+  catalog: SpeciesCatalog,
+): Scene {
+  const known = new Set(catalog.species.map((species) => species.id));
+  const fauna = scene.fauna.map((entry) => ({
+    species: entry.species,
+    count: overrides[entry.species] ?? entry.count,
+  }));
+  for (const [species, count] of Object.entries(overrides)) {
+    if (known.has(species) && !fauna.some((entry) => entry.species === species)) {
+      fauna.push({ species, count });
+    }
+  }
+  return { ...scene, fauna };
 }
