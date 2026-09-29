@@ -1,0 +1,74 @@
+{
+  "species": [
+    {
+      "id": "blue-tang",
+      "name": "Blue tang",
+      "body": {
+        "type": "procedural",
+        "shape": "disc",
+        "colors": { "base": "#1f4fd1", "accent": "#ffcf33" }
+      },
+      "length": { "mean": 0.26, "standardDeviation": 0.03 },
+      "speed": { "cruise": 0.32, "max": 0.9 },
+      "schooling": 0.35,
+      "bands": [1, 3],
+      "heightRange": [0.3, 0.8]
+    },
+    {
+      "id": "clownfish",
+      "name": "Clownfish",
+      "body": {
+        "type": "procedural",
+        "shape": "round",
+        "colors": { "base": "#ff6a13", "accent": "#fbfbf5" }
+      },
+      "length": { "mean": 0.11, "standardDeviation": 0.012 },
+      "speed": { "cruise": 0.18, "max": 0.5 },
+      "schooling": 0.15,
+      "bands": [0, 2],
+      "heightRange": [0.12, 0.45]
+    },
+    {
+      "id": "sardine",
+      "name": "Sardine",
+      "body": {
+        "type": "procedural",
+        "shape": "slender",
+        "colors": { "base": "#7f98ae", "accent": "#e8f0f6" }
+      },
+      "length": { "mean": 0.13, "standardDeviation": 0.01 },
+      "speed": { "cruise": 0.55, "max": 1.3 },
+      "schooling": 1,
+      "bands": [2, 4],
+      "heightRange": [0.45, 0.9]
+    },
+    {
+      "id": "yellow-tang",
+      "name": "Yellow tang",
+      "body": {
+        "type": "procedural",
+        "shape": "disc",
+        "colors": { "base": "#ffd400", "accent": "#fff3a8" }
+      },
+      "length": { "mean": 0.18, "standardDeviation": 0.02 },
+      "speed": { "cruise": 0.28, "max": 0.8 },
+      "schooling": 0.5,
+      "bands": [1, 3],
+      "heightRange": [0.25, 0.7]
+    },
+    {
+      "id": "royal-gramma",
+      "name": "Royal gramma",
+      "body": {
+        "type": "procedural",
+        "shape": "slender",
+        "colors": { "base": "#8a2bd8", "accent": "#ffc21a" }
+      },
+      "length": { "mean": 0.08, "standardDeviation": 0.008 },
+      "speed": { "cruise": 0.15, "max": 0.45 },
+      "schooling": 0,
+      "bands": [0, 2],
+      "heightRange": [0.08, 0.35]
+    }
+  ]
+}
