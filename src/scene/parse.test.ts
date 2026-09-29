@@ -115,3 +115,39 @@ describe("parseScene", () => {
     expect(() => parseScene("reef", catalog)).toThrow(SceneValidationError);
   });
 });
+
+describe("species body patterns", () => {
+  it("defaults the pattern of procedural bodies to a light belly", () => {
+    const catalog = parseCatalog(catalogFixture());
+
+    const body = catalog.species[0]?.body;
+
+    expect(body?.type === "procedural" ? body.pattern : undefined).toBe("belly");
+  });
+
+  it("accepts the supported patterns", () => {
+    const input = catalogFixture();
+    input.species[0]!.body = {
+      type: "procedural",
+      shape: "round",
+      pattern: "bands",
+      colors: { base: "#ff6a13", accent: "#ffffff" },
+    };
+
+    const body = parseCatalog(input).species[0]?.body;
+
+    expect(body?.type === "procedural" ? body.pattern : undefined).toBe("bands");
+  });
+
+  it("rejects unknown patterns", () => {
+    const input = catalogFixture();
+    input.species[0]!.body = {
+      type: "procedural",
+      shape: "round",
+      pattern: "polka" as "bands",
+      colors: { base: "#ff6a13", accent: "#ffffff" },
+    };
+
+    expect(() => parseCatalog(input)).toThrow(/pattern/);
+  });
+});

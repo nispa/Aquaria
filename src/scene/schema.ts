@@ -35,6 +35,11 @@ const proceduralBody = z.object({
   type: z.literal("procedural"),
   /** Built-in body shapes generated in code. */
   shape: z.enum(["disc", "slender", "round"]),
+  /**
+   * Where the accent color goes: a light belly, the tail, vertical bands,
+   * or a front/back split.
+   */
+  pattern: z.enum(["belly", "tail", "bands", "split"]).default("belly"),
   colors: z.object({ base: hexColor, accent: hexColor }),
 });
 
