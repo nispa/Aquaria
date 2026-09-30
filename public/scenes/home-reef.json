@@ -43,31 +43,24 @@
       "count": 9,
       "bands": [3, 4],
       "height": [0.7, 1.5],
-      "color": "#7cc94a"
+      "color": ["#7cc94a", "#5fae3c", "#9ad65a"]
     },
     {
       "kind": "anemone",
-      "count": 6,
+      "count": 10,
       "bands": [1, 3],
       "height": [0.1, 0.2],
-      "color": "#c98fd6"
-    },
-    {
-      "kind": "anemone",
-      "name": "Green anemones",
-      "count": 4,
-      "bands": [1, 3],
-      "height": [0.08, 0.16],
-      "color": "#8fd67a"
+      "color": ["#c98fd6", "#8fd67a", "#e8a0c0"],
+      "on": "rockwork"
     }
   ],
   "props": [
     {
       "kind": "rock",
-      "name": "Live rock",
-      "count": 45,
+      "name": "Loose rocks",
+      "count": 10,
       "color": "#8a7d70",
-      "bands": [1, 3],
+      "bands": [0, 1],
       "material": {
         "id": "reef-rock",
         "tileSize": 0.45,
@@ -76,42 +69,17 @@
     },
     {
       "kind": "branch-coral",
-      "name": "Purple branching corals",
-      "count": 14,
-      "color": "#9a6fc2",
-      "bands": [1, 3]
-    },
-    {
-      "kind": "branch-coral",
-      "name": "Tan branching corals",
-      "count": 10,
-      "color": "#c9a27a",
-      "bands": [1, 3]
-    },
-    {
-      "kind": "branch-coral",
-      "name": "Pink branching corals",
-      "count": 8,
-      "color": "#e08fb0",
-      "bands": [1, 3]
+      "name": "Branching corals",
+      "count": 40,
+      "color": ["#9a6fc2", "#c9a27a", "#e08fb0", "#7fa6d9", "#b5d67a"],
+      "on": "rockwork"
     },
     {
       "kind": "brain-coral",
       "name": "Brain corals",
-      "count": 8,
-      "color": "#b89a5e",
-      "bands": [0, 2],
-      "material": {
-        "id": "reef-rock",
-        "tileSize": 0.35
-      }
-    },
-    {
-      "kind": "brain-coral",
-      "name": "Orange corals",
-      "count": 4,
-      "color": "#d9783c",
-      "bands": [0, 2],
+      "count": 14,
+      "color": ["#b89a5e", "#d9783c", "#8fae6a", "#c98f6a"],
+      "on": "rockwork",
       "material": {
         "id": "reef-rock",
         "tileSize": 0.35
@@ -119,14 +87,14 @@
     },
     {
       "kind": "fan-coral",
-      "count": 4,
-      "color": "#7a4fa8",
-      "bands": [3, 4]
+      "count": 6,
+      "color": ["#7a4fa8", "#c2553f"],
+      "on": "rockwork"
     },
     {
       "kind": "shell",
       "count": 5,
-      "color": "#f3e6d4"
+      "color": ["#f3e6d4", "#e8d2b8"]
     },
     {
       "kind": "starfish",
@@ -159,5 +127,18 @@
       "species": "sardine",
       "count": 0
     }
-  ]
+  ],
+  "rockwork": {
+    "bands": [1, 3],
+    "height": [0.35, 1.05],
+    "coverage": 0.9,
+    "thickness": 1.1,
+    "rocks": 70,
+    "color": "#8a7d70",
+    "material": {
+      "id": "reef-rock",
+      "tileSize": 0.6,
+      "displacement": 0.06
+    }
+  }
 }

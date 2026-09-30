@@ -1,5 +1,6 @@
 import type { Rng } from "../core/rng";
 import type { FloraSpec, PropSpec, SurfaceMaterialSpec } from "../scene/schema";
+import type { Rockwork } from "./rockwork";
 import { bandDepthRange, type TankSize } from "./tank";
 
 /**
@@ -9,6 +10,7 @@ import { bandDepthRange, type TankSize } from "./tank";
 
 export interface Plant {
   readonly kind: FloraSpec["kind"];
+  /** One color; a palette entry has already been resolved to one of its colors. */
   readonly color: string;
   readonly x: number;
   readonly z: number;
@@ -19,6 +21,8 @@ export interface Plant {
   readonly swayPhase: number;
   /** Seeds the renderer's per-plant details (blade jitter), independent of other plants. */
   readonly seed: number;
+  /** Height of the base above the sand, m, when growing on rockwork. */
+  readonly elevation?: number;
 }
 
 export interface Prop {
@@ -33,6 +37,8 @@ export interface Prop {
   readonly seed: number;
   /** Photographic surface, when the scene entry sets one. */
   readonly material?: SurfaceMaterialSpec;
+  /** Height of the base above the sand, m, when set on rockwork. */
+  readonly elevation?: number;
 }
 
 /** Keeps objects a little away from the glass and the side walls. */
@@ -82,24 +88,52 @@ function spreadX(across: number, z: number, halfWidthAt: HalfWidthAt): number {
   return across * Math.max(halfWidthAt(z) - EDGE_CLEARANCE, 0);
 }
 
+/** Where one item goes: x, z and its height above the sand when on rockwork. */
+interface Spot {
+  readonly x: number;
+  readonly z: number;
+  readonly elevation?: number;
+}
+
+/** Draws a spot on the sand within the depth range, or on the rockwork surface. */
+function drawSpot(
+  entryRng: Rng,
+  depth: { readonly near: number; readonly far: number },
+  halfWidthAt: HalfWidthAt,
+  rockwork: Rockwork | undefined,
+): Spot {
+  if (rockwork !== undefined) {
+    const [x, z] = rockwork.randomPoint(entryRng);
+    return { x, z, elevation: rockwork.heightAt(x, z) };
+  }
+  const across = entryRng.range(-1, 1);
+  const z = entryRng.range(depth.far, Math.min(depth.near, -EDGE_CLEARANCE));
+  return { x: spreadX(across, z, halfWidthAt), z };
+}
+
+/** A single color is used as is; a palette gives each item one of its colors. */
+function drawColor(color: string | readonly string[], entryRng: Rng): string {
+  return typeof color === "string" ? color : entryRng.pick(color);
+}
+
 export function layoutFlora(
   tank: TankSize,
   specs: readonly FloraSpec[],
   rng: Rng,
   halfWidthAt: HalfWidthAt = tankHalfWidth(tank),
+  rockwork?: Rockwork,
 ): Plant[] {
   const generators = entryGenerators(rng, specs.length);
   return specs.flatMap((spec, index) => {
     const entryRng = generators[index] ?? rng;
-    const { near, far } = bandDepthRange(tank, spec.bands);
-    return Array.from({ length: spec.count }, () => {
-      const across = entryRng.range(-1, 1);
-      const z = entryRng.range(far, Math.min(near, -EDGE_CLEARANCE));
+    const depth = bandDepthRange(tank, spec.bands);
+    const surface = spec.on === "rockwork" ? rockwork : undefined;
+    return Array.from({ length: spec.count }, (): Plant => {
+      const spot = drawSpot(entryRng, depth, halfWidthAt, surface);
       return {
         kind: spec.kind,
-        color: spec.color,
-        x: spreadX(across, z, halfWidthAt),
-        z,
+        color: drawColor(spec.color, entryRng),
+        ...spot,
         height: entryRng.range(spec.height[0], spec.height[1]),
         rotation: entryRng.range(0, Math.PI * 2),
         swayPhase: entryRng.range(0, Math.PI * 2),
@@ -114,20 +148,20 @@ export function layoutProps(
   specs: readonly PropSpec[],
   rng: Rng,
   halfWidthAt: HalfWidthAt = tankHalfWidth(tank),
+  rockwork?: Rockwork,
 ): Prop[] {
   const generators = entryGenerators(rng, specs.length);
   return specs.flatMap((spec, index) => {
     const entryRng = generators[index] ?? rng;
     const placement = PROP_PLACEMENT[spec.kind];
-    const { near, far } = bandDepthRange(tank, spec.bands ?? placement.bands);
-    return Array.from({ length: spec.count }, () => {
-      const across = entryRng.range(-1, 1);
-      const z = entryRng.range(far, Math.min(near, -EDGE_CLEARANCE));
+    const depth = bandDepthRange(tank, spec.bands ?? placement.bands);
+    const surface = spec.on === "rockwork" ? rockwork : undefined;
+    return Array.from({ length: spec.count }, (): Prop => {
+      const spot = drawSpot(entryRng, depth, halfWidthAt, surface);
       return {
         kind: spec.kind,
-        color: spec.color,
-        x: spreadX(across, z, halfWidthAt),
-        z,
+        color: drawColor(spec.color, entryRng),
+        ...spot,
         size: entryRng.range(placement.size[0], placement.size[1]),
         rotation: entryRng.range(0, Math.PI * 2),
         seed: Math.floor(entryRng.next() * SEED_RANGE),

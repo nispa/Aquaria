@@ -3,6 +3,7 @@ import { createRng } from "../core/rng";
 import { sceneFixture } from "../scene/fixtures";
 import type { FloraSpec, PropSpec } from "../scene/schema";
 import { layoutFlora, layoutProps } from "./layout";
+import { createRockwork } from "./rockwork";
 import { bandDepthRange } from "./tank";
 
 const tank = sceneFixture().tank;
@@ -221,5 +222,96 @@ describe("visible width", () => {
       );
     });
     expect(moved).toEqual([]);
+  });
+});
+
+describe("color palettes", () => {
+  const palette = ["#9a6fc2", "#c9a27a", "#e08fb0"];
+
+  it("gives each prop one color from its entry's palette", () => {
+    const props = layoutProps(
+      tank,
+      [{ kind: "branch-coral", count: 30, color: palette }],
+      createRng(4),
+    );
+
+    expect(props.every((prop) => palette.includes(prop.color))).toBe(true);
+    expect(new Set(props.map((prop) => prop.color)).size).toBe(3);
+  });
+
+  it("gives each plant one color from its entry's palette", () => {
+    const plants = layoutFlora(
+      tank,
+      [{ kind: "anemone", count: 30, bands: [0, 2], height: [0.1, 0.2], color: palette }],
+      createRng(4),
+    );
+
+    expect(new Set(plants.map((plant) => plant.color))).toEqual(new Set(palette));
+  });
+});
+
+describe("placement on rockwork", () => {
+  const rockwork = createRockwork(
+    tank,
+    {
+      bands: [1, 3],
+      height: [0.3, 0.9],
+      coverage: 0.85,
+      thickness: 0.9,
+      rocks: 20,
+      color: "#888888",
+    },
+    createRng(5),
+    () => tank.width / 2,
+  );
+
+  it("sets corals on the ridge surface instead of the sand", () => {
+    const corals = layoutProps(
+      tank,
+      [{ kind: "brain-coral", count: 20, color: "#b89a5e", on: "rockwork" }],
+      createRng(6),
+      undefined,
+      rockwork,
+    );
+
+    const offRidge = corals.filter(
+      (coral) =>
+        (coral.elevation ?? 0) <= 0 ||
+        Math.abs((coral.elevation ?? 0) - rockwork.heightAt(coral.x, coral.z)) > 1e-9,
+    );
+    expect(offRidge).toEqual([]);
+  });
+
+  it("sets anemones on the ridge surface", () => {
+    const anemones = layoutFlora(
+      tank,
+      [
+        {
+          kind: "anemone",
+          count: 10,
+          bands: [0, 4],
+          height: [0.1, 0.2],
+          color: "#c98fd6",
+          on: "rockwork",
+        },
+      ],
+      createRng(6),
+      undefined,
+      rockwork,
+    );
+
+    expect(anemones.every((plant) => (plant.elevation ?? 0) > 0)).toBe(true);
+  });
+
+  it("keeps sand entries on the sand", () => {
+    const shells = layoutProps(
+      tank,
+      [{ kind: "shell", count: 5, color: "#ffffff" }],
+      createRng(6),
+      undefined,
+      rockwork,
+    );
+
+    expect(shells.every((shell) => shell.elevation === undefined)).toBe(true);
   });
 });

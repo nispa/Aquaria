@@ -187,3 +187,30 @@ describe("surface materials", () => {
     expect(() => parseScene(input, catalog)).toThrow(/floor\.material\.id/);
   });
 });
+
+describe("rockwork", () => {
+  const catalog = parseCatalog(catalogFixture());
+
+  it("accepts a rockwork ridge with defaults", () => {
+    const input = sceneFixture();
+    input.rockwork = { bands: [1, 3], height: [0.3, 0.9], color: "#8a7d70" };
+
+    const scene = parseScene(input, catalog);
+
+    expect(scene.rockwork).toMatchObject({ coverage: 0.85, thickness: 0.9, rocks: 40 });
+  });
+
+  it("rejects entries placed on rockwork when the scene has none", () => {
+    const input = sceneFixture();
+    input.props = [{ kind: "brain-coral", count: 2, color: "#b89a5e", on: "rockwork" }];
+
+    expect(() => parseScene(input, catalog)).toThrow(/props\.0\.on.*no rockwork/i);
+  });
+
+  it("accepts a palette of colors for an entry", () => {
+    const input = sceneFixture();
+    input.props = [{ kind: "shell", count: 2, color: ["#ffffff", "#f3e6d4"] }];
+
+    expect(() => parseScene(input, catalog)).not.toThrow();
+  });
+});

@@ -155,7 +155,7 @@ export function createFloraRenderer(plants: readonly Plant[], water: WaterUnifor
         const x = plant.x + rng.range(-style.spread, style.spread);
         const z = plant.z + rng.range(-style.spread, style.spread);
         const height = plant.height * rng.range(0.7, 1);
-        position.set(x, floorHeight(x, z) - 0.02, z);
+        position.set(x, floorHeight(x, z) + (plant.elevation ?? 0) - 0.02, z);
         // Yaw first, then lean: blades lean a little, tentacles splay outwards.
         euler.set(
           rng.range(style.tilt[0], style.tilt[1]),

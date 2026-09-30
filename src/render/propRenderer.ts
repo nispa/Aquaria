@@ -155,7 +155,8 @@ export function createPropRenderer(
 
   const place = (mesh: InstancedMesh, index: number, prop: Prop, turn: number): void => {
     const style = STYLES[prop.kind];
-    position.set(prop.x, floorHeight(prop.x, prop.z) + style.sink * prop.size, prop.z);
+    const base = floorHeight(prop.x, prop.z) + (prop.elevation ?? 0);
+    position.set(prop.x, base + style.sink * prop.size, prop.z);
     rotation.setFromEuler(euler.set(0, prop.rotation + turn, 0));
     scale.setScalar(prop.size);
     matrix.compose(position, rotation, scale);

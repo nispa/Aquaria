@@ -25,6 +25,7 @@ import { createRng, type Rng } from "../core/rng";
 import type { Scene, SpeciesCatalog } from "../scene/schema";
 import { lookPasses, type Look } from "../scene/look";
 import { layoutFlora, layoutProps } from "../sim/layout";
+import { createRockwork } from "../sim/rockwork";
 import type { Simulation } from "../sim/simulation";
 import type { EffectDefinition, EffectInstance } from "./effects/types";
 import { createEnvironment } from "./environment";
@@ -35,6 +36,7 @@ import { cameraFraming } from "./framing";
 import { createParticles, type Particles } from "./particles";
 import { createSurfaceLibrary } from "./surfaceLibrary";
 import { createPropRenderer, type PropRenderer } from "./propRenderer";
+import { createRockworkRenderer, type RockworkRenderer } from "./rockworkRenderer";
 import { createWaterUniforms } from "./uniforms";
 
 const VERTICAL_FOV = 38;
@@ -53,6 +55,8 @@ const ENVIRONMENT_INTENSITY = 0.65;
 const SHADOW_MAP_SIZE = 2048;
 const SEED_MAX = 2 ** 31 - 1;
 const BASIS_TRANSCODER_PATH = "basis/";
+/** Derives the ridge seed from the props seed, keeping earlier seeds unchanged. */
+const ROCKWORK_SEED_OFFSET = 1;
 /** Relative aspect change that makes the scenery spread again across the view. */
 const RELAYOUT_ASPECT_CHANGE = 0.02;
 
@@ -155,6 +159,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   world.add(environment.object, floraGroup, propGroup, fish.object, particleGroup);
   let flora: FloraRenderer | undefined;
   let props: PropRenderer | undefined;
+  let rockwork: RockworkRenderer | undefined;
   let particles: Particles | undefined;
   const frameCamera = (): void => {
     camera.aspect = cssWidth / cssHeight;
@@ -172,6 +177,8 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   const buildScenery = (): void => {
     flora?.dispose();
     props?.dispose();
+    rockwork?.dispose();
+    rockwork = undefined;
     particles?.dispose();
     floraGroup.clear();
     propGroup.clear();
@@ -183,10 +190,35 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
         (camera.position.z - z) * Math.tan(((VERTICAL_FOV / 2) * Math.PI) / 180) * camera.aspect,
         scene.tank.width / 2,
       );
-    const plants = layoutFlora(scene.tank, floraSpecs, createRng(scenerySeeds.flora), halfWidthAt);
-    const items = layoutProps(scene.tank, propSpecs, createRng(scenerySeeds.props), halfWidthAt);
+    const ridge =
+      scene.rockwork === undefined
+        ? undefined
+        : createRockwork(
+            scene.tank,
+            scene.rockwork,
+            createRng(scenerySeeds.props + ROCKWORK_SEED_OFFSET),
+            halfWidthAt,
+          );
+    const plants = layoutFlora(
+      scene.tank,
+      floraSpecs,
+      createRng(scenerySeeds.flora),
+      halfWidthAt,
+      ridge,
+    );
+    const items = layoutProps(
+      scene.tank,
+      propSpecs,
+      createRng(scenerySeeds.props),
+      halfWidthAt,
+      ridge,
+    );
     flora = createFloraRenderer(plants, water);
-    props = createPropRenderer(items, water, surfaces);
+    props = createPropRenderer([...(ridge?.rocks ?? []), ...items], water, surfaces);
+    if (ridge !== undefined && scene.rockwork !== undefined) {
+      rockwork = createRockworkRenderer(ridge, scene.rockwork, water, surfaces);
+      propGroup.add(rockwork.object);
+    }
     // Bubbles rise from the rocks, so they follow the props.
     particles = createParticles(scene, items, water, createRng(particleSeed));
     particles.setBubbleStyle(currentLook.has("refractive-bubbles") ? "refractive" : "sprite");
@@ -315,6 +347,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       environment.dispose();
       flora?.dispose();
       props?.dispose();
+      rockwork?.dispose();
       fish.dispose();
       particles?.dispose();
       environmentMap.dispose();

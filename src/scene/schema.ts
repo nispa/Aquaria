@@ -107,6 +107,34 @@ const surfaceMaterial = z.object({
   displacement: z.number().min(0).max(0.2).default(0),
 });
 
+/** One color, or a palette: each item then takes one of the colors. */
+const colorOrPalette = z.union([hexColor, z.array(hexColor).min(1)]);
+
+/** Where an entry grows: on the sand (when absent) or on the scene's rockwork ridge. */
+const placement = z.enum(["sand", "rockwork"]).optional();
+
+/** Largest number of loose rocks piled on a rockwork ridge. */
+export const MAX_ROCKWORK_ROCKS = 150;
+
+/**
+ * A reef ridge ("aquascape"): a continuous mound of live rock running across
+ * the tank, with loose rocks piled on it. Corals and anemones can grow on it.
+ */
+const rockwork = z.object({
+  /** Depth bands the ridge runs through. */
+  bands: bandRange,
+  /** Height range of the crest above the sand, m. */
+  height: orderedPair(z.number().positive(), "height"),
+  /** Share of the visible width the ridge spans. */
+  coverage: unit.default(0.85),
+  /** Front-to-back width of the ridge base, m. */
+  thickness: positive.default(0.9),
+  /** Loose rocks piled on the ridge. */
+  rocks: z.number().int().min(0).max(MAX_ROCKWORK_ROCKS).default(40),
+  color: hexColor,
+  material: surfaceMaterial.optional(),
+});
+
 /** Largest count per flora entry; also the top of its panel slider. */
 export const MAX_FLORA_PER_ENTRY = 200;
 /** Largest count per prop entry; also the top of its panel slider. */
@@ -121,7 +149,8 @@ const flora = z.object({
   bands: bandRange,
   /** Plant height range in meters. */
   height: orderedPair(z.number().positive(), "height"),
-  color: hexColor,
+  color: colorOrPalette,
+  on: placement,
 });
 
 const prop = z.object({
@@ -129,7 +158,8 @@ const prop = z.object({
   /** Label in the control panel; defaults to the kind. */
   name: z.string().min(1).optional(),
   count: z.number().int().min(0).max(MAX_PROPS_PER_ENTRY),
-  color: hexColor,
+  color: colorOrPalette,
+  on: placement,
   /** Depth bands to place the entry in; each kind has a sensible default. */
   bands: bandRange.optional(),
   material: surfaceMaterial.optional(),
@@ -140,31 +170,47 @@ const fauna = z.object({
   count: z.number().int().min(0).max(MAX_INDIVIDUALS_PER_SPECIES),
 });
 
-export const sceneSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  seed: z.number().int().nonnegative(),
-  /** Tank size in meters: x = width, y = height, z = depth away from the glass. */
-  tank: z.object({ width: positive, height: positive, depth: positive }),
-  water: z.object({ color: hexColor, fogDensity: z.number().min(0).max(1) }),
-  light: z.object({
-    color: hexColor,
-    intensity: z.number().min(0),
-    caustics: z.object({ intensity: z.number().min(0), scale: positive }),
-  }),
-  current: z.object({
-    direction: vector3,
-    /** Drift speed in meters per second. */
-    strength: z.number().min(0),
-    /** 0 = laminar, 1 = very turbulent. */
-    turbulence: unit,
-  }),
-  backdrop,
-  floor: z.object({ color: hexColor, material: surfaceMaterial.optional() }),
-  flora: z.array(flora).default([]),
-  props: z.array(prop).default([]),
-  fauna: z.array(fauna),
-});
+export const sceneSchema = z
+  .object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    seed: z.number().int().nonnegative(),
+    /** Tank size in meters: x = width, y = height, z = depth away from the glass. */
+    tank: z.object({ width: positive, height: positive, depth: positive }),
+    water: z.object({ color: hexColor, fogDensity: z.number().min(0).max(1) }),
+    light: z.object({
+      color: hexColor,
+      intensity: z.number().min(0),
+      caustics: z.object({ intensity: z.number().min(0), scale: positive }),
+    }),
+    current: z.object({
+      direction: vector3,
+      /** Drift speed in meters per second. */
+      strength: z.number().min(0),
+      /** 0 = laminar, 1 = very turbulent. */
+      turbulence: unit,
+    }),
+    backdrop,
+    floor: z.object({ color: hexColor, material: surfaceMaterial.optional() }),
+    rockwork: rockwork.optional(),
+    flora: z.array(flora).default([]),
+    props: z.array(prop).default([]),
+    fauna: z.array(fauna),
+  })
+  .superRefine((scene, context) => {
+    if (scene.rockwork !== undefined) return;
+    for (const section of ["flora", "props"] as const) {
+      scene[section].forEach((entry, index) => {
+        if (entry.on === "rockwork") {
+          context.addIssue({
+            code: "custom",
+            path: [section, index, "on"],
+            message: "Placed on rockwork, but the scene has no rockwork.",
+          });
+        }
+      });
+    }
+  });
 
 export type SpeciesCatalogInput = z.input<typeof speciesCatalogSchema>;
 export type SpeciesCatalog = z.output<typeof speciesCatalogSchema>;
@@ -174,3 +220,4 @@ export type Scene = z.output<typeof sceneSchema>;
 export type FloraSpec = z.output<typeof flora>;
 export type PropSpec = z.output<typeof prop>;
 export type SurfaceMaterialSpec = z.output<typeof surfaceMaterial>;
+export type RockworkSpec = z.output<typeof rockwork>;

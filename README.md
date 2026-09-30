@@ -116,6 +116,13 @@ Scenery entries:
   pushes the surface out by up to that many meters. The entry's `color` still
   sets the hue. A missing material logs a warning and falls back to the plain
   color. Available: `fine-sand`, `reef-rock`.
+- `color` may be one color or a palette (`["#9a6fc2", "#e08fb0"]`): each item
+  then takes one of the colors.
+- `rockwork` (optional) builds a reef ridge: a mound of live rock winding
+  across the tank with loose rocks piled on it. It sets depth `bands`, crest
+  `height` range (m), `coverage` (share of the visible width), `thickness`
+  (m), `rocks`, `color` and an optional `material`. Flora and prop entries
+  with `"on": "rockwork"` grow on its surface instead of the sand.
 - Any entry may have a `name`, used as its label in the panel. Every entry
   gets a slider in the panel's Scenery section; adding items never moves the
   ones already placed.
