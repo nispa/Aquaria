@@ -197,6 +197,8 @@ const prop = z.object({
   on: placement,
   /** Depth bands to place the entry in; each kind has a sensible default. */
   bands: bandRange.optional(),
+  /** Size range (rough diameter, m); each kind has a sensible default. */
+  size: orderedPair(z.number().positive(), "size").optional(),
   material: surfaceMaterial.optional(),
 });
 
@@ -212,7 +214,17 @@ export const sceneSchema = z
     seed: z.number().int().nonnegative(),
     /** Tank size in meters: x = width, y = height, z = depth away from the glass. */
     tank: z.object({ width: positive, height: positive, depth: positive }),
-    water: z.object({ color: hexColor, fogDensity: z.number().min(0).max(1) }),
+    water: z.object({
+      color: hexColor,
+      fogDensity: z.number().min(0).max(1),
+      /**
+       * How visible the rippling underside of the surface is: 1 for the open
+       * sea, low for aquariums, where it is only a thin bright band.
+       */
+      surface: unit.default(1),
+      /** Bubble streams rising from rocks; planted aquariums usually have none. */
+      bubbles: z.boolean().default(true),
+    }),
     light: z.object({
       color: hexColor,
       intensity: z.number().min(0),

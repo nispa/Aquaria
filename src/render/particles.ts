@@ -191,7 +191,12 @@ export function createParticles(
 ): Particles {
   const object = new Group();
   object.name = "particles";
-  const streams = bubbleStreamsFromProps(props, scene.tank.height, MAX_BUBBLE_STREAMS);
+  const streams = bubbleStreamsFromProps(
+    props,
+    scene.tank.height,
+    MAX_BUBBLE_STREAMS,
+    scene.water.bubbles,
+  );
   const snow = marineSnow(scene, water, rng);
   const bubbleStreams = spriteBubbles(scene, streams, water, rng);
   const refractive = createRefractiveBubbles(

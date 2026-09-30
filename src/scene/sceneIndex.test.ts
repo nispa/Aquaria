@@ -1,25 +1,55 @@
 import { describe, expect, it } from "vitest";
-import { parseSceneIndex, sceneName, selectSceneId } from "./sceneIndex";
 import { SceneValidationError } from "./parse";
+import { parseSceneIndex, sceneName, selectSceneId } from "./sceneIndex";
+
+const groups = {
+  groups: [
+    { name: "Open sea", scenes: ["reef"] },
+    { name: "Aquariums", scenes: ["home-reef", "iwagumi"] },
+  ],
+};
 
 describe("parseSceneIndex", () => {
-  it("reads the listed scene ids, the first being the default", () => {
-    const index = parseSceneIndex({ scenes: ["reef", "home-reef"] });
+  it("reads the scenes of every group, the first one being the default", () => {
+    const index = parseSceneIndex(groups);
 
-    expect(index).toEqual({ scenes: ["reef", "home-reef"], defaultScene: "reef" });
+    expect(index.scenes).toEqual(["reef", "home-reef", "iwagumi"]);
+    expect(index.defaultScene).toBe("reef");
   });
 
-  it("rejects an empty list", () => {
-    expect(() => parseSceneIndex({ scenes: [] })).toThrow(SceneValidationError);
+  it("keeps the groups for the panel", () => {
+    expect(parseSceneIndex(groups).groups.map((group) => group.name)).toEqual([
+      "Open sea",
+      "Aquariums",
+    ]);
+  });
+
+  it("rejects an index without scenes", () => {
+    expect(() => parseSceneIndex({ groups: [{ name: "Empty", scenes: [] }] })).toThrow(
+      SceneValidationError,
+    );
   });
 
   it("rejects ids that could escape the scenes folder", () => {
-    expect(() => parseSceneIndex({ scenes: ["../secret"] })).toThrow(SceneValidationError);
+    expect(() => parseSceneIndex({ groups: [{ name: "Bad", scenes: ["../secret"] }] })).toThrow(
+      SceneValidationError,
+    );
+  });
+
+  it("rejects a scene listed twice", () => {
+    const twice = {
+      groups: [
+        { name: "A", scenes: ["reef"] },
+        { name: "B", scenes: ["reef"] },
+      ],
+    };
+
+    expect(() => parseSceneIndex(twice)).toThrow(/listed twice/);
   });
 });
 
 describe("selectSceneId", () => {
-  const index = parseSceneIndex({ scenes: ["reef", "home-reef"] });
+  const index = parseSceneIndex(groups);
 
   it("prefers the scene named in the URL", () => {
     expect(selectSceneId(index, "home-reef", "reef")).toBe("home-reef");

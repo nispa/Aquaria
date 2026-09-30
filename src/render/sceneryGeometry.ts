@@ -494,9 +494,12 @@ const DRAGON = {
   radius: [0.34, 0.2] as const,
   height: 1.5,
   ridges: 9,
-  ridgeDepth: 0.22,
-  jag: 0.35,
-  lean: 0.25,
+  ridgeDepth: 0.3,
+  jag: 0.45,
+  lean: 0.35,
+  /** Horizontal strata: shelves cut into the stone every so often. */
+  strata: 11,
+  strataDepth: 0.12,
   crownStart: 0.6,
   crownSectors: 6,
 } as const;
@@ -515,7 +518,8 @@ export function dragonStoneGeometry(rng: Rng): BufferGeometry {
   reshape(geometry, (point, angle) => {
     const up = point.y / DRAGON.height;
     const ridge = Math.abs(Math.sin(angle * DRAGON.ridges + up * twist * 3 + phase));
-    const groove = 1 - DRAGON.ridgeDepth * ridge;
+    const shelf = Math.pow(Math.abs(Math.sin(up * DRAGON.strata * Math.PI + phase)), 6);
+    const groove = (1 - DRAGON.ridgeDepth * ridge) * (1 - DRAGON.strataDepth * shelf);
     point.x *= groove;
     point.z *= groove;
     // A jagged crown: above crownStart each sector of the top stops at its own height.

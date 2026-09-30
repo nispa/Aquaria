@@ -268,3 +268,22 @@ describe("reef fish bodies", () => {
     expect(body?.type === "procedural" ? body.colors.detail : undefined).toBe("#ffd84a");
   });
 });
+
+describe("water options", () => {
+  const catalog = parseCatalog(catalogFixture());
+
+  it("shows the water surface and bubbles by default", () => {
+    const scene = parseScene(sceneFixture(), catalog);
+
+    expect([scene.water.surface, scene.water.bubbles]).toEqual([1, true]);
+  });
+
+  it("lets an aquarium tone down the surface and turn bubbles off", () => {
+    const input = sceneFixture();
+    input.water = { ...input.water, surface: 0.2, bubbles: false };
+
+    const scene = parseScene(input, catalog);
+
+    expect([scene.water.surface, scene.water.bubbles]).toEqual([0.2, false]);
+  });
+});

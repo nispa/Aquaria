@@ -172,7 +172,7 @@ export function layoutProps(
         kind: spec.kind,
         color: drawColor(spec.color, entryRng),
         ...spot,
-        size: entryRng.range(placement.size[0], placement.size[1]),
+        size: entryRng.range(...(spec.size ?? placement.size)),
         rotation: entryRng.range(0, Math.PI * 2),
         seed: Math.floor(entryRng.next() * SEED_RANGE),
         ...(spec.material === undefined ? {} : { material: spec.material }),

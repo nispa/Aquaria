@@ -1,1 +1,6 @@
-{ "scenes": ["reef", "home-reef"] }
+{
+  "groups": [
+    { "name": "Open sea", "scenes": ["reef"] },
+    { "name": "Aquariums", "scenes": ["home-reef", "planted-tank", "iwagumi"] }
+  ]
+}

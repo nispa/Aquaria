@@ -107,8 +107,8 @@ the integrated GPU.
 ## Choosing a scene
 
 The panel (`H`) starts with a **Scene** list; the choice is remembered, so the
-plain URL reopens the last scene. The list is `public/scenes/index.json`; the
-first scene is the default.
+plain URL reopens the last scene. The list is `public/scenes/index.json`, in
+named groups ("Open sea", "Aquariums"); the first scene is the default.
 
 ## Writing scenes
 
@@ -143,9 +143,14 @@ back.
 Scenery entries:
 
 - `flora` kinds: `kelp`, `seagrass`, `anemone` (tentacles that sway with the
-  current), `bush` (grape-like macroalgae). Each entry sets `count`, depth `bands`, `height` range and `color`.
+  current), `bush` (grape-like macroalgae), and for planted aquariums
+  `carpet`, `fern` and `stem`. A `tipColor` tints the leaves near the top. Each entry sets `count`, depth `bands`, `height` range and `color`.
 - `props` kinds: `rock`, `starfish`, `shell`, `brain-coral`, `branch-coral`,
-  `fan-coral`, `table-coral`, `mushroom-coral`, `leather-coral`. Each entry sets `count` and `color`; `bands` is optional (small
+  `fan-coral`, `table-coral`, `mushroom-coral`, `leather-coral`, and for
+  aquariums `driftwood`, `dragon-stone`, `moss` and `pebble`. `size` ([min,
+  max] m) overrides the kind's default size.
+- `water.surface` (0..1) sets how visible the underside of the surface is
+  (low for aquariums) and `water.bubbles: false` turns the bubble streams off. Each entry sets `count` and `color`; `bands` is optional (small
   things default to the front, sea fans to the back).
 - The floor and any prop entry may set a photographic `material`:
   `{ "id": "reef-rock", "tileSize": 0.45, "displacement": 0.07 }`. The id is a

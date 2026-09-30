@@ -1,0 +1,144 @@
+{
+  "id": "iwagumi",
+  "name": "Iwagumi",
+  "seed": 20261002,
+  "tank": {
+    "width": 2.2,
+    "height": 1.1,
+    "depth": 1
+  },
+  "water": {
+    "color": "#0f3f3c",
+    "fogDensity": 0.3,
+    "surface": 0.25,
+    "bubbles": false
+  },
+  "light": {
+    "color": "#f6fff4",
+    "intensity": 1.35,
+    "caustics": {
+      "intensity": 0.6,
+      "scale": 4
+    }
+  },
+  "current": {
+    "direction": [1, 0, 0.2],
+    "strength": 0.02,
+    "turbulence": 0.35
+  },
+  "backdrop": {
+    "type": "gradient",
+    "top": "#1d5a52",
+    "bottom": "#04140f"
+  },
+  "floor": {
+    "color": "#7a7266",
+    "material": {
+      "id": "aquarium-gravel",
+      "tileSize": 0.15
+    }
+  },
+  "lights": {
+    "channels": {
+      "white": {
+        "color": "#f2fff0",
+        "level": 1
+      },
+      "blue": {
+        "level": 0.25
+      },
+      "violet": {
+        "level": 0
+      }
+    },
+    "moon": 0.04
+  },
+  "flora": [
+    {
+      "kind": "carpet",
+      "count": 90,
+      "bands": [0, 3],
+      "height": [0.02, 0.05],
+      "color": ["#6fc23a", "#8ed64a"]
+    },
+    {
+      "kind": "fern",
+      "count": 10,
+      "bands": [1, 3],
+      "height": [0.18, 0.4],
+      "color": ["#4f9a3a", "#5fae44"]
+    },
+    {
+      "kind": "stem",
+      "name": "Orange stem plants",
+      "count": 8,
+      "bands": [2, 4],
+      "height": [0.25, 0.5],
+      "color": "#4f8a36",
+      "tipColor": "#ff7a2a"
+    },
+    {
+      "kind": "seagrass",
+      "name": "Grass tufts",
+      "count": 30,
+      "bands": [0, 4],
+      "height": [0.08, 0.22],
+      "color": "#8fcf5a"
+    },
+    {
+      "kind": "bush",
+      "name": "Bushy plants",
+      "count": 8,
+      "bands": [1, 4],
+      "height": [0.15, 0.35],
+      "color": ["#5fb04a", "#79c85a"]
+    }
+  ],
+  "props": [
+    {
+      "kind": "dragon-stone",
+      "count": 7,
+      "color": "#5c5e60",
+      "bands": [1, 3],
+      "material": {
+        "id": "reef-rock",
+        "tileSize": 0.25,
+        "displacement": 0.015
+      }
+    },
+    {
+      "kind": "moss",
+      "count": 16,
+      "color": ["#6fc23a", "#8ed64a"],
+      "size": [0.12, 0.28]
+    },
+    {
+      "kind": "pebble",
+      "count": 35,
+      "bands": [0, 1],
+      "color": ["#8a857c", "#b8b0a2", "#5a5650", "#d0c8ba"]
+    }
+  ],
+  "fauna": [
+    {
+      "species": "freshwater-angelfish",
+      "count": 3
+    },
+    {
+      "species": "dwarf-gourami",
+      "count": 3
+    },
+    {
+      "species": "platy",
+      "count": 5
+    },
+    {
+      "species": "guppy",
+      "count": 8
+    },
+    {
+      "species": "neon-tetra",
+      "count": 15
+    }
+  ]
+}

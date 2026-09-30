@@ -94,13 +94,13 @@ const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
     fluorescent: false,
   },
   carpet: {
-    // Dense tufts of tiny leaves splayed over the substrate.
-    blades: 12,
-    width: 0.018,
-    spread: 0.07,
+    // Dense tufts of tiny leaves splayed flat over the substrate.
+    blades: 28,
+    width: 0.02,
+    spread: 0.13,
     segments: 2,
     sway: 0.01,
-    tilt: [0.3, 1.1],
+    tilt: [0.6, 1.3],
     shape: "blade",
     leaf: { veins: 1, veinStrength: 0.2 },
     fluorescent: false,

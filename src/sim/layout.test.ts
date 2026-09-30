@@ -346,3 +346,15 @@ describe("tip color", () => {
     expect(plants.every((plant) => plant.tipColor === undefined)).toBe(true);
   });
 });
+
+describe("size override", () => {
+  it("uses an entry's own size range instead of the kind's default", () => {
+    const props = layoutProps(
+      tank,
+      [{ kind: "rock", count: 20, color: "#666666", size: [0.1, 0.15] }],
+      createRng(3),
+    );
+
+    expect(props.every((prop) => prop.size >= 0.1 && prop.size <= 0.15)).toBe(true);
+  });
+});

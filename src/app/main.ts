@@ -12,7 +12,7 @@ import type { Lights } from "../scene/lights";
 import { lookFeatures, resolveLook, type Look } from "../scene/look";
 import { applySceneryOverrides, sceneryEntries } from "../scene/scenery";
 import { parseSceneIndex, sceneName, selectSceneId, type SceneIndex } from "../scene/sceneIndex";
-import type { SceneChoice } from "../ui/panel";
+import type { SceneChoice, SceneChoiceGroup } from "../ui/panel";
 import { createSimulation } from "../sim/simulation";
 import { createPanel } from "../ui/panel";
 import { parseLaunchOptions } from "./launchOptions";
@@ -79,15 +79,19 @@ function showError(error: unknown): void {
 }
 
 /** Names for the panel's scene list; a scene that fails to load is listed by its id. */
-async function loadSceneChoices(index: SceneIndex): Promise<SceneChoice[]> {
+async function loadSceneChoices(index: SceneIndex): Promise<SceneChoiceGroup[]> {
+  const choice = async (id: string): Promise<SceneChoice> => {
+    try {
+      return { id, name: sceneName(await fetchJson(`scenes/${id}.json`), id) };
+    } catch {
+      return { id, name: id };
+    }
+  };
   return Promise.all(
-    index.scenes.map(async (id) => {
-      try {
-        return { id, name: sceneName(await fetchJson(`scenes/${id}.json`), id) };
-      } catch {
-        return { id, name: id };
-      }
-    }),
+    index.groups.map(async (group) => ({
+      name: group.name,
+      scenes: await Promise.all(group.scenes.map(choice)),
+    })),
   );
 }
 

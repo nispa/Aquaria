@@ -19,9 +19,15 @@ export interface SceneChoice {
   readonly name: string;
 }
 
+/** A named group of scenes, e.g. "Open sea" or "Aquariums". */
+export interface SceneChoiceGroup {
+  readonly name: string;
+  readonly scenes: readonly SceneChoice[];
+}
+
 export interface PanelState {
   readonly sceneName: string;
-  readonly scenes: readonly SceneChoice[];
+  readonly scenes: readonly SceneChoiceGroup[];
   readonly sceneId: string;
   readonly species: readonly Species[];
   readonly counts: Readonly<Record<string, number>>;
@@ -98,11 +104,18 @@ export function createPanel(
   panel.hidden = true;
 
   panel.append(element("h1", "panel__title", state.sceneName));
-  const sceneSelect = select(
-    "Scene",
-    state.scenes.map((choice) => [choice.id, choice.name] as const),
-    state.sceneId,
-  );
+  const sceneSelect = select("Scene", [], state.sceneId);
+  for (const group of state.scenes) {
+    const optgroup = element("optgroup", "");
+    optgroup.label = group.name;
+    for (const choice of group.scenes) {
+      const option = element("option", "", choice.name);
+      option.value = choice.id;
+      optgroup.append(option);
+    }
+    sceneSelect.input.append(optgroup);
+  }
+  sceneSelect.input.value = state.sceneId;
   sceneSelect.input.name = "scene";
   sceneSelect.input.addEventListener("change", () => {
     callbacks.onSceneChange(sceneSelect.input.value);

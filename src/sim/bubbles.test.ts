@@ -71,3 +71,13 @@ describe("bubbleStreamsFromProps", () => {
     expect(bubbleStreamsFromProps(props, 3, 10)).toHaveLength(2);
   });
 });
+
+describe("bubbles switched off", () => {
+  it("starts no stream when the scene turns bubbles off", () => {
+    const rocks: Prop[] = [
+      { kind: "rock", color: "#666", x: 1, z: -2, size: 0.5, rotation: 0, seed: 1 },
+    ];
+
+    expect(bubbleStreamsFromProps(rocks, 3, 5, false)).toEqual([]);
+  });
+});

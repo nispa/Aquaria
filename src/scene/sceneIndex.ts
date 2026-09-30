@@ -2,19 +2,39 @@ import { z } from "zod";
 import { formatIssues, SceneValidationError } from "./parse";
 
 /**
- * The list of scenes offered in the panel: `scenes/index.json`. The first one
- * opens when neither the URL nor a saved choice names another.
+ * The scenes offered in the panel, in named groups: `scenes/index.json`. The
+ * first scene opens when neither the URL nor a saved choice names another.
  */
 
 const SCENE_ID = /^[a-z0-9-]+$/;
 
-const sceneIndexSchema = z.object({
-  scenes: z
-    .array(z.string().regex(SCENE_ID, "Scene ids use lowercase letters, digits and dashes."))
-    .min(1),
-});
+const sceneId = z.string().regex(SCENE_ID, "Scene ids use lowercase letters, digits and dashes.");
+
+const sceneIndexSchema = z
+  .object({
+    /** Named groups shown in the panel, e.g. "Open sea" and "Aquariums". */
+    groups: z.array(z.object({ name: z.string().min(1), scenes: z.array(sceneId) })).min(1),
+  })
+  .superRefine(({ groups }, context) => {
+    const seen = new Set<string>();
+    for (const group of groups) {
+      for (const id of group.scenes) {
+        if (seen.has(id)) {
+          context.addIssue({ code: "custom", message: `Scene "${id}" is listed twice.` });
+        }
+        seen.add(id);
+      }
+    }
+  });
+
+export interface SceneGroup {
+  readonly name: string;
+  readonly scenes: readonly string[];
+}
 
 export interface SceneIndex {
+  readonly groups: readonly SceneGroup[];
+  /** Every listed scene, in order. */
   readonly scenes: readonly string[];
   readonly defaultScene: string;
 }
@@ -24,11 +44,13 @@ export function parseSceneIndex(input: unknown): SceneIndex {
   if (!result.success) {
     throw new SceneValidationError(formatIssues("scene index", result.error));
   }
-  const [defaultScene] = result.data.scenes;
+  const { groups } = result.data;
+  const scenes = groups.flatMap((group) => group.scenes);
+  const [defaultScene] = scenes;
   if (defaultScene === undefined) {
     throw new SceneValidationError("Invalid scene index: no scenes listed.");
   }
-  return { scenes: result.data.scenes, defaultScene };
+  return { groups, scenes, defaultScene };
 }
 
 /**

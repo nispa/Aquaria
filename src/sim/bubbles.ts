@@ -43,12 +43,14 @@ export function bubblePosition(
 /** Bubbles leave a rock a little below its top, which sits at about 0.3 of its size. */
 const ROCK_TOP_RATIO = 0.3;
 
-/** One bubble stream per rock, at most `limit`. */
+/** One bubble stream per rock, at most `limit`; none when the scene turns bubbles off. */
 export function bubbleStreamsFromProps(
   props: readonly Prop[],
   surfaceY: number,
   limit: number,
+  enabled = true,
 ): BubbleStream[] {
+  if (!enabled) return [];
   return props
     .filter((prop) => prop.kind === "rock")
     .slice(0, limit)

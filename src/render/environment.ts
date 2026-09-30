@@ -102,7 +102,7 @@ function surface(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
   const geometry = new PlaneGeometry(size, size);
   geometry.rotateX(Math.PI / 2);
   const material = new ShaderMaterial({
-    uniforms: { ...water },
+    uniforms: { ...water, uSurfaceOpacity: { value: scene.water.surface } },
     transparent: true,
     depthWrite: false,
     side: DoubleSide,
@@ -119,6 +119,7 @@ function surface(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
       uniform float uCausticsScale;
       uniform vec3 uLightColor;
       uniform vec3 uWaterColor;
+      uniform float uSurfaceOpacity;
       varying vec3 vWorld;
       ${CAUSTICS_GLSL}
       void main() {
@@ -126,7 +127,7 @@ function surface(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
         float distance = length(vWorld.xz - cameraPosition.xz);
         float fade = exp(-distance * 0.09);
         vec3 color = mix(uWaterColor * 2.2, uLightColor, 0.25 + ripple * 0.45);
-        gl_FragColor = vec4(color, (0.4 + ripple * 0.35) * fade);
+        gl_FragColor = vec4(color, (0.4 + ripple * 0.35) * fade * uSurfaceOpacity);
         #include <colorspace_fragment>
       }
     `,
