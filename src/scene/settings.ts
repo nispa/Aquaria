@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { customLightsSchema } from "./lights";
 import { FULL_HD_HEIGHT, UHD_HEIGHT } from "../core/resolution";
 import {
   MAX_FLORA_PER_ENTRY,
@@ -17,6 +18,8 @@ export const settingsSchema = z.object({
   showFps: z.boolean().default(false),
   /** On/off choice per look feature id; features not listed use their default. */
   look: z.record(z.string(), z.boolean()).optional(),
+  /** Custom LED setup; when absent the scene's own lights are used. */
+  lights: customLightsSchema.optional(),
   /** Scenery count overrides per scene id, then per scenery key (see `sceneryEntries`). */
   scenery: z
     .record(z.string(), z.record(z.string(), z.number().int().min(0).max(MAX_FLORA_PER_ENTRY)))

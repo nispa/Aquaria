@@ -23,8 +23,10 @@ import type { Logger } from "../core/logger";
 import { pixelRatioForHeight } from "../core/resolution";
 import { createRng, type Rng } from "../core/rng";
 import type { Scene, SpeciesCatalog } from "../scene/schema";
+import type { Lights } from "../scene/lights";
 import { lookPasses, type Look } from "../scene/look";
 import { layoutFlora, layoutProps } from "../sim/layout";
+import { createLightMixer, cycleHour } from "../sim/lightCycle";
 import { createRockwork } from "../sim/rockwork";
 import type { Simulation } from "../sim/simulation";
 import type { EffectDefinition, EffectInstance } from "./effects/types";
@@ -33,6 +35,7 @@ import { createWaterEnvironment } from "./environmentLight";
 import { createFishRenderer } from "./fishRenderer";
 import { createFloraRenderer, type FloraRenderer } from "./floraRenderer";
 import { cameraFraming } from "./framing";
+import { createLightRig } from "./lightRig";
 import { createParticles, type Particles } from "./particles";
 import { createSurfaceLibrary } from "./surfaceLibrary";
 import { createPropRenderer, type PropRenderer } from "./propRenderer";
@@ -50,8 +53,6 @@ const SHADOW_COVERAGE = 0.75;
 const SHADOW_BIAS = -0.0004;
 const SHADOW_NORMAL_BIAS = 0.02;
 const SHADOW_FAR = 30;
-/** Image-based light is a fill, not the key light: kept below the sun. */
-const ENVIRONMENT_INTENSITY = 0.65;
 const SHADOW_MAP_SIZE = 2048;
 const SEED_MAX = 2 ** 31 - 1;
 const BASIS_TRANSCODER_PATH = "basis/";
@@ -73,6 +74,10 @@ export interface AquariumViewOptions {
   readonly look: Look;
   /** Registered post-processing effects; the look enables them by id. */
   readonly effects: readonly EffectDefinition[];
+  /** LED channels and daily cycle. */
+  readonly lights: Lights;
+  /** Local time of day in hours, for the clock cycle mode. Called every frame: keep it cheap. */
+  readonly clockHour: () => number;
 }
 
 export interface AquariumView {
@@ -84,6 +89,10 @@ export interface AquariumView {
   setRenderHeight(heightPixels: number): void;
   /** Switches features live: lighting, bubbles and post-processing. */
   setLook(look: Look): void;
+  /** Switches to another LED setup or cycle. */
+  setLights(lights: Lights): void;
+  /** Hour of the aquarium day shown by the last frame. */
+  hour(): number;
   /** Rebuilds plants, rocks, corals and shells for new scenery counts. */
   setScenery(flora: Scene["flora"], props: Scene["props"]): void;
   dispose(): void;
@@ -113,8 +122,10 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   renderer.shadowMap.type = PCFShadowMap;
 
   const world = new ThreeScene();
-  world.background = new Color(scene.water.color);
-  world.fog = new FogExp2(scene.water.color, scene.water.fogDensity);
+  const background = new Color(scene.water.color);
+  const fog = new FogExp2(scene.water.color, scene.water.fogDensity);
+  world.background = background;
+  world.fog = fog;
 
   const camera = new PerspectiveCamera(VERTICAL_FOV, cssWidth / cssHeight, 0.05, 80);
 
@@ -139,6 +150,23 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   sun.shadow.normalBias = SHADOW_NORMAL_BIAS;
   const ambient = new AmbientLight(scene.water.color, 0.6);
   world.add(hemisphere, sun, sun.target, ambient);
+  const rig = createLightRig({
+    scene,
+    sun,
+    hemisphere,
+    ambient,
+    fog,
+    background,
+    water,
+    setEnvironmentIntensity: (intensity) => {
+      world.environmentIntensity = intensity;
+    },
+  });
+  let lights = options.lights;
+  let mixer = createLightMixer(lights);
+  let currentHour = lights.cycle.hour;
+  // Reused every frame so the render loop does not allocate.
+  const cycleInput = { clockHour: 0, elapsedSeconds: 0 };
 
   // Scenery is rebuilt when the viewer changes counts: keep the seeds, not the
   // generators, so every rebuild starts from the same state.
@@ -283,8 +311,8 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     renderer.shadowMap.enabled = shadows;
     sun.castShadow = shadows;
     world.environment = look.has("reflections") ? environmentMap.texture : null;
-    world.environmentIntensity = ENVIRONMENT_INTENSITY;
-    water.uCausticsIntensity.value = look.has("caustics") ? scene.light.caustics.intensity : 0;
+    rig.setCausticsEnabled(look.has("caustics"));
+    rig.setFluorescenceEnabled(look.has("fluorescence"));
     currentLook = look;
     particles?.setBubbleStyle(look.has("refractive-bubbles") ? "refractive" : "sprite");
     environment.setLightShaftsVisible(look.has("light-shafts"));
@@ -317,7 +345,16 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
 
   return {
     ready: () => surfaces.settled(),
+    setLights(next) {
+      lights = next;
+      mixer = createLightMixer(next);
+    },
+    hour: () => currentHour,
     render() {
+      cycleInput.clockHour = options.clockHour();
+      cycleInput.elapsedSeconds = simulation.timeSeconds;
+      currentHour = cycleHour(lights.cycle, cycleInput);
+      rig.apply(mixer.at(currentHour));
       water.uTime.value = simulation.timeSeconds;
       props?.update(simulation.timeSeconds);
       fish.update(simulation.fish);

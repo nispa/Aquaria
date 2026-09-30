@@ -22,6 +22,7 @@ import {
   starfishGeometry,
 } from "./sceneryGeometry";
 import { causticsPatch } from "./shaders/causticsPatch";
+import { fluorescencePatch } from "./shaders/fluorescencePatch";
 import { patchMaterial, type ShaderPatch } from "./shaders/patch";
 import { surfacePatch } from "./shaders/surfacePatch";
 import type { SurfaceLibrary } from "./surfaceLibrary";
@@ -36,6 +37,8 @@ interface PropStyle {
   /** Thin shapes are seen from both sides. */
   readonly doubleSided: boolean;
   readonly castShadow: boolean;
+  /** Glows under actinic light (living corals). */
+  readonly fluorescent: boolean;
   /** Vertical offset relative to the prop size: < 0 sinks it into the sand. */
   readonly sink: number;
 }
@@ -48,6 +51,7 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     flatShading: true,
     doubleSided: false,
     castShadow: true,
+    fluorescent: false,
     sink: 0,
   },
   starfish: {
@@ -57,6 +61,7 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     flatShading: false,
     doubleSided: false,
     castShadow: false,
+    fluorescent: false,
     sink: 0,
   },
   shell: {
@@ -66,6 +71,7 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     flatShading: false,
     doubleSided: true,
     castShadow: true,
+    fluorescent: false,
     sink: -0.05,
   },
   "brain-coral": {
@@ -75,6 +81,7 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     flatShading: false,
     doubleSided: false,
     castShadow: true,
+    fluorescent: true,
     sink: -0.04,
   },
   "branch-coral": {
@@ -84,6 +91,7 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     flatShading: false,
     doubleSided: false,
     castShadow: true,
+    fluorescent: true,
     sink: -0.03,
   },
   "fan-coral": {
@@ -93,6 +101,7 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     flatShading: false,
     doubleSided: false,
     castShadow: true,
+    fluorescent: true,
     sink: -0.02,
   },
 };
@@ -172,6 +181,7 @@ export function createPropRenderer(
       surface === undefined
         ? [causticsPatch(water)]
         : [surfacePatch(surfaces.get(surface.id), "triplanar", surface), causticsPatch(water)];
+    if (style.fluorescent) patches.push(fluorescencePatch(water));
     const material = patchMaterial(
       new MeshStandardMaterial({
         color: new Color(first.prop.color),

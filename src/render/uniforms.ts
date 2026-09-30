@@ -21,6 +21,10 @@ export type WaterUniforms = {
   readonly uCurrent: IUniform<Vector3>;
   /** Water color, linear RGB. */
   readonly uWaterColor: IUniform<Color>;
+  /** How lit the tank is by the LEDs, 0 (night) .. 1 (full day). Dims far water. */
+  readonly uDaylight: IUniform<number>;
+  /** Coral glow under actinic light, 0..1. */
+  readonly uFluorescence: IUniform<number>;
 };
 
 export function createWaterUniforms(scene: Scene): WaterUniforms {
@@ -33,5 +37,7 @@ export function createWaterUniforms(scene: Scene): WaterUniforms {
     uLightColor: { value: new Color(scene.light.color) },
     uCurrent: { value: new Vector3(x, y, z).normalize().multiplyScalar(scene.current.strength) },
     uWaterColor: { value: new Color(scene.water.color) },
+    uDaylight: { value: 1 },
+    uFluorescence: { value: 0 },
   };
 }

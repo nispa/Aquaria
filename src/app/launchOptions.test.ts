@@ -45,3 +45,13 @@ describe("effects option", () => {
     expect(parseLaunchOptions("?seed=3").effects).toBeUndefined();
   });
 });
+
+describe("hour option", () => {
+  it("reads a fixed hour of the aquarium day", () => {
+    expect(parseLaunchOptions("?hour=21.5").hour).toBe(21.5);
+  });
+
+  it("ignores hours outside the day", () => {
+    expect(parseLaunchOptions("?hour=25").hour).toBeUndefined();
+  });
+});

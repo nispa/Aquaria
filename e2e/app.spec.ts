@@ -125,3 +125,29 @@ test("changes the scenery from the panel", async ({ page }) => {
   );
   expect(errors).toEqual([]);
 });
+
+test("customizes the LED lights and cycle from the panel", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await openLive(page);
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await page.locator('select[name="light-mode"]').selectOption("accelerated");
+  await page.locator('input[name="light-accent-level"]').fill("60");
+
+  await expect(page.locator('select[name="light-setup"]')).toHaveValue("custom");
+  await expect(page.locator('[data-channel="accent"] output')).toHaveText("60%");
+  expect(errors).toEqual([]);
+});
+
+test("goes back to the recommended lights", async ({ page }) => {
+  await openLive(page);
+  await waitForState(page);
+  await page.keyboard.press("h");
+  await page.locator('input[name="light-accent-level"]').fill("60");
+
+  await page.locator('select[name="light-setup"]').selectOption("recommended");
+
+  await expect(page.locator('[data-channel="accent"] output')).toHaveText("0%");
+});

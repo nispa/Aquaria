@@ -56,8 +56,9 @@ URL options:
 | `seed`    | `?seed=7`                | Overrides the scene's random seed                  |
 | `frozen`  | `?frozen=10`             | Simulates 10 s and renders one still frame         |
 | `effects` | `?effects=shadows,bloom` | Enables exactly these effects (`none` for all off) |
+| `hour`    | `?hour=21.5`             | Pins the aquarium time (for demos and screenshots) |
 
-Panel settings (populations, scenery, effects, resolution, fps counter) are saved in the browser.
+Panel settings (populations, scenery, lights, effects, resolution, fps counter) are saved in the browser.
 
 ## Running on a wall
 
@@ -132,6 +133,33 @@ Species are defined once in `public/species.json`: body shape (`disc`, `round`,
 schooling (0 = solitary, 1 = tight school), depth bands and height range.
 Files are validated on load; mistakes are reported with the exact field.
 
+## Lights and day cycle
+
+The tank is lit like a reef aquarium, by four LED channels: white, actinic
+blue, violet/UV and a free "accent" color, plus a faint blue moonlight at
+night. Under blue and violet, corals and anemones fluoresce.
+
+The panel's Lights section starts on **Recommended** (the scene's setup).
+Changing any control switches to **Custom**, saved in the browser:
+
+- **Cycle**: _Fixed hour_, _Real clock_ (follows the local time) or
+  _Accelerated day_ (a whole day in the chosen minutes, starting from the
+  chosen hour).
+- **Sunrise**, **Sunset** and **Dawn / dusk** length. The blue switches on one
+  dawn earlier and off one dusk later than the white, as on real reefs.
+- **Color and level** of each channel, and the **moonlight** level.
+
+A scene sets its own recommended lights in a `lights` object with the same
+fields (all optional), for example sunlight for an open-sea scene:
+
+```jsonc
+"lights": {
+  "channels": { "white": { "level": 1 }, "blue": { "level": 0.2 }, "violet": { "level": 0 } },
+  "moon": 0.05,
+  "cycle": { "mode": "clock", "sunrise": 8, "sunset": 20, "ramp": 1.5 }
+}
+```
+
 ## Effects
 
 Every effect has its own switch in the control panel (press `H`), so you
@@ -144,6 +172,7 @@ choose what the GPU spends its time on.
 | Water reflections   | Image-based light from the water around the tank     | on      |
 | Refractive bubbles  | Glass-like bubbles instead of sprites                | on      |
 | Light shaft planes  | Cheap shafts; redundant with volumetric light        | off     |
+| Coral fluorescence  | Corals and anemones glow under blue and violet LEDs  | on      |
 | Ambient occlusion   | Darkens creases and contact areas                    | off     |
 | Volumetric light    | Shafts through the water, occluded by fish and kelp  | on      |
 | Depth of field      | Blurs what is nearer or further than the focus plane | off     |

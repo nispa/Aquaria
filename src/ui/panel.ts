@@ -1,5 +1,8 @@
 import { FULL_HD_HEIGHT, resolutionLabel, UHD_HEIGHT } from "../core/resolution";
+import type { Lights } from "../scene/lights";
 import type { Look, LookFeature, LookFeatureKind } from "../scene/look";
+import { checkbox, element, slider } from "./controls";
+import { createLightsSection, type LightsSectionState } from "./lightsSection";
 import type { SceneryEntry } from "../scene/scenery";
 import { MAX_INDIVIDUALS_PER_SPECIES, type Species } from "../scene/schema";
 
@@ -13,6 +16,8 @@ export interface PanelState {
   readonly sceneName: string;
   readonly species: readonly Species[];
   readonly counts: Readonly<Record<string, number>>;
+  /** LED setup and cycle. */
+  readonly lights: LightsSectionState;
   /** Plants, rocks, corals and shells with their current counts. */
   readonly scenery: readonly SceneryEntry[];
   readonly renderHeight: number;
@@ -25,6 +30,8 @@ export interface PanelState {
 export interface PanelCallbacks {
   onCountChange(speciesId: string, count: number): void;
   onSceneryChange(key: string, count: number): void;
+  /** A custom setup, or undefined to go back to the recommended one. */
+  onLightsChange(lights: Lights | undefined): void;
   onRenderHeightChange(height: number): void;
   onShowFpsChange(show: boolean): void;
   onFeatureChange(featureId: string, enabled: boolean): void;
@@ -34,40 +41,15 @@ export interface PanelCallbacks {
 export interface Panel {
   toggle(): void;
   setFps(fps: number | undefined): void;
+  /** Shows the aquarium's time of day. Cheap to call every frame. */
+  setHour(hour: number): void;
   dispose(): void;
-}
-
-function element<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  className: string,
-  text?: string,
-): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
 }
 
 const FEATURE_HEADINGS: Readonly<Record<LookFeatureKind, string>> = {
   lighting: "Lighting",
   effect: "Post-processing",
 };
-
-function checkbox(
-  label: string,
-  checked: boolean,
-  onChange: (checked: boolean) => void,
-): HTMLLabelElement {
-  const row = element("label", "panel__row panel__row--check");
-  const input = element("input", "panel__check");
-  input.type = "checkbox";
-  input.checked = checked;
-  input.addEventListener("change", () => {
-    onChange(input.checked);
-  });
-  row.append(input, element("span", "panel__label", label));
-  return row;
-}
 
 /** One section per feature kind, one switch per feature. */
 function featureSections(
@@ -87,16 +69,6 @@ function featureSections(
     }
     return section;
   });
-}
-
-function slider(min: number, max: number, step: number, value: number): HTMLInputElement {
-  const input = element("input", "panel__slider");
-  input.type = "range";
-  input.min = String(min);
-  input.max = String(max);
-  input.step = String(step);
-  input.value = String(value);
-  return input;
 }
 
 /**
@@ -145,6 +117,10 @@ export function createPanel(
     scenery.append(row);
   }
 
+  const lightsSection = createLightsSection(state.lights, (lights) => {
+    callbacks.onLightsChange(lights);
+  });
+
   const quality = element("section", "panel__section");
   quality.append(element("h2", "panel__heading", "Quality"));
   const resolutionRow = element("label", "panel__row");
@@ -189,6 +165,7 @@ export function createPanel(
   panel.append(
     fauna,
     scenery,
+    lightsSection.element,
     ...featureSections(state.features, state.look, (featureId, enabled) => {
       callbacks.onFeatureChange(featureId, enabled);
     }),
@@ -228,6 +205,9 @@ export function createPanel(
 
   return {
     toggle,
+    setHour(hour) {
+      lightsSection.setHour(hour);
+    },
     setFps(fps) {
       fpsCounter.textContent = fps === undefined ? "– fps" : `${fps} fps`;
     },

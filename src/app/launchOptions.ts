@@ -3,6 +3,7 @@ const DEFAULT_SCENE = "reef";
 const SCENE_ID = /^[a-z0-9-]+$/;
 const FEATURE_ID = /^[a-z0-9-]+$/;
 const NO_FEATURES = "none";
+const HOURS_PER_DAY = 24;
 
 /** Options read from the page URL, e.g. `?scene=reef&frozen=10&seed=3`. */
 export interface LaunchOptions {
@@ -11,6 +12,8 @@ export interface LaunchOptions {
   readonly frozenSeconds?: number;
   /** Overrides the scene seed. */
   readonly seed?: number;
+  /** Fixed hour of the aquarium day (0..24), overriding the light cycle. */
+  readonly hour?: number;
   /** Exact list of look features to enable, overriding the saved choices. */
   readonly effects?: readonly string[];
 }
@@ -35,10 +38,12 @@ export function parseLaunchOptions(search: string): LaunchOptions {
   const frozenSeconds = nonNegativeNumber(params.get("frozen"));
   const seed = nonNegativeNumber(params.get("seed"));
   const effects = featureList(params.get("effects"));
+  const hour = nonNegativeNumber(params.get("hour"));
   return {
     scene,
     ...(frozenSeconds === undefined ? {} : { frozenSeconds }),
     ...(seed === undefined ? {} : { seed: Math.floor(seed) }),
     ...(effects === undefined ? {} : { effects }),
+    ...(hour === undefined || hour > HOURS_PER_DAY ? {} : { hour }),
   };
 }

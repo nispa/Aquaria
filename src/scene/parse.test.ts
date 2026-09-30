@@ -1,3 +1,4 @@
+import { RECOMMENDED_LIGHTS } from "./lights";
 import { describe, expect, it } from "vitest";
 import { catalogFixture, sceneFixture } from "./fixtures";
 import { parseCatalog, parseScene, SceneValidationError } from "./parse";
@@ -212,5 +213,24 @@ describe("rockwork", () => {
     input.props = [{ kind: "shell", count: 2, color: ["#ffffff", "#f3e6d4"] }];
 
     expect(() => parseScene(input, catalog)).not.toThrow();
+  });
+});
+
+describe("scene lights", () => {
+  const catalog = parseCatalog(catalogFixture());
+
+  it("uses the recommended lights when the scene sets none", () => {
+    const scene = parseScene(sceneFixture(), catalog);
+
+    expect(scene.lights).toEqual(RECOMMENDED_LIGHTS);
+  });
+
+  it("lets a scene tune its own lights", () => {
+    const input = sceneFixture();
+    input.lights = { channels: { blue: { level: 0.2 } }, cycle: { mode: "clock" } };
+
+    const scene = parseScene(input, catalog);
+
+    expect([scene.lights.channels.blue.level, scene.lights.cycle.mode]).toEqual([0.2, "clock"]);
   });
 });

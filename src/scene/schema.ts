@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { lightsSchema } from "./lights";
 
 /**
  * Schemas for the two external data files: the species catalog and a scene.
@@ -192,6 +193,8 @@ export const sceneSchema = z
     }),
     backdrop,
     floor: z.object({ color: hexColor, material: surfaceMaterial.optional() }),
+    /** LED channels and daily cycle; the recommended reef setup when absent. */
+    lights: lightsSchema,
     rockwork: rockwork.optional(),
     flora: z.array(flora).default([]),
     props: z.array(prop).default([]),

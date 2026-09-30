@@ -33,7 +33,7 @@ export interface LookFeature {
 
 /** Ids of the features the renderer builds in, as opposed to registered effects. */
 export type LightingFeatureId =
-  "caustics" | "shadows" | "reflections" | "refractive-bubbles" | "light-shafts";
+  "caustics" | "shadows" | "reflections" | "refractive-bubbles" | "light-shafts" | "fluorescence";
 
 /**
  * Lighting features. Defaults favour frame rate: cheap light-shaft planes are
@@ -50,6 +50,7 @@ export const LIGHTING_FEATURES: readonly (LookFeature & { readonly id: LightingF
     enabledByDefault: true,
   },
   { id: "light-shafts", name: "Light shaft planes", kind: "lighting", enabledByDefault: false },
+  { id: "fluorescence", name: "Coral fluorescence", kind: "lighting", enabledByDefault: true },
 ];
 
 /** Ids of the enabled features. */

@@ -100,3 +100,16 @@ describe("scenery preference", () => {
     expect(parseSettings({ scenery: { reef: { rock: -1 } } }).valid).toBe(false);
   });
 });
+
+describe("lights preference", () => {
+  it("has no custom lights by default, so the scene's lights are used", () => {
+    expect(DEFAULT_SETTINGS.lights).toBeUndefined();
+  });
+
+  it("keeps a saved custom light setup, filling missing fields", () => {
+    const { settings } = parseSettings({ lights: { cycle: { mode: "clock" } } });
+
+    expect(settings.lights?.cycle.mode).toBe("clock");
+    expect(settings.lights?.channels.white.level).toBeGreaterThan(0);
+  });
+});

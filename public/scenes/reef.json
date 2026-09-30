@@ -36,6 +36,20 @@
       "tileSize": 1.2
     }
   },
+  "lights": {
+    "channels": {
+      "white": {
+        "level": 1
+      },
+      "blue": {
+        "level": 0.2
+      },
+      "violet": {
+        "level": 0
+      }
+    },
+    "moon": 0.05
+  },
   "flora": [
     {
       "kind": "kelp",

@@ -18,6 +18,7 @@ import type { Plant } from "../sim/layout";
 import { floorHeight } from "../sim/terrain";
 import { anemoneTentacleGeometry } from "./sceneryGeometry";
 import { causticsPatch } from "./shaders/causticsPatch";
+import { fluorescencePatch } from "./shaders/fluorescencePatch";
 import { patchMaterial } from "./shaders/patch";
 import { plantPatch, type LeafStyle } from "./shaders/plantPatch";
 import type { WaterUniforms } from "./uniforms";
@@ -35,6 +36,8 @@ interface BladeStyle {
   readonly tilt: readonly [number, number];
   readonly shape: "blade" | "tentacle";
   readonly leaf: LeafStyle;
+  /** Glows under actinic light (anemones). */
+  readonly fluorescent: boolean;
 }
 
 const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
@@ -48,6 +51,7 @@ const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
     shape: "blade",
     // Kelp blades have a few broad ribs.
     leaf: { veins: 3, veinStrength: 0.25 },
+    fluorescent: false,
   },
   seagrass: {
     blades: 6,
@@ -58,6 +62,7 @@ const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
     tilt: [0, 0.08],
     shape: "blade",
     leaf: { veins: 7, veinStrength: 0.3 },
+    fluorescent: false,
   },
   anemone: {
     blades: 36,
@@ -68,6 +73,7 @@ const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
     tilt: [0.15, 1.1],
     shape: "tentacle",
     leaf: { veins: 0, veinStrength: 0 },
+    fluorescent: true,
   },
 };
 
@@ -139,7 +145,11 @@ export function createFloraRenderer(plants: readonly Plant[], water: WaterUnifor
         roughness: 0.7,
         side: DoubleSide,
       }),
-      [plantPatch(water, { value: style.sway }, style.leaf), causticsPatch(water)],
+      [
+        plantPatch(water, { value: style.sway }, style.leaf),
+        causticsPatch(water),
+        ...(style.fluorescent ? [fluorescencePatch(water)] : []),
+      ],
     );
     const mesh = new InstancedMesh(geometry, material, count);
     mesh.frustumCulled = false;

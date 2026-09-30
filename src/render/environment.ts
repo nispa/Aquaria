@@ -165,6 +165,7 @@ function backdrop(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
       uniform float uTime;
       uniform vec3 uTop;
       uniform vec3 uBottom;
+      uniform float uDaylight;
       uniform vec3 uLightColor;
       varying vec2 vUv;
       uniform vec3 uWaterColor;
@@ -174,8 +175,9 @@ function backdrop(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
         const float horizon = 0.5;
         float up = smoothstep(horizon, 0.85, vUv.y);
         float down = smoothstep(horizon, 0.2, vUv.y);
-        vec3 color = mix(uWaterColor, uTop, up);
-        color = mix(color, uBottom, down);
+        // uWaterColor is already dimmed at night; the gradient ends follow it.
+        vec3 color = mix(uWaterColor, uTop * uDaylight, up);
+        color = mix(color, uBottom * uDaylight, down);
         float y = up;
         float beams = 0.0;
         for (int index = 0; index < 4; index++) {

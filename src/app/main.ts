@@ -7,6 +7,7 @@ import { createAquariumView } from "../render/aquariumView";
 import { EFFECTS } from "../render/effects";
 import { parseCatalog, parseScene } from "../scene/parse";
 import { applyCountOverrides, parseSettings, type Settings } from "../scene/settings";
+import type { Lights } from "../scene/lights";
 import { lookFeatures, resolveLook, type Look } from "../scene/look";
 import { applySceneryOverrides, sceneryEntries } from "../scene/scenery";
 import { createSimulation } from "../sim/simulation";
@@ -19,6 +20,14 @@ const SIMULATION_STEP_SECONDS = 1 / 60;
 const MAX_FRAME_SECONDS = 0.25;
 const FPS_WINDOW_SECONDS = 1;
 const MS_PER_SECOND = 1000;
+const CLOCK_REFRESH_MS = 1000;
+const MINUTES_PER_HOUR = 60;
+const SECONDS_PER_HOUR = 3600;
+
+function localHour(): number {
+  const now = new Date();
+  return now.getHours() + now.getMinutes() / MINUTES_PER_HOUR + now.getSeconds() / SECONDS_PER_HOUR;
+}
 
 const logger = createLogger("app", consoleSink);
 
@@ -89,6 +98,19 @@ async function start(): Promise<void> {
 
   const rng = createRng(options.seed ?? scene.seed);
   const simulation = createSimulation({ scene, catalog, rng: rng.fork() });
+  // The wall clock is read once a second, not every frame (Date allocates).
+  let clockHour = localHour();
+  window.setInterval(() => {
+    clockHour = localHour();
+  }, CLOCK_REFRESH_MS);
+  /** A custom or the scene's setup; `?hour=` pins the time for demos and snapshots. */
+  const effectiveLights = (custom: Lights | undefined): Lights => {
+    const chosen = custom ?? scene.lights;
+    return options.hour === undefined
+      ? chosen
+      : { ...chosen, cycle: { ...chosen.cycle, mode: "fixed", hour: options.hour } };
+  };
+
   const view = createAquariumView({
     canvas,
     scene,
@@ -99,6 +121,8 @@ async function start(): Promise<void> {
     renderHeight: settings.renderHeight,
     look,
     effects: EFFECTS,
+    lights: effectiveLights(settings.lights),
+    clockHour: () => clockHour,
   });
   view.resize(window.innerWidth, window.innerHeight);
   window.addEventListener("resize", () => {
@@ -135,6 +159,11 @@ async function start(): Promise<void> {
       features,
       look,
       scenery: sceneryEntries(scene),
+      lights: {
+        lights: settings.lights ?? scene.lights,
+        recommended: scene.lights,
+        custom: settings.lights !== undefined,
+      },
     },
     {
       onCountChange(speciesId, count) {
@@ -150,6 +179,10 @@ async function start(): Promise<void> {
         sceneryCounts = { ...sceneryCounts, [key]: count };
         scheduleSceneryRebuild();
         update({ scenery: { ...settings.scenery, [scene.id]: sceneryCounts } });
+      },
+      onLightsChange(lights) {
+        view.setLights(effectiveLights(lights));
+        update({ lights });
       },
       onRenderHeightChange(height) {
         view.setRenderHeight(height);
@@ -203,6 +236,7 @@ async function start(): Promise<void> {
     view.render();
     fps.frame(delta);
     if (settings.showFps) panel.setFps(fps.fps);
+    panel.setHour(view.hour());
     window.requestAnimationFrame(frame);
   };
   window.requestAnimationFrame(frame);
