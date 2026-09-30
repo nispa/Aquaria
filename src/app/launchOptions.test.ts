@@ -28,12 +28,20 @@ describe("parseLaunchOptions", () => {
   });
 });
 
-describe("shader pack option", () => {
-  it("reads a pack id", () => {
-    expect(parseLaunchOptions("?pack=classic").pack).toBe("classic");
+describe("effects option", () => {
+  it("reads a comma-separated list of features to enable", () => {
+    expect(parseLaunchOptions("?effects=shadows,bloom").effects).toEqual(["shadows", "bloom"]);
   });
 
-  it("ignores unsafe pack ids", () => {
-    expect(parseLaunchOptions("?pack=../x").pack).toBeUndefined();
+  it("reads 'none' as a request to turn every feature off", () => {
+    expect(parseLaunchOptions("?effects=none").effects).toEqual([]);
+  });
+
+  it("drops ids with unexpected characters", () => {
+    expect(parseLaunchOptions("?effects=bloom,<script>").effects).toEqual(["bloom"]);
+  });
+
+  it("leaves the choice to saved settings when the option is absent", () => {
+    expect(parseLaunchOptions("?seed=3").effects).toBeUndefined();
   });
 });

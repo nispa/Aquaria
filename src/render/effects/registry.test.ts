@@ -1,10 +1,6 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { parseShaderPackIndex, resolveShaderPack } from "../../scene/shaderPack";
+import { lookFeatures } from "../../scene/look";
 import { EFFECTS } from "./index";
-
-const readJson = (path: string): unknown =>
-  JSON.parse(readFileSync(new URL(path, import.meta.url), "utf8"));
 
 describe("effect registry", () => {
   it("has unique effect ids", () => {
@@ -13,13 +9,19 @@ describe("effect registry", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("validates every bundled shader pack", () => {
-    const index = parseShaderPackIndex(readJson("../../../public/shaderpacks/index.json"));
+  it("gives every effect a default for each parameter", () => {
+    const invalid = EFFECTS.filter((effect) => !effect.params.safeParse({}).success);
 
-    const packs = index.packs.map((id) =>
-      resolveShaderPack(readJson(`../../../public/shaderpacks/${id}.json`), EFFECTS),
-    );
+    expect(invalid.map((effect) => effect.id)).toEqual([]);
+  });
 
-    expect(packs.map((pack) => pack.id)).toEqual(index.packs);
+  it("does not reuse the id of a lighting feature", () => {
+    expect(() => lookFeatures(EFFECTS)).not.toThrow();
+  });
+
+  it("keeps the heavy ambient occlusion and the blurring depth of field off by default", () => {
+    const enabled = EFFECTS.filter((effect) => effect.enabledByDefault).map((effect) => effect.id);
+
+    expect(enabled).toEqual(["volumetric-light", "bloom", "finish"]);
   });
 });

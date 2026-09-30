@@ -7,12 +7,14 @@ import { defineEffect } from "./types";
 /** Light shafts through the water, occluded by fish and plants. See the shader for details. */
 export const volumetricLightEffect = defineEffect({
   id: "volumetric-light",
+  name: "Volumetric light",
   stage: "hdr",
+  enabledByDefault: true,
   params: z.object({
     density: z.number().min(0).max(1.5).default(0.9),
     decay: z.number().min(0.9).max(1).default(0.965),
     weight: z.number().min(0).max(1).default(0.35),
-    exposure: z.number().min(0).max(2).default(0.35),
+    exposure: z.number().min(0).max(2).default(0.45),
     threshold: z.number().min(0).max(4).default(0.9),
     samples: z.number().int().min(16).max(96).default(48),
   }),

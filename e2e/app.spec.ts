@@ -1,10 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 
 /**
- * Live (animated) pages run on software WebGL in CI: keep them light with the
- * classic pack and a small drawing buffer so every frame stays fast.
+ * Live (animated) pages run on software WebGL in CI: keep them light with
+ * every effect off and a small drawing buffer so every frame stays fast.
  */
-async function openLive(page: Page, query = "?pack=classic"): Promise<void> {
+async function openLive(page: Page, query = "?effects=none"): Promise<void> {
   await page.addInitScript(() => {
     localStorage.setItem("aquaria.settings", JSON.stringify({ renderHeight: 540 }));
   });
@@ -77,15 +77,36 @@ test("shows a clear error for a missing scene", async ({ page }) => {
   await expect(page.getByText(/could not load scenes\/does-not-exist\.json/i)).toBeVisible();
 });
 
-test("switches the shader pack from the panel", async ({ page }) => {
+test("switches effects on and off from the panel", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await openLive(page);
   await waitForState(page);
   await page.keyboard.press("h");
 
-  await page.getByRole("combobox", { name: "Look" }).selectOption("realistic");
+  await page.getByRole("checkbox", { name: "Ambient occlusion" }).check();
+  await page.getByRole("checkbox", { name: "Shadows" }).check();
+  await page.getByRole("checkbox", { name: "Shadows" }).uncheck();
 
-  await expect(page.getByRole("combobox", { name: "Look" })).toHaveValue("realistic");
+  await expect(page.getByRole("checkbox", { name: "Ambient occlusion" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Shadows" })).not.toBeChecked();
   expect(errors).toEqual([]);
+});
+
+test("remembers effect choices after a reload", async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem("aquaria.settings") === null) {
+      localStorage.setItem("aquaria.settings", JSON.stringify({ renderHeight: 540 }));
+    }
+  });
+  await page.goto("/");
+  await waitForState(page);
+  await page.keyboard.press("h");
+  await page.getByRole("checkbox", { name: "Depth of field" }).check();
+
+  await page.reload();
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await expect(page.getByRole("checkbox", { name: "Depth of field" })).toBeChecked();
 });

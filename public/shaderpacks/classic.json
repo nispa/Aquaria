@@ -1,7 +1,0 @@
-{
-  "id": "classic",
-  "name": "Classic",
-  "description": "Light and fast: caustics, soft glow and sprite bubbles. Best for weaker GPUs.",
-  "bubbles": "sprite",
-  "passes": [{ "effect": "bloom" }, { "effect": "finish" }]
-}

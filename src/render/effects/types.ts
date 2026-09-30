@@ -1,7 +1,7 @@
 import type { Object3D, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 import type { Pass } from "three/examples/jsm/postprocessing/Pass.js";
 import type { z } from "zod";
-import type { EffectDescriptor, EffectStage } from "../../scene/shaderPack";
+import type { EffectDescriptor, EffectStage } from "../../scene/look";
 import type { TankSize } from "../../sim/tank";
 import type { WaterUniforms } from "../uniforms";
 
@@ -25,6 +25,11 @@ export interface EffectContext {
     /** GPU-driven particles: nowhere near their real positions. */
     readonly particles: Object3D;
   };
+  /**
+   * Additive, non-solid objects (light-shaft planes). Depth and normal passes
+   * must skip them too, or they would occlude or blur like solid walls.
+   */
+  readonly overlays: readonly Object3D[];
 }
 
 /**
@@ -63,18 +68,23 @@ export interface EffectDefinition extends EffectDescriptor {
 
 /**
  * Declares a post-processing effect. To add a new one: write a file in this
- * folder with `defineEffect`, add it to `EFFECTS` in `index.ts`, and use its
- * id in a shader pack JSON. Parameters are validated when the pack loads.
+ * folder with `defineEffect` and add it to `EFFECTS` in `index.ts`; it then
+ * appears as a switch in the control panel. Every parameter needs a default:
+ * the tuned look lives in those defaults.
  */
 export function defineEffect<Schema extends z.ZodType>(definition: {
   readonly id: string;
+  readonly name: string;
   readonly stage: EffectStage;
+  readonly enabledByDefault: boolean;
   readonly params: Schema;
   readonly create: (context: EffectContext, params: z.output<Schema>) => EffectInstance;
 }): EffectDefinition {
   return {
     id: definition.id,
+    name: definition.name,
     stage: definition.stage,
+    enabledByDefault: definition.enabledByDefault,
     params: definition.params,
     create: (context, params) => definition.create(context, definition.params.parse(params)),
   };

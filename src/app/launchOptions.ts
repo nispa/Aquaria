@@ -1,6 +1,8 @@
 const DEFAULT_SCENE = "reef";
-/** Ids of scenes and packs double as file names, so they are restricted. */
+/** Scene ids double as file names, so they are restricted. */
 const SCENE_ID = /^[a-z0-9-]+$/;
+const FEATURE_ID = /^[a-z0-9-]+$/;
+const NO_FEATURES = "none";
 
 /** Options read from the page URL, e.g. `?scene=reef&frozen=10&seed=3`. */
 export interface LaunchOptions {
@@ -9,8 +11,8 @@ export interface LaunchOptions {
   readonly frozenSeconds?: number;
   /** Overrides the scene seed. */
   readonly seed?: number;
-  /** Shader pack id, overriding the saved preference. */
-  readonly pack?: string;
+  /** Exact list of look features to enable, overriding the saved choices. */
+  readonly effects?: readonly string[];
 }
 
 function nonNegativeNumber(value: string | null): number | undefined {
@@ -19,17 +21,24 @@ function nonNegativeNumber(value: string | null): number | undefined {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
 }
 
+/** `?effects=shadows,bloom` enables exactly those features; `?effects=none` turns all off. */
+function featureList(value: string | null): readonly string[] | undefined {
+  if (value === null) return undefined;
+  if (value === NO_FEATURES) return [];
+  return value.split(",").filter((id) => FEATURE_ID.test(id));
+}
+
 export function parseLaunchOptions(search: string): LaunchOptions {
   const params = new URLSearchParams(search);
   const requested = params.get("scene");
   const scene = requested !== null && SCENE_ID.test(requested) ? requested : DEFAULT_SCENE;
   const frozenSeconds = nonNegativeNumber(params.get("frozen"));
   const seed = nonNegativeNumber(params.get("seed"));
-  const pack = params.get("pack");
+  const effects = featureList(params.get("effects"));
   return {
     scene,
     ...(frozenSeconds === undefined ? {} : { frozenSeconds }),
     ...(seed === undefined ? {} : { seed: Math.floor(seed) }),
-    ...(pack !== null && SCENE_ID.test(pack) ? { pack } : {}),
+    ...(effects === undefined ? {} : { effects }),
   };
 }

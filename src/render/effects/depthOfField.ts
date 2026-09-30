@@ -9,14 +9,17 @@ import { defineEffect, hideDuringRender } from "./types";
  */
 export const depthOfFieldEffect = defineEffect({
   id: "depth-of-field",
+  name: "Depth of field",
   stage: "hdr",
+  // Seen with the naked eye on a wall, a camera's focus falloff reads as blur.
+  enabledByDefault: false,
   params: z.object({
     /** Distance of the sharp plane behind the glass, m. */
     focus: z.number().min(0).default(1.8),
     /** Larger values give a shallower depth of field. */
-    aperture: z.number().positive().max(0.05).default(0.004),
+    aperture: z.number().positive().max(0.05).default(0.0025),
     /** Maximum blur, as a fraction of the screen. */
-    maxBlur: z.number().min(0).max(0.03).default(0.006),
+    maxBlur: z.number().min(0).max(0.03).default(0.004),
   }),
   create: (context, params) => {
     const pass = new BokehPass(context.scene, context.camera, {
@@ -29,7 +32,7 @@ export const depthOfFieldEffect = defineEffect({
     const focusUniform = uniforms.focus ?? { value: 0 };
     // Plants stay in the depth pass: their bases are in place, and without them
     // whole blades would take the depth of the water behind and blur away.
-    hideDuringRender(pass, [context.shaderAnimated.particles]);
+    hideDuringRender(pass, [context.shaderAnimated.particles, ...context.overlays]);
     return {
       pass,
       update: () => {

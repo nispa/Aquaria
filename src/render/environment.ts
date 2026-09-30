@@ -12,6 +12,7 @@ import {
   ShaderMaterial,
   type BufferGeometry,
   type Material,
+  type Object3D,
 } from "three";
 import type { Rng } from "../core/rng";
 import type { Scene } from "../scene/schema";
@@ -37,6 +38,8 @@ const STARFISH_TURN_SECONDS = 1800;
 
 export interface Environment {
   readonly object: Group;
+  /** Additive light-shaft planes, so depth passes can skip them. */
+  readonly lightShafts: Object3D;
   update(timeSeconds: number): void;
   setLightShaftsVisible(visible: boolean): void;
   dispose(): void;
@@ -348,6 +351,7 @@ export function createEnvironment(
 
   return {
     object,
+    lightShafts: shafts,
     update(timeSeconds) {
       // The starfish creeps: a tiny, slow turn you only notice over minutes.
       starfish.forEach((mesh, index) => {

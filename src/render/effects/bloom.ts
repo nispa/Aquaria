@@ -6,9 +6,11 @@ import { defineEffect } from "./types";
 /** Soft glow around the brightest pixels (surface highlights, bubbles, lit sand). */
 export const bloomEffect = defineEffect({
   id: "bloom",
+  name: "Bloom",
   stage: "hdr",
+  enabledByDefault: true,
   params: z.object({
-    strength: z.number().min(0).max(3).default(0.28),
+    strength: z.number().min(0).max(3).default(0.32),
     radius: z.number().min(0).max(1).default(0.55),
     threshold: z.number().min(0).default(0.82),
   }),

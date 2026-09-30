@@ -67,16 +67,24 @@ describe("applyCountOverrides", () => {
   });
 });
 
-describe("shader pack preference", () => {
-  it("has no saved pack by default, so the index default is used", () => {
-    expect(DEFAULT_SETTINGS.shaderPack).toBeUndefined();
+describe("look preference", () => {
+  it("has no saved feature choices by default, so each feature uses its default", () => {
+    expect(DEFAULT_SETTINGS.look).toBeUndefined();
   });
 
-  it("keeps a saved pack id", () => {
-    expect(parseSettings({ shaderPack: "classic" }).settings.shaderPack).toBe("classic");
+  it("keeps the saved on/off choice of each feature", () => {
+    const look = { shadows: false, "ambient-occlusion": true };
+
+    expect(parseSettings({ look }).settings.look).toEqual(look);
   });
 
-  it("rejects pack ids that could escape the packs folder", () => {
-    expect(parseSettings({ shaderPack: "../x" }).valid).toBe(false);
+  it("rejects feature choices that are not on/off values", () => {
+    expect(parseSettings({ look: { shadows: "maybe" } }).valid).toBe(false);
+  });
+
+  it("keeps settings saved when the look was a shader pack", () => {
+    const { settings, valid } = parseSettings({ shaderPack: "classic", showFps: true });
+
+    expect([valid, settings.showFps]).toEqual([true, true]);
   });
 });

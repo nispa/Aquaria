@@ -21,7 +21,7 @@ import type { Logger } from "../core/logger";
 import { pixelRatioForHeight } from "../core/resolution";
 import type { Rng } from "../core/rng";
 import type { Scene, SpeciesCatalog } from "../scene/schema";
-import type { ShaderPack } from "../scene/shaderPack";
+import { lookPasses, type Look } from "../scene/look";
 import { layoutFlora, layoutProps } from "../sim/layout";
 import type { Simulation } from "../sim/simulation";
 import type { EffectDefinition, EffectInstance } from "./effects/types";
@@ -46,6 +46,7 @@ const SHADOW_NORMAL_BIAS = 0.02;
 const SHADOW_FAR = 30;
 /** Image-based light is a fill, not the key light: kept below the sun. */
 const ENVIRONMENT_INTENSITY = 0.65;
+const SHADOW_MAP_SIZE = 2048;
 
 export interface AquariumViewOptions {
   readonly canvas: HTMLCanvasElement;
@@ -56,8 +57,9 @@ export interface AquariumViewOptions {
   readonly logger: Logger;
   /** Initial drawing-buffer height in pixels. */
   readonly renderHeight: number;
-  readonly shaderPack: ShaderPack;
-  /** Registered effects; the pack's passes refer to them by id. */
+  /** Enabled lighting features and effects. */
+  readonly look: Look;
+  /** Registered post-processing effects; the look enables them by id. */
   readonly effects: readonly EffectDefinition[];
 }
 
@@ -66,8 +68,8 @@ export interface AquariumView {
   render(): void;
   resize(cssWidth: number, cssHeight: number): void;
   setRenderHeight(heightPixels: number): void;
-  /** Swaps the look live: lighting, bubbles and post-processing. */
-  setShaderPack(pack: ShaderPack): void;
+  /** Switches features live: lighting, bubbles and post-processing. */
+  setLook(look: Look): void;
   dispose(): void;
 }
 
@@ -91,6 +93,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     powerPreference: "high-performance",
   });
   renderer.toneMapping = ACESFilmicToneMapping;
+  renderer.toneMappingExposure = BASE_EXPOSURE;
   renderer.shadowMap.type = PCFShadowMap;
 
   const world = new ThreeScene();
@@ -130,7 +133,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   world.add(environment.object, flora.object, fish.object, particles.object);
 
   const environmentMap = createWaterEnvironment(renderer, scene);
-  const effectsById = new Map(effects.map((effect) => [effect.id, effect]));
+  sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
   const context = {
     renderer,
     scene: world,
@@ -139,6 +142,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     tank: scene.tank,
     sunPosition: sun.position,
     shaderAnimated: { plants: flora.object, particles: particles.object },
+    overlays: [environment.lightShafts],
   };
 
   let composer: EffectComposer | undefined;
@@ -152,19 +156,16 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     composer?.dispose();
   };
 
-  const buildPipeline = (pack: ShaderPack): void => {
+  const buildPipeline = (look: Look): void => {
     disposePipeline();
     const target = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: MSAA_SAMPLES });
     const next = new EffectComposer(renderer, target);
     next.addPass(new RenderPass(world, camera));
-    const created = pack.passes.flatMap((pass) => {
-      const effect = effectsById.get(pass.effect.id);
-      if (effect === undefined) {
-        logger.warn("Effect missing from the registry; pass skipped", { effect: pass.effect.id });
-        return [];
-      }
-      return [{ stage: effect.stage, instance: effect.create(context, pass.params) }];
-    });
+    // Every parameter has a default: the tuned look lives in the effect files.
+    const created = lookPasses(effects, look).map((effect) => ({
+      stage: effect.stage,
+      instance: effect.create(context, {}),
+    }));
     created
       .filter((entry) => entry.stage === "hdr")
       .forEach((entry) => {
@@ -180,20 +181,15 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     composer = next;
   };
 
-  const applyLighting = (pack: ShaderPack): void => {
-    const { shadows, environment: useEnvironment, exposure } = pack.lighting;
-    renderer.toneMappingExposure = BASE_EXPOSURE * exposure;
-    renderer.shadowMap.enabled = shadows.enabled;
-    sun.castShadow = shadows.enabled;
-    if (sun.shadow.mapSize.x !== shadows.mapSize) {
-      sun.shadow.mapSize.set(shadows.mapSize, shadows.mapSize);
-      sun.shadow.map?.dispose();
-      sun.shadow.map = null;
-    }
-    world.environment = useEnvironment ? environmentMap.texture : null;
+  const applyLighting = (look: Look): void => {
+    const shadows = look.has("shadows");
+    renderer.shadowMap.enabled = shadows;
+    sun.castShadow = shadows;
+    world.environment = look.has("reflections") ? environmentMap.texture : null;
     world.environmentIntensity = ENVIRONMENT_INTENSITY;
-    particles.setBubbleStyle(pack.bubbles);
-    environment.setLightShaftsVisible(pack.lightShafts);
+    water.uCausticsIntensity.value = look.has("caustics") ? scene.light.caustics.intensity : 0;
+    particles.setBubbleStyle(look.has("refractive-bubbles") ? "refractive" : "sprite");
+    environment.setLightShaftsVisible(look.has("light-shafts"));
     // Shadow and environment support are compiled into the shaders.
     forEachMaterial(world, (material) => {
       material.needsUpdate = true;
@@ -214,12 +210,12 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     particles.setBufferHeight(renderHeight, VERTICAL_FOV);
   };
 
-  const setShaderPack = (pack: ShaderPack): void => {
-    applyLighting(pack);
-    buildPipeline(pack);
+  const setLook = (look: Look): void => {
+    applyLighting(look);
+    buildPipeline(look);
     applySize();
   };
-  setShaderPack(options.shaderPack);
+  setLook(options.look);
 
   return {
     render() {
@@ -241,7 +237,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       renderHeight = heightPixels;
       applySize();
     },
-    setShaderPack,
+    setLook,
     dispose() {
       disposePipeline();
       environment.dispose();

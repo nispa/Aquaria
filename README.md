@@ -5,9 +5,9 @@ Full HD monitor up to a 4K LED wall. Every tank is described in a JSON file
 (water, light, current, plants, rocks and fish), and the engine brings it to
 life with Three.js.
 
-![The tropical reef scene with the Realistic shader pack](docs/screenshot-realistic.jpg)
+![The tropical reef scene with shadows, reflections, ambient occlusion, volumetric light and depth of field](docs/screenshot-realistic.jpg)
 
-<sub>The Realistic shader pack. The Classic pack, lighter on the GPU, is in
+<sub>With most effects on. A lighter setup is in
 [docs/screenshot.jpg](docs/screenshot.jpg).</sub>
 
 ## Features
@@ -25,9 +25,10 @@ life with Three.js.
   Full HD and 4K presets.
 - **Made for LED walls**: dithering against banding in dark gradients, no
   permanent on-screen elements, full-screen kiosk use.
-- **Pluggable shader packs**: switch the whole look live (shadows, water
-  reflections, refractive bubbles, ambient occlusion, volumetric light, depth
-  of field, bloom) and add new effects without touching the rest of the engine.
+- **Every effect is a switch**: turn caustics, shadows, water reflections,
+  refractive bubbles, ambient occlusion, volumetric light, depth of field,
+  bloom and more on or off live from the panel, and add new effects without
+  touching the rest of the engine.
 - **Data-driven**: adding a scene or a species means writing JSON, not code.
 
 ## Getting started
@@ -49,14 +50,14 @@ Controls:
 
 URL options:
 
-| Option   | Example         | Effect                                     |
-| -------- | --------------- | ------------------------------------------ |
-| `scene`  | `?scene=reef`   | Loads `public/scenes/<scene>.json`         |
-| `seed`   | `?seed=7`       | Overrides the scene's random seed          |
-| `frozen` | `?frozen=10`    | Simulates 10 s and renders one still frame |
-| `pack`   | `?pack=classic` | Uses `public/shaderpacks/<pack>.json`      |
+| Option    | Example                  | Effect                                             |
+| --------- | ------------------------ | -------------------------------------------------- |
+| `scene`   | `?scene=reef`            | Loads `public/scenes/<scene>.json`                 |
+| `seed`    | `?seed=7`                | Overrides the scene's random seed                  |
+| `frozen`  | `?frozen=10`             | Simulates 10 s and renders one still frame         |
+| `effects` | `?effects=shadows,bloom` | Enables exactly these effects (`none` for all off) |
 
-Panel settings (populations, resolution, look, fps counter) are saved in the browser.
+Panel settings (populations, effects, resolution, fps counter) are saved in the browser.
 
 ## Running on a wall
 
@@ -103,47 +104,35 @@ Species are defined once in `public/species.json`: body shape (`disc`, `round`,
 schooling (0 = solitary, 1 = tight school), depth bands and height range.
 Files are validated on load; mistakes are reported with the exact field.
 
-## Shader packs
+## Effects
 
-A shader pack is the aquarium's "look". Packs live in `public/shaderpacks/`,
-are listed in `index.json` (the first one is the default) and can be switched
-live from the panel.
+Every effect has its own switch in the control panel (press `H`), so you
+choose what the GPU spends its time on.
 
-```jsonc
-{
-  "id": "realistic",
-  "name": "Realistic",
-  "lighting": {
-    "shadows": { "enabled": true, "mapSize": 2048 },
-    "environment": true, // reflections of the surrounding water
-    "exposure": 1,
-  },
-  "bubbles": "refractive", // or "sprite"
-  "lightShafts": false, // cheap shaft planes; off when volumetric light is used
-  "passes": [
-    { "effect": "ambient-occlusion", "params": { "radius": 0.35, "intensity": 0.75 } },
-    { "effect": "volumetric-light", "params": { "exposure": 0.45 } },
-    { "effect": "depth-of-field", "params": { "focus": 1.8, "aperture": 0.0025 } },
-    { "effect": "bloom", "params": { "strength": 0.32 } },
-    { "effect": "finish", "params": { "vignette": 0.4 } },
-  ],
-}
-```
+| Switch              | What it does                                         | Default |
+| ------------------- | ---------------------------------------------------- | ------- |
+| Caustics            | Moving web of light on sand, rocks, plants and fish  | on      |
+| Shadows             | Sun shadows of fish, rocks and plants                | on      |
+| Water reflections   | Image-based light from the water around the tank     | on      |
+| Refractive bubbles  | Glass-like bubbles instead of sprites                | on      |
+| Light shaft planes  | Cheap shafts; redundant with volumetric light        | off     |
+| Ambient occlusion   | Darkens creases and contact areas                    | off     |
+| Volumetric light    | Shafts through the water, occluded by fish and kelp  | on      |
+| Depth of field      | Blurs what is nearer or further than the focus plane | off     |
+| Bloom               | Soft glow around the brightest pixels                | on      |
+| Vignette and dither | Darker corners; dither against banding on LED walls  | on      |
 
-Available effects: `ambient-occlusion`, `volumetric-light`, `depth-of-field`,
-`bloom` (HDR stage, before tone mapping) and `finish` (vignette and
-anti-banding dither, after tone mapping). Parameters are validated when the
-pack loads, and each effect's parameters and ranges are documented in
-`src/render/effects/`.
+Ambient occlusion is by far the most expensive (about 18 ms per frame at
+1080p on a mid-range GPU) and depth of field looks like blur on a wall seen
+with the naked eye, so both start off. Watch the fps counter while you
+switch: on the wall, keep the set that stays at 60 fps.
 
-To add a new effect: create a file in `src/render/effects/` with
-`defineEffect` (id, stage, Zod parameter schema, `create` returning a
-Three.js pass), add it to `EFFECTS` in `src/render/effects/index.ts`, then use
-its id in a pack. Nothing else in the engine changes.
-
-The Realistic pack is much heavier than Classic. On the wall, start with it at
-4K and watch the fps counter; lower the resolution or switch to Classic if it
-drops below 60.
+Each effect's parameters and ranges are documented, with their tuned
+defaults, in `src/render/effects/`. To add a new effect: create a file there
+with `defineEffect` (id, panel name, stage, default on/off, Zod parameter
+schema with defaults, `create` returning a Three.js pass), and add it to
+`EFFECTS` in `src/render/effects/index.ts`. It appears in the panel; nothing
+else in the engine changes.
 
 ## Development
 

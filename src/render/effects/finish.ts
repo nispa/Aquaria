@@ -6,9 +6,12 @@ import { defineEffect } from "./types";
 /** Vignette and anti-banding dither, on display colors. See the shader for details. */
 export const finishEffect = defineEffect({
   id: "finish",
+  name: "Vignette and dither",
   stage: "display",
+  // The dither prevents banding in dark gradients on LED walls.
+  enabledByDefault: true,
   params: z.object({
-    vignette: z.number().min(0).max(1).default(0.35),
+    vignette: z.number().min(0).max(1).default(0.4),
     /** Dither amplitude in 1/255 steps; keep ≥ 1 on LED walls. */
     dither: z.number().min(0).max(2).default(1),
   }),

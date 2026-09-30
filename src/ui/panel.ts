@@ -1,4 +1,5 @@
 import { FULL_HD_HEIGHT, resolutionLabel, UHD_HEIGHT } from "../core/resolution";
+import type { Look, LookFeature, LookFeatureKind } from "../scene/look";
 import { MAX_INDIVIDUALS_PER_SPECIES, type Species } from "../scene/schema";
 
 /** Lowest height offered on the slider (half of Full HD, for weak GPUs). */
@@ -13,16 +14,16 @@ export interface PanelState {
   readonly counts: Readonly<Record<string, number>>;
   readonly renderHeight: number;
   readonly showFps: boolean;
-  /** Available shader packs ("looks") and the active one. */
-  readonly packs: readonly { readonly id: string; readonly name: string }[];
-  readonly packId: string;
+  /** Switchable lighting features and effects, and which ones are on. */
+  readonly features: readonly LookFeature[];
+  readonly look: Look;
 }
 
 export interface PanelCallbacks {
   onCountChange(speciesId: string, count: number): void;
   onRenderHeightChange(height: number): void;
   onShowFpsChange(show: boolean): void;
-  onShaderPackChange(packId: string): void;
+  onFeatureChange(featureId: string, enabled: boolean): void;
   onFullscreen(): void;
 }
 
@@ -41,6 +42,47 @@ function element<K extends keyof HTMLElementTagNameMap>(
   node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
+}
+
+const FEATURE_HEADINGS: Readonly<Record<LookFeatureKind, string>> = {
+  lighting: "Lighting",
+  effect: "Post-processing",
+};
+
+function checkbox(
+  label: string,
+  checked: boolean,
+  onChange: (checked: boolean) => void,
+): HTMLLabelElement {
+  const row = element("label", "panel__row panel__row--check");
+  const input = element("input", "panel__check");
+  input.type = "checkbox";
+  input.checked = checked;
+  input.addEventListener("change", () => {
+    onChange(input.checked);
+  });
+  row.append(input, element("span", "panel__label", label));
+  return row;
+}
+
+/** One section per feature kind, one switch per feature. */
+function featureSections(
+  features: readonly LookFeature[],
+  look: Look,
+  onChange: (featureId: string, enabled: boolean) => void,
+): HTMLElement[] {
+  return (Object.keys(FEATURE_HEADINGS) as LookFeatureKind[]).map((kind) => {
+    const section = element("section", "panel__section");
+    section.append(element("h2", "panel__heading", FEATURE_HEADINGS[kind]));
+    for (const feature of features.filter((candidate) => candidate.kind === kind)) {
+      const row = checkbox(feature.name, look.has(feature.id), (checked) => {
+        onChange(feature.id, checked);
+      });
+      row.dataset.feature = feature.id;
+      section.append(row);
+    }
+    return section;
+  });
 }
 
 function slider(min: number, max: number, step: number, value: number): HTMLInputElement {
@@ -86,20 +128,6 @@ export function createPanel(
 
   const quality = element("section", "panel__section");
   quality.append(element("h2", "panel__heading", "Quality"));
-  const lookRow = element("label", "panel__row panel__row--select");
-  const look = element("select", "panel__select");
-  look.name = "look";
-  for (const pack of state.packs) {
-    const option = element("option", "", pack.name);
-    option.value = pack.id;
-    option.selected = pack.id === state.packId;
-    look.append(option);
-  }
-  look.addEventListener("change", () => {
-    callbacks.onShaderPackChange(look.value);
-  });
-  lookRow.append(element("span", "panel__label", "Look"), look);
-  quality.append(lookRow);
   const resolutionRow = element("label", "panel__row");
   const resolutionValue = element("output", "panel__value", resolutionLabel(state.renderHeight));
   const resolution = slider(MIN_HEIGHT, UHD_HEIGHT, HEIGHT_STEP, state.renderHeight);
@@ -127,15 +155,10 @@ export function createPanel(
     presets.append(button);
   }
 
-  const fpsRow = element("label", "panel__row panel__row--check");
-  const fpsToggle = element("input", "panel__check");
-  fpsToggle.type = "checkbox";
-  fpsToggle.checked = state.showFps;
-  fpsToggle.addEventListener("change", () => {
-    fpsCounter.hidden = !fpsToggle.checked;
-    callbacks.onShowFpsChange(fpsToggle.checked);
+  const fpsRow = checkbox("Show FPS", state.showFps, (checked) => {
+    fpsCounter.hidden = !checked;
+    callbacks.onShowFpsChange(checked);
   });
-  fpsRow.append(fpsToggle, element("span", "panel__label", "Show FPS"));
 
   const fullscreen = element("button", "panel__button panel__button--wide", "Full screen (F)");
   fullscreen.type = "button";
@@ -144,7 +167,14 @@ export function createPanel(
   });
 
   quality.append(resolutionRow, presets, fpsRow, fullscreen);
-  panel.append(fauna, quality, element("p", "panel__hint", "H: show/hide · F: full screen"));
+  panel.append(
+    fauna,
+    ...featureSections(state.features, state.look, (featureId, enabled) => {
+      callbacks.onFeatureChange(featureId, enabled);
+    }),
+    quality,
+    element("p", "panel__hint", "H: show/hide · F: full screen"),
+  );
 
   const fpsCounter = element("div", "fps");
   fpsCounter.hidden = !state.showFps;
