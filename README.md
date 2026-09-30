@@ -5,7 +5,10 @@ Full HD monitor up to a 4K LED wall. Every tank is described in a JSON file
 (water, light, current, plants, rocks and fish), and the engine brings it to
 life with Three.js.
 
-![The tropical reef scene](docs/screenshot.jpg)
+![The tropical reef scene with the Realistic shader pack](docs/screenshot-realistic.jpg)
+
+<sub>The Realistic shader pack. The Classic pack, lighter on the GPU, is in
+[docs/screenshot.jpg](docs/screenshot.jpg).</sub>
 
 ## Features
 
@@ -22,6 +25,9 @@ life with Three.js.
   Full HD and 4K presets.
 - **Made for LED walls**: dithering against banding in dark gradients, no
   permanent on-screen elements, full-screen kiosk use.
+- **Pluggable shader packs**: switch the whole look live (shadows, water
+  reflections, refractive bubbles, ambient occlusion, volumetric light, depth
+  of field, bloom) and add new effects without touching the rest of the engine.
 - **Data-driven**: adding a scene or a species means writing JSON, not code.
 
 ## Getting started
@@ -43,13 +49,14 @@ Controls:
 
 URL options:
 
-| Option   | Example       | Effect                                     |
-| -------- | ------------- | ------------------------------------------ |
-| `scene`  | `?scene=reef` | Loads `public/scenes/<scene>.json`         |
-| `seed`   | `?seed=7`     | Overrides the scene's random seed          |
-| `frozen` | `?frozen=10`  | Simulates 10 s and renders one still frame |
+| Option   | Example         | Effect                                     |
+| -------- | --------------- | ------------------------------------------ |
+| `scene`  | `?scene=reef`   | Loads `public/scenes/<scene>.json`         |
+| `seed`   | `?seed=7`       | Overrides the scene's random seed          |
+| `frozen` | `?frozen=10`    | Simulates 10 s and renders one still frame |
+| `pack`   | `?pack=classic` | Uses `public/shaderpacks/<pack>.json`      |
 
-Panel settings (populations, resolution, fps counter) are saved in the browser.
+Panel settings (populations, resolution, look, fps counter) are saved in the browser.
 
 ## Running on a wall
 
@@ -96,6 +103,48 @@ Species are defined once in `public/species.json`: body shape (`disc`, `round`,
 schooling (0 = solitary, 1 = tight school), depth bands and height range.
 Files are validated on load; mistakes are reported with the exact field.
 
+## Shader packs
+
+A shader pack is the aquarium's "look". Packs live in `public/shaderpacks/`,
+are listed in `index.json` (the first one is the default) and can be switched
+live from the panel.
+
+```jsonc
+{
+  "id": "realistic",
+  "name": "Realistic",
+  "lighting": {
+    "shadows": { "enabled": true, "mapSize": 2048 },
+    "environment": true, // reflections of the surrounding water
+    "exposure": 1,
+  },
+  "bubbles": "refractive", // or "sprite"
+  "lightShafts": false, // cheap shaft planes; off when volumetric light is used
+  "passes": [
+    { "effect": "ambient-occlusion", "params": { "radius": 0.35, "intensity": 0.75 } },
+    { "effect": "volumetric-light", "params": { "exposure": 0.45 } },
+    { "effect": "depth-of-field", "params": { "focus": 1.8, "aperture": 0.0025 } },
+    { "effect": "bloom", "params": { "strength": 0.32 } },
+    { "effect": "finish", "params": { "vignette": 0.4 } },
+  ],
+}
+```
+
+Available effects: `ambient-occlusion`, `volumetric-light`, `depth-of-field`,
+`bloom` (HDR stage, before tone mapping) and `finish` (vignette and
+anti-banding dither, after tone mapping). Parameters are validated when the
+pack loads, and each effect's parameters and ranges are documented in
+`src/render/effects/`.
+
+To add a new effect: create a file in `src/render/effects/` with
+`defineEffect` (id, stage, Zod parameter schema, `create` returning a
+Three.js pass), add it to `EFFECTS` in `src/render/effects/index.ts`, then use
+its id in a pack. Nothing else in the engine changes.
+
+The Realistic pack is much heavier than Classic. On the wall, start with it at
+4K and watch the fps counter; lower the resolution or switch to Classic if it
+drops below 60.
+
 ## Development
 
 ```bash
@@ -116,9 +165,8 @@ rules, code quality and performance rules.
 ## Roadmap
 
 - More scenes: Mediterranean seagrass, jellyfish room, shark tunnel, dolphin pool.
-- glTF fish models alongside the procedural bodies.
 - Layered image backdrops with parallax.
-- Depth of field and a WebGPU renderer.
+- glTF fish (e.g. the CC0 Quaternius animated fish) and a WebGPU renderer.
 - Interaction: phone remote (feeding, tapping the glass), webcam presence,
   head-tracked perspective.
 

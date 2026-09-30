@@ -49,7 +49,8 @@ src/
   core/      Pure utilities: seeded RNG, clock, math helpers, event bus.
   scene/     Scene descriptor + species catalog: Zod schemas, loading, validation.
   sim/       Simulation: boids, species behaviors, population manager, current.
-  render/    Three.js adapters: scene graph, materials, shaders, post-processing.
+  render/    Three.js adapters: scene graph, materials, shaders.
+    effects/ Post-processing effects, registered by id for shader packs.
   ui/        Control panel, presets, resolution slider, fps counter.
   input/     (post-MVP) Phone remote, webcam presence, head tracking.
   app/       Composition root: wires layers together, main loop.
@@ -135,6 +136,20 @@ Shaders:
 - One shader or TSL node graph per file, in `render/shaders/`.
 - Document uniforms (name, unit, range) at the top of the file.
 - Keep shader parameters driven by the scene descriptor, not hard-coded.
+
+## Shader packs and effects
+
+- A shader pack is a JSON file in `public/shaderpacks/`, listed in `index.json`
+  and validated by `src/scene/shaderPack.ts` against the registered effects.
+- An effect is one file in `src/render/effects/` built with `defineEffect`
+  and listed in `EFFECTS`. It declares its stage (`hdr` before tone mapping,
+  `display` after), a Zod schema with defaults for its parameters, and a
+  `create` function returning a Three.js pass with `dispose()`.
+- Passes that re-render the scene with override materials (depth, normals)
+  must hide `context.shaderAnimated` objects they cannot represent, or the
+  un-animated geometry shows up as ghosts.
+- New looks are new pack files; new effects must not require changes outside
+  their own file and the registry.
 
 ## Scenes and species
 
