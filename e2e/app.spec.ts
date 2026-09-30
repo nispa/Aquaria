@@ -19,6 +19,10 @@ async function waitForState(page: Page): Promise<string | undefined> {
 test("boots the default scene and draws a frame", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
+  // Shader compile errors only reach the console, not pageerror.
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
 
   await page.goto("/?frozen=4");
 

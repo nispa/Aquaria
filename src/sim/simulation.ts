@@ -8,6 +8,7 @@ import {
   type Species,
   type SpeciesCatalog,
 } from "../scene/schema";
+import { nextGaze, turnIntent } from "./gaze";
 import { createCurrentField, type CurrentField } from "./current";
 import {
   addAlignment,
@@ -61,6 +62,8 @@ const WANDER_JITTER = 0.9;
 const WANDER_DEPTH_RATIO = 0.5;
 /** Tail beats per body length travelled, a rough real-world ratio. */
 const SWIM_BEATS_PER_BODY_LENGTH = 0.9;
+/** How far the wanted gaze must drift before the eyes jump to it. */
+const GAZE_SACCADE_THRESHOLD = 0.35;
 
 export type FishState = "entering" | "swimming" | "leaving";
 
@@ -75,6 +78,8 @@ export interface Fish {
   swimPhase: number;
   /** 0..1, fish fade in and out at the side walls. */
   opacity: number;
+  /** Where the eyes look, -1 (right) .. 1 (left); leads each turn. */
+  gaze: number;
   state: FishState;
   /** Wander heading (yaw) in radians. */
   wanderAngle: number;
@@ -185,6 +190,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
       length: drawLength(species),
       swimPhase: rng.range(0, Math.PI * 2),
       opacity: entering ? 0 : 1,
+      gaze: 0,
       state: entering ? "entering" : "swimming",
       wanderAngle: angle,
       side,
@@ -274,6 +280,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
       const direction = member.state === "entering" ? -member.side : member.side;
       force.x += direction * TRANSIT_PULL;
     }
+
+    member.gaze = nextGaze(member.gaze, turnIntent(member.velocity, force), GAZE_SACCADE_THRESHOLD);
 
     const speed = member.velocity.length();
     term.copy(member.velocity).multiplyScalar(((cruise - speed) / speed) * SPEED_RESPONSE);

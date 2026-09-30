@@ -253,3 +253,15 @@ describe("seabed", () => {
     expect(simulation.fish.some((fish) => fish.position.y < plateau)).toBe(true);
   });
 });
+
+describe("gaze", () => {
+  it("makes fish glance sideways now and then, within -1..1", () => {
+    const simulation = simulate();
+
+    run(simulation, 10);
+
+    const gazes = simulation.fish.map((fish) => fish.gaze);
+    expect(gazes.every((gaze) => gaze >= -1 && gaze <= 1)).toBe(true);
+    expect(gazes.some((gaze) => gaze !== 0)).toBe(true);
+  });
+});

@@ -27,6 +27,7 @@ interface SpeciesMesh {
   readonly mesh: InstancedMesh;
   readonly swimPhase: InstancedBufferAttribute;
   readonly opacity: InstancedBufferAttribute;
+  readonly gaze: InstancedBufferAttribute;
   count: number;
 }
 
@@ -65,6 +66,8 @@ export function createFishRenderer(
     const opacity = new InstancedBufferAttribute(new Float32Array(MAX_INDIVIDUALS_PER_SPECIES), 1);
     geometry.setAttribute("aSwimPhase", swimPhase);
     geometry.setAttribute("aOpacity", opacity);
+    const gaze = new InstancedBufferAttribute(new Float32Array(MAX_INDIVIDUALS_PER_SPECIES), 1);
+    geometry.setAttribute("aGaze", gaze);
 
     const material = patchMaterial(
       // Physical material for iridescence: the rainbow sheen of guanine in fish skin.
@@ -97,7 +100,7 @@ export function createFishRenderer(
     // Instances roam the whole tank; the per-mesh bounding sphere would be wrong.
     mesh.frustumCulled = false;
     object.add(mesh);
-    meshes.set(species.id, { mesh, swimPhase, opacity, count: 0 });
+    meshes.set(species.id, { mesh, swimPhase, opacity, gaze, count: 0 });
   }
 
   const matrix = new Matrix4();
@@ -121,6 +124,7 @@ export function createFishRenderer(
         entry.mesh.setMatrixAt(entry.count, matrix);
         entry.swimPhase.setX(entry.count, individual.swimPhase);
         entry.opacity.setX(entry.count, individual.opacity);
+        entry.gaze.setX(entry.count, individual.gaze);
         entry.count += 1;
       }
       for (const entry of meshes.values()) {
@@ -128,6 +132,7 @@ export function createFishRenderer(
         entry.mesh.instanceMatrix.needsUpdate = true;
         entry.swimPhase.needsUpdate = true;
         entry.opacity.needsUpdate = true;
+        entry.gaze.needsUpdate = true;
       }
     },
     dispose() {

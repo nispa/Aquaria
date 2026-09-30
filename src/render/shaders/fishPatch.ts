@@ -6,6 +6,8 @@ const SCALES_ALONG = 52;
 const SCALE_ROWS = 11;
 /** Scale relief depth as a share of the scale size. */
 const SCALE_DEPTH = 0.05;
+/** How far the pupil moves inside the iris at full gaze, in body lengths. */
+const PUPIL_TRAVEL = 0.009;
 /** Fins are thin: see-through and paler than the body. */
 const FIN_OPACITY = 0.62;
 const FIN_PALENESS = 0.22;
@@ -44,7 +46,7 @@ export type FishUniforms = {
  * individual fish in and out. The skin gets overlapping scales with real
  * relief (derivative bump mapping), fins are paler, translucent and ribbed.
  *
- * Instance attributes: aSwimPhase (radians), aOpacity (0..1).
+ * Instance attributes: aSwimPhase (radians), aOpacity (0..1), aGaze (-1 right .. 1 left).
  * Vertex attribute: aFin (0 body, 1 fin).
  * The geometry is one body length long along +x, nose at +0.5.
  */
@@ -56,11 +58,13 @@ export function fishPatch(uniforms: FishUniforms): ShaderPatch {
       attribute float aSwimPhase;
       attribute float aOpacity;
       attribute float aFin;
+      attribute float aGaze;
       uniform float uSwimAmplitude;
       varying vec3 vBodyPosition;
       varying float vOpacity;
       varying float vFin;
       varying float vBodyLength;
+      varying float vGaze;
     `,
     vertex: [
       [
@@ -70,6 +74,7 @@ export function fishPatch(uniforms: FishUniforms): ShaderPatch {
         vBodyPosition = position;
         vOpacity = aOpacity;
         vFin = aFin;
+        vGaze = aGaze;
         #ifdef USE_INSTANCING
           // The instance scale is the fish's length in meters.
           vBodyLength = length(instanceMatrix[0].xyz);
@@ -96,6 +101,7 @@ export function fishPatch(uniforms: FishUniforms): ShaderPatch {
       varying float vOpacity;
       varying float vFin;
       varying float vBodyLength;
+      varying float vGaze;
 
       // Scales: rows along the body, each row offset by half a scale, each
       // scale a dome whose centre is shifted forward so they overlap towards
@@ -167,13 +173,17 @@ export function fishPatch(uniforms: FishUniforms): ShaderPatch {
         return color;
       }
 
-      // Eye: dark pupil, golden iris ring and a small catchlight.
+      // Eye: dark pupil, golden iris ring and a small catchlight. The pupil
+      // follows the gaze: on the side the fish turns towards (-z is its left)
+      // it looks forward, on the other side backward.
       vec3 paintEye(vec3 color, vec3 p) {
         vec2 eye = vec2(0.34, uHalfHeight * 0.28);
         float r = length(p.xy - eye);
         float iris = 1.0 - smoothstep(0.026, 0.031, r);
-        float pupil = 1.0 - smoothstep(0.013, 0.017, r);
-        float glint = 1.0 - smoothstep(0.003, 0.006, length(p.xy - eye - vec2(0.007, 0.007)));
+        float side = p.z < 0.0 ? 1.0 : -1.0;
+        vec2 look = vec2(vGaze * side * ${PUPIL_TRAVEL.toFixed(3)}, 0.0);
+        float pupil = 1.0 - smoothstep(0.013, 0.017, length(p.xy - eye - look));
+        float glint = 1.0 - smoothstep(0.003, 0.006, length(p.xy - eye - look - vec2(0.007, 0.007)));
         color = mix(color, vec3(0.55, 0.42, 0.12), iris * (1.0 - vFin));
         color = mix(color, vec3(0.01), pupil * (1.0 - vFin));
         return mix(color, vec3(1.0), glint * (1.0 - vFin));
