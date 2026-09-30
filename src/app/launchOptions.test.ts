@@ -55,3 +55,13 @@ describe("hour option", () => {
     expect(parseLaunchOptions("?hour=25").hour).toBeUndefined();
   });
 });
+
+describe("designer option", () => {
+  it("reopens the scene designer after a save", () => {
+    expect(parseLaunchOptions("?designer=1").designer).toBe(true);
+  });
+
+  it("leaves the designer closed by default", () => {
+    expect(parseLaunchOptions("").designer).toBeUndefined();
+  });
+});

@@ -72,3 +72,13 @@ export function sceneName(input: unknown, id: string): string {
   const result = z.object({ name: z.string().min(1) }).safeParse(input);
   return result.success ? result.data.name : id;
 }
+
+/** The index with one more group at the end (e.g. the viewer's own scenes). */
+export function withGroup(index: SceneIndex, name: string, scenes: readonly string[]): SceneIndex {
+  if (scenes.length === 0) return index;
+  return {
+    ...index,
+    groups: [...index.groups, { name, scenes }],
+    scenes: [...index.scenes, ...scenes],
+  };
+}

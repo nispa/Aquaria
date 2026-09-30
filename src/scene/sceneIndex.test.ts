@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SceneValidationError } from "./parse";
-import { parseSceneIndex, sceneName, selectSceneId } from "./sceneIndex";
+import { parseSceneIndex, sceneName, selectSceneId, withGroup } from "./sceneIndex";
 
 const groups = {
   groups: [
@@ -79,5 +79,24 @@ describe("sceneName", () => {
 
   it("falls back to the id when the file has no usable name", () => {
     expect(sceneName({ nothing: true }, "reef")).toBe("reef");
+  });
+});
+
+describe("withGroup", () => {
+  const index = parseSceneIndex(groups);
+
+  it("adds the viewer's own scenes as a group, so they can be chosen and remembered", () => {
+    const extended = withGroup(index, "My scenes", ["my-night-reef"]);
+
+    expect(extended.groups.map((group) => group.name)).toEqual([
+      "Open sea",
+      "Aquariums",
+      "My scenes",
+    ]);
+    expect(selectSceneId(extended, undefined, "my-night-reef")).toBe("my-night-reef");
+  });
+
+  it("adds nothing when there are no scenes for the group", () => {
+    expect(withGroup(index, "My scenes", [])).toEqual(index);
   });
 });

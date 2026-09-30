@@ -112,6 +112,26 @@ The panel (`H`) starts with a **Scene** list; the choice is remembered, so the
 plain URL reopens the last scene. The list is `public/scenes/index.json`, in
 named groups ("Open sea", "Aquariums"); the first scene is the default.
 
+## Scene designer
+
+**Scene designer** (in the panel, `H`) edits the scene on screen: tank,
+water, floor and its material, light and current, the rockwork, every plant
+and object entry (add, remove, kind, count, colors or palette, size, depth
+band, material, sand or rockwork) and the fish. The LED setup of the Lights
+section is saved with the scene.
+
+- **Preview** shows the draft without saving it; with **Auto preview** it
+  follows every edit after half a second. Changed values are highlighted and
+  **Revert** goes back to the scene you started from. (Each preview restarts
+  the fish.)
+- **Save as my scene** stores it in this browser, under **My scenes** in the
+  scene list; editing one of your scenes offers **Save**, **Save as new** and
+  **Delete**.
+- **Export JSON** downloads the scene file. To ship it with the project, copy
+  it to `public/scenes/` (the file name is its id) and add the id to a group
+  in `public/scenes/index.json`. **Import JSON** loads such a file back;
+  invalid files are explained field by field.
+
 ## Writing scenes
 
 A scene lives in `public/scenes/<id>.json` and is listed in

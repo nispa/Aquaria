@@ -123,6 +123,34 @@ const surfaceMaterial = z.object({
   displacement: z.number().min(0).max(0.2).default(0),
 });
 
+/** Every kind of plant a scene can grow; the scene designer lists them. */
+export const FLORA_KINDS = [
+  "kelp",
+  "seagrass",
+  "anemone",
+  "bush",
+  "carpet",
+  "fern",
+  "stem",
+] as const;
+
+/** Every kind of object a scene can place; the scene designer lists them. */
+export const PROP_KINDS = [
+  "rock",
+  "starfish",
+  "shell",
+  "brain-coral",
+  "branch-coral",
+  "fan-coral",
+  "table-coral",
+  "mushroom-coral",
+  "leather-coral",
+  "driftwood",
+  "dragon-stone",
+  "moss",
+  "pebble",
+] as const;
+
 /** One color, or a palette: each item then takes one of the colors. */
 const colorOrPalette = z.union([hexColor, z.array(hexColor).min(1)]);
 
@@ -161,7 +189,7 @@ const flora = z.object({
    * Anemones are short, swaying tentacle clumps and bushes are grape-like
    * macroalgae; both use the same sway as plants.
    */
-  kind: z.enum(["kelp", "seagrass", "anemone", "bush", "carpet", "fern", "stem"]),
+  kind: z.enum(FLORA_KINDS),
   /** Label in the control panel; defaults to the kind. */
   name: z.string().min(1).optional(),
   count: z.number().int().min(0).max(MAX_FLORA_PER_ENTRY),
@@ -175,21 +203,7 @@ const flora = z.object({
 });
 
 const prop = z.object({
-  kind: z.enum([
-    "rock",
-    "starfish",
-    "shell",
-    "brain-coral",
-    "branch-coral",
-    "fan-coral",
-    "table-coral",
-    "mushroom-coral",
-    "leather-coral",
-    "driftwood",
-    "dragon-stone",
-    "moss",
-    "pebble",
-  ]),
+  kind: z.enum(PROP_KINDS),
   /** Label in the control panel; defaults to the kind. */
   name: z.string().min(1).optional(),
   count: z.number().int().min(0).max(MAX_PROPS_PER_ENTRY),

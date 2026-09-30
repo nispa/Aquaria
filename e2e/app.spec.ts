@@ -205,3 +205,109 @@ test("switches the light fixture to LED spots", async ({ page }) => {
   await expect(page.locator('select[name="light-setup"]')).toHaveValue("custom");
   expect(errors).toEqual([]);
 });
+
+test.describe("scene designer", () => {
+  async function openDesigner(page: Page): Promise<void> {
+    await page.addInitScript(() => {
+      if (localStorage.getItem("aquaria.settings") === null) {
+        localStorage.setItem("aquaria.settings", JSON.stringify({ renderHeight: 540 }));
+      }
+    });
+    await page.goto("/?effects=none");
+    await waitForState(page);
+    await page.keyboard.press("h");
+    await page.getByRole("button", { name: "Scene designer" }).click();
+  }
+
+  const designer = (page: Page) => page.getByRole("complementary", { name: "Scene designer" });
+  const nameField = (page: Page) =>
+    designer(page).locator("label", { hasText: "Name" }).first().locator("input");
+
+  test("previews an edit without saving it, and highlights what changed", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    page.on("console", (message) => {
+      if (message.type() === "error") errors.push(message.text());
+    });
+    await openDesigner(page);
+
+    await nameField(page).fill("Draft reef");
+    await designer(page).getByRole("button", { name: "Add plant" }).click();
+    await designer(page).getByRole("button", { name: "Preview" }).click();
+
+    await expect(designer(page).locator(".designer__status")).toContainText("Unsaved changes");
+    await expect(designer(page).locator(".designer__changed").first()).toBeVisible();
+    const stored = await page.evaluate(() => localStorage.getItem("aquaria.customScenes"));
+    expect(stored).toBeNull();
+    expect(errors).toEqual([]);
+  });
+
+  test("reverts every change back to the scene it started from", async ({ page }) => {
+    await openDesigner(page);
+    await nameField(page).fill("Draft reef");
+
+    await designer(page).getByRole("button", { name: "Revert" }).click();
+
+    await expect(nameField(page)).toHaveValue("Tropical reef");
+    await expect(designer(page).locator(".designer__status")).toHaveText("");
+  });
+
+  test("saves a new scene and lists it under My scenes", async ({ page }) => {
+    await openDesigner(page);
+    await nameField(page).fill("Night reef");
+
+    await Promise.all([
+      page.waitForEvent("load"),
+      designer(page).getByRole("button", { name: "Save as my scene" }).click(),
+    ]);
+    await waitForState(page);
+
+    await expect(designer(page)).toBeVisible();
+    await expect(page.locator('select[name="scene"]')).toHaveValue("my-night-reef");
+    await expect(
+      page.locator('select[name="scene"] optgroup[label="My scenes"] option'),
+    ).toHaveText("Night reef");
+  });
+
+  test("exports the scene as a JSON file ready for public/scenes", async ({ page }) => {
+    await openDesigner(page);
+
+    const [file] = await Promise.all([
+      page.waitForEvent("download"),
+      designer(page).getByRole("button", { name: "Export JSON" }).click(),
+    ]);
+
+    expect(file.suggestedFilename()).toBe("tropical-reef.json");
+  });
+
+  test("imports a scene file and opens it", async ({ page }) => {
+    await openDesigner(page);
+    const [file] = await Promise.all([
+      page.waitForEvent("download"),
+      designer(page).getByRole("button", { name: "Export JSON" }).click(),
+    ]);
+    const path = await file.path();
+
+    await Promise.all([
+      page.waitForEvent("load"),
+      designer(page).locator('input[type="file"]').setInputFiles(path),
+    ]);
+    await waitForState(page);
+
+    await expect(page.locator('select[name="scene"]')).toHaveValue("my-reef");
+  });
+
+  test("explains why an imported file is not a valid scene", async ({ page }) => {
+    await openDesigner(page);
+
+    await designer(page)
+      .locator('input[type="file"]')
+      .setInputFiles({
+        name: "broken.json",
+        mimeType: "application/json",
+        buffer: Buffer.from('{"id":"x"}'),
+      });
+
+    await expect(designer(page).locator(".panel__warning")).toContainText("Invalid scene");
+  });
+});

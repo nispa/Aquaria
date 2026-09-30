@@ -49,6 +49,7 @@ export interface PanelState {
 
 export interface PanelCallbacks {
   onSceneChange(sceneId: string): void;
+  onOpenDesigner(): void;
   onCountChange(speciesId: string, count: number): void;
   onSceneryChange(key: string, count: number): void;
   /** A custom setup, or undefined to go back to the recommended one. */
@@ -124,7 +125,12 @@ export function createPanel(
   sceneSelect.input.addEventListener("change", () => {
     callbacks.onSceneChange(sceneSelect.input.value);
   });
-  panel.append(sceneSelect.row);
+  const designerButton = element("button", "panel__button panel__button--wide", "Scene designer");
+  designerButton.type = "button";
+  designerButton.addEventListener("click", () => {
+    callbacks.onOpenDesigner();
+  });
+  panel.append(sceneSelect.row, designerButton);
 
   const fauna = element("section", "panel__section");
   fauna.append(element("h2", "panel__heading", "Fauna"));

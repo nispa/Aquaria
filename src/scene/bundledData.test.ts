@@ -35,4 +35,16 @@ describe("bundled data files", () => {
       sceneFiles.map((file) => file.replace(".json", "")).sort(),
     );
   });
+
+  it("lists every material folder in the material index, and nothing else", () => {
+    const folders = readdirSync(new URL("../../public/assets/materials/", import.meta.url), {
+      withFileTypes: true,
+    })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name);
+
+    const index = readJson("../../public/assets/materials/index.json") as { materials: string[] };
+
+    expect([...index.materials].sort()).toEqual(folders.sort());
+  });
 });

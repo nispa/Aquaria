@@ -14,6 +14,8 @@ export interface LaunchOptions {
   readonly seed?: number;
   /** Fixed hour of the aquarium day (0..24), overriding the light cycle. */
   readonly hour?: number;
+  /** Opens the scene designer on start (after saving a scene, the page reloads). */
+  readonly designer?: true;
   /** Exact list of look features to enable, overriding the saved choices. */
   readonly effects?: readonly string[];
 }
@@ -44,6 +46,7 @@ export function parseLaunchOptions(search: string): LaunchOptions {
     ...(frozenSeconds === undefined ? {} : { frozenSeconds }),
     ...(seed === undefined ? {} : { seed: Math.floor(seed) }),
     ...(effects === undefined ? {} : { effects }),
+    ...(params.get("designer") === "1" ? { designer: true as const } : {}),
     ...(hour === undefined || hour > HOURS_PER_DAY ? {} : { hour }),
   };
 }
