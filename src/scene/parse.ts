@@ -6,7 +6,7 @@ export class SceneValidationError extends Error {
   override readonly name = "SceneValidationError";
 }
 
-function formatIssues(source: string, error: z.ZodError): string {
+export function formatIssues(source: string, error: z.ZodError): string {
   const lines = error.issues.map((issue) => {
     const path = issue.path.length > 0 ? issue.path.join(".") : "(root)";
     return `  - ${path}: ${issue.message}`;

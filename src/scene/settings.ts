@@ -10,6 +10,11 @@ export const settingsSchema = z.object({
   /** Height of the drawing buffer in pixels; the canvas always fills the screen. */
   renderHeight: z.number().int().min(MIN_RENDER_HEIGHT).max(UHD_HEIGHT).default(UHD_HEIGHT),
   showFps: z.boolean().default(false),
+  /** Chosen shader pack id; when absent the pack index default is used. */
+  shaderPack: z
+    .string()
+    .regex(/^[a-z0-9-]+$/)
+    .optional(),
   /** Population overrides per scene id, then per species id. */
   counts: z
     .record(

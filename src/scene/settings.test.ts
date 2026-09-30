@@ -66,3 +66,17 @@ describe("applyCountOverrides", () => {
     expect(scene.fauna).toContainEqual({ species: "sardine", count: 40 });
   });
 });
+
+describe("shader pack preference", () => {
+  it("has no saved pack by default, so the index default is used", () => {
+    expect(DEFAULT_SETTINGS.shaderPack).toBeUndefined();
+  });
+
+  it("keeps a saved pack id", () => {
+    expect(parseSettings({ shaderPack: "classic" }).settings.shaderPack).toBe("classic");
+  });
+
+  it("rejects pack ids that could escape the packs folder", () => {
+    expect(parseSettings({ shaderPack: "../x" }).valid).toBe(false);
+  });
+});

@@ -27,3 +27,13 @@ describe("parseLaunchOptions", () => {
     expect(parseLaunchOptions("?seed=7").seed).toBe(7);
   });
 });
+
+describe("shader pack option", () => {
+  it("reads a pack id", () => {
+    expect(parseLaunchOptions("?pack=classic").pack).toBe("classic");
+  });
+
+  it("ignores unsafe pack ids", () => {
+    expect(parseLaunchOptions("?pack=../x").pack).toBeUndefined();
+  });
+});
