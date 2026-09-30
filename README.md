@@ -21,6 +21,8 @@ life with Three.js.
   swim in from the sides; surplus fish swim away instead of vanishing.
 - **Shared water current** that bends the plants, drifts the particles and
   nudges the fish.
+- **Anti-aliasing**: MSAA off, 2x (default), 4x or 8x from the panel, plus an
+  optional SMAA pass.
 - **Resolution slider** from 540p to 4K, independent of the screen size, with
   Full HD and 4K presets.
 - **Made for LED walls**: dithering against banding in dark gradients, no
@@ -224,6 +226,7 @@ choose what the GPU spends its time on.
 | Volumetric light    | Shafts through the water, occluded by fish and kelp  | on      |
 | Depth of field      | Blurs what is nearer or further than the focus plane | off     |
 | Bloom               | Soft glow around the brightest pixels                | on      |
+| SMAA anti-aliasing  | Smooths thin edges (grass, fins) that MSAA misses    | off     |
 | Vignette and dither | Darker corners; dither against banding on LED walls  | on      |
 
 Ambient occlusion is by far the most expensive (about 18 ms per frame at

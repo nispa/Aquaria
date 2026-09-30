@@ -39,6 +39,9 @@ export interface PanelState {
   readonly scenery: readonly SceneryEntry[];
   readonly renderHeight: number;
   readonly showFps: boolean;
+  /** Multisample anti-aliasing samples, one of `msaaChoices`. */
+  readonly msaaSamples: number;
+  readonly msaaChoices: readonly number[];
   /** Switchable lighting features and effects, and which ones are on. */
   readonly features: readonly LookFeature[];
   readonly look: Look;
@@ -52,6 +55,7 @@ export interface PanelCallbacks {
   onLightsChange(lights: Lights | undefined): void;
   onRenderHeightChange(height: number): void;
   onShowFpsChange(show: boolean): void;
+  onMsaaChange(samples: number): void;
   onFeatureChange(featureId: string, enabled: boolean): void;
   onFullscreen(): void;
 }
@@ -209,7 +213,18 @@ export function createPanel(
       ),
     );
   }
-  quality.append(resolutionRow, presets, fpsRow, fullscreen);
+  const antialias = select(
+    "Anti-aliasing",
+    state.msaaChoices.map(
+      (samples) => [String(samples), samples === 0 ? "Off" : `MSAA ${samples}x`] as const,
+    ),
+    String(state.msaaSamples),
+  );
+  antialias.input.name = "msaa";
+  antialias.input.addEventListener("change", () => {
+    callbacks.onMsaaChange(Number(antialias.input.value));
+  });
+  quality.append(resolutionRow, presets, antialias.row, fpsRow, fullscreen);
   panel.append(
     fauna,
     scenery,

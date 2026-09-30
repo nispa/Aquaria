@@ -173,3 +173,17 @@ test("switches scene from the panel and remembers it", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Home reef" })).toBeVisible();
   await expect(page.locator('select[name="scene"]')).toHaveValue("home-reef");
 });
+
+test("changes the anti-aliasing from the panel", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await openLive(page);
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await page.locator('select[name="msaa"]').selectOption("4");
+  await page.getByRole("checkbox", { name: "SMAA anti-aliasing" }).check();
+
+  await expect(page.locator('select[name="msaa"]')).toHaveValue("4");
+  expect(errors).toEqual([]);
+});

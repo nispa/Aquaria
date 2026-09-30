@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { catalogFixture, sceneFixture } from "./fixtures";
 import { parseCatalog, parseScene } from "./parse";
-import { applyCountOverrides, DEFAULT_SETTINGS, parseSettings } from "./settings";
+import {
+  applyCountOverrides,
+  DEFAULT_MSAA_SAMPLES,
+  DEFAULT_SETTINGS,
+  parseSettings,
+} from "./settings";
 
 describe("parseSettings", () => {
   it("returns the defaults when nothing was saved", () => {
@@ -121,5 +126,21 @@ describe("scene preference", () => {
 
   it("rejects scene ids that could escape the scenes folder", () => {
     expect(parseSettings({ scene: "../x" }).valid).toBe(false);
+  });
+});
+
+describe("anti-aliasing preference", () => {
+  it("defaults to 2x multisampling", () => {
+    expect(DEFAULT_SETTINGS.msaaSamples ?? DEFAULT_MSAA_SAMPLES).toBe(2);
+  });
+
+  it("accepts off, 2x, 4x and 8x", () => {
+    const valid = [0, 2, 4, 8].map((msaaSamples) => parseSettings({ msaaSamples }).valid);
+
+    expect(valid).toEqual([true, true, true, true]);
+  });
+
+  it("rejects other sample counts", () => {
+    expect(parseSettings({ msaaSamples: 3 }).valid).toBe(false);
   });
 });

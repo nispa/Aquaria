@@ -11,11 +11,18 @@ import {
 /** Lowest render height offered, for weak GPUs (half of Full HD). */
 const MIN_RENDER_HEIGHT = FULL_HD_HEIGHT / 2;
 
+/** Multisample anti-aliasing: smooth edges at a moderate cost in 4K memory. */
+export const DEFAULT_MSAA_SAMPLES = 2;
+export const MSAA_SAMPLE_CHOICES = [0, 2, 4, 8] as const;
+export type MsaaSamples = (typeof MSAA_SAMPLE_CHOICES)[number];
+
 /** Viewer preferences saved in the browser. */
 export const settingsSchema = z.object({
   /** Height of the drawing buffer in pixels; the canvas always fills the screen. */
   renderHeight: z.number().int().min(MIN_RENDER_HEIGHT).max(UHD_HEIGHT).default(UHD_HEIGHT),
   showFps: z.boolean().default(false),
+  /** Multisample anti-aliasing samples; DEFAULT_MSAA_SAMPLES when absent. */
+  msaaSamples: z.union(MSAA_SAMPLE_CHOICES.map((samples) => z.literal(samples))).optional(),
   /** On/off choice per look feature id; features not listed use their default. */
   look: z.record(z.string(), z.boolean()).optional(),
   /** The scene chosen last in the panel. */

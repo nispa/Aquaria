@@ -2,6 +2,7 @@ import { ambientOcclusionEffect } from "./ambientOcclusion";
 import { bloomEffect } from "./bloom";
 import { depthOfFieldEffect } from "./depthOfField";
 import { finishEffect } from "./finish";
+import { smaaEffect } from "./smaa";
 import type { EffectDefinition } from "./types";
 import { volumetricLightEffect } from "./volumetricLight";
 
@@ -15,5 +16,6 @@ export const EFFECTS: readonly EffectDefinition[] = [
   volumetricLightEffect,
   depthOfFieldEffect,
   bloomEffect,
+  smaaEffect,
   finishEffect,
 ];

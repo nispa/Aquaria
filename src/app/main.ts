@@ -7,7 +7,13 @@ import { createRng } from "../core/rng";
 import { createAquariumView } from "../render/aquariumView";
 import { EFFECTS } from "../render/effects";
 import { parseCatalog, parseScene } from "../scene/parse";
-import { applyCountOverrides, parseSettings, type Settings } from "../scene/settings";
+import {
+  applyCountOverrides,
+  DEFAULT_MSAA_SAMPLES,
+  MSAA_SAMPLE_CHOICES,
+  parseSettings,
+  type Settings,
+} from "../scene/settings";
 import type { Lights } from "../scene/lights";
 import { lookFeatures, resolveLook, type Look } from "../scene/look";
 import { applySceneryOverrides, sceneryEntries } from "../scene/scenery";
@@ -152,6 +158,7 @@ async function start(): Promise<void> {
     look,
     effects: EFFECTS,
     lights: effectiveLights(settings.lights),
+    msaaSamples: settings.msaaSamples ?? DEFAULT_MSAA_SAMPLES,
     clockHour: () => clockHour,
   });
   simulation.setSeabed((x, z) => view.seabedHeight(x, z));
@@ -191,6 +198,8 @@ async function start(): Promise<void> {
       ),
       renderHeight: settings.renderHeight,
       showFps: settings.showFps,
+      msaaSamples: settings.msaaSamples ?? DEFAULT_MSAA_SAMPLES,
+      msaaChoices: MSAA_SAMPLE_CHOICES,
       features,
       look,
       scenery: sceneryEntries(scene),
@@ -226,6 +235,12 @@ async function start(): Promise<void> {
       onRenderHeightChange(height) {
         view.setRenderHeight(height);
         update({ renderHeight: height });
+      },
+      onMsaaChange(samples) {
+        const choice = MSAA_SAMPLE_CHOICES.find((candidate) => candidate === samples);
+        if (choice === undefined) return;
+        view.setMsaa(choice);
+        update({ msaaSamples: choice });
       },
       onShowFpsChange(show) {
         update({ showFps: show });

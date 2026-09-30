@@ -44,8 +44,6 @@ import { createRockworkRenderer, type RockworkRenderer } from "./rockworkRendere
 import { createWaterUniforms } from "./uniforms";
 
 const VERTICAL_FOV = 38;
-/** MSAA samples: 2 is a good compromise between smooth edges and 4K memory use. */
-const MSAA_SAMPLES = 2;
 const BASE_EXPOSURE = 1.05;
 /** Sun placement relative to the tank: above, slightly to the right and in front. */
 const SUN_OFFSET = { x: 2, aboveSurface: 6, z: 3 } as const;
@@ -77,6 +75,8 @@ export interface AquariumViewOptions {
   readonly effects: readonly EffectDefinition[];
   /** LED channels and daily cycle. */
   readonly lights: Lights;
+  /** Multisample anti-aliasing samples (0 = off), capped by what the GPU supports. */
+  readonly msaaSamples: number;
   /** Local time of day in hours, for the clock cycle mode. Called every frame: keep it cheap. */
   readonly clockHour: () => number;
 }
@@ -90,6 +90,8 @@ export interface AquariumView {
   setRenderHeight(heightPixels: number): void;
   /** Switches features live: lighting, bubbles and post-processing. */
   setLook(look: Look): void;
+  /** Changes the multisample anti-aliasing (0 = off); rebuilds the render targets. */
+  setMsaa(samples: number): void;
   /** Switches to another LED setup or cycle. */
   setLights(lights: Lights): void;
   /**
@@ -207,6 +209,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   };
   frameCamera();
   let currentLook: Look = options.look;
+  let msaaSamples = options.msaaSamples;
   let layoutAspect = 0;
   let floraSpecs: Scene["flora"] = scene.flora;
   let propSpecs: Scene["props"] = scene.props;
@@ -292,7 +295,8 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
 
   const buildPipeline = (look: Look): void => {
     disposePipeline();
-    const target = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: MSAA_SAMPLES });
+    const samples = Math.min(msaaSamples, renderer.capabilities.maxSamples);
+    const target = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples });
     const next = new EffectComposer(renderer, target);
     next.addPass(new RenderPass(world, camera));
     // Every parameter has a default: the tuned look lives in the effect files.
@@ -354,6 +358,11 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
 
   return {
     ready: () => surfaces.settled(),
+    setMsaa(samples) {
+      msaaSamples = samples;
+      buildPipeline(currentLook);
+      applySize();
+    },
     setLights(next) {
       lights = next;
       mixer = createLightMixer(next);
