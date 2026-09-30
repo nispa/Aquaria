@@ -52,7 +52,7 @@ URL options:
 
 | Option    | Example                  | Effect                                             |
 | --------- | ------------------------ | -------------------------------------------------- |
-| `scene`   | `?scene=reef`            | Loads `public/scenes/<scene>.json`                 |
+| `scene`   | `?scene=home-reef`       | Opens `public/scenes/<scene>.json`, even unlisted  |
 | `seed`    | `?seed=7`                | Overrides the scene's random seed                  |
 | `frozen`  | `?frozen=10`             | Simulates 10 s and renders one still frame         |
 | `effects` | `?effects=shadows,bloom` | Enables exactly these effects (`none` for all off) |
@@ -74,9 +74,16 @@ Disable sleep and the OS screen saver on the machine driving the wall. Start
 at 4K, compare with Full HD from your usual viewing distance, and keep the
 lowest setting you cannot tell apart: it saves GPU power.
 
+## Choosing a scene
+
+The panel (`H`) starts with a **Scene** list; the choice is remembered, so the
+plain URL reopens the last scene. The list is `public/scenes/index.json`; the
+first scene is the default.
+
 ## Writing scenes
 
-A scene lives in `public/scenes/<id>.json`. The tank is measured in meters:
+A scene lives in `public/scenes/<id>.json` and is listed in
+`public/scenes/index.json` to appear in the panel. The tank is measured in meters:
 `x` across the glass, `y` from the sand up to the surface, `z` away from the
 glass. Depth is divided into five bands, 0 right behind the glass and 4 at the
 back.

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { parseLaunchOptions } from "./launchOptions";
 
 describe("parseLaunchOptions", () => {
-  it("defaults to the reef scene, live mode", () => {
-    expect(parseLaunchOptions("")).toEqual({ scene: "reef" });
+  it("names no scene and runs live by default, so the saved or default scene opens", () => {
+    expect(parseLaunchOptions("")).toEqual({});
   });
 
   it("reads the scene id", () => {
@@ -11,7 +11,7 @@ describe("parseLaunchOptions", () => {
   });
 
   it("rejects scene ids that could escape the scenes folder", () => {
-    expect(parseLaunchOptions("?scene=../secret").scene).toBe("reef");
+    expect(parseLaunchOptions("?scene=../secret").scene).toBeUndefined();
   });
 
   it("reads a frozen time for deterministic screenshots", () => {

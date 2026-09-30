@@ -18,6 +18,11 @@ export const settingsSchema = z.object({
   showFps: z.boolean().default(false),
   /** On/off choice per look feature id; features not listed use their default. */
   look: z.record(z.string(), z.boolean()).optional(),
+  /** The scene chosen last in the panel. */
+  scene: z
+    .string()
+    .regex(/^[a-z0-9-]+$/)
+    .optional(),
   /** Custom LED setup; when absent the scene's own lights are used. */
   lights: customLightsSchema.optional(),
   /** Scenery count overrides per scene id, then per scenery key (see `sceneryEntries`). */

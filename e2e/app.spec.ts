@@ -151,3 +151,25 @@ test("goes back to the recommended lights", async ({ page }) => {
 
   await expect(page.locator('[data-channel="accent"] output')).toHaveText("0%");
 });
+
+test("switches scene from the panel and remembers it", async ({ page }) => {
+  // Seed light settings once; a reload must keep the scene saved by the panel.
+  await page.addInitScript(() => {
+    if (localStorage.getItem("aquaria.settings") === null) {
+      localStorage.setItem("aquaria.settings", JSON.stringify({ renderHeight: 540 }));
+    }
+  });
+  await page.goto("/?effects=none");
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await Promise.all([
+    page.waitForEvent("load"),
+    page.locator('select[name="scene"]').selectOption("home-reef"),
+  ]);
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await expect(page.getByRole("heading", { name: "Home reef" })).toBeVisible();
+  await expect(page.locator('select[name="scene"]')).toHaveValue("home-reef");
+});

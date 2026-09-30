@@ -1,7 +1,7 @@
 import { FULL_HD_HEIGHT, resolutionLabel, UHD_HEIGHT } from "../core/resolution";
 import type { Lights } from "../scene/lights";
 import type { Look, LookFeature, LookFeatureKind } from "../scene/look";
-import { checkbox, element, slider } from "./controls";
+import { checkbox, element, select, slider } from "./controls";
 import { createLightsSection, type LightsSectionState } from "./lightsSection";
 import type { SceneryEntry } from "../scene/scenery";
 import { MAX_INDIVIDUALS_PER_SPECIES, type Species } from "../scene/schema";
@@ -12,8 +12,16 @@ const HEIGHT_STEP = 60;
 /** Seconds of mouse inactivity before the corner button hides again. */
 const BUTTON_IDLE_MS = 2500;
 
+/** A scene offered in the panel's scene list. */
+export interface SceneChoice {
+  readonly id: string;
+  readonly name: string;
+}
+
 export interface PanelState {
   readonly sceneName: string;
+  readonly scenes: readonly SceneChoice[];
+  readonly sceneId: string;
   readonly species: readonly Species[];
   readonly counts: Readonly<Record<string, number>>;
   /** LED setup and cycle. */
@@ -28,6 +36,7 @@ export interface PanelState {
 }
 
 export interface PanelCallbacks {
+  onSceneChange(sceneId: string): void;
   onCountChange(speciesId: string, count: number): void;
   onSceneryChange(key: string, count: number): void;
   /** A custom setup, or undefined to go back to the recommended one. */
@@ -86,6 +95,16 @@ export function createPanel(
   panel.hidden = true;
 
   panel.append(element("h1", "panel__title", state.sceneName));
+  const sceneSelect = select(
+    "Scene",
+    state.scenes.map((choice) => [choice.id, choice.name] as const),
+    state.sceneId,
+  );
+  sceneSelect.input.name = "scene";
+  sceneSelect.input.addEventListener("change", () => {
+    callbacks.onSceneChange(sceneSelect.input.value);
+  });
+  panel.append(sceneSelect.row);
 
   const fauna = element("section", "panel__section");
   fauna.append(element("h2", "panel__heading", "Fauna"));

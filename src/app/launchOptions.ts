@@ -1,4 +1,3 @@
-const DEFAULT_SCENE = "reef";
 /** Scene ids double as file names, so they are restricted. */
 const SCENE_ID = /^[a-z0-9-]+$/;
 const FEATURE_ID = /^[a-z0-9-]+$/;
@@ -7,7 +6,8 @@ const HOURS_PER_DAY = 24;
 
 /** Options read from the page URL, e.g. `?scene=reef&frozen=10&seed=3`. */
 export interface LaunchOptions {
-  readonly scene: string;
+  /** Scene id; when absent the saved or default scene opens. */
+  readonly scene?: string;
   /** When set, simulate this many seconds, render one still frame and stop. */
   readonly frozenSeconds?: number;
   /** Overrides the scene seed. */
@@ -34,13 +34,13 @@ function featureList(value: string | null): readonly string[] | undefined {
 export function parseLaunchOptions(search: string): LaunchOptions {
   const params = new URLSearchParams(search);
   const requested = params.get("scene");
-  const scene = requested !== null && SCENE_ID.test(requested) ? requested : DEFAULT_SCENE;
+  const scene = requested !== null && SCENE_ID.test(requested) ? requested : undefined;
   const frozenSeconds = nonNegativeNumber(params.get("frozen"));
   const seed = nonNegativeNumber(params.get("seed"));
   const effects = featureList(params.get("effects"));
   const hour = nonNegativeNumber(params.get("hour"));
   return {
-    scene,
+    ...(scene === undefined ? {} : { scene }),
     ...(frozenSeconds === undefined ? {} : { frozenSeconds }),
     ...(seed === undefined ? {} : { seed: Math.floor(seed) }),
     ...(effects === undefined ? {} : { effects }),

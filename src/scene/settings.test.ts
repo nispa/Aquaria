@@ -113,3 +113,13 @@ describe("lights preference", () => {
     expect(settings.lights?.channels.white.level).toBeGreaterThan(0);
   });
 });
+
+describe("scene preference", () => {
+  it("remembers the last chosen scene", () => {
+    expect(parseSettings({ scene: "home-reef" }).settings.scene).toBe("home-reef");
+  });
+
+  it("rejects scene ids that could escape the scenes folder", () => {
+    expect(parseSettings({ scene: "../x" }).valid).toBe(false);
+  });
+});

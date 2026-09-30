@@ -10,6 +10,8 @@ import { applyCountOverrides, parseSettings, type Settings } from "../scene/sett
 import type { Lights } from "../scene/lights";
 import { lookFeatures, resolveLook, type Look } from "../scene/look";
 import { applySceneryOverrides, sceneryEntries } from "../scene/scenery";
+import { parseSceneIndex, sceneName, selectSceneId, type SceneIndex } from "../scene/sceneIndex";
+import type { SceneChoice } from "../ui/panel";
 import { createSimulation } from "../sim/simulation";
 import { createPanel } from "../ui/panel";
 import { parseLaunchOptions } from "./launchOptions";
@@ -75,25 +77,48 @@ function showError(error: unknown): void {
   document.body.dataset.state = "error";
 }
 
+/** Names for the panel's scene list; a scene that fails to load is listed by its id. */
+async function loadSceneChoices(index: SceneIndex): Promise<SceneChoice[]> {
+  return Promise.all(
+    index.scenes.map(async (id) => {
+      try {
+        return { id, name: sceneName(await fetchJson(`scenes/${id}.json`), id) };
+      } catch {
+        return { id, name: id };
+      }
+    }),
+  );
+}
+
+/** Opens another scene: saved as the choice, and replacing any ?scene= in the URL. */
+function openScene(id: string): void {
+  const url = new URL(window.location.href);
+  if (url.searchParams.has("scene")) url.searchParams.set("scene", id);
+  window.location.assign(url);
+}
+
 async function start(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>("#aquarium");
   if (canvas === null) throw new Error('Missing <canvas id="aquarium">.');
 
   const options = parseLaunchOptions(window.location.search);
-  const [catalogData, sceneData] = await Promise.all([
+  let settings = loadSettings();
+  const sceneIndex = parseSceneIndex(await fetchJson("scenes/index.json"));
+  const sceneId = selectSceneId(sceneIndex, options.scene, settings.scene);
+  const [catalogData, sceneData, sceneChoices] = await Promise.all([
     fetchJson("species.json"),
-    fetchJson(`scenes/${options.scene}.json`),
+    fetchJson(`scenes/${sceneId}.json`),
+    loadSceneChoices(sceneIndex),
   ]);
   const catalog = parseCatalog(catalogData);
-  let settings = loadSettings();
   const features = lookFeatures(EFFECTS);
   let look: Look = resolveLook(features, settings.look ?? {}, options.effects);
   const baseScene = applyCountOverrides(
     parseScene(sceneData, catalog),
-    settings.counts[options.scene] ?? {},
+    settings.counts[sceneId] ?? {},
     catalog,
   );
-  let sceneryCounts: Readonly<Record<string, number>> = settings.scenery?.[options.scene] ?? {};
+  let sceneryCounts: Readonly<Record<string, number>> = settings.scenery?.[sceneId] ?? {};
   const scene = applySceneryOverrides(baseScene, sceneryCounts);
 
   const rng = createRng(options.seed ?? scene.seed);
@@ -152,6 +177,8 @@ async function start(): Promise<void> {
     document.body,
     {
       sceneName: scene.name,
+      scenes: sceneChoices,
+      sceneId,
       species: catalog.species,
       counts: Object.fromEntries(
         catalog.species.map((species) => [species.id, simulation.targetCount(species.id)]),
@@ -185,6 +212,10 @@ async function start(): Promise<void> {
       onLightsChange(lights) {
         view.setLights(effectiveLights(lights));
         update({ lights });
+      },
+      onSceneChange(id) {
+        update({ scene: id });
+        openScene(id);
       },
       onRenderHeightChange(height) {
         view.setRenderHeight(height);
