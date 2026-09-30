@@ -111,3 +111,33 @@ export function addContainment(
   out.z += axisPush(position.z, box.min.z, box.max.z, margin);
   return out;
 }
+
+/** Height of the seabed (sand and rockwork) at (x, z), m. */
+export type SeabedHeight = (x: number, z: number) => number;
+
+/** Step for estimating the seabed slope, m. */
+const SLOPE_STEP = 0.05;
+
+/**
+ * Keeps fish off the sand and rock: within `clearance` of the seabed, pushes
+ * along the surface normal (up, and away from steep rock faces), growing
+ * linearly the closer the fish gets.
+ */
+export function addSeabedClearance(
+  position: Vector3,
+  seabed: SeabedHeight,
+  clearance: number,
+  out: Vector3,
+): Vector3 {
+  const { x, y, z } = position;
+  const gap = y - seabed(x, z);
+  if (gap >= clearance) return out;
+  const push = (clearance - gap) / clearance;
+  const slopeX = (seabed(x + SLOPE_STEP, z) - seabed(x - SLOPE_STEP, z)) / (2 * SLOPE_STEP);
+  const slopeZ = (seabed(x, z + SLOPE_STEP) - seabed(x, z - SLOPE_STEP)) / (2 * SLOPE_STEP);
+  const length = Math.hypot(slopeX, 1, slopeZ);
+  out.x += (-slopeX / length) * push;
+  out.y += (1 / length) * push;
+  out.z += (-slopeZ / length) * push;
+  return out;
+}

@@ -1,6 +1,12 @@
 import { Box3, Vector3 } from "three";
 import { describe, expect, it } from "vitest";
-import { addAlignment, addCohesion, addContainment, addSeparation } from "./steering";
+import {
+  addAlignment,
+  addCohesion,
+  addContainment,
+  addSeabedClearance,
+  addSeparation,
+} from "./steering";
 
 const v = (x: number, y: number, z: number) => new Vector3(x, y, z);
 
@@ -106,5 +112,35 @@ describe("addContainment", () => {
     const force = addContainment(v(9, 2, -2.5), box, 1, new Vector3(), { ignoreX: true });
 
     expect(force.length()).toBe(0);
+  });
+});
+
+describe("addSeabedClearance", () => {
+  const flat = (): number => 0.5;
+  const slope = (x: number): number => x;
+
+  it("pushes up a fish that swims too close to the seabed", () => {
+    const out = addSeabedClearance(new Vector3(0, 0.55, 0), flat, 0.2, new Vector3());
+
+    expect(out.y).toBeGreaterThan(0);
+  });
+
+  it("leaves a fish alone well above the seabed", () => {
+    const out = addSeabedClearance(new Vector3(0, 1.5, 0), flat, 0.2, new Vector3());
+
+    expect(out.toArray()).toEqual([0, 0, 0]);
+  });
+
+  it("pushes harder the deeper a fish is inside the clearance", () => {
+    const near = addSeabedClearance(new Vector3(0, 0.65, 0), flat, 0.2, new Vector3());
+    const deep = addSeabedClearance(new Vector3(0, 0.52, 0), flat, 0.2, new Vector3());
+
+    expect(deep.y).toBeGreaterThan(near.y);
+  });
+
+  it("pushes away from a steep rock face, not only upwards", () => {
+    const out = addSeabedClearance(new Vector3(1, 1.05, 0), slope, 0.2, new Vector3());
+
+    expect(out.x).toBeLessThan(0);
   });
 });

@@ -27,7 +27,8 @@ import type { Lights } from "../scene/lights";
 import { lookPasses, type Look } from "../scene/look";
 import { layoutFlora, layoutProps } from "../sim/layout";
 import { createLightMixer, cycleHour } from "../sim/lightCycle";
-import { createRockwork } from "../sim/rockwork";
+import { createRockwork, type Rockwork } from "../sim/rockwork";
+import { floorHeight } from "../sim/terrain";
 import type { Simulation } from "../sim/simulation";
 import type { EffectDefinition, EffectInstance } from "./effects/types";
 import { createEnvironment } from "./environment";
@@ -91,6 +92,11 @@ export interface AquariumView {
   setLook(look: Look): void;
   /** Switches to another LED setup or cycle. */
   setLights(lights: Lights): void;
+  /**
+   * Height of the seabed (sand plus rockwork) at (x, z), m. The scenery is laid
+   * out here (it follows the camera), so the simulation reads it through the app.
+   */
+  seabedHeight(x: number, z: number): number;
   /** Hour of the aquarium day shown by the last frame. */
   hour(): number;
   /** Rebuilds plants, rocks, corals and shells for new scenery counts. */
@@ -188,6 +194,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   let flora: FloraRenderer | undefined;
   let props: PropRenderer | undefined;
   let rockwork: RockworkRenderer | undefined;
+  let ridge: Rockwork | undefined;
   let particles: Particles | undefined;
   const frameCamera = (): void => {
     camera.aspect = cssWidth / cssHeight;
@@ -218,7 +225,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
         (camera.position.z - z) * Math.tan(((VERTICAL_FOV / 2) * Math.PI) / 180) * camera.aspect,
         scene.tank.width / 2,
       );
-    const ridge =
+    ridge =
       scene.rockwork === undefined
         ? undefined
         : createRockwork(
@@ -350,6 +357,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       mixer = createLightMixer(next);
     },
     hour: () => currentHour,
+    seabedHeight: (x, z) => floorHeight(x, z) + (ridge?.heightAt(x, z) ?? 0),
     render() {
       cycleInput.clockHour = options.clockHour();
       cycleInput.elapsedSeconds = simulation.timeSeconds;

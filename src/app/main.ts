@@ -124,8 +124,10 @@ async function start(): Promise<void> {
     lights: effectiveLights(settings.lights),
     clockHour: () => clockHour,
   });
+  simulation.setSeabed((x, z) => view.seabedHeight(x, z));
   view.resize(window.innerWidth, window.innerHeight);
   window.addEventListener("resize", () => {
+    simulation.setSeabed((x, z) => view.seabedHeight(x, z));
     view.resize(window.innerWidth, window.innerHeight);
   });
 

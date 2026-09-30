@@ -9,7 +9,14 @@ import {
   type SpeciesCatalog,
 } from "../scene/schema";
 import { createCurrentField, type CurrentField } from "./current";
-import { addAlignment, addCohesion, addContainment, addSeparation } from "./steering";
+import {
+  addAlignment,
+  addCohesion,
+  addContainment,
+  addSeabedClearance,
+  addSeparation,
+  type SeabedHeight,
+} from "./steering";
 import { habitatBox } from "./tank";
 
 /** Default cap on fish alive at once, including those entering and leaving. */
@@ -30,6 +37,12 @@ const SEPARATION_WEIGHT = 1.5;
 const COHESION_WEIGHT = 0.8;
 const ALIGNMENT_WEIGHT = 1.2;
 const CONTAINMENT_WEIGHT = 2.5;
+const SEABED_WEIGHT = 4;
+/** Fish keep this many body lengths (at least SEABED_MIN_CLEARANCE) off the seabed. */
+const SEABED_BODY_LENGTHS = 1.5;
+const SEABED_MIN_CLEARANCE = 0.08;
+/** Hard limit: a fish's centre never gets closer to the seabed than this, in body lengths. */
+const SEABED_MIN_GAP_BODY_LENGTHS = 0.5;
 const WANDER_WEIGHT = 0.6;
 const SPEED_RESPONSE = 1.5;
 const TRANSIT_PULL = 2;
@@ -83,6 +96,11 @@ export interface Simulation {
   readonly timeSeconds: number;
   /** Advances the simulation by one fixed step. */
   step(deltaSeconds: number): void;
+  /**
+   * Sets the seabed (sand plus rockwork) fish must keep clear of. Called on
+   * every step, so it may change, e.g. when the scenery is rebuilt.
+   */
+  setSeabed(seabed: SeabedHeight): void;
   /** Requests a new population for a species; fish swim in or out gradually. */
   setCount(speciesId: string, count: number): void;
   targetCount(speciesId: string): number;
@@ -112,6 +130,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
   const fish: Fish[] = [];
   const groups = new Map<string, Group>();
   let nextId = 0;
+  let seabed: SeabedHeight = () => 0;
   let timeSeconds = 0;
 
   for (const species of catalog.species) {
@@ -241,6 +260,11 @@ export function createSimulation(options: SimulationOptions): Simulation {
     });
     force.addScaledVector(term, CONTAINMENT_WEIGHT);
 
+    term.set(0, 0, 0);
+    const clearance = Math.max(member.length * SEABED_BODY_LENGTHS, SEABED_MIN_CLEARANCE);
+    addSeabedClearance(member.position, seabed, clearance, term);
+    force.addScaledVector(term, SEABED_WEIGHT);
+
     if (member.state === "swimming") {
       member.wanderAngle += rng.normal(0, WANDER_JITTER * Math.sqrt(deltaSeconds));
       force.x += Math.cos(member.wanderAngle) * WANDER_WEIGHT;
@@ -267,6 +291,14 @@ export function createSimulation(options: SimulationOptions): Simulation {
     member.position
       .addScaledVector(member.velocity, deltaSeconds)
       .addScaledVector(drift, deltaSeconds);
+    // Steering keeps fish clear of the rock; this stops the rare one that
+    // still dives into it (fast fish, steep faces) from passing through.
+    const floor =
+      seabed(member.position.x, member.position.z) + member.length * SEABED_MIN_GAP_BODY_LENGTHS;
+    if (member.position.y < floor) {
+      member.position.y = floor;
+      member.velocity.y = Math.max(member.velocity.y, 0);
+    }
     member.swimPhase +=
       (member.velocity.length() / member.length) *
       SWIM_BEATS_PER_BODY_LENGTH *
@@ -326,6 +358,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
         for (const group of groups.values()) reconcile(group);
       }
       timeSeconds += deltaSeconds;
+    },
+    setSeabed(next) {
+      seabed = next;
     },
     setCount(speciesId, count) {
       const group = groupOf(speciesId);

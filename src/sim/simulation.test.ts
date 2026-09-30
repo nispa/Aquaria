@@ -229,3 +229,27 @@ describe("changing populations", () => {
     expect(TOTAL_FISH_LIMIT).toBeGreaterThanOrEqual(200);
   });
 });
+
+describe("seabed", () => {
+  /** Above the lower edge of the blue tangs' habitat (1.35 m), below its top. */
+  const plateau = 2.5;
+
+  it("keeps every fish above the rockwork, even where its habitat is lower", () => {
+    const simulation = simulate();
+    simulation.setSeabed(() => plateau);
+
+    run(simulation, 10);
+
+    const below = simulation.fish.filter((fish) => fish.position.y < plateau);
+    expect(below).toEqual([]);
+  });
+
+  it("leaves fish free to use their habitat over flat sand", () => {
+    const simulation = simulate();
+    simulation.setSeabed(() => 0);
+
+    run(simulation, 10);
+
+    expect(simulation.fish.some((fish) => fish.position.y < plateau)).toBe(true);
+  });
+});
