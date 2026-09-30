@@ -234,3 +234,37 @@ describe("scene lights", () => {
     expect([scene.lights.channels.blue.level, scene.lights.cycle.mode]).toEqual([0.2, "clock"]);
   });
 });
+
+describe("reef fish bodies", () => {
+  it("accepts tall and banner bodies with the reef patterns", () => {
+    const input = catalogFixture();
+    input.species[0]!.body = {
+      type: "procedural",
+      shape: "banner",
+      pattern: "idol",
+      colors: { base: "#f4f1e6", accent: "#161616", detail: "#ffcc22" },
+    };
+    input.species[1]!.body = {
+      type: "procedural",
+      shape: "tall",
+      pattern: "eye-bar",
+      colors: { base: "#ffd23a", accent: "#1a1a1a" },
+    };
+
+    expect(() => parseCatalog(input)).not.toThrow();
+  });
+
+  it("uses the accent color for details when no detail color is given", () => {
+    const input = catalogFixture();
+    input.species[0]!.body = {
+      type: "procedural",
+      shape: "tall",
+      pattern: "stripes",
+      colors: { base: "#1d3fa8", accent: "#ffd84a" },
+    };
+
+    const body = parseCatalog(input).species[0]?.body;
+
+    expect(body?.type === "procedural" ? body.colors.detail : undefined).toBe("#ffd84a");
+  });
+});

@@ -34,14 +34,29 @@ const heightRange = orderedPair(unit, "heightRange");
 
 const proceduralBody = z.object({
   type: z.literal("procedural"),
-  /** Built-in body shapes generated in code. */
-  shape: z.enum(["disc", "slender", "round"]),
   /**
-   * Where the accent color goes: a light belly, the tail, vertical bands,
-   * or a front/back split.
+   * Built-in body shapes generated in code: `tall` is a high disc with a
+   * pointed snout and large soft fins (butterflyfish, angelfish, damsels);
+   * `banner` adds the long trailing dorsal filament of a moorish idol.
    */
-  pattern: z.enum(["belly", "tail", "bands", "split"]).default("belly"),
-  colors: z.object({ base: hexColor, accent: hexColor }),
+  shape: z.enum(["disc", "slender", "round", "tall", "banner"]),
+  /**
+   * Where the accent (and detail) colors go: a light belly, the tail,
+   * vertical bands, a front/back split, a bar through the eye with a spot
+   * near the tail, thin lengthwise stripes, three broad bars, or the moorish
+   * idol's black-white-yellow pattern.
+   */
+  pattern: z
+    .enum(["belly", "tail", "bands", "split", "eye-bar", "stripes", "bars", "idol"])
+    .default("belly"),
+  colors: z
+    .object({
+      base: hexColor,
+      accent: hexColor,
+      /** Third color for richer patterns; defaults to the accent. */
+      detail: hexColor.optional(),
+    })
+    .transform((colors) => ({ ...colors, detail: colors.detail ?? colors.accent })),
 });
 
 const gltfBody = z.object({

@@ -129,8 +129,12 @@ Scenery entries:
   ones already placed.
 
 Species are defined once in `public/species.json`: body shape (`disc`, `round`,
-`slender`), color pattern (`belly`, `tail`, `bands`, `split`), size, speed,
-schooling (0 = solitary, 1 = tight school), depth bands and height range.
+`slender`, or the reef shapes `tall` and `banner`), color pattern (`belly`,
+`tail`, `bands`, `split`, or the reef patterns `eye-bar`, `stripes`, `bars`,
+`idol`), `base`, `accent` and optional `detail` colors, size, speed, schooling
+(0 = solitary, 1 = tight school), depth bands and height range. The catalog
+includes butterflyfish, moorish idols, emperor angelfish, three-bar damsels and
+purple tangs.
 Files are validated on load; mistakes are reported with the exact field.
 
 ## Lights and day cycle

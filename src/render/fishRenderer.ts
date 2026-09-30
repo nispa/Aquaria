@@ -74,6 +74,7 @@ export function createFishRenderer(
         fishPatch({
           uBaseColor: { value: new Color(colors.base) },
           uAccentColor: { value: new Color(colors.accent) },
+          uDetailColor: { value: new Color(colors.detail) },
           uPattern: { value: PATTERN_IDS[pattern] },
           uHalfHeight: { value: BODY_PROPORTIONS[shape].height / 2 },
           uSwimAmplitude: { value: BODY_PROPORTIONS[shape].swimAmplitude },
