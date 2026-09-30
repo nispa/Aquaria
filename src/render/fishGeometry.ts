@@ -190,13 +190,19 @@ function bannerFin(proportions: BodyProportions): BufferGeometry {
   ]);
 }
 
+/** Marks every vertex of a part as body (0) or fin (1), for the fish shader. */
+function marked(part: BufferGeometry, fin: 0 | 1): BufferGeometry {
+  const count = part.getAttribute("position").count;
+  part.setAttribute("aFin", new Float32BufferAttribute(new Array<number>(count).fill(fin), 1));
+  return part;
+}
+
 /** Builds a one-body-length fish, nose towards +x, for the given shape. */
 export function createFishGeometry(shape: Shape): BufferGeometry {
   const proportions = BODY_PROPORTIONS[shape];
   const reef = proportions.profile === "disc";
   const finHeight = proportions.height * proportions.dorsal;
-  const parts = [
-    shapeBody(proportions),
+  const fins = [
     proportions.tailShape === "fan" ? fanTail(proportions) : forkedTail(proportions),
     reef ? softFin(proportions, 1, 0.22, -0.4, finHeight) : forkedDorsal(proportions),
     ...(proportions.anal > 0
@@ -204,6 +210,7 @@ export function createFishGeometry(shape: Shape): BufferGeometry {
       : []),
     ...(proportions.banner > 0 ? [bannerFin(proportions)] : []),
   ];
+  const parts = [marked(shapeBody(proportions), 0), ...fins.map((fin) => marked(fin, 1))];
   const merged = mergeGeometries(parts);
   parts.forEach((part) => {
     part.dispose();

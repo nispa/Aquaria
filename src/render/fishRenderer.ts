@@ -6,7 +6,7 @@ import {
   InstancedBufferAttribute,
   InstancedMesh,
   Matrix4,
-  MeshStandardMaterial,
+  MeshPhysicalMaterial,
   Quaternion,
   Vector3,
   type BufferGeometry,
@@ -19,6 +19,9 @@ import { causticsPatch } from "./shaders/causticsPatch";
 import { fishPatch, PATTERN_IDS } from "./shaders/fishPatch";
 import { patchMaterial } from "./shaders/patch";
 import type { WaterUniforms } from "./uniforms";
+
+/** Strength of the skin's rainbow sheen, 0..1. */
+const IRIDESCENCE = 0.35;
 
 interface SpeciesMesh {
   readonly mesh: InstancedMesh;
@@ -64,11 +67,15 @@ export function createFishRenderer(
     geometry.setAttribute("aOpacity", opacity);
 
     const material = patchMaterial(
-      new MeshStandardMaterial({
-        roughness: 0.38,
+      // Physical material for iridescence: the rainbow sheen of guanine in fish skin.
+      new MeshPhysicalMaterial({
+        roughness: 0.34,
         metalness: 0.08,
         side: DoubleSide,
         transparent: true,
+        iridescence: IRIDESCENCE,
+        iridescenceIOR: 1.3,
+        iridescenceThicknessRange: [260, 520],
       }),
       [
         fishPatch({
@@ -125,7 +132,7 @@ export function createFishRenderer(
     },
     dispose() {
       for (const { mesh } of meshes.values()) {
-        (mesh.material as MeshStandardMaterial).dispose();
+        (mesh.material as MeshPhysicalMaterial).dispose();
         mesh.dispose();
       }
       geometries.forEach((geometry) => {

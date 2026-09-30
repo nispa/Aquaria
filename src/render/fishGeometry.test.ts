@@ -49,3 +49,13 @@ describe("fish geometry", () => {
     expect(thick).toEqual([]);
   });
 });
+
+describe("fin marking", () => {
+  it.each(shapes)("marks the fins of a %s fish apart from its body, for the shader", (shape) => {
+    const fin = createFishGeometry(shape).getAttribute("aFin");
+
+    const values = new Set(Array.from({ length: fin.count }, (_, index) => fin.getX(index)));
+
+    expect([...values].sort()).toEqual([0, 1]);
+  });
+});
