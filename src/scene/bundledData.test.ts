@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parseCatalog, parseScene } from "./parse";
 
@@ -15,4 +15,15 @@ describe("bundled data files", () => {
 
     expect(() => parseScene(readJson("../../public/scenes/reef.json"), catalog)).not.toThrow();
   });
+
+  it.each(readdirSync(new URL("../../public/scenes/", import.meta.url)))(
+    "ships a valid scene in %s, named after its file",
+    (file) => {
+      const catalog = parseCatalog(readJson("../../public/species.json"));
+
+      const scene = parseScene(readJson(`../../public/scenes/${file}`), catalog);
+
+      expect(`${scene.id}.json`).toBe(file);
+    },
+  );
 });

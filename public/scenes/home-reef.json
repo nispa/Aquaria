@@ -1,0 +1,163 @@
+{
+  "id": "home-reef",
+  "name": "Home reef",
+  "seed": 20260930,
+  "tank": {
+    "width": 6,
+    "height": 2.6,
+    "depth": 2.4
+  },
+  "water": {
+    "color": "#0b5f8a",
+    "fogDensity": 0.07
+  },
+  "light": {
+    "color": "#f2f6ff",
+    "intensity": 1.15,
+    "caustics": {
+      "intensity": 0.55,
+      "scale": 1.8
+    }
+  },
+  "current": {
+    "direction": [1, 0, 0.1],
+    "strength": 0.05,
+    "turbulence": 0.4
+  },
+  "backdrop": {
+    "type": "gradient",
+    "top": "#1b7fb0",
+    "bottom": "#03253a"
+  },
+  "floor": {
+    "color": "#b9b09c",
+    "material": {
+      "id": "fine-sand",
+      "tileSize": 0.8
+    }
+  },
+  "flora": [
+    {
+      "kind": "kelp",
+      "name": "Macroalgae",
+      "count": 9,
+      "bands": [3, 4],
+      "height": [0.7, 1.5],
+      "color": "#7cc94a"
+    },
+    {
+      "kind": "anemone",
+      "count": 6,
+      "bands": [1, 3],
+      "height": [0.1, 0.2],
+      "color": "#c98fd6"
+    },
+    {
+      "kind": "anemone",
+      "name": "Green anemones",
+      "count": 4,
+      "bands": [1, 3],
+      "height": [0.08, 0.16],
+      "color": "#8fd67a"
+    }
+  ],
+  "props": [
+    {
+      "kind": "rock",
+      "name": "Live rock",
+      "count": 45,
+      "color": "#8a7d70",
+      "bands": [1, 3],
+      "material": {
+        "id": "reef-rock",
+        "tileSize": 0.45,
+        "displacement": 0.07
+      }
+    },
+    {
+      "kind": "branch-coral",
+      "name": "Purple branching corals",
+      "count": 14,
+      "color": "#9a6fc2",
+      "bands": [1, 3]
+    },
+    {
+      "kind": "branch-coral",
+      "name": "Tan branching corals",
+      "count": 10,
+      "color": "#c9a27a",
+      "bands": [1, 3]
+    },
+    {
+      "kind": "branch-coral",
+      "name": "Pink branching corals",
+      "count": 8,
+      "color": "#e08fb0",
+      "bands": [1, 3]
+    },
+    {
+      "kind": "brain-coral",
+      "name": "Brain corals",
+      "count": 8,
+      "color": "#b89a5e",
+      "bands": [0, 2],
+      "material": {
+        "id": "reef-rock",
+        "tileSize": 0.35
+      }
+    },
+    {
+      "kind": "brain-coral",
+      "name": "Orange corals",
+      "count": 4,
+      "color": "#d9783c",
+      "bands": [0, 2],
+      "material": {
+        "id": "reef-rock",
+        "tileSize": 0.35
+      }
+    },
+    {
+      "kind": "fan-coral",
+      "count": 4,
+      "color": "#7a4fa8",
+      "bands": [3, 4]
+    },
+    {
+      "kind": "shell",
+      "count": 5,
+      "color": "#f3e6d4"
+    },
+    {
+      "kind": "starfish",
+      "count": 2,
+      "color": "#e8612c",
+      "material": {
+        "id": "reef-rock",
+        "tileSize": 0.12
+      }
+    }
+  ],
+  "fauna": [
+    {
+      "species": "yellow-tang",
+      "count": 22
+    },
+    {
+      "species": "blue-tang",
+      "count": 5
+    },
+    {
+      "species": "royal-gramma",
+      "count": 8
+    },
+    {
+      "species": "clownfish",
+      "count": 4
+    },
+    {
+      "species": "sardine",
+      "count": 0
+    }
+  ]
+}
