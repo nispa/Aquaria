@@ -4,6 +4,7 @@ import { SceneValidationError } from "./parse";
 import {
   parseShaderPackIndex,
   resolveShaderPack,
+  selectPackId,
   type EffectDescriptor,
   type ShaderPackInput,
 } from "./shaderPack";
@@ -75,6 +76,16 @@ describe("resolveShaderPack", () => {
     expect(pack.bubbles).toBe("sprite");
   });
 
+  it("shows the lightweight light-shaft planes unless the pack turns them off", () => {
+    const plain = resolveShaderPack({ id: "plain", name: "Plain", passes: [] }, effects);
+    const volumetric = resolveShaderPack(
+      { id: "volumetric", name: "Volumetric", lightShafts: false, passes: [] },
+      effects,
+    );
+
+    expect([plain.lightShafts, volumetric.lightShafts]).toEqual([true, false]);
+  });
+
   it("rejects shadow maps that are not a supported power of two", () => {
     const input = packFixture();
     input.lighting = { shadows: { enabled: true, mapSize: 1000 as 1024 } };
@@ -96,5 +107,21 @@ describe("parseShaderPackIndex", () => {
 
   it("rejects ids that could escape the packs folder", () => {
     expect(() => parseShaderPackIndex({ packs: ["../x"] })).toThrow(SceneValidationError);
+  });
+});
+
+describe("selectPackId", () => {
+  const index = parseShaderPackIndex({ packs: ["realistic", "classic"] });
+
+  it("uses the first candidate that exists in the index", () => {
+    expect(selectPackId(index, ["missing", "classic"])).toBe("classic");
+  });
+
+  it("skips undefined candidates", () => {
+    expect(selectPackId(index, [undefined, "classic"])).toBe("classic");
+  });
+
+  it("falls back to the index default", () => {
+    expect(selectPackId(index, [undefined, "gone"])).toBe("realistic");
   });
 });

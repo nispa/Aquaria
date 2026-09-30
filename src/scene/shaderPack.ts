@@ -49,6 +49,11 @@ const shaderPackSchema = z.object({
     }),
   /** Sprites are cheap; refractive bubbles bend and reflect the scene behind them. */
   bubbles: z.enum(["sprite", "refractive"]).default("sprite"),
+  /**
+   * Cheap light-shaft planes. Packs using screen-space volumetric light turn
+   * them off: the planes would double the shafts and show up in depth passes.
+   */
+  lightShafts: z.boolean().default(true),
   passes: z.array(
     z.object({
       effect: z.string(),
@@ -70,6 +75,7 @@ export interface ShaderPack {
   readonly description?: string;
   readonly lighting: z.output<typeof shaderPackSchema>["lighting"];
   readonly bubbles: z.output<typeof shaderPackSchema>["bubbles"];
+  readonly lightShafts: boolean;
   /** HDR passes first, then display passes; written order kept within each stage. */
   readonly passes: readonly ResolvedPass[];
 }
@@ -123,6 +129,7 @@ export function resolveShaderPack(
     ...(pack.description === undefined ? {} : { description: pack.description }),
     lighting: pack.lighting,
     bubbles: pack.bubbles,
+    lightShafts: pack.lightShafts,
     passes: ordered,
   };
 }
@@ -147,4 +154,21 @@ export function parseShaderPackIndex(input: unknown): ShaderPackIndex {
     throw new SceneValidationError("Invalid shader pack index: no packs listed.");
   }
   return { packs: result.data.packs, defaultPack };
+}
+
+/**
+ * Picks the pack to use: the first candidate listed in the index (URL option,
+ * then saved preference), otherwise the index default. Unknown ids are skipped
+ * so a renamed pack never stops the aquarium from starting.
+ */
+export function selectPackId(
+  index: ShaderPackIndex,
+  candidates: readonly (string | undefined)[],
+): string {
+  return (
+    candidates.find(
+      (candidate): candidate is string =>
+        candidate !== undefined && index.packs.includes(candidate),
+    ) ?? index.defaultPack
+  );
 }

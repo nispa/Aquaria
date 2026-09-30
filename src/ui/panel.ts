@@ -13,12 +13,16 @@ export interface PanelState {
   readonly counts: Readonly<Record<string, number>>;
   readonly renderHeight: number;
   readonly showFps: boolean;
+  /** Available shader packs ("looks") and the active one. */
+  readonly packs: readonly { readonly id: string; readonly name: string }[];
+  readonly packId: string;
 }
 
 export interface PanelCallbacks {
   onCountChange(speciesId: string, count: number): void;
   onRenderHeightChange(height: number): void;
   onShowFpsChange(show: boolean): void;
+  onShaderPackChange(packId: string): void;
   onFullscreen(): void;
 }
 
@@ -82,6 +86,20 @@ export function createPanel(
 
   const quality = element("section", "panel__section");
   quality.append(element("h2", "panel__heading", "Quality"));
+  const lookRow = element("label", "panel__row panel__row--select");
+  const look = element("select", "panel__select");
+  look.name = "look";
+  for (const pack of state.packs) {
+    const option = element("option", "", pack.name);
+    option.value = pack.id;
+    option.selected = pack.id === state.packId;
+    look.append(option);
+  }
+  look.addEventListener("change", () => {
+    callbacks.onShaderPackChange(look.value);
+  });
+  lookRow.append(element("span", "panel__label", "Look"), look);
+  quality.append(lookRow);
   const resolutionRow = element("label", "panel__row");
   const resolutionValue = element("output", "panel__value", resolutionLabel(state.renderHeight));
   const resolution = slider(MIN_HEIGHT, UHD_HEIGHT, HEIGHT_STEP, state.renderHeight);

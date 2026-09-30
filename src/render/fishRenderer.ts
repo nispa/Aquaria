@@ -84,6 +84,8 @@ export function createFishRenderer(
     const mesh = new InstancedMesh(geometry, material, MAX_INDIVIDUALS_PER_SPECIES);
     mesh.name = species.id;
     mesh.count = 0;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     // Instances roam the whole tank; the per-mesh bounding sphere would be wrong.
     mesh.frustumCulled = false;
     object.add(mesh);

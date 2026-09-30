@@ -4,8 +4,15 @@ import { createFpsMeter } from "../core/fps";
 import { consoleSink, createLogger } from "../core/logger";
 import { createRng } from "../core/rng";
 import { createAquariumView } from "../render/aquariumView";
+import { EFFECTS } from "../render/effects";
 import { parseCatalog, parseScene } from "../scene/parse";
 import { applyCountOverrides, parseSettings, type Settings } from "../scene/settings";
+import {
+  parseShaderPackIndex,
+  resolveShaderPack,
+  selectPackId,
+  type ShaderPack,
+} from "../scene/shaderPack";
 import { createSimulation } from "../sim/simulation";
 import { createPanel } from "../ui/panel";
 import { parseLaunchOptions } from "./launchOptions";
@@ -68,12 +75,23 @@ async function start(): Promise<void> {
   if (canvas === null) throw new Error('Missing <canvas id="aquarium">.');
 
   const options = parseLaunchOptions(window.location.search);
-  const [catalogData, sceneData] = await Promise.all([
+  const [catalogData, sceneData, packIndexData] = await Promise.all([
     fetchJson("species.json"),
     fetchJson(`scenes/${options.scene}.json`),
+    fetchJson("shaderpacks/index.json"),
   ]);
   const catalog = parseCatalog(catalogData);
+  const packIndex = parseShaderPackIndex(packIndexData);
+  const packs: ShaderPack[] = await Promise.all(
+    packIndex.packs.map(async (id) =>
+      resolveShaderPack(await fetchJson(`shaderpacks/${id}.json`), EFFECTS),
+    ),
+  );
+  const packById = new Map(packs.map((pack) => [pack.id, pack]));
   let settings = loadSettings();
+  const initialPackId = selectPackId(packIndex, [options.pack, settings.shaderPack]);
+  const initialPack = packById.get(initialPackId);
+  if (initialPack === undefined) throw new Error(`Shader pack "${initialPackId}" failed to load.`);
   const scene = applyCountOverrides(
     parseScene(sceneData, catalog),
     settings.counts[options.scene] ?? {},
@@ -90,6 +108,8 @@ async function start(): Promise<void> {
     rng: rng.fork(),
     logger: createLogger("render", consoleSink),
     renderHeight: settings.renderHeight,
+    shaderPack: initialPack,
+    effects: EFFECTS,
   });
   view.resize(window.innerWidth, window.innerHeight);
   window.addEventListener("resize", () => {
@@ -111,6 +131,8 @@ async function start(): Promise<void> {
       ),
       renderHeight: settings.renderHeight,
       showFps: settings.showFps,
+      packs: packs.map((pack) => ({ id: pack.id, name: pack.name })),
+      packId: initialPack.id,
     },
     {
       onCountChange(speciesId, count) {
@@ -128,6 +150,12 @@ async function start(): Promise<void> {
       },
       onShowFpsChange(show) {
         update({ showFps: show });
+      },
+      onShaderPackChange(packId) {
+        const pack = packById.get(packId);
+        if (pack === undefined) return;
+        view.setShaderPack(pack);
+        update({ shaderPack: packId });
       },
       onFullscreen() {
         if (document.fullscreenElement === null) {

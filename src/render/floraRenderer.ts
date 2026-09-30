@@ -95,6 +95,9 @@ export function createFloraRenderer(
     );
     const mesh = new InstancedMesh(geometry, material, count);
     mesh.frustumCulled = false;
+    // Plants receive shadows but do not cast them: the shadow pass would not
+    // include the sway, so blades and shadows would drift apart.
+    mesh.receiveShadow = true;
 
     let instance = 0;
     for (const plant of members) {

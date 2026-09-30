@@ -1,5 +1,16 @@
 import { expect, test, type Page } from "@playwright/test";
 
+/**
+ * Live (animated) pages run on software WebGL in CI: keep them light with the
+ * classic pack and a small drawing buffer so every frame stays fast.
+ */
+async function openLive(page: Page, query = "?pack=classic"): Promise<void> {
+  await page.addInitScript(() => {
+    localStorage.setItem("aquaria.settings", JSON.stringify({ renderHeight: 540 }));
+  });
+  await page.goto(`/${query}`);
+}
+
 async function waitForState(page: Page): Promise<string | undefined> {
   await page.waitForFunction(() => document.body.dataset.state !== undefined);
   return page.evaluate(() => document.body.dataset.state);
@@ -26,7 +37,7 @@ test("renders a non-blank image", async ({ page }) => {
 });
 
 test("opens the control panel with the H key", async ({ page }) => {
-  await page.goto("/");
+  await openLive(page);
   await waitForState(page);
 
   await page.keyboard.press("h");
@@ -36,7 +47,7 @@ test("opens the control panel with the H key", async ({ page }) => {
 });
 
 test("changes the resolution from the panel", async ({ page }) => {
-  await page.goto("/");
+  await openLive(page);
   await waitForState(page);
   await page.keyboard.press("h");
 
@@ -50,7 +61,7 @@ test("changes the resolution from the panel", async ({ page }) => {
 });
 
 test("changes a population from the panel", async ({ page }) => {
-  await page.goto("/");
+  await openLive(page);
   await waitForState(page);
   await page.keyboard.press("h");
 
@@ -64,4 +75,17 @@ test("shows a clear error for a missing scene", async ({ page }) => {
 
   expect(await waitForState(page)).toBe("error");
   await expect(page.getByText(/could not load scenes\/does-not-exist\.json/i)).toBeVisible();
+});
+
+test("switches the shader pack from the panel", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await openLive(page);
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await page.getByRole("combobox", { name: "Look" }).selectOption("realistic");
+
+  await expect(page.getByRole("combobox", { name: "Look" })).toHaveValue("realistic");
+  expect(errors).toEqual([]);
 });

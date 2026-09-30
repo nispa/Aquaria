@@ -9,7 +9,9 @@ import {
 } from "three";
 import type { Rng } from "../core/rng";
 import type { Scene } from "../scene/schema";
+import { bubbleStreamsFromProps, type BubbleStream } from "../sim/bubbles";
 import type { Prop } from "../sim/layout";
+import { createRefractiveBubbles } from "./refractiveBubbles";
 import type { WaterUniforms } from "./uniforms";
 
 const SNOW_COUNT = 2400;
@@ -20,8 +22,14 @@ const BUBBLE_SPEED = 0.45;
 /** Extra room around the tank where particles wrap, m. */
 const WRAP_MARGIN = 1;
 
+export type BubbleStyle = "sprite" | "refractive";
+
 export interface Particles {
   readonly object: Group;
+  /** Switches between cheap sprite bubbles and refractive glass-like bubbles. */
+  setBubbleStyle(style: BubbleStyle): void;
+  /** Moves CPU-driven particles (refractive bubbles). */
+  update(timeSeconds: number): void;
   /** Point sizes depend on the drawing-buffer height; call when it changes. */
   setBufferHeight(heightPixels: number, verticalFovDegrees: number): void;
   dispose(): void;
@@ -98,22 +106,21 @@ function marineSnow(
   return points;
 }
 
-/** Streams of bubbles rising from the rocks, wobbling and bending with the current. */
-function bubbles(
+/** Sprite bubbles rising from the rocks, wobbling and bending with the current, on the GPU. */
+function spriteBubbles(
   scene: Scene,
-  props: readonly Prop[],
+  streams: readonly BubbleStream[],
   water: WaterUniforms,
   rng: Rng,
 ): Points<BufferGeometry, ShaderMaterial> {
-  const sources = props.filter((prop) => prop.kind === "rock").slice(0, MAX_BUBBLE_STREAMS);
-  const count = sources.length * BUBBLES_PER_STREAM;
+  const count = streams.length * BUBBLES_PER_STREAM;
   const origins = new Float32Array(count * 3);
   const seeds = new Float32Array(count);
-  sources.forEach((source, stream) => {
+  streams.forEach((source, stream) => {
     for (let bubble = 0; bubble < BUBBLES_PER_STREAM; bubble += 1) {
       const index = stream * BUBBLES_PER_STREAM + bubble;
       origins[index * 3] = source.x + rng.range(-0.05, 0.05);
-      origins[index * 3 + 1] = source.size * 0.3;
+      origins[index * 3 + 1] = source.baseY;
       origins[index * 3 + 2] = source.z + rng.range(-0.05, 0.05);
       seeds[index] = rng.next();
     }
@@ -184,13 +191,29 @@ export function createParticles(
 ): Particles {
   const object = new Group();
   object.name = "particles";
+  const streams = bubbleStreamsFromProps(props, scene.tank.height, MAX_BUBBLE_STREAMS);
   const snow = marineSnow(scene, water, rng);
-  const bubbleStreams = bubbles(scene, props, water, rng);
-  object.add(snow, bubbleStreams);
+  const bubbleStreams = spriteBubbles(scene, streams, water, rng);
+  const refractive = createRefractiveBubbles(
+    streams,
+    BUBBLES_PER_STREAM,
+    BUBBLE_SPEED,
+    water,
+    rng.fork(),
+  );
+  refractive.mesh.visible = false;
+  object.add(snow, bubbleStreams, refractive.mesh);
   const materials = [snow.material, bubbleStreams.material];
 
   return {
     object,
+    setBubbleStyle(style) {
+      bubbleStreams.visible = style === "sprite";
+      refractive.mesh.visible = style === "refractive";
+    },
+    update(timeSeconds) {
+      if (refractive.mesh.visible) refractive.update(timeSeconds);
+    },
     setBufferHeight(heightPixels, verticalFovDegrees) {
       for (const material of materials) {
         const uniform = material.uniforms.uPixelScale;
@@ -202,6 +225,7 @@ export function createParticles(
         points.geometry.dispose();
         points.material.dispose();
       }
+      refractive.dispose();
     },
   };
 }

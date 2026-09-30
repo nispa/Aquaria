@@ -27,6 +27,10 @@ const EXTENT = 6;
 /** Distance of the backdrop behind the back of the tank, m. */
 const BACKDROP_DISTANCE = 10;
 const LIGHT_SHAFT_COUNT = 7;
+/** Sand in front of the glass, m, so the floor never ends inside the view. */
+const FLOOR_FRONT_OVERHANG = 2;
+/** Gap between the far end of the sand and the backdrop, m (hidden by fog). */
+const BACKDROP_GAP = 1;
 const ROCK_VARIANTS = 5;
 /** Starfish drift: one full turn takes this many seconds. */
 const STARFISH_TURN_SECONDS = 1800;
@@ -34,6 +38,7 @@ const STARFISH_TURN_SECONDS = 1800;
 export interface Environment {
   readonly object: Group;
   update(timeSeconds: number): void;
+  setLightShaftsVisible(visible: boolean): void;
   dispose(): void;
 }
 
@@ -44,10 +49,12 @@ interface Tracker {
 
 function floor(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
   const width = scene.tank.width * EXTENT;
-  const depth = scene.tank.depth + BACKDROP_DISTANCE + 4;
+  // The sand stops just short of the backdrop: where the two meet, depth-based
+  // effects (ambient occlusion) would draw a crease along the horizon.
+  const depth = scene.tank.depth + BACKDROP_DISTANCE + FLOOR_FRONT_OVERHANG - BACKDROP_GAP;
   const geometry = new PlaneGeometry(width, depth, 240, 120);
   geometry.rotateX(-Math.PI / 2);
-  geometry.translate(0, 0, -depth / 2 + 2);
+  geometry.translate(0, 0, -depth / 2 + FLOOR_FRONT_OVERHANG);
   const positions = geometry.getAttribute("position");
   for (let index = 0; index < positions.count; index += 1) {
     positions.setY(index, floorHeight(positions.getX(index), positions.getZ(index)));
@@ -78,7 +85,9 @@ function floor(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
   );
   tracker.geometries.push(geometry);
   tracker.materials.push(material);
-  return new Mesh(geometry, material);
+  const mesh = new Mesh(geometry, material);
+  mesh.receiveShadow = true;
+  return mesh;
 }
 
 /** A lumpy, flattened icosahedron; the seed makes every variant different. */
@@ -156,6 +165,8 @@ function props(
     const geometry = isStarfish ? star : rng.pick(rocks);
     const mesh = new Mesh(geometry, materialFor(item.color, isStarfish ? 0.75 : 0.98));
     mesh.scale.setScalar(item.size);
+    mesh.castShadow = !isStarfish;
+    mesh.receiveShadow = true;
     mesh.rotation.y = item.rotation;
     mesh.position.set(item.x, floorHeight(item.x, item.z) + (isStarfish ? 0.005 : 0), item.z);
     if (isStarfish) starfish.push(mesh);
@@ -326,12 +337,13 @@ export function createEnvironment(
   const tracker: Tracker = { geometries: [], materials: [] };
   const { group: propGroup, starfish } = props(items, water, rng, tracker);
   const starfishRotation = starfish.map((mesh) => mesh.rotation.y);
+  const shafts = lightShafts(scene, water, rng, tracker);
   object.add(
     backdrop(scene, water, tracker),
     floor(scene, water, tracker),
     propGroup,
     surface(scene, water, tracker),
-    lightShafts(scene, water, rng, tracker),
+    shafts,
   );
 
   return {
@@ -342,6 +354,9 @@ export function createEnvironment(
         mesh.rotation.y =
           (starfishRotation[index] ?? 0) + (timeSeconds / STARFISH_TURN_SECONDS) * Math.PI * 2;
       });
+    },
+    setLightShaftsVisible(visible) {
+      shafts.visible = visible;
     },
     dispose() {
       tracker.geometries.forEach((geometry) => {
