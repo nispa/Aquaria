@@ -12,6 +12,8 @@ const MAX_RAMP_HOURS = 6;
 /** Moonlight is a faint blue glow, never a second day. */
 const MAX_MOON_LEVEL = 0.3;
 const MINUTES_PER_DAY = 1440;
+/** Most LED spots a fixture may have (the shader keeps a fixed-size array). */
+export const MAX_SPOTS = 16;
 
 const hexColor = z
   .string()
@@ -44,6 +46,17 @@ export const customLightsSchema = z.object({
     .prefault({}),
   /** Blue night light, 0..0.3. */
   moon: z.number().min(0).max(MAX_MOON_LEVEL).default(0.06),
+  /**
+   * What lights the tank: the open sky (one sun), or an aquarium fixture with
+   * a row of LED spots, seen above the water, with light cones and pools of
+   * light below them.
+   */
+  fixture: z
+    .object({
+      type: z.enum(["sun", "spots"]).default("sun"),
+      spots: z.number().int().min(1).max(MAX_SPOTS).default(6),
+    })
+    .prefault({}),
   cycle: z
     .object({
       /**

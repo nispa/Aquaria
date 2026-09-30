@@ -36,6 +36,7 @@ import { createWaterEnvironment } from "./environmentLight";
 import { createFishRenderer } from "./fishRenderer";
 import { createFloraRenderer, type FloraRenderer } from "./floraRenderer";
 import { cameraFraming } from "./framing";
+import { createFixtureRenderer } from "./fixtureRenderer";
 import { createLightRig } from "./lightRig";
 import { createParticles, type Particles } from "./particles";
 import { createSurfaceLibrary } from "./surfaceLibrary";
@@ -195,6 +196,22 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   const propGroup = new Group();
   const particleGroup = new Group();
   world.add(environment.object, floraGroup, propGroup, fish.object, particleGroup);
+  const fixture = createFixtureRenderer(scene.tank, water);
+  world.add(fixture.object);
+  /** Under LED spots the sun stands straight overhead, so shadows fall down. */
+  const placeSun = (lights: Lights): void => {
+    if (lights.fixture.type === "spots") {
+      sun.position.set(
+        0,
+        scene.tank.height + SUN_OFFSET.aboveSurface,
+        -scene.tank.depth / 2 + 0.01,
+      );
+    } else {
+      sun.position.set(SUN_OFFSET.x, scene.tank.height + SUN_OFFSET.aboveSurface, SUN_OFFSET.z);
+    }
+  };
+  fixture.setFixture(lights.fixture);
+  placeSun(lights);
   let flora: FloraRenderer | undefined;
   let props: PropRenderer | undefined;
   let rockwork: RockworkRenderer | undefined;
@@ -279,7 +296,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     tank: scene.tank,
     sunPosition: sun.position,
     shaderAnimated: { plants: floraGroup, particles: particleGroup },
-    overlays: [environment.lightShafts],
+    overlays: [environment.lightShafts, fixture.cones],
   };
 
   let composer: EffectComposer | undefined;
@@ -364,6 +381,8 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       applySize();
     },
     setLights(next) {
+      fixture.setFixture(next.fixture);
+      placeSun(next);
       lights = next;
       mixer = createLightMixer(next);
     },
@@ -381,7 +400,9 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       cycleInput.clockHour = options.clockHour();
       cycleInput.elapsedSeconds = simulation.timeSeconds;
       currentHour = cycleHour(lights.cycle, cycleInput);
-      rig.apply(mixer.at(currentHour));
+      const light = mixer.at(currentHour);
+      rig.apply(light);
+      fixture.update(light);
       water.uTime.value = simulation.timeSeconds;
       props?.update(simulation.timeSeconds);
       fish.update(simulation.fish);
@@ -415,6 +436,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       fish.dispose();
       particles?.dispose();
       environmentMap.dispose();
+      fixture.dispose();
       surfaces.dispose();
       textureLoader.dispose();
       renderer.dispose();

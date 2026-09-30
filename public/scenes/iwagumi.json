@@ -51,7 +51,11 @@
         "level": 0
       }
     },
-    "moon": 0.04
+    "moon": 0.04,
+    "fixture": {
+      "type": "spots",
+      "spots": 5
+    }
   },
   "flora": [
     {

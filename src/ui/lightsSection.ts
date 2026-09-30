@@ -1,5 +1,11 @@
 import { formatHour } from "../core/time";
-import { LIGHT_CHANNELS, type CycleMode, type LightChannel, type Lights } from "../scene/lights";
+import {
+  LIGHT_CHANNELS,
+  MAX_SPOTS,
+  type CycleMode,
+  type LightChannel,
+  type Lights,
+} from "../scene/lights";
 import { element, select, slider } from "./controls";
 
 const HOURS_PER_DAY = 24;
@@ -22,6 +28,11 @@ const MODES: readonly (readonly [CycleMode, string])[] = [
   ["clock", "Real clock"],
   ["accelerated", "Accelerated day"],
 ];
+
+const FIXTURES = [
+  ["sun", "Open sky (sun)"],
+  ["spots", "LED spots"],
+] as const;
 
 const SETUPS = [
   ["recommended", "Recommended"],
@@ -110,6 +121,36 @@ export function createLightsSection(
     },
   };
 
+  const fixtureSelect = select("Fixture", FIXTURES, current.fixture.type);
+  fixtureSelect.input.name = "light-fixture";
+  fixtureSelect.input.addEventListener("change", () => {
+    const type = fixtureSelect.input.value === "spots" ? "spots" : "sun";
+    change({ ...current, fixture: { ...current.fixture, type } });
+  });
+  const fixtureControl: Control = {
+    row: fixtureSelect.row,
+    show(lights) {
+      fixtureSelect.input.value = lights.fixture.type;
+    },
+  };
+
+  const spotsRow = element("label", "panel__row");
+  const spotsValue = element("output", "panel__value", "");
+  const spotsSlider = slider(1, MAX_SPOTS, 1, current.fixture.spots);
+  spotsSlider.name = "light-spots";
+  spotsSlider.addEventListener("input", () => {
+    spotsValue.textContent = spotsSlider.value;
+    change({ ...current, fixture: { ...current.fixture, spots: Number(spotsSlider.value) } });
+  });
+  spotsRow.append(element("span", "panel__label", "Spots"), spotsSlider, spotsValue);
+  const spotsControl: Control = {
+    row: spotsRow,
+    show(lights) {
+      spotsSlider.value = String(lights.fixture.spots);
+      spotsValue.textContent = spotsSlider.value;
+    },
+  };
+
   const channelControl = (channel: LightChannel): Control => {
     const row = element("label", "panel__row panel__row--channel");
     row.dataset.channel = channel;
@@ -161,6 +202,8 @@ export function createLightsSection(
   };
 
   const controls: Control[] = [
+    fixtureControl,
+    spotsControl,
     modeControl,
     cycleSlider("Hour", "hour", hourRange, formatHour),
     cycleSlider("Day length", "minutes", { ...DAY_MINUTES, step: 1 }, (value) => `${value} min`),

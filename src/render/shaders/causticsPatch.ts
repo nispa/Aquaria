@@ -1,5 +1,13 @@
 import type { WaterUniforms } from "../uniforms";
+import { MAX_SPOTS } from "../../scene/lights";
 import { CAUSTICS_GLSL } from "./caustics";
+
+/** Radius of a spot's pool of light at the water surface, m. */
+const SPOT_RADIUS = 0.22;
+/** How much the pool widens per meter below the surface. */
+const SPOT_SPREAD = 0.3;
+/** Share of the light left between pools. */
+const POOL_FLOOR = 0.45;
 import type { ShaderPatch } from "./patch";
 
 /**
@@ -40,6 +48,9 @@ export function causticsPatch(water: WaterUniforms): ShaderPatch {
       uniform float uCausticsScale;
       uniform float uSurfaceY;
       uniform vec3 uLightColor;
+      uniform vec3 uSpots[${MAX_SPOTS}];
+      uniform int uSpotCount;
+      uniform float uSpotMix;
       varying vec3 vCausticPosition;
       varying float vCausticFacing;
       ${CAUSTICS_GLSL}
@@ -61,6 +72,17 @@ export function causticsPatch(water: WaterUniforms): ShaderPatch {
           #endif
           gl_FragColor.rgb += light * uCausticsIntensity * attenuation * facing * sunlit
             * uLightColor * diffuseColor.rgb * 1.6;
+          // Under an LED fixture light falls in pools below each spot,
+          // widening with depth; between them the tank stays darker.
+          float pools = 0.0;
+          float radius = ${SPOT_RADIUS.toFixed(2)} + depthBelowSurface * ${SPOT_SPREAD.toFixed(2)};
+          for (int index = 0; index < ${MAX_SPOTS}; index++) {
+            if (index >= uSpotCount) break;
+            vec2 offset = vCausticPosition.xz - uSpots[index].xz;
+            pools += exp(-dot(offset, offset) / (radius * radius));
+          }
+          float pooled = ${POOL_FLOOR.toFixed(2)} + (1.0 - ${POOL_FLOOR.toFixed(2)}) * min(pools, 1.6);
+          gl_FragColor.rgb *= mix(1.0, pooled, uSpotMix);
         }
         #include <fog_fragment>
         `,

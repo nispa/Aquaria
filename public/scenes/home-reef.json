@@ -177,5 +177,11 @@
       "tileSize": 0.6,
       "displacement": 0.06
     }
+  },
+  "lights": {
+    "fixture": {
+      "type": "spots",
+      "spots": 8
+    }
   }
 }

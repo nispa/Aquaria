@@ -13,6 +13,9 @@
  * - uExposure (0..2): overall strength of the rays.
  * - uThreshold (linear luminance, 0..4): only pixels brighter than this emit rays.
  * Define SAMPLES: samples per ray (16..96).
+ * Each pixel starts its ray at a jittered offset (interleaved gradient noise,
+ * Jimenez 2014): without it, small bright sources such as LED spots repeat as
+ * a row of ghost copies, one per sample step.
  */
 export const VOLUMETRIC_LIGHT_SHADER = {
   name: "VolumetricLightShader",
@@ -53,7 +56,8 @@ export const VOLUMETRIC_LIGHT_SHADER = {
     void main() {
       vec3 base = texture2D(tDiffuse, vUv).rgb;
       vec2 step = (vUv - uLightUv) * uDensity / float(SAMPLES);
-      vec2 uv = vUv;
+      float jitter = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+      vec2 uv = vUv + step * jitter;
       float illumination = 1.0;
       vec3 rays = vec3(0.0);
       for (int index = 0; index < SAMPLES; index++) {

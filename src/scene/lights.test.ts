@@ -34,3 +34,21 @@ describe("lights", () => {
     expect(lightsSchema.safeParse({ cycle: { ramp: 13 } }).success).toBe(false);
   });
 });
+
+describe("light fixture", () => {
+  it("is the open sky (a single sun) unless a setup asks for LED spots", () => {
+    expect(RECOMMENDED_LIGHTS.fixture).toEqual({ type: "sun", spots: 6 });
+  });
+
+  it("accepts a row of LED spots", () => {
+    expect(lightsSchema.parse({ fixture: { type: "spots", spots: 8 } }).fixture).toEqual({
+      type: "spots",
+      spots: 8,
+    });
+  });
+
+  it("rejects an empty or crowded row of spots", () => {
+    expect(lightsSchema.safeParse({ fixture: { type: "spots", spots: 0 } }).success).toBe(false);
+    expect(lightsSchema.safeParse({ fixture: { type: "spots", spots: 40 } }).success).toBe(false);
+  });
+});

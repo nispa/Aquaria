@@ -188,9 +188,14 @@ The tank is lit like a reef aquarium, by four LED channels: white, actinic
 blue, violet/UV and a free "accent" color, plus a faint blue moonlight at
 night. Under blue and violet, corals and anemones fluoresce.
 
+The **fixture** is either the open sky (one sun, for sea scenes) or an
+aquarium lamp with a row of **LED spots**: they shine above the water, with
+soft cones of light and pools of light on the bottom.
+
 The panel's Lights section starts on **Recommended** (the scene's setup).
 Changing any control switches to **Custom**, saved in the browser:
 
+- **Fixture**: open sky or LED spots, and how many spots.
 - **Cycle**: _Fixed hour_, _Real clock_ (follows the local time) or
   _Accelerated day_ (a whole day in the chosen minutes, starting from the
   chosen hour).
@@ -205,6 +210,7 @@ fields (all optional), for example sunlight for an open-sea scene:
 "lights": {
   "channels": { "white": { "level": 1 }, "blue": { "level": 0.2 }, "violet": { "level": 0 } },
   "moon": 0.05,
+  "fixture": { "type": "sun" },
   "cycle": { "mode": "clock", "sunrise": 8, "sunset": 20, "ramp": 1.5 }
 }
 ```

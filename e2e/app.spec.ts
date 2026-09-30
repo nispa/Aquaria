@@ -187,3 +187,17 @@ test("changes the anti-aliasing from the panel", async ({ page }) => {
   await expect(page.locator('select[name="msaa"]')).toHaveValue("4");
   expect(errors).toEqual([]);
 });
+
+test("switches the light fixture to LED spots", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await openLive(page);
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await page.locator('select[name="light-fixture"]').selectOption("spots");
+  await page.locator('input[name="light-spots"]').fill("9");
+
+  await expect(page.locator('select[name="light-setup"]')).toHaveValue("custom");
+  expect(errors).toEqual([]);
+});

@@ -1,4 +1,5 @@
 import { Color, Vector3, type IUniform } from "three";
+import { MAX_SPOTS } from "../scene/lights";
 import type { Scene } from "../scene/schema";
 
 /**
@@ -25,6 +26,11 @@ export type WaterUniforms = {
   readonly uDaylight: IUniform<number>;
   /** Coral glow under actinic light, 0..1. */
   readonly uFluorescence: IUniform<number>;
+  /** LED spot positions (world, m); only the first uSpotCount are used. */
+  readonly uSpots: IUniform<Vector3[]>;
+  readonly uSpotCount: IUniform<number>;
+  /** 0 = open sky, 1 = light falls in pools under the spots. */
+  readonly uSpotMix: IUniform<number>;
 };
 
 export function createWaterUniforms(scene: Scene): WaterUniforms {
@@ -39,5 +45,8 @@ export function createWaterUniforms(scene: Scene): WaterUniforms {
     uWaterColor: { value: new Color(scene.water.color) },
     uDaylight: { value: 1 },
     uFluorescence: { value: 0 },
+    uSpots: { value: Array.from({ length: MAX_SPOTS }, () => new Vector3()) },
+    uSpotCount: { value: 0 },
+    uSpotMix: { value: 0 },
   };
 }
