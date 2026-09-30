@@ -1,13 +1,14 @@
 import {
+  BufferGeometry,
   CatmullRomCurve3,
   CylinderGeometry,
+  Float32BufferAttribute,
   IcosahedronGeometry,
   PlaneGeometry,
   TubeGeometry,
   Quaternion,
   SphereGeometry,
   Vector3,
-  type BufferGeometry,
 } from "three";
 import { mergeGeometries, mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Rng } from "../core/rng";
@@ -83,6 +84,10 @@ interface BranchStyle {
   readonly trunk: { readonly length: number; readonly radius: number };
   /** Keep every branch in the x-y plane (sea fans). */
   readonly planar: boolean;
+  /** Smallest upward component of a branch direction: corals reach up, wood sprawls. */
+  readonly minRise: number;
+  /** Direction of the first branch; straight up when absent. */
+  readonly start?: readonly [number, number, number];
 }
 
 const STAGHORN: BranchStyle = {
@@ -92,6 +97,7 @@ const STAGHORN: BranchStyle = {
   shrink: 0.75,
   trunk: { length: 0.35, radius: 0.05 },
   planar: false,
+  minRise: 0.15,
 };
 
 const SEA_FAN: BranchStyle = {
@@ -101,6 +107,22 @@ const SEA_FAN: BranchStyle = {
   shrink: 0.78,
   trunk: { length: 0.25, radius: 0.018 },
   planar: true,
+  minRise: 0.15,
+};
+
+/** Vertical squash applied to driftwood after it grows. */
+const DRIFTWOOD_FLATTEN = 0.55;
+
+/** Driftwood: a thick, gnarled root that sprawls sideways with a few forks. */
+const DRIFTWOOD: BranchStyle = {
+  levels: 3,
+  children: [1, 3],
+  spread: [0.35, 0.9],
+  shrink: 0.72,
+  trunk: { length: 0.55, radius: 0.07 },
+  planar: false,
+  minRise: 0.02,
+  start: [0.85, 0.5, 0.1],
 };
 
 const BRANCH_RADIAL_SEGMENTS = 6;
@@ -141,7 +163,7 @@ function branches(style: BranchStyle, rng: Rng): BufferGeometry {
         .multiplyScalar(Math.cos(tilt))
         .addScaledVector(side, Math.sin(tilt));
       // Corals grow towards the light: never let a branch point downwards.
-      next.y = Math.max(next.y, 0.15);
+      next.y = Math.max(next.y, style.minRise);
       grow(
         end,
         next.normalize(),
@@ -151,7 +173,8 @@ function branches(style: BranchStyle, rng: Rng): BufferGeometry {
       );
     }
   };
-  grow(new Vector3(), UP.clone(), style.trunk.length, style.trunk.radius, 0);
+  const start = style.start === undefined ? UP.clone() : new Vector3(...style.start).normalize();
+  grow(new Vector3(), start, style.trunk.length, style.trunk.radius, 0);
   const merged = mergeGeometries(parts);
   parts.forEach((part) => {
     part.dispose();
@@ -456,4 +479,179 @@ export function algaeBushGeometry(rng: Rng): BufferGeometry {
   }
   merged.computeVertexNormals();
   return merged;
+}
+
+/** Driftwood: a gnarled root sprawling sideways, for planted aquariums. */
+export function driftwoodGeometry(rng: Rng): BufferGeometry {
+  // Wood lies on the substrate: flatten the forks towards the ground.
+  const geometry = branches(DRIFTWOOD, rng);
+  geometry.scale(1, DRIFTWOOD_FLATTEN, 1);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+const DRAGON = {
+  radius: [0.34, 0.2] as const,
+  height: 1.5,
+  ridges: 9,
+  ridgeDepth: 0.22,
+  jag: 0.35,
+  lean: 0.25,
+  crownStart: 0.6,
+  crownSectors: 6,
+} as const;
+
+/**
+ * Dragon (Seiryu) stone: a tall, deeply grooved spire with a jagged crown,
+ * the centrepiece of Iwagumi aquascapes.
+ */
+export function dragonStoneGeometry(rng: Rng): BufferGeometry {
+  const geometry = new CylinderGeometry(DRAGON.radius[1], DRAGON.radius[0], DRAGON.height, 40, 24);
+  geometry.translate(0, DRAGON.height / 2, 0);
+  const phase = rng.range(0, 6);
+  const twist = rng.range(-1, 1);
+  const lean = rng.range(-1, 1) * DRAGON.lean;
+  const crowns = Array.from({ length: DRAGON.crownSectors }, () => rng.range(1 - DRAGON.jag, 1));
+  reshape(geometry, (point, angle) => {
+    const up = point.y / DRAGON.height;
+    const ridge = Math.abs(Math.sin(angle * DRAGON.ridges + up * twist * 3 + phase));
+    const groove = 1 - DRAGON.ridgeDepth * ridge;
+    point.x *= groove;
+    point.z *= groove;
+    // A jagged crown: above crownStart each sector of the top stops at its own height.
+    if (up > DRAGON.crownStart) {
+      const turn = (angle + Math.PI) / (Math.PI * 2);
+      const sector = Math.floor(turn * DRAGON.crownSectors) % DRAGON.crownSectors;
+      const above = (up - DRAGON.crownStart) * (crowns[sector] ?? 1);
+      point.y = (DRAGON.crownStart + above) * DRAGON.height;
+    }
+    point.x += lean * point.y * 0.3;
+  });
+  return fitFootprint(geometry);
+}
+
+const MOSS = { flatten: 0.5, fuzz: 0.05, frequency: 40 } as const;
+
+/** A moss cushion: a soft, fuzzy green dome. */
+export function mossCushionGeometry(rng: Rng): BufferGeometry {
+  const geometry = new SphereGeometry(0.5, 64, 20, 0, Math.PI * 2, 0, Math.PI / 2);
+  const a = rng.range(0, 10);
+  const b = rng.range(0, 10);
+  reshape(geometry, (point) => {
+    const wave =
+      Math.sin(point.x * MOSS.frequency + a) *
+      Math.sin(point.z * MOSS.frequency + b) *
+      Math.sin(point.y * MOSS.frequency);
+    point.multiplyScalar(1 + MOSS.fuzz * wave);
+    point.y = Math.max(point.y * MOSS.flatten, 0);
+  });
+  return fitFootprint(geometry);
+}
+
+/** A smooth, flattened river pebble. */
+export function pebbleGeometry(rng: Rng): BufferGeometry {
+  const faceted = new IcosahedronGeometry(0.5, 2);
+  faceted.deleteAttribute("normal");
+  faceted.deleteAttribute("uv");
+  const geometry = mergeVertices(faceted);
+  faceted.dispose();
+  geometry.scale(1, rng.range(0.3, 0.5), rng.range(0.7, 1));
+  return fitFootprint(geometry);
+}
+
+const FROND = { leaflets: 16, leafletLength: 0.22, leafletWidth: 0.035, stem: 0.008 } as const;
+
+function flatLeaf(vertices: readonly number[]): BufferGeometry {
+  const leaf = new BufferGeometry();
+  leaf.setAttribute("position", new Float32BufferAttribute(vertices, 3));
+  leaf.setAttribute(
+    "uv",
+    new Float32BufferAttribute(new Array<number>((vertices.length / 3) * 2).fill(0.5), 2),
+  );
+  leaf.computeVertexNormals();
+  return leaf;
+}
+
+/**
+ * A fern frond, one unit tall from y = 0: a thin stem with paired leaflets
+ * that shorten towards the tip. Instances splay several into a fern.
+ */
+export function fernFrondGeometry(rng: Rng): BufferGeometry {
+  const stem = new CylinderGeometry(FROND.stem * 0.5, FROND.stem, 1, 4).toNonIndexed();
+  stem.translate(0, 0.5, 0);
+  const parts: BufferGeometry[] = [stem];
+  const droop = rng.range(0.1, 0.3);
+  for (let leaflet = 0; leaflet < FROND.leaflets; leaflet += 1) {
+    const t = 0.12 + (0.86 * leaflet) / FROND.leaflets;
+    const length = FROND.leafletLength * Math.sin(Math.PI * Math.min(t + 0.1, 1)) + 0.03;
+    for (const side of [1, -1]) {
+      const tip = side * length;
+      const tipY = t + length * (0.35 - droop);
+      // A thin diamond leaflet angled up and out from the stem.
+      // prettier-ignore
+      parts.push(flatLeaf([
+        0, t, 0,   tip * 0.5, t + FROND.leafletWidth + length * 0.2, 0,   tip, tipY, 0,
+        0, t, 0,   tip, tipY, 0,   tip * 0.5, t - FROND.leafletWidth + length * 0.1, 0,
+      ]));
+    }
+  }
+  return unitTall(mergeParts(parts));
+}
+
+const STEM = {
+  stems: [3, 6] as const,
+  whorlSpacing: 0.07,
+  leavesPerWhorl: 4,
+  leaf: 0.06,
+  spread: 0.08,
+} as const;
+
+/**
+ * An upright stem plant (Rotala, Ludwigia), one unit tall from y = 0: a few
+ * stems with whorls of small leaves. The plant shader can tint the tips.
+ */
+export function stemPlantGeometry(rng: Rng): BufferGeometry {
+  const parts: BufferGeometry[] = [];
+  const stemCount = rng.int(STEM.stems[0], STEM.stems[1]);
+  for (let stem = 0; stem < stemCount; stem += 1) {
+    const height = rng.range(0.7, 1);
+    const baseX = rng.range(-STEM.spread, STEM.spread);
+    const baseZ = rng.range(-STEM.spread, STEM.spread);
+    const leanX = rng.range(-STEM.spread, STEM.spread);
+    const leanZ = rng.range(-STEM.spread, STEM.spread);
+    const tube = new CylinderGeometry(0.006, 0.009, height, 4).toNonIndexed();
+    tube.translate(baseX, height / 2, baseZ);
+    parts.push(tube);
+    for (let y = STEM.whorlSpacing; y < height; y += STEM.whorlSpacing) {
+      const turn = rng.range(0, Math.PI);
+      const along = y / height;
+      for (let leaf = 0; leaf < STEM.leavesPerWhorl; leaf += 1) {
+        const angle = turn + (leaf / STEM.leavesPerWhorl) * Math.PI * 2;
+        // Polyhedra are non-indexed, like the stems after toNonIndexed().
+        const blade = new IcosahedronGeometry(STEM.leaf, 0);
+        blade.scale(1, 0.12, 0.35);
+        blade.rotateZ(0.35);
+        blade.rotateY(-angle);
+        blade.translate(
+          baseX + leanX * along + Math.cos(angle) * STEM.leaf * 0.8,
+          y,
+          baseZ + leanZ * along + Math.sin(angle) * STEM.leaf * 0.8,
+        );
+        parts.push(blade);
+      }
+    }
+  }
+  return unitTall(mergeParts(parts));
+}
+
+/** Stands a plant on y = 0 and scales it to exactly one unit tall. */
+function unitTall(geometry: BufferGeometry): BufferGeometry {
+  geometry.computeBoundingBox();
+  const box = geometry.boundingBox;
+  if (box !== null) {
+    geometry.translate(0, -box.min.y, 0);
+    geometry.scale(1, 1 / (box.max.y - box.min.y), 1);
+  }
+  geometry.computeVertexNormals();
+  return geometry;
 }

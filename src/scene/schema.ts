@@ -161,7 +161,7 @@ const flora = z.object({
    * Anemones are short, swaying tentacle clumps and bushes are grape-like
    * macroalgae; both use the same sway as plants.
    */
-  kind: z.enum(["kelp", "seagrass", "anemone", "bush"]),
+  kind: z.enum(["kelp", "seagrass", "anemone", "bush", "carpet", "fern", "stem"]),
   /** Label in the control panel; defaults to the kind. */
   name: z.string().min(1).optional(),
   count: z.number().int().min(0).max(MAX_FLORA_PER_ENTRY),
@@ -169,6 +169,8 @@ const flora = z.object({
   /** Plant height range in meters. */
   height: orderedPair(z.number().positive(), "height"),
   color: colorOrPalette,
+  /** Color the leaves turn towards the top (red-tipped stem plants); none when absent. */
+  tipColor: hexColor.optional(),
   on: placement,
 });
 
@@ -183,6 +185,10 @@ const prop = z.object({
     "table-coral",
     "mushroom-coral",
     "leather-coral",
+    "driftwood",
+    "dragon-stone",
+    "moss",
+    "pebble",
   ]),
   /** Label in the control panel; defaults to the kind. */
   name: z.string().min(1).optional(),

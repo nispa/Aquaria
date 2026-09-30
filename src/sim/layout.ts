@@ -23,6 +23,8 @@ export interface Plant {
   readonly seed: number;
   /** Height of the base above the sand, m, when growing on rockwork. */
   readonly elevation?: number;
+  /** Color the leaves turn towards the top, when the entry sets one. */
+  readonly tipColor?: string;
 }
 
 export interface Prop {
@@ -63,6 +65,10 @@ const PROP_PLACEMENT: Readonly<Record<PropSpec["kind"], PropPlacement>> = {
   "table-coral": { size: [0.35, 0.7], bands: [1, 3] },
   "mushroom-coral": { size: [0.08, 0.16], bands: [0, 2] },
   "leather-coral": { size: [0.2, 0.4], bands: [1, 3] },
+  driftwood: { size: [0.5, 1.1], bands: [1, 3] },
+  "dragon-stone": { size: [0.15, 0.35], bands: [1, 3] },
+  moss: { size: [0.08, 0.2], bands: [0, 3] },
+  pebble: { size: [0.02, 0.06], bands: [0, 2] },
 };
 
 /**
@@ -141,6 +147,7 @@ export function layoutFlora(
         rotation: entryRng.range(0, Math.PI * 2),
         swayPhase: entryRng.range(0, Math.PI * 2),
         seed: Math.floor(entryRng.next() * SEED_RANGE),
+        ...(spec.tipColor === undefined ? {} : { tipColor: spec.tipColor }),
       };
     });
   });

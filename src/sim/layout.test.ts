@@ -315,3 +315,34 @@ describe("placement on rockwork", () => {
     expect(shells.every((shell) => shell.elevation === undefined)).toBe(true);
   });
 });
+
+describe("tip color", () => {
+  it("passes an entry's tip color on to its plants", () => {
+    const plants = layoutFlora(
+      tank,
+      [
+        {
+          kind: "stem",
+          count: 3,
+          bands: [2, 4],
+          height: [0.2, 0.4],
+          color: "#3a8a2a",
+          tipColor: "#e0402a",
+        },
+      ],
+      createRng(2),
+    );
+
+    expect(plants.every((plant) => plant.tipColor === "#e0402a")).toBe(true);
+  });
+
+  it("gives plants without a tip color none", () => {
+    const plants = layoutFlora(
+      tank,
+      [{ kind: "fern", count: 3, bands: [2, 4], height: [0.2, 0.4], color: "#3a8a2a" }],
+      createRng(2),
+    );
+
+    expect(plants.every((plant) => plant.tipColor === undefined)).toBe(true);
+  });
+});

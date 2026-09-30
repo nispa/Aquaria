@@ -28,6 +28,13 @@ const KIND_LABELS: Readonly<Record<SceneryKind, string>> = {
   "mushroom-coral": "Mushroom corals",
   "leather-coral": "Leather corals",
   bush: "Macroalgae",
+  carpet: "Carpet plants",
+  fern: "Ferns",
+  stem: "Stem plants",
+  driftwood: "Driftwood",
+  "dragon-stone": "Dragon stones",
+  moss: "Moss",
+  pebble: "Pebbles",
 };
 
 export interface SceneryEntry {

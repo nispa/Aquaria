@@ -31,6 +31,9 @@ SOURCE_URL = "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/{asset}/{a
 MATERIALS = {
     "fine-sand": ("dense_sand", 2048),
     "reef-rock": ("rock_boulder_dry", 1024),
+    "aquarium-gravel": ("pebbles", 1024),
+    "aqua-soil": ("gravel", 1024),
+    "driftwood": ("eucalyptus_bark", 1024),
 }
 
 # UASTC quality 0..4 (higher is slower and better) and Zstandard level 1..22.

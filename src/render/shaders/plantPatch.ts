@@ -1,3 +1,4 @@
+import { Color } from "three";
 import type { WaterUniforms } from "../uniforms";
 import type { ShaderPatch } from "./patch";
 
@@ -8,6 +9,9 @@ export interface LeafStyle {
   readonly veinStrength: number;
 }
 
+/** Leaves turn to the tip color over the top share of the plant. */
+const TIP_START = 0.55;
+
 /**
  * Sways plants with the water current plus a slow oscillation. The bend grows
  * with the square of the height along the blade, so the base stays planted.
@@ -17,13 +21,15 @@ export interface LeafStyle {
  * Instance attributes: aSwayPhase (radians), aHeight (m).
  * Vertex attribute: aAcross (0..1 across a blade, 0.5 on the midrib).
  * Uniforms: uTime, uCurrent, uLightColor (from WaterUniforms);
- * uSwayAmount (m, 0..0.5); uVeins (count, 0..12); uVeinStrength (0..1).
+ * uSwayAmount (m, 0..0.5); uVeins (count, 0..12); uVeinStrength (0..1);
+ * uTipColor (linear RGB) and uTipAmount (0..1): leaves turn to this color near the top.
  * The blade geometry spans y = 0..1 before instance scaling.
  */
 export function plantPatch(
   water: WaterUniforms,
   uSwayAmount: { value: number },
   leaf: LeafStyle,
+  tipColor?: Color,
 ): ShaderPatch {
   return {
     name: "plant",
@@ -32,6 +38,8 @@ export function plantPatch(
       uSwayAmount,
       uVeins: { value: leaf.veins },
       uVeinStrength: { value: leaf.veinStrength },
+      uTipColor: { value: tipColor ?? new Color() },
+      uTipAmount: { value: tipColor === undefined ? 0 : 1 },
     },
     vertexHead: /* glsl */ `
       attribute float aSwayPhase;
@@ -73,6 +81,8 @@ export function plantPatch(
     fragmentHead: /* glsl */ `
       uniform float uVeins;
       uniform float uVeinStrength;
+      uniform vec3 uTipColor;
+      uniform float uTipAmount;
       // uLightColor is declared by the caustics patch, which plants always use.
       varying float vAlongBlade;
       varying float vAcrossBlade;
@@ -85,6 +95,11 @@ export function plantPatch(
         #include <color_fragment>
         diffuseColor.rgb *= mix(0.35, 1.15, vAlongBlade);
         diffuseColor.rgb *= 0.85 + 0.3 * vBladeTone;
+        diffuseColor.rgb = mix(
+          diffuseColor.rgb,
+          uTipColor * (0.85 + 0.3 * vBladeTone),
+          uTipAmount * smoothstep(${TIP_START.toFixed(2)}, 1.0, vAlongBlade)
+        );
         if (uVeins > 0.0) {
           float across = vAcrossBlade - 0.5;
           float midrib = 1.0 - smoothstep(0.0, 0.035, abs(across));

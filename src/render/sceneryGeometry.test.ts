@@ -13,6 +13,12 @@ import {
   mushroomCoralGeometry,
   leatherCoralGeometry,
   algaeBushGeometry,
+  driftwoodGeometry,
+  dragonStoneGeometry,
+  mossCushionGeometry,
+  pebbleGeometry,
+  fernFrondGeometry,
+  stemPlantGeometry,
 } from "./sceneryGeometry";
 
 function bounds(geometry: BufferGeometry) {
@@ -37,6 +43,10 @@ const generators = {
   "table coral": () => tableCoralGeometry(createRng(1)),
   "mushroom coral": () => mushroomCoralGeometry(createRng(1)),
   "leather coral": () => leatherCoralGeometry(createRng(1)),
+  driftwood: () => driftwoodGeometry(createRng(1)),
+  "dragon stone": () => dragonStoneGeometry(createRng(1)),
+  "moss cushion": () => mossCushionGeometry(createRng(1)),
+  pebble: () => pebbleGeometry(createRng(1)),
 };
 
 describe("scenery geometry", () => {
@@ -137,5 +147,56 @@ describe("new corals and algae", () => {
     const bush = algaeBushGeometry(createRng(1));
 
     expect(bush.getAttribute("position").count).toBeGreaterThan(500);
+  });
+});
+
+describe("aquascape pieces", () => {
+  const extent = (geometry: BufferGeometry) => {
+    const box = bounds(geometry);
+    return {
+      tall: box.max.y - box.min.y,
+      wide: Math.max(box.max.x - box.min.x, box.max.z - box.min.z),
+    };
+  };
+
+  it("sprawls driftwood sideways rather than up like a coral", () => {
+    const { tall, wide } = extent(driftwoodGeometry(createRng(1)));
+
+    expect(wide).toBeGreaterThan(tall);
+  });
+
+  it("raises a dragon stone into a spire taller than it is wide", () => {
+    const { tall, wide } = extent(dragonStoneGeometry(createRng(1)));
+
+    expect(tall).toBeGreaterThan(wide * 1.2);
+  });
+
+  it("keeps a moss cushion a low dome", () => {
+    const { tall, wide } = extent(mossCushionGeometry(createRng(1)));
+
+    expect(tall).toBeLessThan(wide * 0.7);
+  });
+
+  it("makes pebbles flat and smooth", () => {
+    const { tall, wide } = extent(pebbleGeometry(createRng(1)));
+
+    expect(tall).toBeLessThan(wide * 0.6);
+  });
+
+  it.each([
+    ["fern frond", () => fernFrondGeometry(createRng(1))],
+    ["stem plant", () => stemPlantGeometry(createRng(1))],
+  ])("builds a %s one unit tall from y = 0, as the plant sway expects", (_, make) => {
+    const box = bounds(make());
+
+    expect(box.min.y).toBeCloseTo(0, 5);
+    expect(box.max.y).toBeCloseTo(1, 1);
+  });
+
+  it("gives a fern frond leaflets on both sides of its stem", () => {
+    const box = bounds(fernFrondGeometry(createRng(1)));
+
+    expect(box.min.x).toBeLessThan(-0.05);
+    expect(box.max.x).toBeGreaterThan(0.05);
   });
 });
