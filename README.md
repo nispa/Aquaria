@@ -81,27 +81,26 @@ lowest setting you cannot tell apart: it saves GPU power.
 On laptops and PCs with two GPUs, Windows often runs the browser on the
 integrated one (Intel, or AMD "Radeon Graphics"), which cannot keep up at 4K.
 The panel shows the GPU in use under **Quality**, with a warning when it is
-the integrated or a software one. To switch Chrome (or Edge) to the dedicated
+the integrated or a software one. To move Chrome or Edge to the dedicated
 GPU:
 
-1. **Windows graphics settings**: Settings → System → Display → Graphics.
-   Find Google Chrome in the list (or add `chrome.exe` with _Browse_), open
+1. **Windows graphics settings** (the reliable way; they take precedence over
+   the NVIDIA and AMD control panels, whose per-app choice browsers often
+   ignore): Settings → System → Display → Graphics. Add the browser if it is
+   not listed (_Browse_: Edge is
+   `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`, Chrome
+   `C:\Program Files\Google\Chrome\Application\chrome.exe`), open
    _Options_ and choose **High performance**. Save.
-2. **Or the NVIDIA Control Panel**: Manage 3D settings → Program Settings →
-   select Google Chrome → preferred graphics processor: **High-performance
-   NVIDIA processor**. Apply. (AMD: Radeon Software → Graphics → per-app
-   settings.)
-3. **Or at launch**, add Chrome's switch to the kiosk command:
-
-   ```bash
-   chrome --kiosk --force_high_performance_gpu http://localhost:4173
-   ```
-
-4. Make sure hardware acceleration is on: `chrome://settings/system` → _Use
-   graphics acceleration when available_.
-5. **Close every Chrome window** (including background ones in the tray) and
-   reopen it. Check `chrome://gpu`: _GL_RENDERER_ must name the NVIDIA (or
-   AMD) GPU, and the panel's GPU line must match.
+2. **Hardware acceleration on**: `edge://settings/system` (or
+   `chrome://settings/system`) → _Use graphics acceleration when available_.
+3. **Quit the browser completely.** Edge keeps running in the background
+   (18 hidden processes are common): in `edge://settings/system` turn off
+   _Startup boost_ and _Continue running background extensions and apps when
+   Microsoft Edge is closed_, close every window, and check in Task Manager
+   that no `msedge.exe` is left (or run `taskkill /IM msedge.exe /F`). Chrome
+   has the same background option in `chrome://settings/system`.
+4. **Check**: open `edge://gpu` (or `chrome://gpu`): _GL_RENDERER_ must name
+   the NVIDIA or AMD GPU, and the panel's GPU line must match.
 
 On a laptop, keep it on mains power: on battery, Windows may still prefer
 the integrated GPU.
