@@ -106,9 +106,9 @@ back.
 Scenery entries:
 
 - `flora` kinds: `kelp`, `seagrass`, `anemone` (tentacles that sway with the
-  current). Each entry sets `count`, depth `bands`, `height` range and `color`.
+  current), `bush` (grape-like macroalgae). Each entry sets `count`, depth `bands`, `height` range and `color`.
 - `props` kinds: `rock`, `starfish`, `shell`, `brain-coral`, `branch-coral`,
-  `fan-coral`. Each entry sets `count` and `color`; `bands` is optional (small
+  `fan-coral`, `table-coral`, `mushroom-coral`, `leather-coral`. Each entry sets `count` and `color`; `bands` is optional (small
   things default to the front, sea fans to the back).
 - The floor and any prop entry may set a photographic `material`:
   `{ "id": "reef-rock", "tileSize": 0.45, "displacement": 0.07 }`. The id is a

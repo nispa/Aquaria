@@ -24,6 +24,10 @@ const KIND_LABELS: Readonly<Record<SceneryKind, string>> = {
   "brain-coral": "Brain corals",
   "branch-coral": "Branching corals",
   "fan-coral": "Sea fans",
+  "table-coral": "Table corals",
+  "mushroom-coral": "Mushroom corals",
+  "leather-coral": "Leather corals",
+  bush: "Macroalgae",
 };
 
 export interface SceneryEntry {

@@ -9,6 +9,10 @@ import {
   rockGeometry,
   shellGeometry,
   starfishGeometry,
+  tableCoralGeometry,
+  mushroomCoralGeometry,
+  leatherCoralGeometry,
+  algaeBushGeometry,
 } from "./sceneryGeometry";
 
 function bounds(geometry: BufferGeometry) {
@@ -30,6 +34,9 @@ const generators = {
   "sea fan": () => fanCoralGeometry(createRng(1)),
   shell: () => shellGeometry(createRng(1)),
   starfish: () => starfishGeometry(createRng(1)),
+  "table coral": () => tableCoralGeometry(createRng(1)),
+  "mushroom coral": () => mushroomCoralGeometry(createRng(1)),
+  "leather coral": () => leatherCoralGeometry(createRng(1)),
 };
 
 describe("scenery geometry", () => {
@@ -92,5 +99,43 @@ describe("rock", () => {
 
     expect(geometry.index).not.toBeNull();
     expect(geometry.getAttribute("position").count).toBeLessThan(geometry.index?.count ?? 0);
+  });
+});
+
+describe("new corals and algae", () => {
+  const height = (geometry: BufferGeometry) => {
+    const box = bounds(geometry);
+    return { tall: box.max.y - box.min.y, wide: box.max.x - box.min.x };
+  };
+
+  it("spreads a table coral into a plate much wider than it is tall", () => {
+    const { tall, wide } = height(tableCoralGeometry(createRng(1)));
+
+    expect(tall).toBeLessThan(wide * 0.45);
+  });
+
+  it("keeps a mushroom coral low, like a disc on the rock", () => {
+    const { tall, wide } = height(mushroomCoralGeometry(createRng(1)));
+
+    expect(tall).toBeLessThan(wide * 0.3);
+  });
+
+  it("raises a leather coral's cap on a stalk", () => {
+    const { tall, wide } = height(leatherCoralGeometry(createRng(1)));
+
+    expect(tall).toBeGreaterThan(wide * 0.4);
+  });
+
+  it("builds an algae bush one unit tall from y = 0, as the plant sway expects", () => {
+    const box = bounds(algaeBushGeometry(createRng(1)));
+
+    expect(box.min.y).toBeCloseTo(0, 5);
+    expect(box.max.y).toBeCloseTo(1, 1);
+  });
+
+  it("gives an algae bush many leaves, not a single blade", () => {
+    const bush = algaeBushGeometry(createRng(1));
+
+    expect(bush.getAttribute("position").count).toBeGreaterThan(500);
   });
 });

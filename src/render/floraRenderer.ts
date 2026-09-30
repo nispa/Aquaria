@@ -16,7 +16,7 @@ import {
 import { createRng } from "../core/rng";
 import type { Plant } from "../sim/layout";
 import { floorHeight } from "../sim/terrain";
-import { anemoneTentacleGeometry } from "./sceneryGeometry";
+import { algaeBushGeometry, anemoneTentacleGeometry } from "./sceneryGeometry";
 import { causticsPatch } from "./shaders/causticsPatch";
 import { fluorescencePatch } from "./shaders/fluorescencePatch";
 import { patchMaterial } from "./shaders/patch";
@@ -34,7 +34,8 @@ interface BladeStyle {
   readonly sway: number;
   /** Lean away from the vertical, radians: blades stand, tentacles splay out. */
   readonly tilt: readonly [number, number];
-  readonly shape: "blade" | "tentacle";
+  /** blade: flat leaf. tentacle: round tapering tube. bush: a whole plant per instance. */
+  readonly shape: "blade" | "tentacle" | "bush";
   readonly leaf: LeafStyle;
   /** Glows under actinic light (anemones). */
   readonly fluorescent: boolean;
@@ -75,6 +76,18 @@ const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
     leaf: { veins: 0, veinStrength: 0 },
     fluorescent: true,
   },
+  bush: {
+    blades: 1,
+    // Bushes are scaled with their height: width is relative to it.
+    width: 0.7,
+    spread: 0,
+    segments: 0,
+    sway: 0.04,
+    tilt: [0, 0.1],
+    shape: "bush",
+    leaf: { veins: 0, veinStrength: 0 },
+    fluorescent: false,
+  },
 };
 
 /** A blade one unit tall, narrowing towards the tip, base at y = 0. */
@@ -92,6 +105,20 @@ function bladeGeometry(segments: number): BufferGeometry {
 
 /** Spreads blades and tentacles evenly around a plant, radians. */
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
+/** Seeds the bush shape, so it looks the same whatever the scene holds. */
+const BUSH_SEED = 4231;
+
+function shapeGeometry(style: BladeStyle): BufferGeometry {
+  switch (style.shape) {
+    case "blade":
+      return bladeGeometry(style.segments);
+    case "tentacle":
+      return anemoneTentacleGeometry();
+    case "bush":
+      return algaeBushGeometry(createRng(BUSH_SEED));
+  }
+}
 
 /** Position across a blade (0..1) for the vein shader; tentacles have no veins. */
 function acrossAttribute(geometry: BufferGeometry, shape: BladeStyle["shape"]): BufferAttribute {
@@ -132,8 +159,7 @@ export function createFloraRenderer(plants: readonly Plant[], water: WaterUnifor
     if (first === undefined) continue;
     const style = STYLES[first.kind];
     const count = members.length * style.blades;
-    const geometry =
-      style.shape === "blade" ? bladeGeometry(style.segments) : anemoneTentacleGeometry();
+    const geometry = shapeGeometry(style);
     geometry.setAttribute("aAcross", acrossAttribute(geometry, style.shape));
     const swayPhase = new Float32Array(count);
     const heights = new Float32Array(count);
@@ -174,8 +200,8 @@ export function createFloraRenderer(plants: readonly Plant[], water: WaterUnifor
           "YXZ",
         );
         rotation.setFromEuler(euler);
-        const width = style.width * rng.range(0.8, 1.2);
-        scale.set(width, height, style.shape === "tentacle" ? width : 1);
+        const width = style.width * rng.range(0.8, 1.2) * (style.shape === "bush" ? height : 1);
+        scale.set(width, height, style.shape === "blade" ? 1 : width);
         matrix.compose(position, rotation, scale);
         mesh.setMatrixAt(instance, matrix);
         swayPhase[instance] = plant.swayPhase + blade * 0.9;

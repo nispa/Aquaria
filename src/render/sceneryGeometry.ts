@@ -334,3 +334,126 @@ export function starfishGeometry(rng: Rng): BufferGeometry {
   });
   return fitFootprint(merged);
 }
+
+/** Moves each vertex of `geometry` with `move`, then recomputes normals. */
+function reshape(
+  geometry: BufferGeometry,
+  move: (point: Vector3, angle: number, radius: number) => void,
+): BufferGeometry {
+  const positions = geometry.getAttribute("position");
+  const point = new Vector3();
+  for (let index = 0; index < positions.count; index += 1) {
+    point.fromBufferAttribute(positions, index);
+    move(point, Math.atan2(point.z, point.x), Math.hypot(point.x, point.z));
+    positions.setXYZ(index, point.x, point.y, point.z);
+  }
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function mergeParts(parts: BufferGeometry[]): BufferGeometry {
+  const merged = mergeGeometries(parts);
+  parts.forEach((part) => {
+    part.dispose();
+  });
+  return merged;
+}
+
+const TABLE = { stalk: 0.18, plate: 0.5, thickness: 0.04, cup: 0.06, lobes: 3 } as const;
+
+/** Table coral: a wide, slightly cupped plate with a wavy rim on a short stalk. */
+export function tableCoralGeometry(rng: Rng): BufferGeometry {
+  const stalk = new CylinderGeometry(0.06, 0.09, TABLE.stalk, 10);
+  stalk.translate(0, TABLE.stalk / 2, 0);
+  const phase = rng.range(0, Math.PI * 2);
+  const wobble = rng.range(0.12, 0.22);
+  const plate = new CylinderGeometry(TABLE.plate, TABLE.plate * 0.9, TABLE.thickness, 56, 4);
+  reshape(plate, (point, angle, radius) => {
+    const rim = 1 - wobble + wobble * Math.sin(angle * TABLE.lobes + phase);
+    point.x *= rim;
+    point.z *= rim;
+    point.y += TABLE.stalk + TABLE.cup * Math.pow(radius / TABLE.plate, 2);
+  });
+  return fitFootprint(mergeParts([stalk, plate]));
+}
+
+const MUSHROOM = { radius: 0.5, flatten: 0.16, ridges: 32, ridgeHeight: 0.02 } as const;
+
+/** Mushroom coral: a low disc with fine radial ridges and a central mouth. */
+export function mushroomCoralGeometry(rng: Rng): BufferGeometry {
+  const geometry = new SphereGeometry(MUSHROOM.radius, 72, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+  const phase = rng.range(0, Math.PI * 2);
+  reshape(geometry, (point, angle, radius) => {
+    const outward = radius / MUSHROOM.radius;
+    const ridge = Math.abs(Math.sin(angle * MUSHROOM.ridges + phase)) * outward;
+    const mouth = Math.exp(-Math.pow(outward / 0.12, 2)) * 0.03;
+    const rim = 1 + 0.06 * Math.sin(angle * 5 + phase);
+    point.x *= rim;
+    point.z *= rim;
+    point.y = point.y * MUSHROOM.flatten + ridge * MUSHROOM.ridgeHeight - mouth;
+  });
+  return fitFootprint(geometry);
+}
+
+const LEATHER = { stalk: 0.35, cap: 0.5, capHeight: 0.25, folds: 7, foldHeight: 0.07 } as const;
+
+/** Leather (toadstool) coral: a thick stalk under a broad, folded cap. */
+export function leatherCoralGeometry(rng: Rng): BufferGeometry {
+  const stalk = new CylinderGeometry(0.12, 0.16, LEATHER.stalk, 14);
+  stalk.translate(0, LEATHER.stalk / 2, 0);
+  const cap = new SphereGeometry(LEATHER.cap, 56, 14, 0, Math.PI * 2, 0, Math.PI / 2);
+  const phase = rng.range(0, Math.PI * 2);
+  reshape(cap, (point, angle, radius) => {
+    const outward = radius / LEATHER.cap;
+    const fold = Math.sin(angle * LEATHER.folds + phase) * Math.pow(outward, 3);
+    point.y = LEATHER.stalk * 0.9 + point.y * LEATHER.capHeight * 2 + fold * LEATHER.foldHeight;
+  });
+  return fitFootprint(mergeParts([stalk, cap]));
+}
+
+const BUSH = {
+  stems: [7, 10] as const,
+  leavesPerStem: 12,
+  leafSize: [0.035, 0.06] as const,
+  lean: 0.35,
+} as const;
+
+/**
+ * A bushy macroalga (grape-like Caulerpa): curved stems crowded with small
+ * round leaves. One unit tall from y = 0 so the plant sway can bend it.
+ */
+export function algaeBushGeometry(rng: Rng): BufferGeometry {
+  const parts: BufferGeometry[] = [];
+  const stemCount = rng.int(BUSH.stems[0], BUSH.stems[1]);
+  for (let stem = 0; stem < stemCount; stem += 1) {
+    const height = rng.range(0.6, 1);
+    const azimuth = rng.range(0, Math.PI * 2);
+    const lean = rng.range(0.1, BUSH.lean);
+    const along = (t: number): Vector3 =>
+      new Vector3(Math.cos(azimuth) * lean * t * t, height * t, Math.sin(azimuth) * lean * t * t);
+    const curve = new CatmullRomCurve3([0, 0.33, 0.66, 1].map(along));
+    parts.push(new TubeGeometry(curve, 8, 0.012, 5, false).toNonIndexed());
+    for (let leaf = 0; leaf < BUSH.leavesPerStem; leaf += 1) {
+      const t = 0.15 + (0.85 * (leaf + 0.5)) / BUSH.leavesPerStem;
+      const blob = new IcosahedronGeometry(rng.range(BUSH.leafSize[0], BUSH.leafSize[1]), 0);
+      const center = curve.getPointAt(t);
+      blob.scale(1, 0.8, 1);
+      blob.translate(
+        center.x + rng.range(-0.04, 0.04),
+        center.y,
+        center.z + rng.range(-0.04, 0.04),
+      );
+      // Polyhedra are already non-indexed, like the tubes after toNonIndexed().
+      parts.push(blob);
+    }
+  }
+  const merged = mergeParts(parts);
+  merged.computeBoundingBox();
+  const box = merged.boundingBox;
+  if (box !== null) {
+    merged.translate(0, -box.min.y, 0);
+    merged.scale(1, 1 / (box.max.y - box.min.y), 1);
+  }
+  merged.computeVertexNormals();
+  return merged;
+}

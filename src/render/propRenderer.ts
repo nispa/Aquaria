@@ -18,8 +18,11 @@ import {
   brainCoralGeometry,
   fanCoralGeometry,
   rockGeometry,
+  leatherCoralGeometry,
+  mushroomCoralGeometry,
   shellGeometry,
   starfishGeometry,
+  tableCoralGeometry,
 } from "./sceneryGeometry";
 import { causticsPatch } from "./shaders/causticsPatch";
 import { fluorescencePatch } from "./shaders/fluorescencePatch";
@@ -103,6 +106,36 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     castShadow: true,
     fluorescent: true,
     sink: -0.02,
+  },
+  "table-coral": {
+    variants: 3,
+    build: tableCoralGeometry,
+    roughness: 0.8,
+    flatShading: false,
+    doubleSided: false,
+    castShadow: true,
+    fluorescent: true,
+    sink: -0.02,
+  },
+  "mushroom-coral": {
+    variants: 3,
+    build: mushroomCoralGeometry,
+    roughness: 0.6,
+    flatShading: false,
+    doubleSided: false,
+    castShadow: false,
+    fluorescent: true,
+    sink: -0.02,
+  },
+  "leather-coral": {
+    variants: 3,
+    build: leatherCoralGeometry,
+    roughness: 0.75,
+    flatShading: false,
+    doubleSided: false,
+    castShadow: true,
+    fluorescent: true,
+    sink: -0.03,
   },
 };
 

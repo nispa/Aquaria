@@ -38,12 +38,11 @@
   },
   "flora": [
     {
-      "kind": "kelp",
-      "name": "Macroalgae",
-      "count": 9,
-      "bands": [3, 4],
-      "height": [0.7, 1.5],
-      "color": ["#7cc94a", "#5fae3c", "#9ad65a"]
+      "kind": "bush",
+      "count": 16,
+      "bands": [1, 4],
+      "height": [0.35, 0.8],
+      "color": ["#6fc24a", "#4fa33a", "#8fd65a"]
     },
     {
       "kind": "anemone",
@@ -84,6 +83,24 @@
         "id": "reef-rock",
         "tileSize": 0.35
       }
+    },
+    {
+      "kind": "table-coral",
+      "count": 6,
+      "color": ["#b58ad6", "#c9a27a", "#8fb8d9"],
+      "on": "rockwork"
+    },
+    {
+      "kind": "mushroom-coral",
+      "count": 14,
+      "color": ["#e06a8a", "#6ad0a0", "#d98a4a"],
+      "on": "rockwork"
+    },
+    {
+      "kind": "leather-coral",
+      "count": 5,
+      "color": ["#d9c79a", "#b8c77a"],
+      "on": "rockwork"
     },
     {
       "kind": "fan-coral",

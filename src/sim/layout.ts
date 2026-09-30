@@ -60,6 +60,9 @@ const PROP_PLACEMENT: Readonly<Record<PropSpec["kind"], PropPlacement>> = {
   "brain-coral": { size: [0.25, 0.5], bands: [1, 3] },
   "branch-coral": { size: [0.3, 0.6], bands: [1, 4] },
   "fan-coral": { size: [0.5, 1], bands: [2, 4] },
+  "table-coral": { size: [0.35, 0.7], bands: [1, 3] },
+  "mushroom-coral": { size: [0.08, 0.16], bands: [0, 2] },
+  "leather-coral": { size: [0.2, 0.4], bands: [1, 3] },
 };
 
 /**

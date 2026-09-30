@@ -157,8 +157,11 @@ export const MAX_FLORA_PER_ENTRY = 200;
 export const MAX_PROPS_PER_ENTRY = 50;
 
 const flora = z.object({
-  /** Anemones are short, swaying tentacle clumps; they use the same sway as plants. */
-  kind: z.enum(["kelp", "seagrass", "anemone"]),
+  /**
+   * Anemones are short, swaying tentacle clumps and bushes are grape-like
+   * macroalgae; both use the same sway as plants.
+   */
+  kind: z.enum(["kelp", "seagrass", "anemone", "bush"]),
   /** Label in the control panel; defaults to the kind. */
   name: z.string().min(1).optional(),
   count: z.number().int().min(0).max(MAX_FLORA_PER_ENTRY),
@@ -170,7 +173,17 @@ const flora = z.object({
 });
 
 const prop = z.object({
-  kind: z.enum(["rock", "starfish", "shell", "brain-coral", "branch-coral", "fan-coral"]),
+  kind: z.enum([
+    "rock",
+    "starfish",
+    "shell",
+    "brain-coral",
+    "branch-coral",
+    "fan-coral",
+    "table-coral",
+    "mushroom-coral",
+    "leather-coral",
+  ]),
   /** Label in the control panel; defaults to the kind. */
   name: z.string().min(1).optional(),
   count: z.number().int().min(0).max(MAX_PROPS_PER_ENTRY),
