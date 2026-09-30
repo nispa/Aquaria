@@ -1,1 +1,19 @@
-{ "materials": ["fine-sand", "reef-rock", "aquarium-gravel", "aqua-soil", "driftwood"] }
+{
+  "materials": [
+    "fine-sand",
+    "reef-rock",
+    "aquarium-gravel",
+    "aqua-soil",
+    "driftwood",
+    "dark-slate",
+    "layered-rock",
+    "basalt",
+    "red-rock",
+    "limestone",
+    "mossy-rock",
+    "rough-bark",
+    "mossy-wood",
+    "coarse-sand",
+    "black-gravel"
+  ]
+}

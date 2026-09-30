@@ -34,6 +34,16 @@ MATERIALS = {
     "aquarium-gravel": ("pebbles", 1024),
     "aqua-soil": ("gravel", 1024),
     "driftwood": ("eucalyptus_bark", 1024),
+    "dark-slate": ("dark_rock", 1024),
+    "layered-rock": ("lichen_rock", 1024),
+    "basalt": ("seaside_rock", 1024),
+    "red-rock": ("rock_face", 1024),
+    "limestone": ("rock_pitted_mossy", 1024),
+    "mossy-rock": ("mossy_rock", 1024),
+    "rough-bark": ("bark_willow_02", 1024),
+    "mossy-wood": ("bark_brown_02", 1024),
+    "coarse-sand": ("coast_sand_01", 1024),
+    "black-gravel": ("gravel_stones", 1024),
 }
 
 # UASTC quality 0..4 (higher is slower and better) and Zstandard level 1..22.

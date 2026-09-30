@@ -180,8 +180,10 @@ Scenery entries:
   `tileSize` is the size of one texture tile in meters and `displacement`
   pushes the surface out by up to that many meters. The entry's `color` still
   sets the hue. A missing material logs a warning and falls back to the plain
-  color. Available: `fine-sand`, `reef-rock`, `aquarium-gravel`, `aqua-soil`,
-  `driftwood`.
+  color. Available: sands and gravels `fine-sand`, `coarse-sand`,
+  `aquarium-gravel`, `black-gravel`, `aqua-soil`; rocks `reef-rock`,
+  `limestone`, `dark-slate`, `layered-rock`, `basalt`, `red-rock`,
+  `mossy-rock`; woods `driftwood`, `rough-bark`, `mossy-wood`.
 - `color` may be one color or a palette (`["#9a6fc2", "#e08fb0"]`): each item
   then takes one of the colors.
 - `rockwork` (optional) builds a reef ridge: a mound of live rock winding

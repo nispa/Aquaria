@@ -105,8 +105,8 @@
       "color": "#5c5e60",
       "bands": [1, 3],
       "material": {
-        "id": "reef-rock",
-        "tileSize": 0.25,
+        "id": "dark-slate",
+        "tileSize": 0.3,
         "displacement": 0.015
       }
     },

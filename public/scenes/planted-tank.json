@@ -115,8 +115,8 @@
       "color": "#5a4636",
       "bands": [1, 2],
       "material": {
-        "id": "driftwood",
-        "tileSize": 0.3
+        "id": "mossy-wood",
+        "tileSize": 0.35
       }
     },
     {
@@ -126,7 +126,7 @@
       "color": "#55524e",
       "bands": [2, 3],
       "material": {
-        "id": "reef-rock",
+        "id": "basalt",
         "tileSize": 0.3,
         "displacement": 0.02
       },
