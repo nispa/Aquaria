@@ -56,9 +56,9 @@ describe("bubblePosition", () => {
 
 describe("bubbleStreamsFromProps", () => {
   const props: Prop[] = [
-    { kind: "starfish", color: "#fff", x: 0, z: -1, size: 0.2, rotation: 0 },
-    { kind: "rock", color: "#666", x: 1, z: -2, size: 0.5, rotation: 0 },
-    { kind: "rock", color: "#666", x: -1, z: -3, size: 0.4, rotation: 0 },
+    { kind: "starfish", color: "#fff", x: 0, z: -1, size: 0.2, rotation: 0, seed: 1 },
+    { kind: "rock", color: "#666", x: 1, z: -2, size: 0.5, rotation: 0, seed: 2 },
+    { kind: "rock", color: "#666", x: -1, z: -3, size: 0.4, rotation: 0, seed: 3 },
   ];
 
   it("starts a stream on top of each rock, up to the limit", () => {

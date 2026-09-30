@@ -4,6 +4,7 @@ import {
   Color,
   DirectionalLight,
   FogExp2,
+  Group,
   HalfFloatType,
   HemisphereLight,
   PCFShadowMap,
@@ -19,7 +20,7 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import type { Logger } from "../core/logger";
 import { pixelRatioForHeight } from "../core/resolution";
-import type { Rng } from "../core/rng";
+import { createRng, type Rng } from "../core/rng";
 import type { Scene, SpeciesCatalog } from "../scene/schema";
 import { lookPasses, type Look } from "../scene/look";
 import { layoutFlora, layoutProps } from "../sim/layout";
@@ -28,9 +29,10 @@ import type { EffectDefinition, EffectInstance } from "./effects/types";
 import { createEnvironment } from "./environment";
 import { createWaterEnvironment } from "./environmentLight";
 import { createFishRenderer } from "./fishRenderer";
-import { createFloraRenderer } from "./floraRenderer";
+import { createFloraRenderer, type FloraRenderer } from "./floraRenderer";
 import { cameraFraming } from "./framing";
-import { createParticles } from "./particles";
+import { createParticles, type Particles } from "./particles";
+import { createPropRenderer, type PropRenderer } from "./propRenderer";
 import { createWaterUniforms } from "./uniforms";
 
 const VERTICAL_FOV = 38;
@@ -47,6 +49,7 @@ const SHADOW_FAR = 30;
 /** Image-based light is a fill, not the key light: kept below the sun. */
 const ENVIRONMENT_INTENSITY = 0.65;
 const SHADOW_MAP_SIZE = 2048;
+const SEED_MAX = 2 ** 31 - 1;
 
 export interface AquariumViewOptions {
   readonly canvas: HTMLCanvasElement;
@@ -70,6 +73,8 @@ export interface AquariumView {
   setRenderHeight(heightPixels: number): void;
   /** Switches features live: lighting, bubbles and post-processing. */
   setLook(look: Look): void;
+  /** Rebuilds plants, rocks, corals and shells for new scenery counts. */
+  setScenery(flora: Scene["flora"], props: Scene["props"]): void;
   dispose(): void;
 }
 
@@ -124,13 +129,42 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   const ambient = new AmbientLight(scene.water.color, 0.6);
   world.add(hemisphere, sun, sun.target, ambient);
 
-  const plants = layoutFlora(scene.tank, scene.flora, rng.fork());
-  const propItems = layoutProps(scene.tank, scene.props, rng.fork());
-  const environment = createEnvironment(scene, propItems, water, rng.fork());
-  const flora = createFloraRenderer(plants, water, rng.fork());
+  // Scenery is rebuilt when the viewer changes counts: keep the seeds, not the
+  // generators, so every rebuild starts from the same state.
+  const scenerySeeds = { flora: rng.int(0, SEED_MAX), props: rng.int(0, SEED_MAX) };
+  const particleSeed = rng.int(0, SEED_MAX);
+  const environment = createEnvironment(scene, water, rng.fork());
   const fish = createFishRenderer(catalog, water, logger);
-  const particles = createParticles(scene, propItems, water, rng.fork());
-  world.add(environment.object, flora.object, fish.object, particles.object);
+  // Stable containers: effects keep references to them across rebuilds.
+  const floraGroup = new Group();
+  const propGroup = new Group();
+  const particleGroup = new Group();
+  world.add(environment.object, floraGroup, propGroup, fish.object, particleGroup);
+  let flora: FloraRenderer | undefined;
+  let props: PropRenderer | undefined;
+  let particles: Particles | undefined;
+  let currentLook: Look = options.look;
+
+  const buildScenery = (floraSpecs: Scene["flora"], propSpecs: Scene["props"]): void => {
+    flora?.dispose();
+    props?.dispose();
+    particles?.dispose();
+    floraGroup.clear();
+    propGroup.clear();
+    particleGroup.clear();
+    const plants = layoutFlora(scene.tank, floraSpecs, createRng(scenerySeeds.flora));
+    const items = layoutProps(scene.tank, propSpecs, createRng(scenerySeeds.props));
+    flora = createFloraRenderer(plants, water);
+    props = createPropRenderer(items, water);
+    // Bubbles rise from the rocks, so they follow the props.
+    particles = createParticles(scene, items, water, createRng(particleSeed));
+    particles.setBubbleStyle(currentLook.has("refractive-bubbles") ? "refractive" : "sprite");
+    particles.setBufferHeight(renderHeight, VERTICAL_FOV);
+    floraGroup.add(flora.object);
+    propGroup.add(props.object);
+    particleGroup.add(particles.object);
+  };
+  buildScenery(scene.flora, scene.props);
 
   const environmentMap = createWaterEnvironment(renderer, scene);
   sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
@@ -141,7 +175,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     water,
     tank: scene.tank,
     sunPosition: sun.position,
-    shaderAnimated: { plants: flora.object, particles: particles.object },
+    shaderAnimated: { plants: floraGroup, particles: particleGroup },
     overlays: [environment.lightShafts],
   };
 
@@ -188,7 +222,8 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     world.environment = look.has("reflections") ? environmentMap.texture : null;
     world.environmentIntensity = ENVIRONMENT_INTENSITY;
     water.uCausticsIntensity.value = look.has("caustics") ? scene.light.caustics.intensity : 0;
-    particles.setBubbleStyle(look.has("refractive-bubbles") ? "refractive" : "sprite");
+    currentLook = look;
+    particles?.setBubbleStyle(look.has("refractive-bubbles") ? "refractive" : "sprite");
     environment.setLightShaftsVisible(look.has("light-shafts"));
     // Shadow and environment support are compiled into the shaders.
     forEachMaterial(world, (material) => {
@@ -207,7 +242,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     camera.position.set(...framing.position);
     camera.lookAt(...framing.target);
     camera.updateProjectionMatrix();
-    particles.setBufferHeight(renderHeight, VERTICAL_FOV);
+    particles?.setBufferHeight(renderHeight, VERTICAL_FOV);
   };
 
   const setLook = (look: Look): void => {
@@ -220,9 +255,9 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   return {
     render() {
       water.uTime.value = simulation.timeSeconds;
-      environment.update(simulation.timeSeconds);
+      props?.update(simulation.timeSeconds);
       fish.update(simulation.fish);
-      particles.update(simulation.timeSeconds);
+      particles?.update(simulation.timeSeconds);
       instances.forEach((instance) => {
         instance.update?.();
       });
@@ -238,12 +273,18 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       applySize();
     },
     setLook,
+    setScenery(floraSpecs, propSpecs) {
+      buildScenery(floraSpecs, propSpecs);
+      // New materials must compile with the current shadow and environment settings.
+      applyLighting(currentLook);
+    },
     dispose() {
       disposePipeline();
       environment.dispose();
-      flora.dispose();
+      flora?.dispose();
+      props?.dispose();
       fish.dispose();
-      particles.dispose();
+      particles?.dispose();
       environmentMap.dispose();
       renderer.dispose();
     },

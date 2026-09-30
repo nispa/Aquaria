@@ -110,3 +110,18 @@ test("remembers effect choices after a reload", async ({ page }) => {
 
   await expect(page.getByRole("checkbox", { name: "Depth of field" })).toBeChecked();
 });
+
+test("changes the scenery from the panel", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await openLive(page);
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await page.locator('input[data-scenery="brain-coral"]').fill("12");
+
+  await expect(page.locator("label", { hasText: "Brain corals" }).locator("output")).toHaveText(
+    "12",
+  );
+  expect(errors).toEqual([]);
+});

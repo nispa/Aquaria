@@ -57,7 +57,7 @@ URL options:
 | `frozen`  | `?frozen=10`             | Simulates 10 s and renders one still frame         |
 | `effects` | `?effects=shadows,bloom` | Enables exactly these effects (`none` for all off) |
 
-Panel settings (populations, effects, resolution, fps counter) are saved in the browser.
+Panel settings (populations, scenery, effects, resolution, fps counter) are saved in the browser.
 
 ## Running on a wall
 
@@ -94,10 +94,24 @@ back.
   "flora": [
     { "kind": "kelp", "count": 10, "bands": [3, 4], "height": [1.4, 2.7], "color": "#5a9a3e" },
   ],
-  "props": [{ "kind": "starfish", "count": 1, "color": "#e8612c" }],
+  "props": [
+    { "kind": "brain-coral", "count": 4, "color": "#b8a05a" },
+    { "kind": "starfish", "count": 1, "color": "#e8612c" },
+  ],
   "fauna": [{ "species": "sardine", "count": 45 }],
 }
 ```
+
+Scenery entries:
+
+- `flora` kinds: `kelp`, `seagrass`, `anemone` (tentacles that sway with the
+  current). Each entry sets `count`, depth `bands`, `height` range and `color`.
+- `props` kinds: `rock`, `starfish`, `shell`, `brain-coral`, `branch-coral`,
+  `fan-coral`. Each entry sets `count` and `color`; `bands` is optional (small
+  things default to the front, sea fans to the back).
+- Any entry may have a `name`, used as its label in the panel. Every entry
+  gets a slider in the panel's Scenery section; adding items never moves the
+  ones already placed.
 
 Species are defined once in `public/species.json`: body shape (`disc`, `round`,
 `slender`), color pattern (`belly`, `tail`, `bands`, `split`), size, speed,

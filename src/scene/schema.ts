@@ -94,9 +94,17 @@ const backdrop = z.discriminatedUnion("type", [
   }),
 ]);
 
+/** Largest count per flora entry; also the top of its panel slider. */
+export const MAX_FLORA_PER_ENTRY = 200;
+/** Largest count per prop entry; also the top of its panel slider. */
+export const MAX_PROPS_PER_ENTRY = 50;
+
 const flora = z.object({
-  kind: z.enum(["kelp", "seagrass"]),
-  count: z.number().int().min(0).max(200),
+  /** Anemones are short, swaying tentacle clumps; they use the same sway as plants. */
+  kind: z.enum(["kelp", "seagrass", "anemone"]),
+  /** Label in the control panel; defaults to the kind. */
+  name: z.string().min(1).optional(),
+  count: z.number().int().min(0).max(MAX_FLORA_PER_ENTRY),
   bands: bandRange,
   /** Plant height range in meters. */
   height: orderedPair(z.number().positive(), "height"),
@@ -104,9 +112,13 @@ const flora = z.object({
 });
 
 const prop = z.object({
-  kind: z.enum(["starfish", "rock"]),
-  count: z.number().int().min(0).max(50),
+  kind: z.enum(["rock", "starfish", "shell", "brain-coral", "branch-coral", "fan-coral"]),
+  /** Label in the control panel; defaults to the kind. */
+  name: z.string().min(1).optional(),
+  count: z.number().int().min(0).max(MAX_PROPS_PER_ENTRY),
   color: hexColor,
+  /** Depth bands to place the entry in; each kind has a sensible default. */
+  bands: bandRange.optional(),
 });
 
 const fauna = z.object({

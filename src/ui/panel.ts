@@ -1,5 +1,6 @@
 import { FULL_HD_HEIGHT, resolutionLabel, UHD_HEIGHT } from "../core/resolution";
 import type { Look, LookFeature, LookFeatureKind } from "../scene/look";
+import type { SceneryEntry } from "../scene/scenery";
 import { MAX_INDIVIDUALS_PER_SPECIES, type Species } from "../scene/schema";
 
 /** Lowest height offered on the slider (half of Full HD, for weak GPUs). */
@@ -12,6 +13,8 @@ export interface PanelState {
   readonly sceneName: string;
   readonly species: readonly Species[];
   readonly counts: Readonly<Record<string, number>>;
+  /** Plants, rocks, corals and shells with their current counts. */
+  readonly scenery: readonly SceneryEntry[];
   readonly renderHeight: number;
   readonly showFps: boolean;
   /** Switchable lighting features and effects, and which ones are on. */
@@ -21,6 +24,7 @@ export interface PanelState {
 
 export interface PanelCallbacks {
   onCountChange(speciesId: string, count: number): void;
+  onSceneryChange(key: string, count: number): void;
   onRenderHeightChange(height: number): void;
   onShowFpsChange(show: boolean): void;
   onFeatureChange(featureId: string, enabled: boolean): void;
@@ -126,6 +130,21 @@ export function createPanel(
     fauna.append(row);
   }
 
+  const scenery = element("section", "panel__section");
+  scenery.append(element("h2", "panel__heading", "Scenery"));
+  for (const entry of state.scenery) {
+    const row = element("label", "panel__row");
+    const value = element("output", "panel__value", String(entry.count));
+    const input = slider(0, entry.max, 1, entry.count);
+    input.dataset.scenery = entry.key;
+    input.addEventListener("input", () => {
+      value.textContent = input.value;
+      callbacks.onSceneryChange(entry.key, Number(input.value));
+    });
+    row.append(element("span", "panel__label", entry.label), input, value);
+    scenery.append(row);
+  }
+
   const quality = element("section", "panel__section");
   quality.append(element("h2", "panel__heading", "Quality"));
   const resolutionRow = element("label", "panel__row");
@@ -169,6 +188,7 @@ export function createPanel(
   quality.append(resolutionRow, presets, fpsRow, fullscreen);
   panel.append(
     fauna,
+    scenery,
     ...featureSections(state.features, state.look, (featureId, enabled) => {
       callbacks.onFeatureChange(featureId, enabled);
     }),

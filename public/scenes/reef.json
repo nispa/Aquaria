@@ -46,6 +46,13 @@
       "bands": [0, 4],
       "height": [0.15, 0.4],
       "color": "#79ad4e"
+    },
+    {
+      "kind": "anemone",
+      "count": 3,
+      "bands": [0, 2],
+      "height": [0.12, 0.22],
+      "color": "#d98fb0"
     }
   ],
   "props": [
@@ -53,6 +60,26 @@
       "kind": "rock",
       "count": 7,
       "color": "#6b6258"
+    },
+    {
+      "kind": "brain-coral",
+      "count": 4,
+      "color": "#b8a05a"
+    },
+    {
+      "kind": "branch-coral",
+      "count": 5,
+      "color": "#e0876a"
+    },
+    {
+      "kind": "fan-coral",
+      "count": 3,
+      "color": "#8e3b8a"
+    },
+    {
+      "kind": "shell",
+      "count": 6,
+      "color": "#efe2cf"
     },
     {
       "kind": "starfish",

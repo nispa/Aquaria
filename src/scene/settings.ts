@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { FULL_HD_HEIGHT, UHD_HEIGHT } from "../core/resolution";
-import { MAX_INDIVIDUALS_PER_SPECIES, type Scene, type SpeciesCatalog } from "./schema";
+import {
+  MAX_FLORA_PER_ENTRY,
+  MAX_INDIVIDUALS_PER_SPECIES,
+  type Scene,
+  type SpeciesCatalog,
+} from "./schema";
 
 /** Lowest render height offered, for weak GPUs (half of Full HD). */
 const MIN_RENDER_HEIGHT = FULL_HD_HEIGHT / 2;
@@ -12,6 +17,10 @@ export const settingsSchema = z.object({
   showFps: z.boolean().default(false),
   /** On/off choice per look feature id; features not listed use their default. */
   look: z.record(z.string(), z.boolean()).optional(),
+  /** Scenery count overrides per scene id, then per scenery key (see `sceneryEntries`). */
+  scenery: z
+    .record(z.string(), z.record(z.string(), z.number().int().min(0).max(MAX_FLORA_PER_ENTRY)))
+    .optional(),
   /** Population overrides per scene id, then per species id. */
   counts: z
     .record(

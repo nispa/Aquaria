@@ -8,6 +8,7 @@ import { EFFECTS } from "../render/effects";
 import { parseCatalog, parseScene } from "../scene/parse";
 import { applyCountOverrides, parseSettings, type Settings } from "../scene/settings";
 import { lookFeatures, resolveLook, type Look } from "../scene/look";
+import { applySceneryOverrides, sceneryEntries } from "../scene/scenery";
 import { createSimulation } from "../sim/simulation";
 import { createPanel } from "../ui/panel";
 import { parseLaunchOptions } from "./launchOptions";
@@ -78,11 +79,13 @@ async function start(): Promise<void> {
   let settings = loadSettings();
   const features = lookFeatures(EFFECTS);
   let look: Look = resolveLook(features, settings.look ?? {}, options.effects);
-  const scene = applyCountOverrides(
+  const baseScene = applyCountOverrides(
     parseScene(sceneData, catalog),
     settings.counts[options.scene] ?? {},
     catalog,
   );
+  let sceneryCounts: Readonly<Record<string, number>> = settings.scenery?.[options.scene] ?? {};
+  const scene = applySceneryOverrides(baseScene, sceneryCounts);
 
   const rng = createRng(options.seed ?? scene.seed);
   const simulation = createSimulation({ scene, catalog, rng: rng.fork() });
@@ -102,6 +105,18 @@ async function start(): Promise<void> {
     view.resize(window.innerWidth, window.innerHeight);
   });
 
+  // Slider drags fire many events per frame; rebuild the scenery at most once per frame.
+  let sceneryRebuildPending = false;
+  const scheduleSceneryRebuild = (): void => {
+    if (sceneryRebuildPending) return;
+    sceneryRebuildPending = true;
+    window.requestAnimationFrame(() => {
+      sceneryRebuildPending = false;
+      const next = applySceneryOverrides(baseScene, sceneryCounts);
+      view.setScenery(next.flora, next.props);
+    });
+  };
+
   const update = (change: Partial<Settings>): void => {
     settings = { ...settings, ...change };
     saveSettings(settings);
@@ -119,6 +134,7 @@ async function start(): Promise<void> {
       showFps: settings.showFps,
       features,
       look,
+      scenery: sceneryEntries(scene),
     },
     {
       onCountChange(speciesId, count) {
@@ -129,6 +145,11 @@ async function start(): Promise<void> {
             [scene.id]: { ...settings.counts[scene.id], [speciesId]: count },
           },
         });
+      },
+      onSceneryChange(key, count) {
+        sceneryCounts = { ...sceneryCounts, [key]: count };
+        scheduleSceneryRebuild();
+        update({ scenery: { ...settings.scenery, [scene.id]: sceneryCounts } });
       },
       onRenderHeightChange(height) {
         view.setRenderHeight(height);

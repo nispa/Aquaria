@@ -12,9 +12,10 @@ import {
   Vector3,
   type BufferGeometry,
 } from "three";
-import type { Rng } from "../core/rng";
+import { createRng } from "../core/rng";
 import type { Plant } from "../sim/layout";
 import { floorHeight } from "../sim/terrain";
+import { anemoneTentacleGeometry } from "./sceneryGeometry";
 import { causticsPatch } from "./shaders/causticsPatch";
 import { patchMaterial } from "./shaders/patch";
 import { plantPatch } from "./shaders/plantPatch";
@@ -29,11 +30,39 @@ interface BladeStyle {
   readonly spread: number;
   readonly segments: number;
   readonly sway: number;
+  /** Lean away from the vertical, radians: blades stand, tentacles splay out. */
+  readonly tilt: readonly [number, number];
+  readonly shape: "blade" | "tentacle";
 }
 
 const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
-  kelp: { blades: 3, width: 0.22, spread: 0.18, segments: 16, sway: 0.18 },
-  seagrass: { blades: 6, width: 0.035, spread: 0.12, segments: 6, sway: 0.08 },
+  kelp: {
+    blades: 3,
+    width: 0.22,
+    spread: 0.18,
+    segments: 16,
+    sway: 0.18,
+    tilt: [0, 0.08],
+    shape: "blade",
+  },
+  seagrass: {
+    blades: 6,
+    width: 0.035,
+    spread: 0.12,
+    segments: 6,
+    sway: 0.08,
+    tilt: [0, 0.08],
+    shape: "blade",
+  },
+  anemone: {
+    blades: 36,
+    width: 0.022,
+    spread: 0.04,
+    segments: 6,
+    sway: 0.05,
+    tilt: [0.15, 1.1],
+    shape: "tentacle",
+  },
 };
 
 /** A blade one unit tall, narrowing towards the tip, base at y = 0. */
@@ -49,17 +78,16 @@ function bladeGeometry(segments: number): BufferGeometry {
   return geometry;
 }
 
+/** Spreads blades and tentacles evenly around a plant, radians. */
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
 export interface FloraRenderer {
   readonly object: Group;
   dispose(): void;
 }
 
-/** Instanced kelp and seagrass, one draw call per plant kind and color. */
-export function createFloraRenderer(
-  plants: readonly Plant[],
-  water: WaterUniforms,
-  rng: Rng,
-): FloraRenderer {
+/** Instanced kelp, seagrass and anemones, one draw call per plant kind and color. */
+export function createFloraRenderer(plants: readonly Plant[], water: WaterUniforms): FloraRenderer {
   const object = new Group();
   object.name = "flora";
   const disposables: { dispose(): void }[] = [];
@@ -80,7 +108,8 @@ export function createFloraRenderer(
     if (first === undefined) continue;
     const style = STYLES[first.kind];
     const count = members.length * style.blades;
-    const geometry = bladeGeometry(style.segments);
+    const geometry =
+      style.shape === "blade" ? bladeGeometry(style.segments) : anemoneTentacleGeometry();
     const swayPhase = new Float32Array(count);
     const heights = new Float32Array(count);
     geometry.setAttribute("aSwayPhase", new InstancedBufferAttribute(swayPhase, 1));
@@ -101,14 +130,23 @@ export function createFloraRenderer(
 
     let instance = 0;
     for (const plant of members) {
+      // Each plant has its own generator, so adding a plant never reshapes another.
+      const rng = createRng(plant.seed);
       for (let blade = 0; blade < style.blades; blade += 1) {
         const x = plant.x + rng.range(-style.spread, style.spread);
         const z = plant.z + rng.range(-style.spread, style.spread);
         const height = plant.height * rng.range(0.7, 1);
         position.set(x, floorHeight(x, z) - 0.02, z);
-        euler.set(rng.range(-0.08, 0.08), plant.rotation + blade * 1.3, rng.range(-0.08, 0.08));
+        // Yaw first, then lean: blades lean a little, tentacles splay outwards.
+        euler.set(
+          rng.range(style.tilt[0], style.tilt[1]),
+          plant.rotation + blade * GOLDEN_ANGLE,
+          0,
+          "YXZ",
+        );
         rotation.setFromEuler(euler);
-        scale.set(style.width * rng.range(0.8, 1.2), height, 1);
+        const width = style.width * rng.range(0.8, 1.2);
+        scale.set(width, height, style.shape === "tentacle" ? width : 1);
         matrix.compose(position, rotation, scale);
         mesh.setMatrixAt(instance, matrix);
         swayPhase[instance] = plant.swayPhase + blade * 0.9;

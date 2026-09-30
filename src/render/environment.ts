@@ -2,13 +2,10 @@ import {
   AdditiveBlending,
   Color,
   DoubleSide,
-  ExtrudeGeometry,
   Group,
-  IcosahedronGeometry,
   Mesh,
   MeshStandardMaterial,
   PlaneGeometry,
-  Shape,
   ShaderMaterial,
   type BufferGeometry,
   type Material,
@@ -16,7 +13,6 @@ import {
 } from "three";
 import type { Rng } from "../core/rng";
 import type { Scene } from "../scene/schema";
-import type { Prop } from "../sim/layout";
 import { floorHeight } from "../sim/terrain";
 import { CAUSTICS_GLSL } from "./shaders/caustics";
 import { causticsPatch } from "./shaders/causticsPatch";
@@ -32,15 +28,11 @@ const LIGHT_SHAFT_COUNT = 7;
 const FLOOR_FRONT_OVERHANG = 2;
 /** Gap between the far end of the sand and the backdrop, m (hidden by fog). */
 const BACKDROP_GAP = 1;
-const ROCK_VARIANTS = 5;
-/** Starfish drift: one full turn takes this many seconds. */
-const STARFISH_TURN_SECONDS = 1800;
 
 export interface Environment {
   readonly object: Group;
   /** Additive light-shaft planes, so depth passes can skip them. */
   readonly lightShafts: Object3D;
-  update(timeSeconds: number): void;
   setLightShaftsVisible(visible: boolean): void;
   dispose(): void;
 }
@@ -91,91 +83,6 @@ function floor(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
   const mesh = new Mesh(geometry, material);
   mesh.receiveShadow = true;
   return mesh;
-}
-
-/** A lumpy, flattened icosahedron; the seed makes every variant different. */
-function rockGeometry(rng: Rng): BufferGeometry {
-  const geometry = new IcosahedronGeometry(0.5, 3);
-  const [a, b, c] = [rng.range(0, 6), rng.range(0, 6), rng.range(0, 6)];
-  const positions = geometry.getAttribute("position");
-  for (let index = 0; index < positions.count; index += 1) {
-    const x = positions.getX(index);
-    const y = positions.getY(index);
-    const z = positions.getZ(index);
-    const lump =
-      1 +
-      0.22 * Math.sin(x * 5 + a) * Math.sin(y * 4 + b) * Math.sin(z * 5 + c) +
-      0.08 * Math.sin(x * 13 + b + y * 11);
-    positions.setXYZ(index, x * lump, Math.max(y * lump * 0.65, -0.1), z * lump);
-  }
-  geometry.computeVertexNormals();
-  return geometry;
-}
-
-function starfishGeometry(): BufferGeometry {
-  const arms = 5;
-  const shape = new Shape();
-  for (let point = 0; point <= arms * 2; point += 1) {
-    const angle = (point / (arms * 2)) * Math.PI * 2;
-    const radius = point % 2 === 0 ? 0.5 : 0.19;
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius;
-    if (point === 0) shape.moveTo(x, y);
-    else shape.lineTo(x, y);
-  }
-  const geometry = new ExtrudeGeometry(shape, {
-    depth: 0.05,
-    bevelEnabled: true,
-    bevelThickness: 0.05,
-    bevelSize: 0.06,
-    bevelSegments: 4,
-  });
-  geometry.rotateX(-Math.PI / 2);
-  return geometry;
-}
-
-function props(
-  items: readonly Prop[],
-  water: WaterUniforms,
-  rng: Rng,
-  tracker: Tracker,
-): { group: Group; starfish: Mesh[] } {
-  const group = new Group();
-  const starfish: Mesh[] = [];
-  const rocks = Array.from({ length: ROCK_VARIANTS }, () => rockGeometry(rng));
-  const star = starfishGeometry();
-  tracker.geometries.push(...rocks, star);
-  const materials = new Map<string, Material>();
-  const materialFor = (color: string, roughness: number): Material => {
-    const key = `${color}|${roughness}`;
-    const existing = materials.get(key);
-    if (existing !== undefined) return existing;
-    const material = patchMaterial(
-      new MeshStandardMaterial({
-        color: new Color(color),
-        roughness,
-        flatShading: roughness > 0.9,
-      }),
-      [causticsPatch(water)],
-    );
-    materials.set(key, material);
-    tracker.materials.push(material);
-    return material;
-  };
-
-  for (const item of items) {
-    const isStarfish = item.kind === "starfish";
-    const geometry = isStarfish ? star : rng.pick(rocks);
-    const mesh = new Mesh(geometry, materialFor(item.color, isStarfish ? 0.75 : 0.98));
-    mesh.scale.setScalar(item.size);
-    mesh.castShadow = !isStarfish;
-    mesh.receiveShadow = true;
-    mesh.rotation.y = item.rotation;
-    mesh.position.set(item.x, floorHeight(item.x, item.z) + (isStarfish ? 0.005 : 0), item.z);
-    if (isStarfish) starfish.push(mesh);
-    group.add(mesh);
-  }
-  return { group, starfish };
 }
 
 /** The underside of the waves: bright, rippling and fading into the distance. */
@@ -329,22 +236,14 @@ function lightShafts(scene: Scene, water: WaterUniforms, rng: Rng, tracker: Trac
   return group;
 }
 
-export function createEnvironment(
-  scene: Scene,
-  items: readonly Prop[],
-  water: WaterUniforms,
-  rng: Rng,
-): Environment {
+export function createEnvironment(scene: Scene, water: WaterUniforms, rng: Rng): Environment {
   const object = new Group();
   object.name = "environment";
   const tracker: Tracker = { geometries: [], materials: [] };
-  const { group: propGroup, starfish } = props(items, water, rng, tracker);
-  const starfishRotation = starfish.map((mesh) => mesh.rotation.y);
   const shafts = lightShafts(scene, water, rng, tracker);
   object.add(
     backdrop(scene, water, tracker),
     floor(scene, water, tracker),
-    propGroup,
     surface(scene, water, tracker),
     shafts,
   );
@@ -352,13 +251,6 @@ export function createEnvironment(
   return {
     object,
     lightShafts: shafts,
-    update(timeSeconds) {
-      // The starfish creeps: a tiny, slow turn you only notice over minutes.
-      starfish.forEach((mesh, index) => {
-        mesh.rotation.y =
-          (starfishRotation[index] ?? 0) + (timeSeconds / STARFISH_TURN_SECONDS) * Math.PI * 2;
-      });
-    },
     setLightShaftsVisible(visible) {
       shafts.visible = visible;
     },

@@ -88,3 +88,15 @@ describe("look preference", () => {
     expect([valid, settings.showFps]).toEqual([true, true]);
   });
 });
+
+describe("scenery preference", () => {
+  it("keeps saved scenery counts per scene", () => {
+    const scenery = { reef: { rock: 3, "fan-coral": 0 } };
+
+    expect(parseSettings({ scenery }).settings.scenery).toEqual(scenery);
+  });
+
+  it("rejects negative scenery counts", () => {
+    expect(parseSettings({ scenery: { reef: { rock: -1 } } }).valid).toBe(false);
+  });
+});

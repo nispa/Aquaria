@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "../core/rng";
 import { sceneFixture } from "../scene/fixtures";
-import type { FloraSpec } from "../scene/schema";
+import type { FloraSpec, PropSpec } from "../scene/schema";
 import { layoutFlora, layoutProps } from "./layout";
 import { bandDepthRange } from "./tank";
 
@@ -87,5 +87,95 @@ describe("layoutProps", () => {
     const props = layoutProps(tank, [{ kind: "rock", count: 4, color: "#666666" }], createRng(4));
 
     expect(props.every((prop) => prop.size > 0 && Number.isFinite(prop.rotation))).toBe(true);
+  });
+});
+
+describe("stable layout", () => {
+  const kelp: FloraSpec = {
+    kind: "kelp",
+    count: 5,
+    bands: [2, 4],
+    height: [1, 3],
+    color: "#3d7a3a",
+  };
+  const grass: FloraSpec = {
+    kind: "seagrass",
+    count: 8,
+    bands: [0, 4],
+    height: [0.1, 0.3],
+    color: "#79ad4e",
+  };
+
+  it("keeps existing plants in place when a count grows", () => {
+    const before = layoutFlora(tank, [kelp], createRng(7));
+
+    const after = layoutFlora(tank, [{ ...kelp, count: 6 }], createRng(7));
+
+    expect(after.slice(0, 5)).toEqual(before);
+  });
+
+  it("does not move other entries when one entry's count changes", () => {
+    const before = layoutFlora(tank, [kelp, grass], createRng(7));
+
+    const after = layoutFlora(tank, [{ ...kelp, count: 1 }, grass], createRng(7));
+
+    expect(after.filter((plant) => plant.kind === "seagrass")).toEqual(
+      before.filter((plant) => plant.kind === "seagrass"),
+    );
+  });
+
+  it("keeps existing props in place when a count grows", () => {
+    const rocks: PropSpec = { kind: "rock", count: 3, color: "#666666" };
+    const before = layoutProps(tank, [rocks], createRng(7));
+
+    const after = layoutProps(tank, [{ ...rocks, count: 4 }], createRng(7));
+
+    expect(after.slice(0, 3)).toEqual(before);
+  });
+
+  it("gives every plant and prop its own integer seed for renderer details", () => {
+    const plants = layoutFlora(tank, [kelp], createRng(7));
+    const props = layoutProps(tank, [{ kind: "rock", count: 3, color: "#666666" }], createRng(7));
+
+    const seeds = [...plants, ...props].map((item) => item.seed);
+
+    expect(seeds.every((seed) => Number.isInteger(seed) && seed >= 0)).toBe(true);
+    expect(new Set(seeds).size).toBe(seeds.length);
+  });
+});
+
+describe("scenery kinds", () => {
+  const layoutOne = (kind: PropSpec["kind"]) =>
+    layoutProps(tank, [{ kind, count: 20, color: "#ffffff" }], createRng(9));
+
+  it("keeps shells near the glass where they can be seen", () => {
+    const { far } = bandDepthRange(tank, [0, 1]);
+
+    expect(layoutOne("shell").every((prop) => prop.z >= far)).toBe(true);
+  });
+
+  it("keeps fan corals towards the back, where they frame the scene", () => {
+    const { near } = bandDepthRange(tank, [2, 4]);
+
+    expect(layoutOne("fan-coral").every((prop) => prop.z <= near)).toBe(true);
+  });
+
+  it("lets a scene choose the bands of a prop entry", () => {
+    const { near, far } = bandDepthRange(tank, [4, 4]);
+
+    const props = layoutProps(
+      tank,
+      [{ kind: "branch-coral", count: 10, color: "#ff8866", bands: [4, 4] }],
+      createRng(9),
+    );
+
+    expect(props.every((prop) => prop.z <= near && prop.z >= far)).toBe(true);
+  });
+
+  it("sizes shells smaller than brain corals", () => {
+    const largestShell = Math.max(...layoutOne("shell").map((prop) => prop.size));
+    const smallestCoral = Math.min(...layoutOne("brain-coral").map((prop) => prop.size));
+
+    expect(largestShell).toBeLessThan(smallestCoral);
   });
 });
