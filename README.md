@@ -111,7 +111,7 @@ Scenery entries:
   things default to the front, sea fans to the back).
 - The floor and any prop entry may set a photographic `material`:
   `{ "id": "reef-rock", "tileSize": 0.45, "displacement": 0.07 }`. The id is a
-  folder in `public/assets/materials/` with `normal.webp` and `surface.webp`;
+  folder in `public/assets/materials/` with `normal.ktx2` and `surface.ktx2`;
   `tileSize` is the size of one texture tile in meters and `displacement`
   pushes the surface out by up to that many meters. The entry's `color` still
   sets the hue. A missing material logs a warning and falls back to the plain
@@ -154,6 +154,28 @@ with `defineEffect` (id, panel name, stage, default on/off, Zod parameter
 schema with defaults, `create` returning a Three.js pass), and add it to
 `EFFECTS` in `src/render/effects/index.ts`. It appears in the panel; nothing
 else in the engine changes.
+
+## Materials
+
+Surface textures are KTX2 files: they stay compressed on the GPU, about a
+quarter of the memory of PNG or WebP, which matters at 4K. They are built
+from CC0 sources by a script:
+
+```bash
+python scripts/build_materials.py            # all materials
+python scripts/build_materials.py reef-rock  # just one
+```
+
+It needs Python 3 with Pillow and NumPy, and KTX-Software's `ktx` tool. Either
+install KTX-Software, or extract its release into the ignored `tools/ktx/`
+folder, for example on Windows:
+
+```bash
+7z x KTX-Software-4.4.2-Windows-x64.exe -otools/ktx
+```
+
+To add a material, add its source to `MATERIALS` in the script, run it, list
+the source in `ASSETS.md` and use its id in a scene.
 
 ## Development
 

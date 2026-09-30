@@ -55,7 +55,7 @@ export function createSurfaceLibrary(load: TextureSource, logger: Logger): Surfa
     };
     materials.set(id, entry);
     const folder = `${MATERIALS_FOLDER}/${id}`;
-    const done = Promise.all([load(`${folder}/normal.webp`), load(`${folder}/surface.webp`)])
+    const done = Promise.all([load(`${folder}/normal.ktx2`), load(`${folder}/surface.ktx2`)])
       .then(([normal, surface]) => {
         entry.normal.value = prepare(normal);
         entry.surface.value = prepare(surface);

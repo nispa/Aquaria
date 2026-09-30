@@ -11,11 +11,11 @@ import {
   PerspectiveCamera,
   Scene as ThreeScene,
   WebGLRenderer,
-  TextureLoader,
   WebGLRenderTarget,
   type Material,
   type Object3D,
 } from "three";
+import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
@@ -52,6 +52,7 @@ const SHADOW_FAR = 30;
 const ENVIRONMENT_INTENSITY = 0.65;
 const SHADOW_MAP_SIZE = 2048;
 const SEED_MAX = 2 ** 31 - 1;
+const BASIS_TRANSCODER_PATH = "basis/";
 /** Relative aspect change that makes the scenery spread again across the view. */
 const RELAYOUT_ASPECT_CHANGE = 0.02;
 
@@ -139,7 +140,10 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   // generators, so every rebuild starts from the same state.
   const scenerySeeds = { flora: rng.int(0, SEED_MAX), props: rng.int(0, SEED_MAX) };
   const particleSeed = rng.int(0, SEED_MAX);
-  const textureLoader = new TextureLoader();
+  // KTX2 textures stay compressed on the GPU (about a quarter of the memory of
+  // PNG or WebP), which matters at 4K. The Basis transcoder is in public/basis/.
+  const textureLoader = new KTX2Loader().setTranscoderPath(BASIS_TRANSCODER_PATH);
+  textureLoader.detectSupport(renderer);
   const surfaces = createSurfaceLibrary((url) => textureLoader.loadAsync(url), logger);
   surfaces.setAnisotropy(renderer.capabilities.getMaxAnisotropy());
   const environment = createEnvironment(scene, water, surfaces, rng.fork());
@@ -315,6 +319,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       particles?.dispose();
       environmentMap.dispose();
       surfaces.dispose();
+      textureLoader.dispose();
       renderer.dispose();
     },
   };

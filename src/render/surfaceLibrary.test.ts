@@ -52,8 +52,8 @@ describe("surface library", () => {
     library.get("fine-sand");
 
     expect(load.mock.calls.map(([url]) => url)).toEqual([
-      "assets/materials/fine-sand/normal.webp",
-      "assets/materials/fine-sand/surface.webp",
+      "assets/materials/fine-sand/normal.ktx2",
+      "assets/materials/fine-sand/surface.ktx2",
     ]);
   });
 });

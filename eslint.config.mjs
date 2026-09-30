@@ -6,7 +6,7 @@ import tseslint from "typescript-eslint";
 const PURE_LAYERS = ["src/core/**", "src/scene/**", "src/sim/**"];
 
 export default defineConfig(
-  { ignores: ["dist", "coverage", "playwright-report", "test-results", "*.config.js"] },
+  { ignores: ["dist", "coverage", "playwright-report", "test-results", "tools", "*.config.js"] },
   js.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
