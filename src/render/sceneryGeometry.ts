@@ -1,15 +1,15 @@
 import {
+  CatmullRomCurve3,
   CylinderGeometry,
-  ExtrudeGeometry,
   IcosahedronGeometry,
   PlaneGeometry,
-  Shape,
+  TubeGeometry,
   Quaternion,
   SphereGeometry,
   Vector3,
   type BufferGeometry,
 } from "three";
-import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { mergeGeometries, mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Rng } from "../core/rng";
 
 /**
@@ -218,9 +218,17 @@ export function anemoneTentacleGeometry(): BufferGeometry {
   return geometry;
 }
 
+const ROCK_DETAIL = 5;
+
 /** A lumpy, flattened icosahedron; the seed makes every variant different. */
 export function rockGeometry(rng: Rng): BufferGeometry {
-  const geometry = new IcosahedronGeometry(0.5, 3);
+  // Finely divided so a surface material can displace it. Polyhedra come with
+  // separate vertices per face: merge them, or displacement tears the rock open.
+  const faceted = new IcosahedronGeometry(0.5, ROCK_DETAIL);
+  faceted.deleteAttribute("normal");
+  faceted.deleteAttribute("uv");
+  const geometry = mergeVertices(faceted);
+  faceted.dispose();
   const [a, b, c] = [rng.range(0, 6), rng.range(0, 6), rng.range(0, 6)];
   const positions = geometry.getAttribute("position");
   for (let index = 0; index < positions.count; index += 1) {
@@ -237,24 +245,92 @@ export function rockGeometry(rng: Rng): BufferGeometry {
   return geometry;
 }
 
-export function starfishGeometry(): BufferGeometry {
-  const arms = 5;
-  const shape = new Shape();
-  for (let point = 0; point <= arms * 2; point += 1) {
-    const angle = (point / (arms * 2)) * Math.PI * 2;
-    const radius = point % 2 === 0 ? 0.5 : 0.19;
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius;
-    if (point === 0) shape.moveTo(x, y);
-    else shape.lineTo(x, y);
-  }
-  const geometry = new ExtrudeGeometry(shape, {
-    depth: 0.05,
-    bevelEnabled: true,
-    bevelThickness: 0.05,
-    bevelSize: 0.06,
-    bevelSegments: 4,
+const STARFISH = {
+  arms: 5,
+  /** Arm length and base radius, relative to a one-unit body. */
+  armLength: [0.42, 0.5] as const,
+  armRadius: 0.1,
+  /** Radius left at the tip, as a fraction of the base radius. */
+  tipRadius: 0.25,
+  /** Arms are flatter than they are wide. */
+  flatten: 0.55,
+  /** Sideways bend of an arm, radians. */
+  bend: 0.45,
+  /** How far a tip curls up off the sand, relative to the arm length. */
+  tipLift: [0, 0.12] as const,
+  disc: { radius: 0.17, height: 0.5 },
+  /** Knobbly tubercles on the upper side. */
+  tubercles: { height: 0.14, along: 38, around: 5 },
+  segments: { along: 28, around: 12 },
+} as const;
+
+/** One tapering, knobbly arm lying on the sand along +x, bent sideways. */
+function starfishArm(rng: Rng): BufferGeometry {
+  const length = rng.range(STARFISH.armLength[0], STARFISH.armLength[1]);
+  const bend = rng.range(-STARFISH.bend, STARFISH.bend);
+  const lift = rng.range(STARFISH.tipLift[0], STARFISH.tipLift[1]) * length;
+  const points = Array.from({ length: 5 }, (_, index) => {
+    const t = index / 4;
+    // The bend grows along the arm; the tip may curl up off the sand.
+    const angle = bend * t * t;
+    return new Vector3(
+      Math.cos(angle) * t * length,
+      STARFISH.armRadius * STARFISH.flatten + lift * t * t * t,
+      Math.sin(angle) * t * length,
+    );
   });
-  geometry.rotateX(-Math.PI / 2);
+  const curve = new CatmullRomCurve3(points);
+  const { along, around } = STARFISH.segments;
+  const geometry = new TubeGeometry(curve, along, STARFISH.armRadius, around, false);
+  const positions = geometry.getAttribute("position");
+  const center = new Vector3();
+  const offset = new Vector3();
+  const phase = rng.range(0, Math.PI * 2);
+  for (let index = 0; index < positions.count; index += 1) {
+    const ring = Math.floor(index / (around + 1));
+    const aroundIndex = index % (around + 1);
+    const t = ring / along;
+    curve.getPointAt(t, center);
+    offset.fromBufferAttribute(positions, index).sub(center);
+    const taper = 1 - (1 - STARFISH.tipRadius) * Math.pow(t, 1.3);
+    offset.multiplyScalar(taper);
+    offset.y *= STARFISH.flatten;
+    if (offset.y > 0) {
+      // Rows of tubercles along the top: bumps only on the upper half.
+      const bump =
+        Math.max(Math.sin(t * STARFISH.tubercles.along + phase), 0) *
+        Math.max(Math.cos((aroundIndex / around) * Math.PI * 2 * STARFISH.tubercles.around), 0);
+      offset.multiplyScalar(1 + STARFISH.tubercles.height * bump);
+    } else {
+      // The underside rests flat on the sand.
+      offset.y *= 0.4;
+    }
+    positions.setXYZ(index, center.x + offset.x, center.y + offset.y, center.z + offset.z);
+  }
   return geometry;
+}
+
+/**
+ * A sea star: a domed central disc with five tapering, knobbly arms, each
+ * bent a little differently so no two look alike or like a drawn star.
+ */
+export function starfishGeometry(rng: Rng): BufferGeometry {
+  const parts: BufferGeometry[] = [];
+  const disc = new SphereGeometry(STARFISH.disc.radius, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+  disc.scale(1, STARFISH.disc.height, 1);
+  parts.push(disc);
+  const rotation = new Quaternion();
+  for (let arm = 0; arm < STARFISH.arms; arm += 1) {
+    const geometry = starfishArm(rng);
+    const angle = (arm / STARFISH.arms) * Math.PI * 2 + rng.range(-0.12, 0.12);
+    rotation.setFromAxisAngle(UP, angle);
+    geometry.applyQuaternion(rotation);
+    parts.push(geometry);
+  }
+  // Tube and sphere geometries share attributes (position, normal, uv): merge directly.
+  const merged = mergeGeometries(parts);
+  parts.forEach((part) => {
+    part.dispose();
+  });
+  return fitFootprint(merged);
 }

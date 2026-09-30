@@ -22,7 +22,9 @@ import {
   starfishGeometry,
 } from "./sceneryGeometry";
 import { causticsPatch } from "./shaders/causticsPatch";
-import { patchMaterial } from "./shaders/patch";
+import { patchMaterial, type ShaderPatch } from "./shaders/patch";
+import { surfacePatch } from "./shaders/surfacePatch";
+import type { SurfaceLibrary } from "./surfaceLibrary";
 import type { WaterUniforms } from "./uniforms";
 
 interface PropStyle {
@@ -49,13 +51,13 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     sink: 0,
   },
   starfish: {
-    variants: 1,
-    build: () => starfishGeometry(),
+    variants: 4,
+    build: starfishGeometry,
     roughness: 0.75,
     flatShading: false,
     doubleSided: false,
     castShadow: false,
-    sink: 0.025,
+    sink: 0,
   },
   shell: {
     variants: 3,
@@ -113,7 +115,11 @@ interface Placed {
 }
 
 /** Rocks, starfish, shells and corals: one instanced draw call per kind, color and shape. */
-export function createPropRenderer(items: readonly Prop[], water: WaterUniforms): PropRenderer {
+export function createPropRenderer(
+  items: readonly Prop[],
+  water: WaterUniforms,
+  surfaces: SurfaceLibrary,
+): PropRenderer {
   const object = new Group();
   object.name = "props";
   const disposables: { dispose(): void }[] = [];
@@ -131,7 +137,12 @@ export function createPropRenderer(items: readonly Prop[], water: WaterUniforms)
   const groups = new Map<string, Placed[]>();
   for (const prop of items) {
     const variant = createRng(prop.seed).int(0, STYLES[prop.kind].variants - 1);
-    const key = `${prop.kind}|${prop.color}|${variant}`;
+    const material = prop.material;
+    const surface =
+      material === undefined
+        ? "plain"
+        : `${material.id}|${material.tileSize}|${material.displacement}`;
+    const key = `${prop.kind}|${prop.color}|${variant}|${surface}`;
     groups.set(key, [...(groups.get(key) ?? []), { prop, variant }]);
   }
 
@@ -155,14 +166,20 @@ export function createPropRenderer(items: readonly Prop[], water: WaterUniforms)
     const first = members[0];
     if (first === undefined) continue;
     const style = STYLES[first.prop.kind];
+    const surface = first.prop.material;
+    const patches: ShaderPatch[] =
+      surface === undefined
+        ? [causticsPatch(water)]
+        : [surfacePatch(surfaces.get(surface.id), "triplanar", surface), causticsPatch(water)];
     const material = patchMaterial(
       new MeshStandardMaterial({
         color: new Color(first.prop.color),
         roughness: style.roughness,
-        flatShading: style.flatShading,
+        // Textured surfaces bring their own relief; facets would fight it.
+        flatShading: style.flatShading && surface === undefined,
         ...(style.doubleSided ? { side: DoubleSide } : {}),
       }),
-      [causticsPatch(water)],
+      patches,
     );
     const mesh = new InstancedMesh(
       geometryFor(first.prop.kind, first.variant),

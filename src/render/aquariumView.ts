@@ -11,6 +11,7 @@ import {
   PerspectiveCamera,
   Scene as ThreeScene,
   WebGLRenderer,
+  TextureLoader,
   WebGLRenderTarget,
   type Material,
   type Object3D,
@@ -32,6 +33,7 @@ import { createFishRenderer } from "./fishRenderer";
 import { createFloraRenderer, type FloraRenderer } from "./floraRenderer";
 import { cameraFraming } from "./framing";
 import { createParticles, type Particles } from "./particles";
+import { createSurfaceLibrary } from "./surfaceLibrary";
 import { createPropRenderer, type PropRenderer } from "./propRenderer";
 import { createWaterUniforms } from "./uniforms";
 
@@ -50,6 +52,8 @@ const SHADOW_FAR = 30;
 const ENVIRONMENT_INTENSITY = 0.65;
 const SHADOW_MAP_SIZE = 2048;
 const SEED_MAX = 2 ** 31 - 1;
+/** Relative aspect change that makes the scenery spread again across the view. */
+const RELAYOUT_ASPECT_CHANGE = 0.02;
 
 export interface AquariumViewOptions {
   readonly canvas: HTMLCanvasElement;
@@ -67,6 +71,8 @@ export interface AquariumViewOptions {
 }
 
 export interface AquariumView {
+  /** Resolves when textures have loaded (or failed), so a still frame shows them. */
+  ready(): Promise<void>;
   /** Pulls state from the simulation and draws one frame. */
   render(): void;
   resize(cssWidth: number, cssHeight: number): void;
@@ -133,7 +139,10 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   // generators, so every rebuild starts from the same state.
   const scenerySeeds = { flora: rng.int(0, SEED_MAX), props: rng.int(0, SEED_MAX) };
   const particleSeed = rng.int(0, SEED_MAX);
-  const environment = createEnvironment(scene, water, rng.fork());
+  const textureLoader = new TextureLoader();
+  const surfaces = createSurfaceLibrary((url) => textureLoader.loadAsync(url), logger);
+  surfaces.setAnisotropy(renderer.capabilities.getMaxAnisotropy());
+  const environment = createEnvironment(scene, water, surfaces, rng.fork());
   const fish = createFishRenderer(catalog, water, logger);
   // Stable containers: effects keep references to them across rebuilds.
   const floraGroup = new Group();
@@ -143,19 +152,37 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   let flora: FloraRenderer | undefined;
   let props: PropRenderer | undefined;
   let particles: Particles | undefined;
+  const frameCamera = (): void => {
+    camera.aspect = cssWidth / cssHeight;
+    const framing = cameraFraming(scene.tank, camera.aspect, VERTICAL_FOV);
+    camera.position.set(...framing.position);
+    camera.lookAt(...framing.target);
+    camera.updateProjectionMatrix();
+  };
+  frameCamera();
   let currentLook: Look = options.look;
+  let layoutAspect = 0;
+  let floraSpecs: Scene["flora"] = scene.flora;
+  let propSpecs: Scene["props"] = scene.props;
 
-  const buildScenery = (floraSpecs: Scene["flora"], propSpecs: Scene["props"]): void => {
+  const buildScenery = (): void => {
     flora?.dispose();
     props?.dispose();
     particles?.dispose();
     floraGroup.clear();
     propGroup.clear();
     particleGroup.clear();
-    const plants = layoutFlora(scene.tank, floraSpecs, createRng(scenerySeeds.flora));
-    const items = layoutProps(scene.tank, propSpecs, createRng(scenerySeeds.props));
+    // Spread across what the camera sees at each depth, not just the tank walls.
+    layoutAspect = camera.aspect;
+    const halfWidthAt = (z: number): number =>
+      Math.max(
+        (camera.position.z - z) * Math.tan(((VERTICAL_FOV / 2) * Math.PI) / 180) * camera.aspect,
+        scene.tank.width / 2,
+      );
+    const plants = layoutFlora(scene.tank, floraSpecs, createRng(scenerySeeds.flora), halfWidthAt);
+    const items = layoutProps(scene.tank, propSpecs, createRng(scenerySeeds.props), halfWidthAt);
     flora = createFloraRenderer(plants, water);
-    props = createPropRenderer(items, water);
+    props = createPropRenderer(items, water, surfaces);
     // Bubbles rise from the rocks, so they follow the props.
     particles = createParticles(scene, items, water, createRng(particleSeed));
     particles.setBubbleStyle(currentLook.has("refractive-bubbles") ? "refractive" : "sprite");
@@ -164,7 +191,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     propGroup.add(props.object);
     particleGroup.add(particles.object);
   };
-  buildScenery(scene.flora, scene.props);
+  buildScenery();
 
   const environmentMap = createWaterEnvironment(renderer, scene);
   sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
@@ -237,11 +264,11 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     renderer.setSize(cssWidth, cssHeight, false);
     composer?.setPixelRatio(ratio);
     composer?.setSize(cssWidth, cssHeight);
-    camera.aspect = cssWidth / cssHeight;
-    const framing = cameraFraming(scene.tank, camera.aspect, VERTICAL_FOV);
-    camera.position.set(...framing.position);
-    camera.lookAt(...framing.target);
-    camera.updateProjectionMatrix();
+    frameCamera();
+    // A different screen shape shows a different width at the back: respread.
+    if (Math.abs(camera.aspect - layoutAspect) > layoutAspect * RELAYOUT_ASPECT_CHANGE) {
+      buildScenery();
+    }
     particles?.setBufferHeight(renderHeight, VERTICAL_FOV);
   };
 
@@ -253,6 +280,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   setLook(options.look);
 
   return {
+    ready: () => surfaces.settled(),
     render() {
       water.uTime.value = simulation.timeSeconds;
       props?.update(simulation.timeSeconds);
@@ -273,10 +301,10 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       applySize();
     },
     setLook,
-    setScenery(floraSpecs, propSpecs) {
-      buildScenery(floraSpecs, propSpecs);
-      // New materials must compile with the current shadow and environment settings.
-      applyLighting(currentLook);
+    setScenery(nextFlora, nextProps) {
+      floraSpecs = nextFlora;
+      propSpecs = nextProps;
+      buildScenery();
     },
     dispose() {
       disposePipeline();
@@ -286,6 +314,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       fish.dispose();
       particles?.dispose();
       environmentMap.dispose();
+      surfaces.dispose();
       renderer.dispose();
     },
   };

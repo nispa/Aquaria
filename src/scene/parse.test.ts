@@ -151,3 +151,39 @@ describe("species body patterns", () => {
     expect(() => parseCatalog(input)).toThrow(/pattern/);
   });
 });
+
+describe("surface materials", () => {
+  const catalog = parseCatalog(catalogFixture());
+
+  it("lets the floor use a textured material with a default tile size", () => {
+    const input = sceneFixture();
+    input.floor = { color: "#d8c49a", material: { id: "fine-sand" } };
+
+    const scene = parseScene(input, catalog);
+
+    expect(scene.floor.material).toEqual({ id: "fine-sand", tileSize: 1, displacement: 0 });
+  });
+
+  it("lets a prop entry use a textured material with displacement", () => {
+    const input = sceneFixture();
+    input.props = [
+      {
+        kind: "rock",
+        count: 3,
+        color: "#8a8070",
+        material: { id: "reef-rock", tileSize: 0.6, displacement: 0.03 },
+      },
+    ];
+
+    const scene = parseScene(input, catalog);
+
+    expect(scene.props[0]?.material?.displacement).toBe(0.03);
+  });
+
+  it("rejects material ids that could escape the materials folder", () => {
+    const input = sceneFixture();
+    input.floor = { color: "#d8c49a", material: { id: "../secret" } };
+
+    expect(() => parseScene(input, catalog)).toThrow(/floor\.material\.id/);
+  });
+});

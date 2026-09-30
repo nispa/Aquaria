@@ -30,7 +30,11 @@
     "bottom": "#021a2a"
   },
   "floor": {
-    "color": "#d8c49a"
+    "color": "#d8c49a",
+    "material": {
+      "id": "fine-sand",
+      "tileSize": 1.2
+    }
   },
   "flora": [
     {
@@ -59,12 +63,21 @@
     {
       "kind": "rock",
       "count": 7,
-      "color": "#6b6258"
+      "color": "#8f8577",
+      "material": {
+        "id": "reef-rock",
+        "tileSize": 0.45,
+        "displacement": 0.07
+      }
     },
     {
       "kind": "brain-coral",
       "count": 4,
-      "color": "#b8a05a"
+      "color": "#b8a05a",
+      "material": {
+        "id": "reef-rock",
+        "tileSize": 0.35
+      }
     },
     {
       "kind": "branch-coral",
@@ -84,7 +97,11 @@
     {
       "kind": "starfish",
       "count": 1,
-      "color": "#e8612c"
+      "color": "#e8612c",
+      "material": {
+        "id": "reef-rock",
+        "tileSize": 0.12
+      }
     }
   ],
   "fauna": [

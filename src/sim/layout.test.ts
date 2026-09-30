@@ -179,3 +179,47 @@ describe("scenery kinds", () => {
     expect(largestShell).toBeLessThan(smallestCoral);
   });
 });
+
+describe("visible width", () => {
+  const rocks: PropSpec = { kind: "rock", count: 60, color: "#666666" };
+  /** A view that widens with depth, like a perspective camera. */
+  const widening = (z: number): number => 4 + -z * 1.5;
+
+  it("spreads props across the width the camera sees at their depth", () => {
+    const props = layoutProps(tank, [rocks], createRng(3), widening);
+
+    expect(props.every((prop) => Math.abs(prop.x) <= widening(prop.z))).toBe(true);
+    expect(Math.max(...props.map((prop) => Math.abs(prop.x)))).toBeGreaterThan(tank.width / 2);
+  });
+
+  it("spreads plants across the width the camera sees at their depth", () => {
+    const kelp: FloraSpec = {
+      kind: "kelp",
+      count: 60,
+      bands: [3, 4],
+      height: [1, 2],
+      color: "#3d7a3a",
+    };
+
+    const plants = layoutFlora(tank, [kelp], createRng(3), widening);
+
+    expect(plants.every((plant) => Math.abs(plant.x) <= widening(plant.z))).toBe(true);
+    expect(Math.max(...plants.map((plant) => Math.abs(plant.x)))).toBeGreaterThan(tank.width / 2);
+  });
+
+  it("keeps items at the same depth and side, only further out, when the view widens", () => {
+    const narrow = layoutProps(tank, [rocks], createRng(3), () => 2);
+
+    const wide = layoutProps(tank, [rocks], createRng(3), () => 4);
+
+    const moved = wide.filter((prop, index) => {
+      const before = narrow[index];
+      return (
+        prop.z !== before?.z ||
+        Math.sign(prop.x) !== Math.sign(before.x) ||
+        Math.abs(prop.x) < Math.abs(before.x)
+      );
+    });
+    expect(moved).toEqual([]);
+  });
+});

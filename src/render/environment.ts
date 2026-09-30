@@ -16,7 +16,9 @@ import type { Scene } from "../scene/schema";
 import { floorHeight } from "../sim/terrain";
 import { CAUSTICS_GLSL } from "./shaders/caustics";
 import { causticsPatch } from "./shaders/causticsPatch";
-import { patchMaterial } from "./shaders/patch";
+import { patchMaterial, type ShaderPatch } from "./shaders/patch";
+import { surfacePatch } from "./shaders/surfacePatch";
+import type { SurfaceLibrary } from "./surfaceLibrary";
 import type { WaterUniforms } from "./uniforms";
 
 /** How far the sand, surface and backdrop extend beyond the tank, in tank sizes. */
@@ -42,7 +44,31 @@ interface Tracker {
   readonly materials: Material[];
 }
 
-function floor(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
+/** Fine grain for plain sand, when the scene gives the floor no material. */
+const SAND_GRAIN: ShaderPatch = {
+  name: "sand-grain",
+  fragmentHead: /* glsl */ `
+    float sandHash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+    }
+  `,
+  fragment: [
+    [
+      "#include <color_fragment>",
+      /* glsl */ `
+      #include <color_fragment>
+      diffuseColor.rgb *= 0.88 + 0.12 * sandHash(floor(vCausticPosition.xz * 180.0));
+      `,
+    ],
+  ],
+};
+
+function floor(
+  scene: Scene,
+  water: WaterUniforms,
+  surfaces: SurfaceLibrary,
+  tracker: Tracker,
+): Mesh {
   const width = scene.tank.width * EXTENT;
   // The sand stops just short of the backdrop: where the two meet, depth-based
   // effects (ambient occlusion) would draw a crease along the horizon.
@@ -55,26 +81,11 @@ function floor(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
     positions.setY(index, floorHeight(positions.getX(index), positions.getZ(index)));
   }
   geometry.computeVertexNormals();
+  const sand = scene.floor.material;
   const material = patchMaterial(
     new MeshStandardMaterial({ color: new Color(scene.floor.color), roughness: 0.95 }),
     [
-      {
-        name: "sand-grain",
-        fragmentHead: /* glsl */ `
-          float sandHash(vec2 p) {
-            return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-          }
-        `,
-        fragment: [
-          [
-            "#include <color_fragment>",
-            /* glsl */ `
-            #include <color_fragment>
-            diffuseColor.rgb *= 0.88 + 0.12 * sandHash(floor(vCausticPosition.xz * 180.0));
-            `,
-          ],
-        ],
-      },
+      sand === undefined ? SAND_GRAIN : surfacePatch(surfaces.get(sand.id), "top", sand),
       causticsPatch(water),
     ],
   );
@@ -236,14 +247,19 @@ function lightShafts(scene: Scene, water: WaterUniforms, rng: Rng, tracker: Trac
   return group;
 }
 
-export function createEnvironment(scene: Scene, water: WaterUniforms, rng: Rng): Environment {
+export function createEnvironment(
+  scene: Scene,
+  water: WaterUniforms,
+  surfaces: SurfaceLibrary,
+  rng: Rng,
+): Environment {
   const object = new Group();
   object.name = "environment";
   const tracker: Tracker = { geometries: [], materials: [] };
   const shafts = lightShafts(scene, water, rng, tracker);
   object.add(
     backdrop(scene, water, tracker),
-    floor(scene, water, tracker),
+    floor(scene, water, surfaces, tracker),
     surface(scene, water, tracker),
     shafts,
   );

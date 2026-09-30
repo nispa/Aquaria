@@ -109,6 +109,13 @@ Scenery entries:
 - `props` kinds: `rock`, `starfish`, `shell`, `brain-coral`, `branch-coral`,
   `fan-coral`. Each entry sets `count` and `color`; `bands` is optional (small
   things default to the front, sea fans to the back).
+- The floor and any prop entry may set a photographic `material`:
+  `{ "id": "reef-rock", "tileSize": 0.45, "displacement": 0.07 }`. The id is a
+  folder in `public/assets/materials/` with `normal.webp` and `surface.webp`;
+  `tileSize` is the size of one texture tile in meters and `displacement`
+  pushes the surface out by up to that many meters. The entry's `color` still
+  sets the hue. A missing material logs a warning and falls back to the plain
+  color. Available: `fine-sand`, `reef-rock`.
 - Any entry may have a `name`, used as its label in the panel. Every entry
   gets a slider in the panel's Scenery section; adding items never moves the
   ones already placed.

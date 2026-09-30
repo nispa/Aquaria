@@ -94,6 +94,19 @@ const backdrop = z.discriminatedUnion("type", [
   }),
 ]);
 
+/**
+ * A photographic surface from `public/assets/materials/<id>/`: a normal map
+ * and a packed map (displacement, roughness, brightness detail). The entry's
+ * color still sets the hue; the textures add relief and grain.
+ */
+const surfaceMaterial = z.object({
+  id: z.string().regex(/^[a-z0-9-]+$/, "Material ids use lowercase letters, digits and dashes."),
+  /** Size of one texture tile, m. */
+  tileSize: positive.default(1),
+  /** How far the relief pushes the surface out, m. Needs a finely divided shape. */
+  displacement: z.number().min(0).max(0.2).default(0),
+});
+
 /** Largest count per flora entry; also the top of its panel slider. */
 export const MAX_FLORA_PER_ENTRY = 200;
 /** Largest count per prop entry; also the top of its panel slider. */
@@ -119,6 +132,7 @@ const prop = z.object({
   color: hexColor,
   /** Depth bands to place the entry in; each kind has a sensible default. */
   bands: bandRange.optional(),
+  material: surfaceMaterial.optional(),
 });
 
 const fauna = z.object({
@@ -146,7 +160,7 @@ export const sceneSchema = z.object({
     turbulence: unit,
   }),
   backdrop,
-  floor: z.object({ color: hexColor }),
+  floor: z.object({ color: hexColor, material: surfaceMaterial.optional() }),
   flora: z.array(flora).default([]),
   props: z.array(prop).default([]),
   fauna: z.array(fauna),
@@ -159,3 +173,4 @@ export type SceneInput = z.input<typeof sceneSchema>;
 export type Scene = z.output<typeof sceneSchema>;
 export type FloraSpec = z.output<typeof flora>;
 export type PropSpec = z.output<typeof prop>;
+export type SurfaceMaterialSpec = z.output<typeof surfaceMaterial>;

@@ -6,7 +6,9 @@ import {
   branchCoralGeometry,
   brainCoralGeometry,
   fanCoralGeometry,
+  rockGeometry,
   shellGeometry,
+  starfishGeometry,
 } from "./sceneryGeometry";
 
 function bounds(geometry: BufferGeometry) {
@@ -27,6 +29,7 @@ const generators = {
   "branching coral": () => branchCoralGeometry(createRng(1)),
   "sea fan": () => fanCoralGeometry(createRng(1)),
   shell: () => shellGeometry(createRng(1)),
+  starfish: () => starfishGeometry(createRng(1)),
 };
 
 describe("scenery geometry", () => {
@@ -65,5 +68,29 @@ describe("scenery geometry", () => {
     const box = bounds(anemoneTentacleGeometry());
 
     expect([box.min.y, box.max.y]).toEqual([0, 1]);
+  });
+});
+
+describe("starfish", () => {
+  it("lies flat on the sand, far wider than tall", () => {
+    const box = bounds(starfishGeometry(createRng(1)));
+
+    expect(box.max.y - box.min.y).toBeLessThan((box.max.x - box.min.x) * 0.25);
+  });
+
+  it("bends its arms differently for each seed", () => {
+    const first = bounds(starfishGeometry(createRng(1)));
+    const second = bounds(starfishGeometry(createRng(2)));
+
+    expect(first.max.x).not.toBeCloseTo(second.max.x, 3);
+  });
+});
+
+describe("rock", () => {
+  it("shares vertices between faces, so displacement cannot tear it open", () => {
+    const geometry = rockGeometry(createRng(1));
+
+    expect(geometry.index).not.toBeNull();
+    expect(geometry.getAttribute("position").count).toBeLessThan(geometry.index?.count ?? 0);
   });
 });

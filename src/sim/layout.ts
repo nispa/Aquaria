@@ -1,5 +1,5 @@
 import type { Rng } from "../core/rng";
-import type { FloraSpec, PropSpec } from "../scene/schema";
+import type { FloraSpec, PropSpec, SurfaceMaterialSpec } from "../scene/schema";
 import { bandDepthRange, type TankSize } from "./tank";
 
 /**
@@ -31,6 +31,8 @@ export interface Prop {
   readonly rotation: number;
   /** Seeds the renderer's per-prop details (shape variant), independent of other props. */
   readonly seed: number;
+  /** Photographic surface, when the scene entry sets one. */
+  readonly material?: SurfaceMaterialSpec;
 }
 
 /** Keeps objects a little away from the glass and the side walls. */
@@ -63,40 +65,74 @@ function entryGenerators(rng: Rng, count: number): Rng[] {
   return Array.from({ length: count }, () => rng.fork());
 }
 
-export function layoutFlora(tank: TankSize, specs: readonly FloraSpec[], rng: Rng): Plant[] {
-  const halfWidth = tank.width / 2 - EDGE_CLEARANCE;
+/** Half the width the camera sees at a depth z, m. */
+export type HalfWidthAt = (z: number) => number;
+
+/** Without a camera, scenery stays inside the tank walls. */
+function tankHalfWidth(tank: TankSize): HalfWidthAt {
+  return () => tank.width / 2;
+}
+
+/**
+ * Seen in perspective, the view widens with depth: scenery spreads across the
+ * visible width at its own depth, so the sides of the back are not left empty.
+ * Items keep their depth and relative position (-1..1) when the view changes.
+ */
+function spreadX(across: number, z: number, halfWidthAt: HalfWidthAt): number {
+  return across * Math.max(halfWidthAt(z) - EDGE_CLEARANCE, 0);
+}
+
+export function layoutFlora(
+  tank: TankSize,
+  specs: readonly FloraSpec[],
+  rng: Rng,
+  halfWidthAt: HalfWidthAt = tankHalfWidth(tank),
+): Plant[] {
   const generators = entryGenerators(rng, specs.length);
   return specs.flatMap((spec, index) => {
     const entryRng = generators[index] ?? rng;
     const { near, far } = bandDepthRange(tank, spec.bands);
-    return Array.from({ length: spec.count }, () => ({
-      kind: spec.kind,
-      color: spec.color,
-      x: entryRng.range(-halfWidth, halfWidth),
-      z: entryRng.range(far, Math.min(near, -EDGE_CLEARANCE)),
-      height: entryRng.range(spec.height[0], spec.height[1]),
-      rotation: entryRng.range(0, Math.PI * 2),
-      swayPhase: entryRng.range(0, Math.PI * 2),
-      seed: Math.floor(entryRng.next() * SEED_RANGE),
-    }));
+    return Array.from({ length: spec.count }, () => {
+      const across = entryRng.range(-1, 1);
+      const z = entryRng.range(far, Math.min(near, -EDGE_CLEARANCE));
+      return {
+        kind: spec.kind,
+        color: spec.color,
+        x: spreadX(across, z, halfWidthAt),
+        z,
+        height: entryRng.range(spec.height[0], spec.height[1]),
+        rotation: entryRng.range(0, Math.PI * 2),
+        swayPhase: entryRng.range(0, Math.PI * 2),
+        seed: Math.floor(entryRng.next() * SEED_RANGE),
+      };
+    });
   });
 }
 
-export function layoutProps(tank: TankSize, specs: readonly PropSpec[], rng: Rng): Prop[] {
-  const halfWidth = tank.width / 2 - EDGE_CLEARANCE;
+export function layoutProps(
+  tank: TankSize,
+  specs: readonly PropSpec[],
+  rng: Rng,
+  halfWidthAt: HalfWidthAt = tankHalfWidth(tank),
+): Prop[] {
   const generators = entryGenerators(rng, specs.length);
   return specs.flatMap((spec, index) => {
     const entryRng = generators[index] ?? rng;
     const placement = PROP_PLACEMENT[spec.kind];
     const { near, far } = bandDepthRange(tank, spec.bands ?? placement.bands);
-    return Array.from({ length: spec.count }, () => ({
-      kind: spec.kind,
-      color: spec.color,
-      x: entryRng.range(-halfWidth, halfWidth),
-      z: entryRng.range(far, Math.min(near, -EDGE_CLEARANCE)),
-      size: entryRng.range(placement.size[0], placement.size[1]),
-      rotation: entryRng.range(0, Math.PI * 2),
-      seed: Math.floor(entryRng.next() * SEED_RANGE),
-    }));
+    return Array.from({ length: spec.count }, () => {
+      const across = entryRng.range(-1, 1);
+      const z = entryRng.range(far, Math.min(near, -EDGE_CLEARANCE));
+      return {
+        kind: spec.kind,
+        color: spec.color,
+        x: spreadX(across, z, halfWidthAt),
+        z,
+        size: entryRng.range(placement.size[0], placement.size[1]),
+        rotation: entryRng.range(0, Math.PI * 2),
+        seed: Math.floor(entryRng.next() * SEED_RANGE),
+        ...(spec.material === undefined ? {} : { material: spec.material }),
+      };
+    });
   });
 }

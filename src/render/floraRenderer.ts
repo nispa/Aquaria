@@ -3,6 +3,7 @@ import {
   DoubleSide,
   Euler,
   Group,
+  BufferAttribute,
   InstancedBufferAttribute,
   InstancedMesh,
   Matrix4,
@@ -18,7 +19,7 @@ import { floorHeight } from "../sim/terrain";
 import { anemoneTentacleGeometry } from "./sceneryGeometry";
 import { causticsPatch } from "./shaders/causticsPatch";
 import { patchMaterial } from "./shaders/patch";
-import { plantPatch } from "./shaders/plantPatch";
+import { plantPatch, type LeafStyle } from "./shaders/plantPatch";
 import type { WaterUniforms } from "./uniforms";
 
 interface BladeStyle {
@@ -33,6 +34,7 @@ interface BladeStyle {
   /** Lean away from the vertical, radians: blades stand, tentacles splay out. */
   readonly tilt: readonly [number, number];
   readonly shape: "blade" | "tentacle";
+  readonly leaf: LeafStyle;
 }
 
 const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
@@ -44,6 +46,8 @@ const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
     sway: 0.18,
     tilt: [0, 0.08],
     shape: "blade",
+    // Kelp blades have a few broad ribs.
+    leaf: { veins: 3, veinStrength: 0.25 },
   },
   seagrass: {
     blades: 6,
@@ -53,6 +57,7 @@ const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
     sway: 0.08,
     tilt: [0, 0.08],
     shape: "blade",
+    leaf: { veins: 7, veinStrength: 0.3 },
   },
   anemone: {
     blades: 36,
@@ -62,6 +67,7 @@ const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
     sway: 0.05,
     tilt: [0.15, 1.1],
     shape: "tentacle",
+    leaf: { veins: 0, veinStrength: 0 },
   },
 };
 
@@ -80,6 +86,18 @@ function bladeGeometry(segments: number): BufferGeometry {
 
 /** Spreads blades and tentacles evenly around a plant, radians. */
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
+/** Position across a blade (0..1) for the vein shader; tentacles have no veins. */
+function acrossAttribute(geometry: BufferGeometry, shape: BladeStyle["shape"]): BufferAttribute {
+  const uv = geometry.getAttribute("uv");
+  const across = new Float32Array(uv.count);
+  for (let index = 0; index < uv.count; index += 1) {
+    across[index] = shape === "blade" ? uv.getX(index) : MIDRIB;
+  }
+  return new BufferAttribute(across, 1);
+}
+
+const MIDRIB = 0.5;
 
 export interface FloraRenderer {
   readonly object: Group;
@@ -110,6 +128,7 @@ export function createFloraRenderer(plants: readonly Plant[], water: WaterUnifor
     const count = members.length * style.blades;
     const geometry =
       style.shape === "blade" ? bladeGeometry(style.segments) : anemoneTentacleGeometry();
+    geometry.setAttribute("aAcross", acrossAttribute(geometry, style.shape));
     const swayPhase = new Float32Array(count);
     const heights = new Float32Array(count);
     geometry.setAttribute("aSwayPhase", new InstancedBufferAttribute(swayPhase, 1));
@@ -120,7 +139,7 @@ export function createFloraRenderer(plants: readonly Plant[], water: WaterUnifor
         roughness: 0.7,
         side: DoubleSide,
       }),
-      [plantPatch(water, { value: style.sway }), causticsPatch(water)],
+      [plantPatch(water, { value: style.sway }, style.leaf), causticsPatch(water)],
     );
     const mesh = new InstancedMesh(geometry, material, count);
     mesh.frustumCulled = false;

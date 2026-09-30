@@ -187,6 +187,7 @@ async function start(): Promise<void> {
     // Deterministic still frame for visual tests: no animation loop.
     const steps = Math.round(options.frozenSeconds / SIMULATION_STEP_SECONDS);
     for (let step = 0; step < steps; step += 1) simulation.step(SIMULATION_STEP_SECONDS);
+    await view.ready();
     view.render();
     document.body.dataset.state = "ready";
     return;
