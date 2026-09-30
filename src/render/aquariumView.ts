@@ -97,6 +97,8 @@ export interface AquariumView {
    * out here (it follows the camera), so the simulation reads it through the app.
    */
   seabedHeight(x: number, z: number): number;
+  /** The WebGL renderer string: which GPU the browser actually draws with. */
+  gpuName(): string;
   /** Hour of the aquarium day shown by the last frame. */
   hour(): number;
   /** Rebuilds plants, rocks, corals and shells for new scenery counts. */
@@ -357,6 +359,14 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       mixer = createLightMixer(next);
     },
     hour: () => currentHour,
+    gpuName: () => {
+      const gl = renderer.getContext();
+      const info = gl.getExtension("WEBGL_debug_renderer_info");
+      const name: unknown = gl.getParameter(
+        info === null ? gl.RENDERER : info.UNMASKED_RENDERER_WEBGL,
+      );
+      return typeof name === "string" ? name : "unknown";
+    },
     seabedHeight: (x, z) => floorHeight(x, z) + (ridge?.heightAt(x, z) ?? 0),
     render() {
       cycleInput.clockHour = options.clockHour();

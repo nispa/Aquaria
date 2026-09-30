@@ -108,6 +108,21 @@ body {
   background: none;
 }
 
+.panel__gpu {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.panel__warning {
+  margin: 0 0 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgb(255 170 60 / 0.15);
+  color: #ffc98a;
+  font-size: 12px;
+}
+
 .panel__clock {
   margin: 0 0 8px;
   color: var(--muted);

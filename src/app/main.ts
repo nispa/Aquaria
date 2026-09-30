@@ -1,6 +1,7 @@
 import "../ui/styles.css";
 import { createFixedStepClock } from "../core/clock";
 import { createFpsMeter } from "../core/fps";
+import { classifyGpu, shortGpuName } from "../core/gpu";
 import { consoleSink, createLogger } from "../core/logger";
 import { createRng } from "../core/rng";
 import { createAquariumView } from "../render/aquariumView";
@@ -177,6 +178,7 @@ async function start(): Promise<void> {
     document.body,
     {
       sceneName: scene.name,
+      gpu: { name: shortGpuName(view.gpuName()), kind: classifyGpu(view.gpuName()) },
       scenes: sceneChoices,
       sceneId,
       species: catalog.species,

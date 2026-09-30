@@ -1,4 +1,5 @@
 import { FULL_HD_HEIGHT, resolutionLabel, UHD_HEIGHT } from "../core/resolution";
+import type { GpuKind } from "../core/gpu";
 import type { Lights } from "../scene/lights";
 import type { Look, LookFeature, LookFeatureKind } from "../scene/look";
 import { checkbox, element, select, slider } from "./controls";
@@ -24,6 +25,8 @@ export interface PanelState {
   readonly sceneId: string;
   readonly species: readonly Species[];
   readonly counts: Readonly<Record<string, number>>;
+  /** The GPU the browser draws with, and whether it is the fast one. */
+  readonly gpu: { readonly name: string; readonly kind: GpuKind };
   /** LED setup and cycle. */
   readonly lights: LightsSectionState;
   /** Plants, rocks, corals and shells with their current counts. */
@@ -180,6 +183,19 @@ export function createPanel(
     callbacks.onFullscreen();
   });
 
+  const gpuRow = element("p", "panel__gpu", `GPU: ${state.gpu.name}`);
+  quality.append(gpuRow);
+  if (state.gpu.kind === "integrated" || state.gpu.kind === "software") {
+    quality.append(
+      element(
+        "p",
+        "panel__warning",
+        state.gpu.kind === "integrated"
+          ? "Running on the integrated GPU. See README, \u201cUse the dedicated GPU\u201d."
+          : "Running without GPU acceleration. See README, \u201cUse the dedicated GPU\u201d.",
+      ),
+    );
+  }
   quality.append(resolutionRow, presets, fpsRow, fullscreen);
   panel.append(
     fauna,

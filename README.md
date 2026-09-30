@@ -74,6 +74,36 @@ Disable sleep and the OS screen saver on the machine driving the wall. Start
 at 4K, compare with Full HD from your usual viewing distance, and keep the
 lowest setting you cannot tell apart: it saves GPU power.
 
+### Use the dedicated GPU
+
+On laptops and PCs with two GPUs, Windows often runs the browser on the
+integrated one (Intel, or AMD "Radeon Graphics"), which cannot keep up at 4K.
+The panel shows the GPU in use under **Quality**, with a warning when it is
+the integrated or a software one. To switch Chrome (or Edge) to the dedicated
+GPU:
+
+1. **Windows graphics settings**: Settings → System → Display → Graphics.
+   Find Google Chrome in the list (or add `chrome.exe` with _Browse_), open
+   _Options_ and choose **High performance**. Save.
+2. **Or the NVIDIA Control Panel**: Manage 3D settings → Program Settings →
+   select Google Chrome → preferred graphics processor: **High-performance
+   NVIDIA processor**. Apply. (AMD: Radeon Software → Graphics → per-app
+   settings.)
+3. **Or at launch**, add Chrome's switch to the kiosk command:
+
+   ```bash
+   chrome --kiosk --force_high_performance_gpu http://localhost:4173
+   ```
+
+4. Make sure hardware acceleration is on: `chrome://settings/system` → _Use
+   graphics acceleration when available_.
+5. **Close every Chrome window** (including background ones in the tray) and
+   reopen it. Check `chrome://gpu`: _GL_RENDERER_ must name the NVIDIA (or
+   AMD) GPU, and the panel's GPU line must match.
+
+On a laptop, keep it on mains power: on battery, Windows may still prefer
+the integrated GPU.
+
 ## Choosing a scene
 
 The panel (`H`) starts with a **Scene** list; the choice is remembered, so the
@@ -123,7 +153,8 @@ Scenery entries:
   `tileSize` is the size of one texture tile in meters and `displacement`
   pushes the surface out by up to that many meters. The entry's `color` still
   sets the hue. A missing material logs a warning and falls back to the plain
-  color. Available: `fine-sand`, `reef-rock`.
+  color. Available: `fine-sand`, `reef-rock`, `aquarium-gravel`, `aqua-soil`,
+  `driftwood`.
 - `color` may be one color or a palette (`["#9a6fc2", "#e08fb0"]`): each item
   then takes one of the colors.
 - `rockwork` (optional) builds a reef ridge: a mound of live rock winding
