@@ -119,7 +119,9 @@ export function plantPatch(
           // Thin tissue lets light through: seen edge-on or against the light,
           // blades glow softly, more towards the sunlit tips.
           float facing = abs(dot(normal, normalize(vViewPosition)));
-          float translucency = pow(1.0 - facing, 2.0) * 0.35 * (0.3 + 0.7 * vAlongBlade);
+          // Rounding can push facing just past 1; pow of a negative base is NaN on
+          // Direct3D, and bloom would smear that NaN over the whole screen.
+          float translucency = pow(max(1.0 - facing, 0.0), 2.0) * 0.35 * (0.3 + 0.7 * vAlongBlade);
           totalEmissiveRadiance += diffuseColor.rgb * uLightColor * translucency;
         }
         `,

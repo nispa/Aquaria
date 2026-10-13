@@ -51,7 +51,8 @@ const SAMPLING_GLSL = /* glsl */ `
 
   vec3 surfaceWeights(vec3 n) {
     vec3 w = pow(abs(n), vec3(${TRIPLANAR_SHARPNESS.toFixed(1)}));
-    return w / (w.x + w.y + w.z);
+    // A degenerate (zero) normal would divide by zero.
+    return w / max(w.x + w.y + w.z, 1e-5);
   }
 
   vec4 surfaceSample(sampler2D map, vec3 p, vec3 n) {

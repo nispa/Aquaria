@@ -226,8 +226,9 @@ function lightShafts(scene: Scene, water: WaterUniforms, rng: Rng, tracker: Trac
         uniform vec3 uLightColor;
         varying vec2 vUv;
         void main() {
-          float across = pow(sin(vUv.x * 3.14159), 2.0);
-          float down = pow(vUv.y, 1.6);
+          // max(): pow of a negative base is NaN on some GPUs.
+          float across = pow(max(sin(vUv.x * 3.14159), 0.0), 2.0);
+          float down = pow(max(vUv.y, 0.0), 1.6);
           float flicker = 0.6 + 0.4 * sin(uTime * 0.23 + uSeed) * sin(uTime * 0.37 + uSeed * 1.3);
           gl_FragColor = vec4(uLightColor * across * down * flicker * 0.085, 1.0);
           #include <colorspace_fragment>

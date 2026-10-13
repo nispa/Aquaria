@@ -12,7 +12,8 @@ float causticLayer(vec2 p, float t) {
   vec2 q = p + 0.55 * vec2(sin(p.y * 1.7 + t * 0.9), cos(p.x * 1.3 - t * 0.7));
   vec2 r = q + 0.3 * vec2(sin(q.y * 2.3 - t * 1.1), cos(q.x * 2.1 + t * 0.8));
   float lattice = sin(r.x * 3.0) * sin(r.y * 3.0);
-  return pow(1.0 - abs(lattice), 7.0);
+  // max(): pow of a negative base is NaN on some GPUs.
+  return pow(max(1.0 - abs(lattice), 0.0), 7.0);
 }
 
 float caustics(vec2 p, float t) {

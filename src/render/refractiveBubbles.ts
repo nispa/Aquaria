@@ -70,7 +70,7 @@ export function createRefractiveBubbles(
             /* glsl */ `
           {
             float facing = abs(dot(normalize(normal), normalize(vViewPosition)));
-            gl_FragColor.rgb += uLightColor * pow(1.0 - facing, 3.0) * 0.9;
+            gl_FragColor.rgb += uLightColor * pow(max(1.0 - facing, 0.0), 3.0) * 0.9;
           }
           #include <fog_fragment>
           `,
