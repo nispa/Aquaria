@@ -64,6 +64,14 @@ const gltfBody = z.object({
   url: z.string().min(1),
 });
 
+/** How keen a species is on food when it is not fed (0 = ignores it, 1 = greedy). */
+export const DEFAULT_APPETITE = 0.6;
+
+/** How a species reacts to the viewer and to food. Every trait has a default. */
+const behavior = z.object({
+  appetite: unit.default(DEFAULT_APPETITE),
+});
+
 export const speciesSchema = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/, "Species ids use lowercase letters, digits and dashes."),
   name: z.string().min(1),
@@ -79,6 +87,7 @@ export const speciesSchema = z.object({
   bands: bandRange,
   /** Vertical range as a fraction of the tank height (0 = floor, 1 = surface). */
   heightRange: heightRange,
+  behavior: behavior.prefault({}),
 });
 
 export const speciesCatalogSchema = z

@@ -59,6 +59,8 @@ export interface PanelCallbacks {
   onMsaaChange(samples: number): void;
   onFeatureChange(featureId: string, enabled: boolean): void;
   onFullscreen(): void;
+  /** Drops a pinch of food into the tank. */
+  onFeed(): void;
 }
 
 export interface Panel {
@@ -130,7 +132,16 @@ export function createPanel(
   designerButton.addEventListener("click", () => {
     callbacks.onOpenDesigner();
   });
-  panel.append(sceneSelect.row, designerButton);
+  const feedButton = element(
+    "button",
+    "panel__button panel__button--wide",
+    "Feed the fish (Space)",
+  );
+  feedButton.type = "button";
+  feedButton.addEventListener("click", () => {
+    callbacks.onFeed();
+  });
+  panel.append(sceneSelect.row, designerButton, feedButton);
 
   const fauna = element("section", "panel__section");
   fauna.append(element("h2", "panel__heading", "Fauna"));
@@ -266,6 +277,11 @@ export function createPanel(
     if (event.target instanceof HTMLInputElement && event.target.type !== "range") return;
     if (event.key === "h" || event.key === "H") toggle();
     if (event.key === "f" || event.key === "F") callbacks.onFullscreen();
+    // A focused button would also click on Space: leave it to the button.
+    if (event.key === " " && !(event.target instanceof HTMLButtonElement)) {
+      event.preventDefault();
+      callbacks.onFeed();
+    }
   };
   window.addEventListener("pointermove", onPointerMove);
   window.addEventListener("keydown", onKey);

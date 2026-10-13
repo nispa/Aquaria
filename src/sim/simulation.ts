@@ -1,6 +1,6 @@
 import type { Box3 } from "three";
 import { Vector3 } from "three";
-import { clamp } from "../core/math";
+import { clamp, smoothstep } from "../core/math";
 import type { Rng } from "../core/rng";
 import {
   MAX_INDIVIDUALS_PER_SPECIES,
@@ -10,6 +10,7 @@ import {
 } from "../scene/schema";
 import { nextGaze, turnIntent } from "./gaze";
 import { createCurrentField, type CurrentField } from "./current";
+import { createFood, type Food } from "./food";
 import { easeToward, tailEffort, turnBend } from "./posture";
 import {
   addAlignment,
@@ -69,6 +70,29 @@ const GAZE_SACCADE_THRESHOLD = 0.35;
 const BEND_RESPONSE_SECONDS = 0.2;
 const EFFORT_RESPONSE_SECONDS = 0.3;
 
+// Feeding. Fish notice flakes within FOOD_SENSE_RADIUS and leave their habitat
+// by up to FORAGE_MARGIN to reach them, so each species feeds at its own depth.
+const FOOD_SENSE_RADIUS = 3;
+const FORAGE_MARGIN = 0.5;
+/** Pull towards food at full hunger; stronger than schooling and wandering. */
+const FEED_WEIGHT = 4;
+/** A hungry fish speeds up towards food by up to this share of its cruise speed. */
+const FEED_SPEED_BOOST = 0.8;
+/** Hungry fish climb and dive more steeply than cruising fish. */
+const FEEDING_VERTICAL_RATIO = 0.8;
+/** A flake is bitten when it is this many body lengths from the mouth. */
+const BITE_BODY_LENGTHS = 0.4;
+/** The mouth starts opening this many body lengths from the flake and is wide open at the bite. */
+const MOUTH_OPEN_BODY_LENGTHS = 3;
+const MOUTH_RESPONSE_SECONDS = 0.08;
+/** Satiety gained per flake, and the time a full fish takes to become hungry again. */
+const BITE_SATIETY = 0.15;
+const SATIETY_DECAY_SECONDS = 300;
+/** Above this satiety a fish ignores food. */
+const SATED = 0.8;
+/** A mouth this nearly shut counts as closed. */
+const MOUTH_CLOSED = 0.01;
+
 export type FishState = "entering" | "swimming" | "leaving";
 
 export interface Fish {
@@ -88,6 +112,10 @@ export interface Fish {
   bend: number;
   /** Tail-beat amplitude relative to cruising; see sim/posture. */
   effort: number;
+  /** 0 hungry .. 1 full; fish ignore food above 0.8. */
+  satiety: number;
+  /** 0 closed .. 1 wide open, when snapping at food. */
+  mouth: number;
   state: FishState;
   /** Wander heading (yaw) in radians. */
   wanderAngle: number;
@@ -106,6 +134,8 @@ export interface Simulation {
   /** Every fish currently alive. Do not mutate from outside the simulation. */
   readonly fish: readonly Fish[];
   readonly current: CurrentField;
+  /** Flakes in the water. */
+  readonly food: Food;
   readonly timeSeconds: number;
   /** Advances the simulation by one fixed step. */
   step(deltaSeconds: number): void;
@@ -114,6 +144,8 @@ export interface Simulation {
    * every step, so it may change, e.g. when the scenery is rebuilt.
    */
   setSeabed(seabed: SeabedHeight): void;
+  /** Drops a pinch of food at the surface above (x, z), tank coordinates. */
+  dropFood(x: number, z: number): void;
   /** Requests a new population for a species; fish swim in or out gradually. */
   setCount(speciesId: string, count: number): void;
   targetCount(speciesId: string): number;
@@ -122,6 +154,8 @@ export interface Simulation {
 interface Group {
   readonly species: Species;
   readonly habitat: Box3;
+  /** The habitat widened by FORAGE_MARGIN: where this species goes for food. */
+  readonly forage: Box3;
   /** Entering and swimming fish. */
   readonly members: Fish[];
   /** Positions of `members`, kept in sync so steering needs no per-frame arrays. */
@@ -145,11 +179,15 @@ export function createSimulation(options: SimulationOptions): Simulation {
   let nextId = 0;
   let seabed: SeabedHeight = () => 0;
   let timeSeconds = 0;
+  // Shares the simulation's generator: it only draws numbers when food is
+  // dropped, so a tank nobody feeds plays exactly as before.
+  const food = createFood({ tank: scene.tank, rng });
 
   for (const species of catalog.species) {
     groups.set(species.id, {
       species,
       habitat: habitatBox(scene.tank, species),
+      forage: habitatBox(scene.tank, species).expandByScalar(FORAGE_MARGIN),
       members: [],
       positions: [],
       leaving: [],
@@ -201,6 +239,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
       gaze: 0,
       bend: 0,
       effort: 1,
+      satiety: 0,
+      mouth: 0,
       state: entering ? "entering" : "swimming",
       wanderAngle: angle,
       side,
@@ -251,6 +291,52 @@ export function createSimulation(options: SimulationOptions): Simulation {
   const term = new Vector3();
   const drift = new Vector3();
   const previousVelocity = new Vector3();
+  const mouthPosition = new Vector3();
+
+  /**
+   * Steers a hungry fish towards the nearest flake it can reach, opens its
+   * mouth on the way and eats the flake on contact. Returns the speed the fish
+   * wants (faster when hungry), or its cruise speed when it is not feeding.
+   */
+  const forage = (group: Group, member: Fish, deltaSeconds: number): number => {
+    const { species } = group;
+    const cruise = species.speed.cruise;
+    member.satiety = Math.max(member.satiety - deltaSeconds / SATIETY_DECAY_SECONDS, 0);
+    const hunger = species.behavior.appetite * (1 - member.satiety);
+    const flake =
+      member.state === "swimming" && member.satiety < SATED
+        ? food.nearest(member.position, FOOD_SENSE_RADIUS, group.forage)
+        : undefined;
+    let mouthTarget = 0;
+    let speed = cruise;
+    if (flake !== undefined && hunger > 0) {
+      mouthPosition
+        .copy(member.velocity)
+        .setLength(member.length / 2)
+        .add(member.position);
+      const reach = mouthPosition.distanceTo(flake.position);
+      term.subVectors(flake.position, mouthPosition).normalize();
+      force.addScaledVector(term, FEED_WEIGHT * hunger);
+      speed = Math.min(cruise * (1 + FEED_SPEED_BOOST * hunger), species.speed.max);
+      mouthTarget = smoothstep(
+        member.length * MOUTH_OPEN_BODY_LENGTHS,
+        member.length * BITE_BODY_LENGTHS,
+        reach,
+      );
+      if (reach <= member.length * BITE_BODY_LENGTHS) {
+        food.eat(flake);
+        member.satiety = Math.min(member.satiety + BITE_SATIETY, 1);
+        // The snap: the mouth shuts at once on the flake.
+        mouthTarget = 0;
+        member.mouth = 0;
+      }
+    }
+    member.mouth =
+      mouthTarget === 0 && member.mouth < MOUTH_CLOSED
+        ? 0
+        : easeToward(member.mouth, mouthTarget, MOUTH_RESPONSE_SECONDS, deltaSeconds);
+    return speed;
+  };
 
   const steer = (group: Group, member: Fish, deltaSeconds: number): void => {
     const { species, habitat } = group;
@@ -292,15 +378,19 @@ export function createSimulation(options: SimulationOptions): Simulation {
       force.x += direction * TRANSIT_PULL;
     }
 
+    const wantedSpeed = forage(group, member, deltaSeconds);
+    const feeding = wantedSpeed > cruise;
+
     member.gaze = nextGaze(member.gaze, turnIntent(member.velocity, force), GAZE_SACCADE_THRESHOLD);
 
     const speed = member.velocity.length();
-    term.copy(member.velocity).multiplyScalar(((cruise - speed) / speed) * SPEED_RESPONSE);
+    term.copy(member.velocity).multiplyScalar(((wantedSpeed - speed) / speed) * SPEED_RESPONSE);
     force.multiplyScalar(cruise).add(term);
 
     previousVelocity.copy(member.velocity);
     member.velocity.addScaledVector(force, deltaSeconds);
-    const maxVertical = member.velocity.length() * MAX_VERTICAL_RATIO;
+    const maxVertical =
+      member.velocity.length() * (feeding ? FEEDING_VERTICAL_RATIO : MAX_VERTICAL_RATIO);
     member.velocity.y = clamp(member.velocity.y, -maxVertical, maxVertical);
     const clamped = clamp(member.velocity.length(), cruise * MIN_SPEED_RATIO, species.speed.max);
     member.velocity.setLength(clamped);
@@ -362,11 +452,13 @@ export function createSimulation(options: SimulationOptions): Simulation {
   return {
     fish,
     current,
+    food,
     get timeSeconds() {
       return timeSeconds;
     },
     step(deltaSeconds) {
       let removed = false;
+      food.step(deltaSeconds, timeSeconds, current, seabed);
       for (const group of groups.values()) {
         for (const member of group.members) steer(group, member, deltaSeconds);
         for (const member of group.leaving) steer(group, member, deltaSeconds);
@@ -391,6 +483,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
         for (const group of groups.values()) reconcile(group);
       }
       timeSeconds += deltaSeconds;
+    },
+    dropFood(x, z) {
+      food.drop(x, z);
     },
     setSeabed(next) {
       seabed = next;

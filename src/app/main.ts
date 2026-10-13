@@ -51,6 +51,11 @@ const MS_PER_SECOND = 1000;
 const CLOCK_REFRESH_MS = 1000;
 const MINUTES_PER_HOUR = 60;
 const SECONDS_PER_HOUR = 3600;
+/** Keeps the feeding spots' generator apart from the scene's. */
+const FEED_SEED_OFFSET = 7919;
+/** Food falls in the middle of the view: this share of the width, and this depth range (share of depth). */
+const FEED_WIDTH_SHARE = 0.6;
+const FEED_DEPTH_SHARE = [0.15, 0.6] as const;
 
 function localHour(): number {
   const now = new Date();
@@ -265,6 +270,14 @@ async function start(): Promise<void> {
     return { simulation: nextSimulation, view: nextView };
   };
   let { simulation, view } = mountScene(scene);
+  const feedRng = createRng((options.seed ?? scene.seed) + FEED_SEED_OFFSET);
+  const feed = (): void => {
+    const { width, depth } = scene.tank;
+    simulation.dropFood(
+      feedRng.range(-width / 2, width / 2) * FEED_WIDTH_SHARE,
+      -depth * feedRng.range(FEED_DEPTH_SHARE[0], FEED_DEPTH_SHARE[1]),
+    );
+  };
   window.addEventListener("resize", () => {
     view.resize(window.innerWidth, window.innerHeight);
   });
@@ -357,6 +370,7 @@ async function start(): Promise<void> {
         view.setLook(look);
         update({ look: { ...settings.look, [featureId]: enabled } });
       },
+      onFeed: feed,
       onFullscreen() {
         if (document.fullscreenElement === null) {
           document.documentElement.requestFullscreen().catch(() => {

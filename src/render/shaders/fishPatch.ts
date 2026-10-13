@@ -13,6 +13,11 @@ const FIN_OPACITY = 0.62;
 const FIN_PALENESS = 0.22;
 /** Where the body starts bending into a turn, in body lengths from the centre (the head stays rigid). */
 const BEND_PIVOT = 0.2;
+/** The jaw: where it starts along the body (x) and how far it drops when wide open, in body lengths. */
+const JAW_START = 0.3;
+const JAW_DROP = 0.12;
+/** The upper lip lifts by this share of the jaw drop. */
+const UPPER_LIP_LIFT = 0.35;
 /** Below this curvature the body is treated as straight, avoiding a division by zero. */
 const MIN_CURVATURE = 1e-4;
 
@@ -55,7 +60,8 @@ export type FishUniforms = {
  *
  * Instance attributes: aSwimPhase (radians), aOpacity (0..1), aGaze (-1 right .. 1 left),
  * aBend (curvature times body length, positive into a left turn, -2.5..2.5),
- * aEffort (tail sweep relative to cruising, 0.5..2.2).
+ * aEffort (tail sweep relative to cruising, 0.5..2.2),
+ * aMouth (0 closed .. 1 wide open: the jaw drops and a dark gape shows).
  * Vertex attribute: aFin (0 body, 1 fin).
  * The geometry is one body length long along +x, nose at +0.5.
  */
@@ -70,7 +76,9 @@ export function fishPatch(uniforms: FishUniforms): ShaderPatch {
       attribute float aGaze;
       attribute float aBend;
       attribute float aEffort;
+      attribute float aMouth;
       uniform float uSwimAmplitude;
+      varying float vMouth;
       varying vec3 vBodyPosition;
       varying float vOpacity;
       varying float vFin;
@@ -105,12 +113,19 @@ export function fishPatch(uniforms: FishUniforms): ShaderPatch {
         vOpacity = aOpacity;
         vFin = aFin;
         vGaze = aGaze;
+        vMouth = aMouth;
         #ifdef USE_INSTANCING
           // The instance scale is the fish's length in meters.
           vBodyLength = length(instanceMatrix[0].xyz);
         #else
           vBodyLength = 1.0;
         #endif
+        {
+          // Open mouth: the lower jaw drops and the upper lip lifts a little,
+          // more towards the tip of the snout.
+          float jaw = aMouth * ${JAW_DROP.toFixed(2)} * smoothstep(${JAW_START.toFixed(2)}, 0.5, position.x);
+          transformed.y += position.y < 0.0 ? -jaw : jaw * ${UPPER_LIP_LIFT.toFixed(2)};
+        }
         {
           // Only the rear two thirds bend; the head stays steady like a real fish.
           float rear = smoothstep(0.25, -0.5, position.x);
@@ -148,6 +163,7 @@ export function fishPatch(uniforms: FishUniforms): ShaderPatch {
       varying float vFin;
       varying float vBodyLength;
       varying float vGaze;
+      varying float vMouth;
 
       // Scales: rows along the body, each row offset by half a scale, each
       // scale a dome whose centre is shifted forward so they overlap towards
@@ -255,6 +271,13 @@ export function fishPatch(uniforms: FishUniforms): ShaderPatch {
         bodyColor = mix(bodyColor, bodyColor * 0.7, finRays(vBodyPosition) * vFin * 0.6);
         bodyColor = mix(bodyColor, mix(bodyColor, vec3(1.0), ${FIN_PALENESS.toFixed(2)}), vFin);
         bodyColor = paintEye(bodyColor, vBodyPosition);
+        {
+          // The gape: a dark wedge at the tip of the snout, as wide as the mouth is open.
+          float tip = smoothstep(${JAW_START.toFixed(2)} + 0.06, 0.5, vBodyPosition.x);
+          float gape = vMouth * tip * ${JAW_DROP.toFixed(2)};
+          float inside = 1.0 - smoothstep(gape * 0.5, gape, abs(vBodyPosition.y));
+          bodyColor = mix(bodyColor, vec3(0.05, 0.02, 0.02), inside * (1.0 - vFin) * step(0.001, vMouth));
+        }
         float finAlpha = mix(1.0, ${FIN_OPACITY.toFixed(2)}, vFin);
         vec4 diffuseColor = vec4(bodyColor, opacity * vOpacity * finAlpha);
         `,

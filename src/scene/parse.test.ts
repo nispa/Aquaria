@@ -2,6 +2,7 @@ import { RECOMMENDED_LIGHTS } from "./lights";
 import { describe, expect, it } from "vitest";
 import { catalogFixture, sceneFixture } from "./fixtures";
 import { parseCatalog, parseScene, SceneValidationError } from "./parse";
+import { DEFAULT_APPETITE } from "./schema";
 
 describe("parseCatalog", () => {
   it("accepts a valid species catalog", () => {
@@ -285,5 +286,27 @@ describe("water options", () => {
     const scene = parseScene(input, catalog);
 
     expect([scene.water.surface, scene.water.bubbles]).toEqual([0.2, false]);
+  });
+});
+
+describe("species behavior", () => {
+  it("gives species without a behavior a moderate appetite", () => {
+    const catalog = parseCatalog(catalogFixture());
+
+    expect(catalog.species[0]?.behavior.appetite).toBe(DEFAULT_APPETITE);
+  });
+
+  it("reads a species' appetite", () => {
+    const input = catalogFixture();
+    input.species[0]!.behavior = { appetite: 0.9 };
+
+    expect(parseCatalog(input).species[0]?.behavior.appetite).toBe(0.9);
+  });
+
+  it("rejects an appetite outside 0..1", () => {
+    const input = catalogFixture();
+    input.species[0]!.behavior = { appetite: 1.5 };
+
+    expect(() => parseCatalog(input)).toThrow(/appetite/);
   });
 });

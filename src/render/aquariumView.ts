@@ -37,6 +37,7 @@ import { createFishRenderer } from "./fishRenderer";
 import { createFloraRenderer, type FloraRenderer } from "./floraRenderer";
 import { cameraFraming } from "./framing";
 import { createFixtureRenderer } from "./fixtureRenderer";
+import { createFoodRenderer } from "./foodRenderer";
 import { createLightRig } from "./lightRig";
 import { createParticles, type Particles } from "./particles";
 import { createSurfaceLibrary } from "./surfaceLibrary";
@@ -191,11 +192,12 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   surfaces.setAnisotropy(renderer.capabilities.getMaxAnisotropy());
   const environment = createEnvironment(scene, water, surfaces, rng.fork());
   const fish = createFishRenderer(catalog, water, logger);
+  const food = createFoodRenderer(simulation.food.pellets.length, water);
   // Stable containers: effects keep references to them across rebuilds.
   const floraGroup = new Group();
   const propGroup = new Group();
   const particleGroup = new Group();
-  world.add(environment.object, floraGroup, propGroup, fish.object, particleGroup);
+  world.add(environment.object, floraGroup, propGroup, fish.object, food.object, particleGroup);
   const fixture = createFixtureRenderer(scene.tank, water);
   world.add(fixture.object);
   /** Under LED spots the sun stands straight overhead, so shadows fall down. */
@@ -406,6 +408,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       water.uTime.value = simulation.timeSeconds;
       props?.update(simulation.timeSeconds);
       fish.update(simulation.fish);
+      food.update(simulation.food.pellets);
       particles?.update(simulation.timeSeconds);
       instances.forEach((instance) => {
         instance.update?.();
@@ -434,6 +437,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       props?.dispose();
       rockwork?.dispose();
       fish.dispose();
+      food.dispose();
       particles?.dispose();
       environmentMap.dispose();
       fixture.dispose();

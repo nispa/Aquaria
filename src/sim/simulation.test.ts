@@ -4,6 +4,7 @@ import { catalogFixture, sceneFixture } from "../scene/fixtures";
 import { parseCatalog, parseScene } from "../scene/parse";
 import type { SceneInput } from "../scene/schema";
 import { createSimulation, TOTAL_FISH_LIMIT, type Simulation } from "./simulation";
+import { FLAKES_PER_PINCH } from "./food";
 import { MAX_BEND, MAX_EFFORT, MIN_EFFORT } from "./posture";
 import { habitatBox } from "./tank";
 
@@ -293,5 +294,68 @@ describe("posture", () => {
     const simulation = simulate();
 
     expect(simulation.fish.every((fish) => fish.bend === 0 && fish.effort === 1)).toBe(true);
+  });
+});
+
+describe("feeding", () => {
+  const eatenCount = (simulation: Simulation) =>
+    simulation.food.pellets.filter((pellet) => !pellet.active).length;
+
+  it("has no food in the water until some is dropped", () => {
+    const simulation = simulate();
+
+    expect(simulation.food.pellets.some((pellet) => pellet.active)).toBe(false);
+  });
+
+  it("lets fish find and eat flakes dropped above them", () => {
+    const simulation = simulate();
+    simulation.dropFood(0, -2.5);
+
+    run(simulation, 30);
+
+    expect(simulation.fish.some((fish) => fish.satiety > 0)).toBe(true);
+    expect(eatenCount(simulation)).toBeGreaterThan(0);
+  });
+
+  it("makes fish open their mouths as they close in on food", () => {
+    const simulation = simulate();
+    simulation.dropFood(0, -2.5);
+    let widest = 0;
+
+    for (let elapsed = 0; elapsed < 30; elapsed += STEP) {
+      simulation.step(STEP);
+      for (const fish of simulation.fish) widest = Math.max(widest, fish.mouth);
+    }
+
+    expect(widest).toBeGreaterThan(0.5);
+  });
+
+  it("keeps mouths closed while there is nothing to eat", () => {
+    const simulation = simulate();
+
+    run(simulation, 10);
+
+    expect(simulation.fish.every((fish) => fish.mouth === 0)).toBe(true);
+  });
+
+  it("makes fish that are full lose interest in food", () => {
+    const simulation = simulate();
+    for (const fish of simulation.fish) fish.satiety = 1;
+    simulation.dropFood(0, -2.5);
+
+    run(simulation, 30);
+
+    expect(simulation.food.pellets.filter((pellet) => pellet.active)).toHaveLength(
+      FLAKES_PER_PINCH,
+    );
+  });
+
+  it("lets fish get hungry again over time", () => {
+    const simulation = simulate();
+    for (const fish of simulation.fish) fish.satiety = 1;
+
+    run(simulation, 10);
+
+    expect(simulation.fish.every((fish) => fish.satiety < 1)).toBe(true);
   });
 });
