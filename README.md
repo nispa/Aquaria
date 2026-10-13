@@ -304,8 +304,11 @@ pnpm build
 
 The code is layered (`core` → `scene` → `sim` → `render`/`ui` → `app`), and
 simulation logic runs without a browser so it can be developed test-first.
-Read [AGENTS.md](AGENTS.md) before contributing: it covers architecture, TDD
-rules, code quality and performance rules.
+For in-depth guides and architectural design decisions, see:
+
+- [User & Architectural Learning Guide (English)](docs/USER_GUIDE.md)
+- [Guida all'Uso e ai Meccanismi Architetturali (Italiano)](docs/GUIDA_UTENTE.md)
+- [AGENTS.md](AGENTS.md) for contributing guidelines, TDD rules, code quality and performance rules.
 
 ## Roadmap
 
