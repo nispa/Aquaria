@@ -1,0 +1,12 @@
+{
+  "name": "Barramundi",
+  "file": "model.glb",
+  "forward": "+z",
+  "up": "+y",
+  "swimAmplitude": 0.06,
+  "credit": {
+    "author": "Microsoft",
+    "source": "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish",
+    "license": "CC0-1.0"
+  }
+}

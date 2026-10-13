@@ -2,7 +2,10 @@
 
 Every third-party asset (models, textures, images, sounds) used in this
 repository must be listed here with its source, author and license.
-Only CC0, CC-BY or equivalently permissive licenses are accepted.
+Only licenses that allow reuse, modification and redistribution, also
+commercially, are accepted: CC0, CC-BY (3.0 or 4.0), MIT, Apache-2.0, BSD,
+0BSD or the Unlicense. Non-commercial (NC), no-derivatives (ND) and
+share-alike (SA) licenses are not.
 
 | Asset                        | Path                                       | Source                                    | Author                                                    | License |
 | ---------------------------- | ------------------------------------------ | ----------------------------------------- | --------------------------------------------------------- | ------- |
@@ -29,5 +32,18 @@ the OpenGL normal map; `surface.ktx2` packs displacement (R), roughness (G)
 and the diffuse map's luminance normalized to 0.5 (B), so scenes keep
 choosing the color.
 
-Everything else (fish, plants, corals, shells, starfish, water, light) is
-procedural geometry and shaders generated in code.
+## Fish models
+
+Each model is a folder in `public/assets/species/` whose `model.json` repeats
+the author, source and license (the unit tests check that the source is
+listed here).
+
+| Model      | Path                                | Source                                                                             | Author    | License |
+| ---------- | ----------------------------------- | ---------------------------------------------------------------------------------- | --------- | ------- |
+| Barramundi | `public/assets/species/barramundi/` | https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish | Microsoft | CC0     |
+
+The Barramundi was optimized with glTF Transform (meshopt geometry, KTX2
+textures at 1024 px; see README, "3D fish models").
+
+Everything else (procedural fish, plants, corals, shells, starfish, water,
+light) is procedural geometry and shaders generated in code.

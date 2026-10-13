@@ -138,6 +138,10 @@
     {
       "species": "sardine",
       "count": 45
+    },
+    {
+      "species": "barramundi",
+      "count": 3
     }
   ]
 }
