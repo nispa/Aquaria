@@ -1,10 +1,14 @@
 import {
+  Bone,
   Box3,
   BoxGeometry,
   Float32BufferAttribute,
   Group,
   Mesh,
   MeshStandardMaterial,
+  Skeleton,
+  SkinnedMesh,
+  Uint16BufferAttribute,
   Vector3,
 } from "three";
 import { describe, expect, it } from "vitest";
@@ -132,5 +136,27 @@ describe("prepareFishModel", () => {
     const morphed = part?.geometry.morphAttributes.position?.[0];
 
     expect(morphed?.getX(0)).toBeCloseTo(1);
+  });
+
+  it("bakes a skinned model in the pose its bones are in", () => {
+    // A box 1 long along x, bound to one bone that stretches it to 4 long.
+    const geometry = new BoxGeometry(1, 0.5, 0.25);
+    const count = geometry.getAttribute("position").count;
+    geometry.setAttribute("skinIndex", new Uint16BufferAttribute(new Uint16Array(count * 4), 4));
+    const weights = new Float32Array(count * 4);
+    for (let index = 0; index < count; index += 1) weights[index * 4] = 1;
+    geometry.setAttribute("skinWeight", new Float32BufferAttribute(weights, 4));
+    const mesh = new SkinnedMesh(geometry, new MeshStandardMaterial());
+    const bone = new Bone();
+    const root = new Group();
+    root.add(bone, mesh);
+    mesh.bind(new Skeleton([bone]));
+    bone.scale.set(4, 1, 1);
+
+    const [part] = prepareFishModel(root, manifest());
+    const size = boundsOf(part?.geometry ?? new BoxGeometry()).getSize(new Vector3());
+
+    // Stretched to 4 x 0.5, then scaled to one body length: 0.5 / 4 high.
+    expect(size.y).toBeCloseTo(0.125);
   });
 });

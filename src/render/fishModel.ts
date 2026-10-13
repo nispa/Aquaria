@@ -1,14 +1,16 @@
 import {
   Box3,
+  BufferAttribute,
   Matrix3,
   Matrix4,
   Vector3,
-  type BufferAttribute,
+  Vector4,
   type BufferGeometry,
   type InterleavedBufferAttribute,
   type Material,
   type Mesh,
   type Object3D,
+  type SkinnedMesh,
 } from "three";
 import type { ModelAxis, ModelManifest } from "../scene/modelManifest";
 
@@ -43,6 +45,100 @@ function isMesh(object: Object3D): object is Mesh {
   return (object as Partial<Mesh>).isMesh === true;
 }
 
+function isSkinnedMesh(mesh: Mesh): mesh is SkinnedMesh {
+  return (mesh as Partial<SkinnedMesh>).isSkinnedMesh === true;
+}
+
+type Attribute = BufferAttribute | InterleavedBufferAttribute;
+
+/**
+ * Compressed models store positions and normals as normalized integers, which
+ * cannot hold values outside -1..1 once the model is moved and scaled.
+ */
+function toFloat(attribute: Attribute): BufferAttribute {
+  if (attribute instanceof BufferAttribute && attribute.array instanceof Float32Array) {
+    return attribute;
+  }
+  const { count, itemSize } = attribute;
+  const copy = new BufferAttribute(new Float32Array(count * itemSize), itemSize);
+  for (let index = 0; index < count; index += 1) {
+    for (let component = 0; component < itemSize; component += 1) {
+      copy.setComponent(index, component, attribute.getComponent(index, component));
+    }
+  }
+  return copy;
+}
+
+function floatGeometry(geometry: BufferGeometry): void {
+  for (const name of ["position", "normal", "tangent"]) {
+    const attribute = geometry.getAttribute(name) as Attribute | undefined;
+    if (attribute !== undefined) geometry.setAttribute(name, toFloat(attribute));
+  }
+  for (const name of ["position", "normal"] as const) {
+    const targets = geometry.morphAttributes[name];
+    if (targets !== undefined) geometry.morphAttributes[name] = targets.map(toFloat);
+  }
+}
+
+/**
+ * Bakes the pose the bones are in (the model's rest pose; animations are not
+ * played) into the geometry, as Three.js would skin it, and drops the skin
+ * attributes: the engine swims the model without a skeleton.
+ */
+function bakeSkin(geometry: BufferGeometry, mesh: SkinnedMesh): void {
+  const { bones, boneInverses } = mesh.skeleton;
+  const skinIndex = toFloat(geometry.getAttribute("skinIndex"));
+  const skinWeight = toFloat(geometry.getAttribute("skinWeight"));
+  const indices = new Vector4();
+  const weights = new Vector4();
+  const blended = new Matrix4();
+  const bone = new Matrix4();
+  const linear = new Matrix3();
+  const normalMatrix = new Matrix3();
+  const vector = new Vector3();
+  const transform = (
+    attribute: Attribute | undefined,
+    index: number,
+    apply: (target: Vector3) => Vector3,
+  ): void => {
+    if (attribute === undefined) return;
+    apply(vector.fromBufferAttribute(attribute, index));
+    attribute.setXYZ(index, vector.x, vector.y, vector.z);
+  };
+  for (let index = 0; index < skinIndex.count; index += 1) {
+    indices.fromBufferAttribute(skinIndex, index);
+    weights.fromBufferAttribute(skinWeight, index);
+    blended.elements.fill(0);
+    for (let slot = 0; slot < 4; slot += 1) {
+      const weight = weights.getComponent(slot);
+      const boneIndex = indices.getComponent(slot);
+      const boneObject = bones[boneIndex];
+      const inverse = boneInverses[boneIndex];
+      if (weight === 0 || boneObject === undefined || inverse === undefined) continue;
+      bone.multiplyMatrices(boneObject.matrixWorld, inverse);
+      for (let element = 0; element < 16; element += 1) {
+        blended.elements[element] =
+          (blended.elements[element] ?? 0) + (bone.elements[element] ?? 0) * weight;
+      }
+    }
+    blended.premultiply(mesh.bindMatrixInverse).multiply(mesh.bindMatrix);
+    linear.setFromMatrix4(blended);
+    normalMatrix.getNormalMatrix(blended);
+    transform(geometry.getAttribute("position"), index, (target) => target.applyMatrix4(blended));
+    transform(geometry.getAttribute("normal"), index, (target) =>
+      target.applyMatrix3(normalMatrix).normalize(),
+    );
+    transform(geometry.getAttribute("tangent"), index, (target) =>
+      target.applyMatrix3(linear).normalize(),
+    );
+    for (const target of geometry.morphAttributes.position ?? []) {
+      transform(target, index, (offset) => offset.applyMatrix3(linear));
+    }
+  }
+  geometry.deleteAttribute("skinIndex");
+  geometry.deleteAttribute("skinWeight");
+}
+
 /**
  * Morph targets are offsets (glTF stores them relative), so they turn and
  * scale with the model but do not move with it.
@@ -71,6 +167,8 @@ function transformMorphTargets(geometry: BufferGeometry, matrix: Matrix4): void 
 /** Copies a mesh's geometry into the model root's frame, morph targets included. */
 function bakeGeometry(mesh: Mesh, frame: Matrix4): BufferGeometry {
   const geometry = mesh.geometry.clone();
+  floatGeometry(geometry);
+  if (isSkinnedMesh(mesh)) bakeSkin(geometry, mesh);
   const matrix = new Matrix4().multiplyMatrices(frame, mesh.matrixWorld);
   geometry.applyMatrix4(matrix);
   transformMorphTargets(geometry, matrix);
