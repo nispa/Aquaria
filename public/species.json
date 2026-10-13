@@ -297,13 +297,8 @@
       "id": "neon-tetra",
       "name": "Neon tetra",
       "body": {
-        "type": "procedural",
-        "shape": "slender",
-        "pattern": "split",
-        "colors": {
-          "base": "#39a6ff",
-          "accent": "#e0303a"
-        }
+        "type": "gltf",
+        "model": "neon-tetra"
       },
       "length": {
         "mean": 0.035,

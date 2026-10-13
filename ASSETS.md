@@ -38,12 +38,19 @@ Each model is a folder in `public/assets/species/` whose `model.json` repeats
 the author, source and license (the unit tests check that the source is
 listed here).
 
-| Model      | Path                                | Source                                                                             | Author    | License |
-| ---------- | ----------------------------------- | ---------------------------------------------------------------------------------- | --------- | ------- |
-| Barramundi | `public/assets/species/barramundi/` | https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish | Microsoft | CC0     |
+| Model      | Path                                | Source                                                                                             | Author    | License   |
+| ---------- | ----------------------------------- | -------------------------------------------------------------------------------------------------- | --------- | --------- |
+| Barramundi | `public/assets/species/barramundi/` | https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish                 | Microsoft | CC0       |
+| Neon tetra | `public/assets/species/neon-tetra/` | https://sketchfab.com/3d-models/paracheirodon-innesi---tetra-neon-2fabf5db754746b7b81ebfa0bbe99161 | BlueMesh  | CC-BY 4.0 |
 
-The Barramundi was optimized with glTF Transform (meshopt geometry, KTX2
-textures at 1024 px; see README, "3D fish models").
+Both were optimized with glTF Transform (meshopt geometry, KTX2 textures at
+1024 px; see README, "3D fish models"). The neon tetra's skeleton and swim
+animation are not used: its rest pose is baked and the engine swims it.
+
+"Paracheirodon Innesi _ Tetra Neon"
+(https://sketchfab.com/3d-models/paracheirodon-innesi---tetra-neon-2fabf5db754746b7b81ebfa0bbe99161)
+by BlueMesh (https://sketchfab.com/VapTor) is licensed under CC-BY-4.0
+(http://creativecommons.org/licenses/by/4.0/).
 
 Everything else (procedural fish, plants, corals, shells, starfish, water,
 light) is procedural geometry and shaders generated in code.
