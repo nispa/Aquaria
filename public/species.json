@@ -301,12 +301,12 @@
         "model": "neon-tetra"
       },
       "length": {
-        "mean": 0.175,
-        "standardDeviation": 0.015
+        "mean": 0.035,
+        "standardDeviation": 0.003
       },
       "speed": {
-        "cruise": 0.16,
-        "max": 0.6
+        "cruise": 0.08,
+        "max": 0.3
       },
       "schooling": 0.9,
       "bands": [1, 3],
