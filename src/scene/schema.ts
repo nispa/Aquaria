@@ -85,6 +85,13 @@ export const speciesSchema = z.object({
   body: proceduralBody,
   /** Optional realistic 3D model; the viewer can switch it off per species. */
   model: modelFolder.optional(),
+  /** Most individuals a tank may hold, e.g. 1 or 2 for a solitary, detailed fish. */
+  maxCount: z
+    .number()
+    .int()
+    .min(1)
+    .max(MAX_INDIVIDUALS_PER_SPECIES)
+    .default(MAX_INDIVIDUALS_PER_SPECIES),
   /** Body length in meters. Individuals are drawn from a normal distribution. */
   length: z.object({ mean: positive, standardDeviation: z.number().min(0) }),
   /** Speeds in meters per second. */

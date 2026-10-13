@@ -97,6 +97,13 @@ describe("parseScene", () => {
     expect(() => parseScene(input, catalog)).toThrow(SceneValidationError);
   });
 
+  it("rejects more individuals than the species allows", () => {
+    const input = catalogFixture();
+    input.species[0]!.maxCount = 2;
+
+    expect(() => parseScene(sceneFixture(), parseCatalog(input))).toThrow(/at most 2/);
+  });
+
   it("rejects a zero current direction", () => {
     const input = sceneFixture();
     input.current.direction = [0, 0, 0];

@@ -2,12 +2,7 @@ import type { Box3 } from "three";
 import { Vector3 } from "three";
 import { clamp, lerp, smoothstep } from "../core/math";
 import { hashToUnit, type Rng } from "../core/rng";
-import {
-  MAX_INDIVIDUALS_PER_SPECIES,
-  type Scene,
-  type Species,
-  type SpeciesCatalog,
-} from "../scene/schema";
+import type { Scene, Species, SpeciesCatalog } from "../scene/schema";
 import { nextGaze, turnIntent } from "./gaze";
 import { createCurrentField, type CurrentField } from "./current";
 import { createFood, type Food } from "./food";
@@ -302,8 +297,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
   // Initial population: already swimming inside the tank.
   for (const entry of scene.fauna) {
     const group = groupOf(entry.species);
-    group.target = entry.count;
-    while (group.members.length < entry.count && fish.length < fishLimit) {
+    // Saved counts may predate a species' limit.
+    group.target = Math.min(entry.count, group.species.maxCount);
+    while (group.members.length < group.target && fish.length < fishLimit) {
       const member = createFish(group, false);
       fish.push(member);
       addMember(group, member);
@@ -572,7 +568,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
     },
     setCount(speciesId, count) {
       const group = groupOf(speciesId);
-      group.target = clamp(Math.round(count), 0, MAX_INDIVIDUALS_PER_SPECIES);
+      group.target = clamp(Math.round(count), 0, group.species.maxCount);
       reconcile(group);
     },
     targetCount(speciesId) {

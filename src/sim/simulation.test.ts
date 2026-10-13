@@ -147,6 +147,21 @@ describe("changing populations", () => {
     expect(newcomers.every((fish) => fish.opacity === 0)).toBe(true);
   });
 
+  it("never asks for more fish than the species allows", () => {
+    const input = catalogFixture();
+    input.species[0]!.maxCount = 7;
+    const limited = parseCatalog(input);
+    const simulation = createSimulation({
+      scene: parseScene(sceneFixture(), limited),
+      catalog: limited,
+      rng: createRng(1),
+    });
+
+    simulation.setCount("blue-tang", 20);
+
+    expect(simulation.targetCount("blue-tang")).toBe(7);
+  });
+
   it("lets new fish swim in and fade in", () => {
     const simulation = simulate();
     simulation.setCount("blue-tang", 8);

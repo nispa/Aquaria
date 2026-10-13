@@ -5,7 +5,7 @@ import type { Look, LookFeature, LookFeatureKind } from "../scene/look";
 import { checkbox, element, select, slider } from "./controls";
 import { createLightsSection, type LightsSectionState } from "./lightsSection";
 import type { SceneryEntry } from "../scene/scenery";
-import { MAX_INDIVIDUALS_PER_SPECIES, type Species } from "../scene/schema";
+import type { Species } from "../scene/schema";
 
 /** Lowest height offered on the slider (half of Full HD, for weak GPUs). */
 const MIN_HEIGHT = FULL_HD_HEIGHT / 2;
@@ -214,7 +214,7 @@ export function createPanel(
   for (const species of state.species) {
     const row = element("div", "panel__row panel__row--species");
     const value = element("output", "panel__value", String(state.counts[species.id] ?? 0));
-    const input = slider(0, MAX_INDIVIDUALS_PER_SPECIES, 1, state.counts[species.id] ?? 0);
+    const input = slider(0, species.maxCount, 1, state.counts[species.id] ?? 0);
     input.dataset.species = species.id;
     input.setAttribute("aria-label", species.name);
     input.addEventListener("input", () => {
