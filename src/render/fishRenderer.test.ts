@@ -14,6 +14,7 @@ const manifest = parseModelManifest(
   },
   "box-fish",
 );
+const withManifest = new Map<string, ModelManifest>([["box-fish", manifest]]);
 
 function boxFish(): Group {
   const root = new Group();
@@ -21,56 +22,97 @@ function boxFish(): Group {
   return root;
 }
 
-function setup(load: FishModelLoader, manifests = new Map<string, ModelManifest>()) {
+interface SetupOptions {
+  readonly load?: FishModelLoader;
+  readonly manifests?: ReadonlyMap<string, ModelManifest>;
+  readonly modelsOn?: boolean;
+}
+
+/** The first fixture species has a 3D model, "box-fish". */
+function setup({
+  load = () => Promise.resolve(boxFish()),
+  manifests = withManifest,
+  modelsOn = true,
+}: SetupOptions = {}) {
   const input = catalogFixture();
-  input.species[0]!.body = { type: "gltf", model: "box-fish" };
+  input.species[0]!.model = "box-fish";
   const catalog = parseCatalog(input);
   const entries: LogEntry[] = [];
+  const loads: string[] = [];
   const renderer = createFishRenderer(
     catalog,
     createWaterUniforms(parseScene(sceneFixture(), catalog)),
     createLogger("render", (entry) => entries.push(entry)),
-    { manifests, load },
+    {
+      manifests,
+      load: (url) => {
+        loads.push(url);
+        return load(url);
+      },
+    },
+    () => modelsOn,
   );
-  const meshNames = () => renderer.object.children.map((child) => child.name);
-  return { catalog, entries, renderer, meshNames };
+  const id = catalog.species[0]?.id ?? "";
+  const shown = () =>
+    renderer.object.children.filter((child) => child.visible).map((child) => child.name);
+  return { id, entries, loads, renderer, shown };
 }
 
 describe("createFishRenderer", () => {
-  it("draws procedural species right away, before any model has loaded", () => {
-    const { catalog, meshNames } = setup(() => new Promise(() => undefined));
+  it("draws the procedural body while the model loads", () => {
+    const { id, shown } = setup({ load: () => new Promise(() => undefined) });
 
-    expect(meshNames()).toEqual(catalog.species.slice(1).map((species) => species.id));
+    expect(shown()).toContain(id);
   });
 
-  it("adds a glTF species to the tank once its model has loaded", async () => {
-    const { catalog, renderer, meshNames } = setup(
-      () => Promise.resolve(boxFish()),
-      new Map([["box-fish", manifest]]),
-    );
+  it("switches a species to its 3D model once it has loaded", async () => {
+    const { id, renderer, shown } = setup();
 
     await renderer.settled();
 
-    expect(meshNames()).toContain(catalog.species[0]?.id);
+    expect([shown().includes(`${id}/model`), shown().includes(id)]).toEqual([true, false]);
   });
 
-  it("skips a species whose model fails to load, with a warning", async () => {
-    const { catalog, entries, renderer, meshNames } = setup(
-      () => Promise.reject(new Error("404")),
-      new Map([["box-fish", manifest]]),
-    );
+  it("keeps the procedural body when the model fails to load, with a warning", async () => {
+    const { id, entries, renderer, shown } = setup({
+      load: () => Promise.reject(new Error("404")),
+    });
 
     await renderer.settled();
 
-    expect([meshNames().includes(catalog.species[0]?.id ?? ""), entries[0]?.level]).toEqual([
-      false,
-      "warn",
+    expect([shown().includes(id), entries[0]?.level]).toEqual([true, "warn"]);
+  });
+
+  it("keeps the procedural body when the model has no manifest, with a warning", () => {
+    const { id, entries, shown } = setup({ manifests: new Map() });
+
+    expect([shown().includes(id), entries[0]?.details]).toEqual([
+      true,
+      expect.objectContaining({ model: "box-fish" }),
     ]);
   });
 
-  it("skips a species whose model has no manifest, with a warning", () => {
-    const { entries } = setup(() => Promise.resolve(boxFish()));
+  it("does not download models that are switched off", () => {
+    const { loads } = setup({ modelsOn: false });
 
-    expect(entries[0]?.details).toMatchObject({ model: "box-fish" });
+    expect(loads).toEqual([]);
+  });
+
+  it("goes back to the procedural body when the model is switched off", async () => {
+    const { id, renderer, shown } = setup();
+    await renderer.settled();
+
+    renderer.setModelEnabled(id, false);
+
+    expect([shown().includes(id), shown().includes(`${id}/model`)]).toEqual([true, false]);
+  });
+
+  it("loads the model when it is switched on later", async () => {
+    const { id, renderer, shown } = setup({ modelsOn: false });
+
+    renderer.setModelEnabled(id, true);
+    await renderer.settled();
+
+    expect(shown()).toContain(`${id}/model`);
   });
 });

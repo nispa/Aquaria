@@ -170,6 +170,32 @@ body {
   background: rgb(255 255 255 / 0.12);
 }
 
+.panel__row--species {
+  grid-template-columns: 150px 1fr 40px;
+}
+
+/* Marks a species drawn with a 3D model; dimmed when the procedural body is shown. */
+.panel__badge {
+  margin-left: 4px;
+  padding: 0 5px;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.75em;
+  font-weight: 700;
+  line-height: 1.5;
+  opacity: 0.4;
+  cursor: pointer;
+}
+
+.panel__badge[aria-pressed="true"] {
+  border-color: #4fc3f7;
+  background: rgb(79 195 247 / 0.25);
+  opacity: 1;
+}
+
 .panel__button--wide {
   width: 100%;
   margin-top: 8px;

@@ -30,6 +30,8 @@ export const settingsSchema = z.object({
     .string()
     .regex(/^[a-z0-9-]+$/)
     .optional(),
+  /** 3D model (true) or procedural body (false) per species id; absent = the 3D model. */
+  fishModels: z.record(z.string(), z.boolean()).optional(),
   /** How fish sizes are drawn: 0 real .. 1 all alike; DEFAULT_SIZE_BALANCE when absent. */
   sizeBalance: z.number().min(0).max(1).optional(),
   /** Custom LED setup; when absent the scene's own lights are used. */

@@ -43,18 +43,21 @@ describe("parseCatalog", () => {
     expect(() => parseCatalog(input)).toThrow(/color/i);
   });
 
-  it("accepts a glTF body that names a model folder", () => {
+  it("accepts a 3D model next to the procedural body", () => {
     const input = catalogFixture();
-    input.species[0]!.body = { type: "gltf", model: "blue-tang" };
+    input.species[0]!.model = "blue-tang";
 
     const catalog = parseCatalog(input);
 
-    expect(catalog.species[0]?.body).toEqual({ type: "gltf", model: "blue-tang" });
+    expect([catalog.species[0]?.body.type, catalog.species[0]?.model]).toEqual([
+      "procedural",
+      "blue-tang",
+    ]);
   });
 
-  it("rejects a glTF body whose model is not a folder name", () => {
+  it("rejects a model that is not a folder name", () => {
     const input = catalogFixture();
-    input.species[0]!.body = { type: "gltf", model: "../tang" };
+    input.species[0]!.model = "../tang";
 
     expect(() => parseCatalog(input)).toThrow(/model/);
   });

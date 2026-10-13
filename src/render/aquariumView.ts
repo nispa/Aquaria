@@ -73,8 +73,10 @@ export interface AquariumViewOptions {
   readonly canvas: HTMLCanvasElement;
   readonly scene: Scene;
   readonly catalog: SpeciesCatalog;
-  /** Manifests of the 3D models used by glTF species, by model folder. */
+  /** Manifests of the species' 3D models, by model folder. */
   readonly modelManifests: ReadonlyMap<string, ModelManifest>;
+  /** Whether a species starts with its 3D model instead of its procedural body. */
+  readonly fishModelEnabled: (speciesId: string) => boolean;
   readonly simulation: Simulation;
   readonly rng: Rng;
   readonly logger: Logger;
@@ -122,6 +124,8 @@ export interface AquariumView {
   hour(): number;
   /** Rebuilds plants, rocks, corals and shells for new scenery counts. */
   setScenery(flora: Scene["flora"], props: Scene["props"]): void;
+  /** Draws a species with its 3D model or its procedural body. */
+  setFishModel(speciesId: string, enabled: boolean): void;
   dispose(): void;
 }
 
@@ -214,10 +218,16 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   const modelLoader = new GLTFLoader()
     .setKTX2Loader(textureLoader)
     .setMeshoptDecoder(MeshoptDecoder);
-  const fish = createFishRenderer(catalog, water, logger, {
-    manifests: options.modelManifests,
-    load: (url) => modelLoader.loadAsync(url).then((gltf) => gltf.scene),
-  });
+  const fish = createFishRenderer(
+    catalog,
+    water,
+    logger,
+    {
+      manifests: options.modelManifests,
+      load: (url) => modelLoader.loadAsync(url).then((gltf) => gltf.scene),
+    },
+    options.fishModelEnabled,
+  );
   const food = createFoodRenderer(simulation.food.pellets.length, water);
   // Stable containers: effects keep references to them across rebuilds.
   const floraGroup = new Group();
@@ -458,6 +468,9 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       applySize();
     },
     setLook,
+    setFishModel(speciesId, enabled) {
+      fish.setModelEnabled(speciesId, enabled);
+    },
     setScenery(nextFlora, nextProps) {
       floraSpecs = nextFlora;
       propSpecs = nextProps;

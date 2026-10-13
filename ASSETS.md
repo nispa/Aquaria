@@ -38,13 +38,17 @@ Each model is a folder in `public/assets/species/` whose `model.json` repeats
 the author, source and license (the unit tests check that the source is
 listed here).
 
-| Model                    | Path                                              | Source                                                                                             | Author    | License   |
-| ------------------------ | ------------------------------------------------- | -------------------------------------------------------------------------------------------------- | --------- | --------- |
-| Barramundi               | `public/assets/species/barramundi/`               | https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish                 | Microsoft | CC0       |
-| Neon tetra               | `public/assets/species/neon-tetra/`               | https://sketchfab.com/3d-models/paracheirodon-innesi---tetra-neon-2fabf5db754746b7b81ebfa0bbe99161 | BlueMesh  | CC-BY 4.0 |
-| Gilthead seabream        | `public/assets/species/gilthead-seabream/`        | https://sketchfab.com/3d-models/bream-fish-dorade-royale-a3d0e1a597794a9bb74739a13cfc8b77          | BlueMesh  | CC-BY 4.0 |
-| Guppy                    | `public/assets/species/guppy/`                    | https://sketchfab.com/3d-models/guppy-fish-21e14e4b961e406385539f79eacdb1dc                        | BlueMesh  | CC-BY 4.0 |
-| Copperband butterflyfish | `public/assets/species/copperband-butterflyfish/` | https://sketchfab.com/3d-models/small-fish-8f5de32946f347a0b6c8e55c6a66d46d                        | The SpezX | CC-BY 4.0 |
+| Model                    | Path                                              | Source                                                                                                       | Author        | License   |
+| ------------------------ | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------- | --------- |
+| Barramundi               | `public/assets/species/barramundi/`               | https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish                           | Microsoft     | CC0       |
+| Neon tetra               | `public/assets/species/neon-tetra/`               | https://sketchfab.com/3d-models/paracheirodon-innesi---tetra-neon-2fabf5db754746b7b81ebfa0bbe99161           | BlueMesh      | CC-BY 4.0 |
+| Gilthead seabream        | `public/assets/species/gilthead-seabream/`        | https://sketchfab.com/3d-models/bream-fish-dorade-royale-a3d0e1a597794a9bb74739a13cfc8b77                    | BlueMesh      | CC-BY 4.0 |
+| Guppy                    | `public/assets/species/guppy/`                    | https://sketchfab.com/3d-models/guppy-fish-21e14e4b961e406385539f79eacdb1dc                                  | BlueMesh      | CC-BY 4.0 |
+| Copperband butterflyfish | `public/assets/species/copperband-butterflyfish/` | https://sketchfab.com/3d-models/small-fish-8f5de32946f347a0b6c8e55c6a66d46d                                  | The SpezX     | CC-BY 4.0 |
+| Clownfish                | `public/assets/species/clownfish/`                | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
+| Powder blue tang         | `public/assets/species/blue-tang/`                | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
+| Moorish idol             | `public/assets/species/moorish-idol/`             | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
+| Yellow tang              | `public/assets/species/yellow-tang/`              | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
 
 All were optimized with glTF Transform (meshopt geometry, KTX2 textures at
 1024 px; see README, "3D fish models"); the seabream's specular-glossiness
@@ -67,6 +71,11 @@ Credits for the CC-BY models, as their licenses ask:
 - "Small fish"
   (https://sketchfab.com/3d-models/small-fish-8f5de32946f347a0b6c8e55c6a66d46d)
   by The SpezX (https://sketchfab.com/SpezX), licensed under CC-BY-4.0.
+- "Animated Swimming Tropical Fish School Loop"
+  (https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99)
+  by LasquetiSpice (https://sketchfab.com/LasquetiSpice), licensed under
+  CC-BY-4.0. One fish of each species was extracted from the school (the
+  vertices bound to its bones), without the skeleton and animation.
 
 Everything else (procedural fish, plants, corals, shells, starfish, water,
 light) is procedural geometry and shaders generated in code.

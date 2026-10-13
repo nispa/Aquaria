@@ -60,12 +60,9 @@ const proceduralBody = z.object({
 });
 
 /** A 3D model: a folder in `public/assets/species/` with a glTF file and a `model.json`. */
-const gltfBody = z.object({
-  type: z.literal("gltf"),
-  model: z
-    .string()
-    .regex(/^[a-z0-9-]+$/, "model is a folder name: lowercase letters, digits and dashes."),
-});
+const modelFolder = z
+  .string()
+  .regex(/^[a-z0-9-]+$/, "model is a folder name: lowercase letters, digits and dashes.");
 
 /** How keen a species is on food when it is not fed (0 = ignores it, 1 = greedy). */
 export const DEFAULT_APPETITE = 0.6;
@@ -84,7 +81,10 @@ const behavior = z.object({
 export const speciesSchema = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/, "Species ids use lowercase letters, digits and dashes."),
   name: z.string().min(1),
-  body: z.discriminatedUnion("type", [proceduralBody, gltfBody]),
+  /** Always present: drawn when 3D models are off, still loading or missing. */
+  body: proceduralBody,
+  /** Optional realistic 3D model; the viewer can switch it off per species. */
+  model: modelFolder.optional(),
   /** Body length in meters. Individuals are drawn from a normal distribution. */
   length: z.object({ mean: positive, standardDeviation: z.number().min(0) }),
   /** Speeds in meters per second. */

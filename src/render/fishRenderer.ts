@@ -47,11 +47,15 @@ interface MouthMorph {
   readonly weights: Mesh;
 }
 
+type ModelState = "idle" | "loading" | "ready" | "failed";
+
 /**
- * Per-instance state of one species, shared by every mesh of its body: a
- * glTF model may have several meshes, all drawn from the same buffers.
+ * Per-instance state of one species, shared by every mesh of both its
+ * bodies: the procedural one and the 3D model, which may have several
+ * meshes. Only one body is visible at a time.
  */
 interface SpeciesInstances {
+  readonly species: Species;
   readonly matrices: InstancedBufferAttribute;
   readonly swimPhase: InstancedBufferAttribute;
   readonly opacity: InstancedBufferAttribute;
@@ -59,8 +63,12 @@ interface SpeciesInstances {
   readonly bend: InstancedBufferAttribute;
   readonly effort: InstancedBufferAttribute;
   readonly mouth: InstancedBufferAttribute;
-  /** Empty until the body is ready (a model may still be loading). */
-  readonly meshes: InstancedMesh[];
+  readonly procedural: InstancedMesh[];
+  /** Empty until the model has loaded. */
+  readonly model: InstancedMesh[];
+  modelState: ModelState;
+  /** The viewer wants the 3D model; the procedural body shows until it is ready. */
+  wantModel: boolean;
   /** Meshes that open the mouth with a morph target, and which one. */
   readonly mouthMorphs: MouthMorph[];
   count: number;
@@ -70,16 +78,22 @@ export interface FishRenderer {
   readonly object: Group;
   /** Copies simulation state into the instance buffers. Allocation-free. */
   update(fish: readonly Fish[]): void;
-  /** Resolves when every model has loaded or failed. */
+  /** Resolves when every model requested so far has loaded or failed. */
   settled(): Promise<void>;
+  /**
+   * Draws a species with its 3D model (loaded on first use) or with its
+   * procedural body. Species without a model always use the procedural body.
+   */
+  setModelEnabled(speciesId: string, enabled: boolean): void;
   dispose(): void;
 }
 
 const perInstance = (itemSize = 1): InstancedBufferAttribute =>
   new InstancedBufferAttribute(new Float32Array(MAX_INDIVIDUALS_PER_SPECIES * itemSize), itemSize);
 
-function createInstances(): SpeciesInstances {
+function createInstances(species: Species, wantModel: boolean): SpeciesInstances {
   return {
+    species,
     matrices: perInstance(MATRIX_SIZE),
     swimPhase: perInstance(),
     opacity: perInstance(),
@@ -87,7 +101,10 @@ function createInstances(): SpeciesInstances {
     bend: perInstance(),
     effort: perInstance(),
     mouth: perInstance(),
-    meshes: [],
+    procedural: [],
+    model: [],
+    modelState: "idle",
+    wantModel,
     mouthMorphs: [],
     count: 0,
   };
@@ -120,10 +137,7 @@ function createInstancedMesh(
   return mesh;
 }
 
-function proceduralMaterial(
-  body: Extract<Species["body"], { type: "procedural" }>,
-  water: WaterUniforms,
-): MeshPhysicalMaterial {
+function proceduralMaterial(body: Species["body"], water: WaterUniforms): MeshPhysicalMaterial {
   const { shape, pattern, colors } = body;
   return patchMaterial(
     // Physical material for iridescence: the rainbow sheen of guanine in fish skin.
@@ -185,16 +199,26 @@ function disposeLoadedScene(root: Object3D): Texture[] {
   return [...textures];
 }
 
+function showBody(instances: SpeciesInstances): void {
+  const model = instances.wantModel && instances.modelState === "ready";
+  for (const mesh of instances.procedural) mesh.visible = !model;
+  for (const mesh of instances.model) mesh.visible = model;
+}
+
 /**
  * One set of instanced meshes per species: a whole school is a single draw
- * call per mesh. Procedural bodies are ready at once; glTF models join the
- * tank when they have loaded, and a model that fails to load is skipped.
+ * call per mesh. Procedural bodies are ready at once. A 3D model is loaded
+ * when the viewer wants it and replaces the procedural body once it is
+ * ready; a model that fails to load leaves the procedural body in place.
+ *
+ * @param modelEnabled whether a species starts with its 3D model.
  */
 export function createFishRenderer(
   catalog: SpeciesCatalog,
   water: WaterUniforms,
   logger: Logger,
   models: FishModels,
+  modelEnabled: (speciesId: string) => boolean,
 ): FishRenderer {
   const object = new Group();
   object.name = "fish";
@@ -207,10 +231,11 @@ export function createFishRenderer(
 
   const addMesh = (
     instances: SpeciesInstances,
+    body: InstancedMesh[],
     mesh: InstancedMesh,
     mouthMorphIndex?: number,
   ): void => {
-    instances.meshes.push(mesh);
+    body.push(mesh);
     if (mouthMorphIndex !== undefined) {
       const weights = new Mesh();
       weights.morphTargetInfluences = new Array<number>(
@@ -241,21 +266,27 @@ export function createFishRenderer(
       if (material === undefined) continue;
       addMesh(
         instances,
-        createInstancedMesh(id, part.geometry, material, instances),
+        instances.model,
+        createInstancedMesh(`${id}/model`, part.geometry, material, instances),
         part.mouthMorphIndex,
       );
     }
   };
 
-  const loadModel = (entry: Species, instances: SpeciesInstances, modelId: string): void => {
+  const loadModel = (instances: SpeciesInstances): void => {
+    const { species: entry } = instances;
+    if (entry.model === undefined || instances.modelState !== "idle") return;
+    const modelId = entry.model;
     const manifest = models.manifests.get(modelId);
     if (manifest === undefined) {
-      logger.warn("Fish model has no manifest; species skipped", {
+      instances.modelState = "failed";
+      logger.warn("Fish model has no manifest; the procedural body is used", {
         species: entry.id,
         model: modelId,
       });
       return;
     }
+    instances.modelState = "loading";
     const url = modelFileUrl(modelId, manifest);
     const done = models
       .load(url)
@@ -269,9 +300,12 @@ export function createFishRenderer(
         }
         textures.push(...loadedTextures);
         addModelParts(entry.id, instances, parts, manifest);
+        instances.modelState = "ready";
+        showBody(instances);
       })
       .catch((error: unknown) => {
-        logger.warn("Fish model could not be loaded; species skipped", {
+        instances.modelState = "failed";
+        logger.warn("Fish model could not be loaded; the procedural body is used", {
           species: entry.id,
           url,
           error: String(error),
@@ -281,17 +315,18 @@ export function createFishRenderer(
   };
 
   for (const entry of catalog.species) {
-    const instances = createInstances();
+    const instances = createInstances(entry, modelEnabled(entry.id));
     species.set(entry.id, instances);
-    if (entry.body.type === "gltf") {
-      loadModel(entry, instances, entry.body.model);
-      continue;
-    }
     const geometry = createFishGeometry(entry.body.shape);
     const material = proceduralMaterial(entry.body, water);
     geometries.push(geometry);
     materials.push(material);
-    addMesh(instances, createInstancedMesh(entry.id, geometry, material, instances));
+    addMesh(
+      instances,
+      instances.procedural,
+      createInstancedMesh(entry.id, geometry, material, instances),
+    );
+    if (instances.wantModel) loadModel(instances);
   }
 
   const matrix = new Matrix4();
@@ -333,7 +368,8 @@ export function createFishRenderer(
         instances.count += 1;
       }
       for (const instances of species.values()) {
-        for (const mesh of instances.meshes) mesh.count = instances.count;
+        for (const mesh of instances.procedural) mesh.count = instances.count;
+        for (const mesh of instances.model) mesh.count = instances.count;
         instances.matrices.needsUpdate = true;
         instances.swimPhase.needsUpdate = true;
         instances.opacity.needsUpdate = true;
@@ -345,10 +381,17 @@ export function createFishRenderer(
       }
     },
     settled: () => Promise.all(loading).then(() => undefined),
+    setModelEnabled(speciesId, enabled) {
+      const instances = species.get(speciesId);
+      if (instances === undefined) return;
+      instances.wantModel = enabled;
+      if (enabled) loadModel(instances);
+      showBody(instances);
+    },
     dispose() {
       disposed = true;
       for (const instances of species.values()) {
-        for (const mesh of instances.meshes) mesh.dispose();
+        for (const mesh of [...instances.procedural, ...instances.model]) mesh.dispose();
       }
       materials.forEach((material) => {
         material.dispose();

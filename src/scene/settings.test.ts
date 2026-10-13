@@ -106,6 +106,14 @@ describe("scenery preference", () => {
   });
 });
 
+describe("3D model preference", () => {
+  it("keeps the body chosen per species", () => {
+    const fishModels = { "neon-tetra": false, guppy: true };
+
+    expect(parseSettings({ fishModels }).settings.fishModels).toEqual(fishModels);
+  });
+});
+
 describe("fish size preference", () => {
   it("keeps a saved size balance", () => {
     expect(parseSettings({ sizeBalance: 0.8 }).settings.sizeBalance).toBe(0.8);

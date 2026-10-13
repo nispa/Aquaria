@@ -85,10 +85,10 @@ export function modelFileUrl(id: string, manifest: ModelManifest): string {
   return `${modelFolderUrl(id)}/${manifest.file}`;
 }
 
-/** The model folders the catalog's glTF species use, each once. */
+/** The model folders the catalog's species use, each once. */
 export function modelIdsOf(catalog: SpeciesCatalog): string[] {
   const ids = catalog.species.flatMap((species) =>
-    species.body.type === "gltf" ? [species.body.model] : [],
+    species.model === undefined ? [] : [species.model],
   );
   return [...new Set(ids)];
 }

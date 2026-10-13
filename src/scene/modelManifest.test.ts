@@ -67,8 +67,8 @@ describe("modelFileUrl", () => {
 describe("modelIdsOf", () => {
   it("lists each model used by the catalog once", () => {
     const input = catalogFixture();
-    input.species[0]!.body = { type: "gltf", model: "barramundi" };
-    input.species[1]!.body = { type: "gltf", model: "barramundi" };
+    input.species[0]!.model = "barramundi";
+    input.species[1]!.model = "barramundi";
 
     expect(modelIdsOf(parseCatalog(input))).toEqual(["barramundi"]);
   });

@@ -69,7 +69,7 @@ describe("bundled data files", () => {
     expect(assetCredits).toContain(manifest.credit.source);
   });
 
-  it("ships a model folder for every glTF species", () => {
+  it("ships a model folder for every species with a 3D model", () => {
     const catalog = parseCatalog(readJson("../../public/species.json"));
 
     expect(modelIdsOf(catalog).filter((id) => !modelFolders.includes(id))).toEqual([]);

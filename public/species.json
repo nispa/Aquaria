@@ -12,6 +12,7 @@
           "accent": "#ffcf33"
         }
       },
+      "model": "blue-tang",
       "length": {
         "mean": 0.26,
         "standardDeviation": 0.03
@@ -41,6 +42,7 @@
           "accent": "#fbfbf5"
         }
       },
+      "model": "clownfish",
       "length": {
         "mean": 0.11,
         "standardDeviation": 0.012
@@ -99,6 +101,7 @@
           "accent": "#fff3a8"
         }
       },
+      "model": "yellow-tang",
       "length": {
         "mean": 0.18,
         "standardDeviation": 0.02
@@ -147,11 +150,18 @@
     },
     {
       "id": "butterflyfish",
-      "name": "Copperband butterflyfish",
+      "name": "Butterflyfish",
       "body": {
-        "type": "gltf",
-        "model": "copperband-butterflyfish"
+        "type": "procedural",
+        "shape": "tall",
+        "pattern": "eye-bar",
+        "colors": {
+          "base": "#ffd23a",
+          "accent": "#1a1a1a",
+          "detail": "#fff6d8"
+        }
       },
+      "model": "copperband-butterflyfish",
       "length": {
         "mean": 0.15,
         "standardDeviation": 0.015
@@ -182,6 +192,7 @@
           "detail": "#ffcc22"
         }
       },
+      "model": "moorish-idol",
       "length": {
         "mean": 0.2,
         "standardDeviation": 0.02
@@ -291,9 +302,15 @@
       "id": "neon-tetra",
       "name": "Neon tetra",
       "body": {
-        "type": "gltf",
-        "model": "neon-tetra"
+        "type": "procedural",
+        "shape": "slender",
+        "pattern": "split",
+        "colors": {
+          "base": "#39a6ff",
+          "accent": "#e0303a"
+        }
       },
+      "model": "neon-tetra",
       "length": {
         "mean": 0.035,
         "standardDeviation": 0.003
@@ -373,9 +390,15 @@
       "id": "guppy",
       "name": "Guppy",
       "body": {
-        "type": "gltf",
-        "model": "guppy"
+        "type": "procedural",
+        "shape": "slender",
+        "pattern": "tail",
+        "colors": {
+          "base": "#cfc8bc",
+          "accent": "#ff6a2a"
+        }
       },
+      "model": "guppy",
       "length": {
         "mean": 0.04,
         "standardDeviation": 0.005
@@ -456,9 +479,15 @@
       "id": "barramundi",
       "name": "Barramundi",
       "body": {
-        "type": "gltf",
-        "model": "barramundi"
+        "type": "procedural",
+        "shape": "round",
+        "pattern": "belly",
+        "colors": {
+          "base": "#7d858c",
+          "accent": "#dcdad2"
+        }
       },
+      "model": "barramundi",
       "length": {
         "mean": 0.6,
         "standardDeviation": 0.06
@@ -480,9 +509,15 @@
       "id": "gilthead-seabream",
       "name": "Gilthead seabream",
       "body": {
-        "type": "gltf",
-        "model": "gilthead-seabream"
+        "type": "procedural",
+        "shape": "disc",
+        "pattern": "belly",
+        "colors": {
+          "base": "#9ea5ab",
+          "accent": "#ece7da"
+        }
       },
+      "model": "gilthead-seabream",
       "length": {
         "mean": 0.35,
         "standardDeviation": 0.04

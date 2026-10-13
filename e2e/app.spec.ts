@@ -71,7 +71,9 @@ test("changes a population from the panel", async ({ page }) => {
 
   await page.locator('input[data-species="clownfish"]').fill("12");
 
-  await expect(page.locator("label", { hasText: "Clownfish" }).locator("output")).toHaveText("12");
+  await expect(page.locator(".panel__row", { hasText: "Clownfish" }).locator("output")).toHaveText(
+    "12",
+  );
 });
 
 test("shows a clear error for a missing scene", async ({ page }) => {
@@ -149,6 +151,30 @@ test("resizes the fish from the panel and remembers it", async ({ page }) => {
 
   await expect(page.locator("label", { hasText: "Fish size" }).locator("output")).toHaveText(
     "Alike",
+  );
+  expect(errors).toEqual([]);
+});
+
+test("switches a species to its procedural body and remembers it", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    if (localStorage.getItem("aquaria.settings") === null) {
+      localStorage.setItem("aquaria.settings", JSON.stringify({ renderHeight: 540 }));
+    }
+  });
+  await page.goto("/?effects=none");
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await page.locator('button[data-model="clownfish"]').click();
+  await page.reload();
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await expect(page.locator('button[data-model="clownfish"]')).toHaveAttribute(
+    "aria-pressed",
+    "false",
   );
   expect(errors).toEqual([]);
 });

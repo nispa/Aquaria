@@ -297,6 +297,7 @@ async function start(): Promise<void> {
       scene: shown,
       catalog,
       modelManifests,
+      fishModelEnabled,
       simulation: nextSimulation,
       rng: rng.fork(),
       logger: createLogger("render", consoleSink),
@@ -311,6 +312,8 @@ async function start(): Promise<void> {
     nextView.resize(window.innerWidth, window.innerHeight);
     return { simulation: nextSimulation, view: nextView };
   };
+  /** Species show their 3D model unless the viewer switched it off. */
+  const fishModelEnabled = (speciesId: string): boolean => settings.fishModels?.[speciesId] ?? true;
   let shownScene = scene;
   let { simulation, view } = mountScene(scene);
   const feedRng = createRng((options.seed ?? scene.seed) + FEED_SEED_OFFSET);
@@ -377,6 +380,13 @@ async function start(): Promise<void> {
         catalog.species.map((species) => [species.id, simulation.targetCount(species.id)]),
       ),
       sizeBalance: settings.sizeBalance ?? DEFAULT_SIZE_BALANCE,
+      fishModels: Object.fromEntries(
+        catalog.species.flatMap((species) =>
+          species.model !== undefined && modelManifests.has(species.model)
+            ? [[species.id, fishModelEnabled(species.id)]]
+            : [],
+        ),
+      ),
       renderHeight: settings.renderHeight,
       showFps: settings.showFps,
       msaaSamples: settings.msaaSamples ?? DEFAULT_MSAA_SAMPLES,
@@ -397,6 +407,15 @@ async function start(): Promise<void> {
           counts: {
             ...settings.counts,
             [scene.id]: { ...settings.counts[scene.id], [speciesId]: count },
+          },
+        });
+      },
+      onFishModelChange(speciesIds, enabled) {
+        for (const id of speciesIds) view.setFishModel(id, enabled);
+        update({
+          fishModels: {
+            ...settings.fishModels,
+            ...Object.fromEntries(speciesIds.map((id) => [id, enabled])),
           },
         });
       },

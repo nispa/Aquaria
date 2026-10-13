@@ -224,8 +224,13 @@ rebuilds the tank.
 
 ### 3D fish models
 
-A species can use a realistic 3D model instead of a procedural body, and both
-kinds swim together in the same tank. A model is a folder:
+Every species has a procedural body, and may also have a realistic 3D model.
+Procedural and 3D fish swim together in the same tank. In the panel's Fauna
+section a **3D** badge marks the species with a model: click it to switch
+that species between its model and the lighter procedural body, or use
+**All 3D** / **None 3D**. The choice is saved. A model is downloaded only
+when it is shown, and the procedural body stays while it loads or if it
+fails. A model is a folder:
 
 ```
 public/assets/species/barramundi/
@@ -237,7 +242,7 @@ Instead of a `.glb`, the folder may hold a `.gltf` with its `.bin` and
 texture files next to it. The species points to the folder:
 
 ```json
-{ "id": "barramundi", "name": "Barramundi", "body": { "type": "gltf", "model": "barramundi" }, ... }
+{ "id": "barramundi", "name": "Barramundi", "body": { "type": "procedural", ... }, "model": "barramundi", ... }
 ```
 
 `model.json`:

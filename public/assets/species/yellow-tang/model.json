@@ -1,0 +1,12 @@
+{
+  "name": "Yellow tang",
+  "file": "model.glb",
+  "forward": "+z",
+  "up": "+y",
+  "swimAmplitude": 0.06,
+  "credit": {
+    "author": "LasquetiSpice",
+    "source": "https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99",
+    "license": "CC-BY-4.0"
+  }
+}
