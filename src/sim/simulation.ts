@@ -10,6 +10,7 @@ import {
 } from "../scene/schema";
 import { nextGaze, turnIntent } from "./gaze";
 import { createCurrentField, type CurrentField } from "./current";
+import { easeToward, tailEffort, turnBend } from "./posture";
 import {
   addAlignment,
   addCohesion,
@@ -64,6 +65,9 @@ const WANDER_DEPTH_RATIO = 0.5;
 const SWIM_BEATS_PER_BODY_LENGTH = 0.9;
 /** How far the wanted gaze must drift before the eyes jump to it. */
 const GAZE_SACCADE_THRESHOLD = 0.35;
+/** How quickly the body follows its turns and the tail its effort, in seconds; filters wander jitter. */
+const BEND_RESPONSE_SECONDS = 0.2;
+const EFFORT_RESPONSE_SECONDS = 0.3;
 
 export type FishState = "entering" | "swimming" | "leaving";
 
@@ -80,6 +84,10 @@ export interface Fish {
   opacity: number;
   /** Where the eyes look, -1 (right) .. 1 (left); leads each turn. */
   gaze: number;
+  /** Body curvature times length, positive into a left turn; see sim/posture. */
+  bend: number;
+  /** Tail-beat amplitude relative to cruising; see sim/posture. */
+  effort: number;
   state: FishState;
   /** Wander heading (yaw) in radians. */
   wanderAngle: number;
@@ -191,6 +199,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
       swimPhase: rng.range(0, Math.PI * 2),
       opacity: entering ? 0 : 1,
       gaze: 0,
+      bend: 0,
+      effort: 1,
       state: entering ? "entering" : "swimming",
       wanderAngle: angle,
       side,
@@ -240,6 +250,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
   const force = new Vector3();
   const term = new Vector3();
   const drift = new Vector3();
+  const previousVelocity = new Vector3();
 
   const steer = (group: Group, member: Fish, deltaSeconds: number): void => {
     const { species, habitat } = group;
@@ -287,11 +298,25 @@ export function createSimulation(options: SimulationOptions): Simulation {
     term.copy(member.velocity).multiplyScalar(((cruise - speed) / speed) * SPEED_RESPONSE);
     force.multiplyScalar(cruise).add(term);
 
+    previousVelocity.copy(member.velocity);
     member.velocity.addScaledVector(force, deltaSeconds);
     const maxVertical = member.velocity.length() * MAX_VERTICAL_RATIO;
     member.velocity.y = clamp(member.velocity.y, -maxVertical, maxVertical);
     const clamped = clamp(member.velocity.length(), cruise * MIN_SPEED_RATIO, species.speed.max);
     member.velocity.setLength(clamped);
+
+    member.bend = easeToward(
+      member.bend,
+      turnBend(previousVelocity, member.velocity, deltaSeconds, member.length),
+      BEND_RESPONSE_SECONDS,
+      deltaSeconds,
+    );
+    member.effort = easeToward(
+      member.effort,
+      tailEffort(previousVelocity, member.velocity, deltaSeconds, cruise),
+      EFFORT_RESPONSE_SECONDS,
+      deltaSeconds,
+    );
   };
 
   const move = (member: Fish, deltaSeconds: number): void => {

@@ -11,6 +11,10 @@ const PUPIL_TRAVEL = 0.009;
 /** Fins are thin: see-through and paler than the body. */
 const FIN_OPACITY = 0.62;
 const FIN_PALENESS = 0.22;
+/** Where the body starts bending into a turn, in body lengths from the centre (the head stays rigid). */
+const BEND_PIVOT = 0.2;
+/** Below this curvature the body is treated as straight, avoiding a division by zero. */
+const MIN_CURVATURE = 1e-4;
 
 /** Pattern ids shared with the fish geometry code. Order matters (GLSL int). */
 export const PATTERN_IDS = {
@@ -46,7 +50,12 @@ export type FishUniforms = {
  * individual fish in and out. The skin gets overlapping scales with real
  * relief (derivative bump mapping), fins are paler, translucent and ribbed.
  *
- * Instance attributes: aSwimPhase (radians), aOpacity (0..1), aGaze (-1 right .. 1 left).
+ * The rear of the body also curves into turns along a circular arc, like a
+ * spine, and the tail sweep scales with swimming effort.
+ *
+ * Instance attributes: aSwimPhase (radians), aOpacity (0..1), aGaze (-1 right .. 1 left),
+ * aBend (curvature times body length, positive into a left turn, -2.5..2.5),
+ * aEffort (tail sweep relative to cruising, 0.5..2.2).
  * Vertex attribute: aFin (0 body, 1 fin).
  * The geometry is one body length long along +x, nose at +0.5.
  */
@@ -59,14 +68,35 @@ export function fishPatch(uniforms: FishUniforms): ShaderPatch {
       attribute float aOpacity;
       attribute float aFin;
       attribute float aGaze;
+      attribute float aBend;
+      attribute float aEffort;
       uniform float uSwimAmplitude;
       varying vec3 vBodyPosition;
       varying float vOpacity;
       varying float vFin;
       varying float vBodyLength;
       varying float vGaze;
+
+      // The body behind the pivot follows a circular arc of curvature aBend
+      // (in body lengths). Returns the arc angle at this point; -z is the
+      // fish's left, so a left turn curls the tail towards -z.
+      float bendAngle(float x) {
+        return aBend * max(${BEND_PIVOT.toFixed(2)} - x, 0.0);
+      }
+      vec2 rotateBend(vec2 xz, float angle) {
+        float c = cos(angle);
+        float s = sin(angle);
+        return vec2(xz.x * c - xz.y * s, xz.x * s + xz.y * c);
+      }
     `,
     vertex: [
+      [
+        "#include <beginnormal_vertex>",
+        /* glsl */ `
+        #include <beginnormal_vertex>
+        objectNormal.xz = rotateBend(objectNormal.xz, bendAngle(position.x));
+        `,
+      ],
       [
         "#include <begin_vertex>",
         /* glsl */ `
@@ -85,8 +115,24 @@ export function fishPatch(uniforms: FishUniforms): ShaderPatch {
           // Only the rear two thirds bend; the head stays steady like a real fish.
           float rear = smoothstep(0.25, -0.5, position.x);
           float wave = sin(aSwimPhase - position.x * 6.0);
-          transformed.z += wave * uSwimAmplitude * rear;
-          transformed.x -= abs(wave) * uSwimAmplitude * 0.15 * rear;
+          float sweep = uSwimAmplitude * aEffort;
+          transformed.z += wave * sweep * rear;
+          transformed.x -= abs(wave) * sweep * 0.15 * rear;
+        }
+        {
+          // Lay the point along the arc: the spine point at arc length d behind
+          // the pivot, plus the sideways offset rotated with the spine.
+          float d = max(${BEND_PIVOT.toFixed(2)} - transformed.x, 0.0);
+          float curvature = abs(aBend) < ${MIN_CURVATURE} ? ${MIN_CURVATURE} : aBend;
+          float angle = curvature * d;
+          // Points ahead of the pivot (the head) keep their x.
+          float ahead = max(transformed.x - ${BEND_PIVOT.toFixed(2)}, 0.0);
+          vec2 spine = vec2(
+            ${BEND_PIVOT.toFixed(2)} + ahead - sin(angle) / curvature,
+            -(1.0 - cos(angle)) / curvature
+          );
+          vec2 side = rotateBend(vec2(0.0, transformed.z), angle);
+          transformed.xz = spine + side;
         }
         `,
       ],

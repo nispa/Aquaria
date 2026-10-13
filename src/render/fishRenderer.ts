@@ -28,6 +28,8 @@ interface SpeciesMesh {
   readonly swimPhase: InstancedBufferAttribute;
   readonly opacity: InstancedBufferAttribute;
   readonly gaze: InstancedBufferAttribute;
+  readonly bend: InstancedBufferAttribute;
+  readonly effort: InstancedBufferAttribute;
   count: number;
 }
 
@@ -68,6 +70,10 @@ export function createFishRenderer(
     geometry.setAttribute("aOpacity", opacity);
     const gaze = new InstancedBufferAttribute(new Float32Array(MAX_INDIVIDUALS_PER_SPECIES), 1);
     geometry.setAttribute("aGaze", gaze);
+    const bend = new InstancedBufferAttribute(new Float32Array(MAX_INDIVIDUALS_PER_SPECIES), 1);
+    geometry.setAttribute("aBend", bend);
+    const effort = new InstancedBufferAttribute(new Float32Array(MAX_INDIVIDUALS_PER_SPECIES), 1);
+    geometry.setAttribute("aEffort", effort);
 
     const material = patchMaterial(
       // Physical material for iridescence: the rainbow sheen of guanine in fish skin.
@@ -100,7 +106,7 @@ export function createFishRenderer(
     // Instances roam the whole tank; the per-mesh bounding sphere would be wrong.
     mesh.frustumCulled = false;
     object.add(mesh);
-    meshes.set(species.id, { mesh, swimPhase, opacity, gaze, count: 0 });
+    meshes.set(species.id, { mesh, swimPhase, opacity, gaze, bend, effort, count: 0 });
   }
 
   const matrix = new Matrix4();
@@ -125,6 +131,8 @@ export function createFishRenderer(
         entry.swimPhase.setX(entry.count, individual.swimPhase);
         entry.opacity.setX(entry.count, individual.opacity);
         entry.gaze.setX(entry.count, individual.gaze);
+        entry.bend.setX(entry.count, individual.bend);
+        entry.effort.setX(entry.count, individual.effort);
         entry.count += 1;
       }
       for (const entry of meshes.values()) {
@@ -133,6 +141,8 @@ export function createFishRenderer(
         entry.swimPhase.needsUpdate = true;
         entry.opacity.needsUpdate = true;
         entry.gaze.needsUpdate = true;
+        entry.bend.needsUpdate = true;
+        entry.effort.needsUpdate = true;
       }
     },
     dispose() {

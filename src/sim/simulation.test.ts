@@ -4,6 +4,7 @@ import { catalogFixture, sceneFixture } from "../scene/fixtures";
 import { parseCatalog, parseScene } from "../scene/parse";
 import type { SceneInput } from "../scene/schema";
 import { createSimulation, TOTAL_FISH_LIMIT, type Simulation } from "./simulation";
+import { MAX_BEND, MAX_EFFORT, MIN_EFFORT } from "./posture";
 import { habitatBox } from "./tank";
 
 const STEP = 1 / 60;
@@ -263,5 +264,34 @@ describe("gaze", () => {
     const gazes = simulation.fish.map((fish) => fish.gaze);
     expect(gazes.every((gaze) => gaze >= -1 && gaze <= 1)).toBe(true);
     expect(gazes.some((gaze) => gaze !== 0)).toBe(true);
+  });
+});
+
+describe("posture", () => {
+  it("bends fish into their turns, both ways, within the C-start limit", () => {
+    const simulation = simulate();
+
+    run(simulation, 10);
+
+    const bends = simulation.fish.map((fish) => fish.bend);
+    expect(bends.every((bend) => Math.abs(bend) <= MAX_BEND)).toBe(true);
+    expect(bends.some((bend) => bend > 0)).toBe(true);
+    expect(bends.some((bend) => bend < 0)).toBe(true);
+  });
+
+  it("varies the tail beat between fish, within its limits", () => {
+    const simulation = simulate();
+
+    run(simulation, 10);
+
+    const efforts = simulation.fish.map((fish) => fish.effort);
+    expect(efforts.every((effort) => effort >= MIN_EFFORT && effort <= MAX_EFFORT)).toBe(true);
+    expect(new Set(efforts).size).toBeGreaterThan(1);
+  });
+
+  it("starts every fish straight and cruising", () => {
+    const simulation = simulate();
+
+    expect(simulation.fish.every((fish) => fish.bend === 0 && fish.effort === 1)).toBe(true);
   });
 });
