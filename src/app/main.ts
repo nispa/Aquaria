@@ -17,6 +17,7 @@ import {
   slugify,
   writeCustomScene,
 } from "../scene/customScenes";
+import { DEFAULT_SIZE_BALANCE, displayCatalog } from "../scene/displaySize";
 import {
   MODEL_MANIFEST_FILE,
   modelFolderUrl,
@@ -283,7 +284,14 @@ async function start(): Promise<void> {
    */
   const mountScene = (shown: Scene): { simulation: Simulation; view: AquariumView } => {
     const rng = createRng(options.seed ?? shown.seed);
-    const nextSimulation = createSimulation({ scene: shown, catalog, rng: rng.fork() });
+    // The simulation sees the sizes as drawn; the catalog keeps the real ones.
+    const sized = displayCatalog(
+      catalog,
+      shown.tank.width,
+      settings.sizeBalance ?? DEFAULT_SIZE_BALANCE,
+    );
+    const nextSimulation = createSimulation({ scene: shown, catalog: sized, rng: rng.fork() });
+    shownScene = shown;
     const nextView = createAquariumView({
       canvas,
       scene: shown,
@@ -303,6 +311,7 @@ async function start(): Promise<void> {
     nextView.resize(window.innerWidth, window.innerHeight);
     return { simulation: nextSimulation, view: nextView };
   };
+  let shownScene = scene;
   let { simulation, view } = mountScene(scene);
   const feedRng = createRng((options.seed ?? scene.seed) + FEED_SEED_OFFSET);
   // The pointer is a finger on the glass: curious fish come to look, a tap
@@ -367,6 +376,7 @@ async function start(): Promise<void> {
       counts: Object.fromEntries(
         catalog.species.map((species) => [species.id, simulation.targetCount(species.id)]),
       ),
+      sizeBalance: settings.sizeBalance ?? DEFAULT_SIZE_BALANCE,
       renderHeight: settings.renderHeight,
       showFps: settings.showFps,
       msaaSamples: settings.msaaSamples ?? DEFAULT_MSAA_SAMPLES,
@@ -389,6 +399,18 @@ async function start(): Promise<void> {
             [scene.id]: { ...settings.counts[scene.id], [speciesId]: count },
           },
         });
+      },
+      onSizeBalanceChange(balance) {
+        update({ sizeBalance: balance });
+        // Fish keep their sizes for life: rebuild the tank, keeping the counts and scenery.
+        const counts = catalog.species.map(
+          (species) => [species.id, simulation.targetCount(species.id)] as const,
+        );
+        view.dispose();
+        ({ simulation, view } = mountScene(shownScene));
+        for (const [id, count] of counts) simulation.setCount(id, count);
+        // A designer preview shows its own scenery; the scene shows the viewer's.
+        if (shownScene === scene) scheduleSceneryRebuild();
       },
       onSceneryChange(key, count) {
         sceneryCounts = { ...sceneryCounts, [key]: count };

@@ -30,6 +30,8 @@ export const settingsSchema = z.object({
     .string()
     .regex(/^[a-z0-9-]+$/)
     .optional(),
+  /** How fish sizes are drawn: 0 real .. 1 all alike; DEFAULT_SIZE_BALANCE when absent. */
+  sizeBalance: z.number().min(0).max(1).optional(),
   /** Custom LED setup; when absent the scene's own lights are used. */
   lights: customLightsSchema.optional(),
   /** Scenery count overrides per scene id, then per scenery key (see `sceneryEntries`). */

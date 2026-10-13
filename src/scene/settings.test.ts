@@ -106,6 +106,16 @@ describe("scenery preference", () => {
   });
 });
 
+describe("fish size preference", () => {
+  it("keeps a saved size balance", () => {
+    expect(parseSettings({ sizeBalance: 0.8 }).settings.sizeBalance).toBe(0.8);
+  });
+
+  it("rejects a balance above 1", () => {
+    expect(parseSettings({ sizeBalance: 1.5 }).valid).toBe(false);
+  });
+});
+
 describe("lights preference", () => {
   it("has no custom lights by default, so the scene's lights are used", () => {
     expect(DEFAULT_SETTINGS.lights).toBeUndefined();

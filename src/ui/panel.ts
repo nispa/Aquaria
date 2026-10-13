@@ -12,6 +12,15 @@ const MIN_HEIGHT = FULL_HD_HEIGHT / 2;
 const HEIGHT_STEP = 60;
 /** Seconds of mouse inactivity before the corner button hides again. */
 const BUTTON_IDLE_MS = 2500;
+const PERCENT = 100;
+const SIZE_STEP = 5;
+
+/** "Real" at 0, "Alike" at 1, a percentage in between. */
+function sizeBalanceLabel(balance: number): string {
+  if (balance === 0) return "Real";
+  if (balance === 1) return "Alike";
+  return `${Math.round(balance * PERCENT)}%`;
+}
 
 /** A scene offered in the panel's scene list. */
 export interface SceneChoice {
@@ -31,6 +40,8 @@ export interface PanelState {
   readonly sceneId: string;
   readonly species: readonly Species[];
   readonly counts: Readonly<Record<string, number>>;
+  /** How fish sizes are drawn: 0 real .. 1 all alike. */
+  readonly sizeBalance: number;
   /** The GPU the browser draws with, and whether it is the fast one. */
   readonly gpu: { readonly name: string; readonly kind: GpuKind };
   /** LED setup and cycle. */
@@ -51,6 +62,8 @@ export interface PanelCallbacks {
   onSceneChange(sceneId: string): void;
   onOpenDesigner(): void;
   onCountChange(speciesId: string, count: number): void;
+  /** Called when the slider is released: the tank is rebuilt with the new sizes. */
+  onSizeBalanceChange(balance: number): void;
   onSceneryChange(key: string, count: number): void;
   /** A custom setup, or undefined to go back to the recommended one. */
   onLightsChange(lights: Lights | undefined): void;
@@ -145,6 +158,19 @@ export function createPanel(
 
   const fauna = element("section", "panel__section");
   fauna.append(element("h2", "panel__heading", "Fauna"));
+  const sizeRow = element("label", "panel__row");
+  const sizeValue = element("output", "panel__value", sizeBalanceLabel(state.sizeBalance));
+  const size = slider(0, PERCENT, SIZE_STEP, Math.round(state.sizeBalance * PERCENT));
+  size.name = "fish-size";
+  size.title = "0% real sizes, 100% every species the same size";
+  size.addEventListener("input", () => {
+    sizeValue.textContent = sizeBalanceLabel(Number(size.value) / PERCENT);
+  });
+  size.addEventListener("change", () => {
+    callbacks.onSizeBalanceChange(Number(size.value) / PERCENT);
+  });
+  sizeRow.append(element("span", "panel__label", "Fish size"), size, sizeValue);
+  fauna.append(sizeRow);
   for (const species of state.species) {
     const row = element("label", "panel__row");
     const value = element("output", "panel__value", String(state.counts[species.id] ?? 0));

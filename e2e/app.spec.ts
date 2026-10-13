@@ -130,6 +130,29 @@ test("changes the scenery from the panel", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test("resizes the fish from the panel and remembers it", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    if (localStorage.getItem("aquaria.settings") === null) {
+      localStorage.setItem("aquaria.settings", JSON.stringify({ renderHeight: 540 }));
+    }
+  });
+  await page.goto("/?effects=none");
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await page.locator('input[name="fish-size"]').fill("100");
+  await page.reload();
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await expect(page.locator("label", { hasText: "Fish size" }).locator("output")).toHaveText(
+    "Alike",
+  );
+  expect(errors).toEqual([]);
+});
+
 test("customizes the LED lights and cycle from the panel", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

@@ -67,7 +67,7 @@ URL options:
 | `effects` | `?effects=shadows,bloom` | Enables exactly these effects (`none` for all off) |
 | `hour`    | `?hour=21.5`             | Pins the aquarium time (for demos and screenshots) |
 
-Panel settings (populations, scenery, lights, effects, resolution, fps counter) are saved in the browser.
+Panel settings (populations, fish size, scenery, lights, effects, resolution, fps counter) are saved in the browser.
 
 ## Running on a wall
 
@@ -213,6 +213,14 @@ it). The catalog
 includes butterflyfish, moorish idols, emperor angelfish, three-bar damsels and
 purple tangs.
 Files are validated on load; mistakes are reported with the exact field.
+
+The catalog keeps real lengths. How large fish look is one viewer setting,
+**Fish size** in the panel's Fauna section: it pulls every species towards a
+reference length of 7% of the tank width. At 0% fish have their real sizes,
+at 100% every species is the same size; in between small fish grow and large
+ones shrink, keeping their order (default 60%). Speeds scale with the size,
+so a fish still swims the same body lengths per second. Releasing the slider
+rebuilds the tank.
 
 ### 3D fish models
 
