@@ -118,6 +118,28 @@ The panel (`H`) starts with a **Scene** list; the choice is remembered, so the
 plain URL reopens the last scene. The list is `public/scenes/index.json`, in
 named groups ("Open sea", "Aquariums"); the first scene is the default.
 
+### Bundled scenes
+
+Four ready-made environments show what the engine can build. They are
+examples, not fixed content: each one is a plain JSON file in
+`public/scenes/`, and every value (tank, water, light, plants, rocks, fish)
+can be changed in the **Scene designer** or in the file itself.
+
+| Scene                                                         | Kind of aquarium                                         | Tank (w × h × d) |
+| ------------------------------------------------------------- | -------------------------------------------------------- | ---------------- |
+| [Tropical reef](docs/scenes/reef.jpg) (`reef`)                | Open sea: tropical coral reef, saltwater                 | 5.4 × 3 × 4 m    |
+| [Home reef](docs/scenes/home-reef.jpg) (`home-reef`)          | Marine reef aquarium, saltwater                          | 6 × 2.6 × 2.4 m  |
+| [Planted tank](docs/scenes/planted-tank.jpg) (`planted-tank`) | Planted community aquarium, freshwater                   | 2.4 × 1.1 × 1 m  |
+| [Iwagumi](docs/scenes/iwagumi.jpg) (`iwagumi`)                | Iwagumi aquascape (stones and carpet plants), freshwater | 2.2 × 1.1 × 1 m  |
+
+![Tropical reef: open sea, tropical coral reef. Editable.](docs/scenes/reef.jpg)
+![Home reef: marine reef aquarium. Editable.](docs/scenes/home-reef.jpg)
+![Planted tank: freshwater planted community aquarium. Editable.](docs/scenes/planted-tank.jpg)
+![Iwagumi: freshwater Iwagumi aquascape. Editable.](docs/scenes/iwagumi.jpg)
+
+<sub>Default settings, noon, 8 seconds in. Regenerate the pictures with
+`pnpm docs:gallery` after changing a scene.</sub>
+
 ## Scene designer
 
 **Scene designer** (in the panel, `H`) edits the scene on screen: tank,
@@ -380,7 +402,8 @@ the source in `ASSETS.md` and use its id in a scene.
 pnpm test           # unit tests (Vitest)
 pnpm test:coverage  # with coverage thresholds
 pnpm test:e2e       # browser tests (Playwright, software WebGL)
-pnpm test:visual    # pixel comparison of a frozen frame (on demand)
+pnpm test:visual    # pixel comparison of every scene, frozen frame (on demand)
+pnpm docs:gallery   # captioned pictures of the bundled scenes in docs/scenes/
 pnpm lint
 pnpm typecheck
 pnpm build

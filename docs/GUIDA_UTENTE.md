@@ -70,6 +70,22 @@ Il pannello, gestito da [`createPanel`](file:///F:/progetti/Aquaria/src/ui/panel
 3. **Elementi di Arredo (Scenery)**:
    - Cursori per aumentare o diminuire la quantità di piante acquatiche, gorgonie, anemoni, rocce e coralli. L'aggiunta di elementi preserva la posizione di quelli già esistenti.
 
+#### Le scene incluse
+
+Le quattro scene incluse sono esempi di ciò che si può costruire: ognuna è modificabile con lo Scene Designer o direttamente nel suo file JSON.
+
+| Scena         | Tipo di acquario                                            |
+| ------------- | ----------------------------------------------------------- |
+| Tropical reef | Mare aperto, barriera corallina tropicale (acqua salata)    |
+| Home reef     | Acquario marino di barriera (acqua salata)                  |
+| Planted tank  | Acquario di comunità piantumato (acqua dolce)               |
+| Iwagumi       | Aquascape Iwagumi, rocce e piante tappezzanti (acqua dolce) |
+
+![Tropical reef](scenes/reef.jpg)
+![Home reef](scenes/home-reef.jpg)
+![Planted tank](scenes/planted-tank.jpg)
+![Iwagumi](scenes/iwagumi.jpg)
+
 ---
 
 ### Illuminazione Spettrale e Ciclo Giorno/Notte

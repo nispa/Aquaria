@@ -63,6 +63,22 @@ Pressing **`H`** opens the control panel powered by [`createPanel`](file:///F:/p
 - **Fauna Population**: Real-time sliders for each species defined in [`species.json`](file:///F:/progetti/Aquaria/public/species.json). Increasing or decreasing numbers causes fish to swim realistically into or out of the side boundaries rather than popping into existence.
 - **Scenery Elements**: Adjust the count of corals, kelp, sea anemones, driftwood, rocks, and shells. Adding items never displaces already positioned flora or props.
 
+#### Bundled scenes
+
+The four bundled scenes are examples of what can be built; every one is editable in the Scene designer or in its JSON file.
+
+| Scene         | Kind of aquarium                                         |
+| ------------- | -------------------------------------------------------- |
+| Tropical reef | Open sea, tropical coral reef (saltwater)                |
+| Home reef     | Marine reef aquarium (saltwater)                         |
+| Planted tank  | Planted community aquarium (freshwater)                  |
+| Iwagumi       | Iwagumi aquascape, stones and carpet plants (freshwater) |
+
+![Tropical reef](scenes/reef.jpg)
+![Home reef](scenes/home-reef.jpg)
+![Planted tank](scenes/planted-tank.jpg)
+![Iwagumi](scenes/iwagumi.jpg)
+
 ---
 
 ### Lighting & Circadian Day/Night Cycle

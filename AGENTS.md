@@ -31,7 +31,9 @@ pnpm dev            # start dev server
 pnpm test           # run unit tests (Vitest)
 pnpm test:watch     # unit tests in watch mode
 pnpm test:coverage  # unit tests with coverage thresholds
-pnpm test:e2e       # end-to-end and visual tests (Playwright)
+pnpm test:e2e       # end-to-end tests (Playwright)
+pnpm test:visual    # screenshot comparison of every scene (on demand)
+pnpm docs:gallery   # captioned scene pictures for the docs (docs/scenes/)
 pnpm lint           # ESLint
 pnpm typecheck      # tsc --noEmit
 pnpm build          # production build
@@ -166,7 +168,8 @@ Shaders:
   validated by `src/scene/modelManifest.ts`. The viewer switches models on
   or off per species; both kinds swim together in the same tank.
 - Adding a new scene or species must not require code changes, only data and
-  assets. If it does, the engine is missing an abstraction: fix that first.
+  assets. A new bundled scene also gets a caption in `e2e/gallery.spec.ts`,
+  a picture (`pnpm docs:gallery`) and a visual baseline. If it does, the engine is missing an abstraction: fix that first.
 
 ## Assets and licensing
 
