@@ -1,0 +1,12 @@
+{
+  "name": "Copperband butterflyfish",
+  "file": "model.glb",
+  "forward": "+x",
+  "up": "+y",
+  "swimAmplitude": 0.07,
+  "credit": {
+    "author": "The SpezX",
+    "source": "https://sketchfab.com/3d-models/small-fish-8f5de32946f347a0b6c8e55c6a66d46d",
+    "license": "CC-BY-4.0"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "Gilthead seabream",
+  "file": "model.glb",
+  "forward": "+z",
+  "up": "+y",
+  "swimAmplitude": 0.07,
+  "credit": {
+    "author": "BlueMesh",
+    "source": "https://sketchfab.com/3d-models/bream-fish-dorade-royale-a3d0e1a597794a9bb74739a13cfc8b77",
+    "license": "CC-BY-4.0"
+  }
+}

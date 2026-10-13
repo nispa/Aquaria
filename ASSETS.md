@@ -38,19 +38,35 @@ Each model is a folder in `public/assets/species/` whose `model.json` repeats
 the author, source and license (the unit tests check that the source is
 listed here).
 
-| Model      | Path                                | Source                                                                                             | Author    | License   |
-| ---------- | ----------------------------------- | -------------------------------------------------------------------------------------------------- | --------- | --------- |
-| Barramundi | `public/assets/species/barramundi/` | https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish                 | Microsoft | CC0       |
-| Neon tetra | `public/assets/species/neon-tetra/` | https://sketchfab.com/3d-models/paracheirodon-innesi---tetra-neon-2fabf5db754746b7b81ebfa0bbe99161 | BlueMesh  | CC-BY 4.0 |
+| Model                    | Path                                              | Source                                                                                             | Author    | License   |
+| ------------------------ | ------------------------------------------------- | -------------------------------------------------------------------------------------------------- | --------- | --------- |
+| Barramundi               | `public/assets/species/barramundi/`               | https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish                 | Microsoft | CC0       |
+| Neon tetra               | `public/assets/species/neon-tetra/`               | https://sketchfab.com/3d-models/paracheirodon-innesi---tetra-neon-2fabf5db754746b7b81ebfa0bbe99161 | BlueMesh  | CC-BY 4.0 |
+| Gilthead seabream        | `public/assets/species/gilthead-seabream/`        | https://sketchfab.com/3d-models/bream-fish-dorade-royale-a3d0e1a597794a9bb74739a13cfc8b77          | BlueMesh  | CC-BY 4.0 |
+| Guppy                    | `public/assets/species/guppy/`                    | https://sketchfab.com/3d-models/guppy-fish-21e14e4b961e406385539f79eacdb1dc                        | BlueMesh  | CC-BY 4.0 |
+| Copperband butterflyfish | `public/assets/species/copperband-butterflyfish/` | https://sketchfab.com/3d-models/small-fish-8f5de32946f347a0b6c8e55c6a66d46d                        | The SpezX | CC-BY 4.0 |
 
-Both were optimized with glTF Transform (meshopt geometry, KTX2 textures at
-1024 px; see README, "3D fish models"). The neon tetra's skeleton and swim
-animation are not used: its rest pose is baked and the engine swims it.
+All were optimized with glTF Transform (meshopt geometry, KTX2 textures at
+1024 px; see README, "3D fish models"); the seabream's specular-glossiness
+material was first converted to metallic-roughness. Skeletons and swim
+animations are not used: the rest pose is baked and the engine swims the
+model.
 
-"Paracheirodon Innesi _ Tetra Neon"
-(https://sketchfab.com/3d-models/paracheirodon-innesi---tetra-neon-2fabf5db754746b7b81ebfa0bbe99161)
-by BlueMesh (https://sketchfab.com/VapTor) is licensed under CC-BY-4.0
-(http://creativecommons.org/licenses/by/4.0/).
+Credits for the CC-BY models, as their licenses ask:
+
+- "Paracheirodon Innesi _ Tetra Neon"
+  (https://sketchfab.com/3d-models/paracheirodon-innesi---tetra-neon-2fabf5db754746b7b81ebfa0bbe99161)
+  by BlueMesh (https://sketchfab.com/VapTor), licensed under CC-BY-4.0
+  (http://creativecommons.org/licenses/by/4.0/).
+- "Bream Fish ( Dorade Royale)"
+  (https://sketchfab.com/3d-models/bream-fish-dorade-royale-a3d0e1a597794a9bb74739a13cfc8b77)
+  by BlueMesh (https://sketchfab.com/VapTor), licensed under CC-BY-4.0.
+- "Guppy Fish"
+  (https://sketchfab.com/3d-models/guppy-fish-21e14e4b961e406385539f79eacdb1dc)
+  by BlueMesh (https://sketchfab.com/VapTor), licensed under CC-BY-4.0.
+- "Small fish"
+  (https://sketchfab.com/3d-models/small-fish-8f5de32946f347a0b6c8e55c6a66d46d)
+  by The SpezX (https://sketchfab.com/SpezX), licensed under CC-BY-4.0.
 
 Everything else (procedural fish, plants, corals, shells, starfish, water,
 light) is procedural geometry and shaders generated in code.

@@ -142,6 +142,10 @@
     {
       "species": "barramundi",
       "count": 3
+    },
+    {
+      "species": "gilthead-seabream",
+      "count": 6
     }
   ]
 }

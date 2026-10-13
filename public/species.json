@@ -147,16 +147,10 @@
     },
     {
       "id": "butterflyfish",
-      "name": "Butterflyfish",
+      "name": "Copperband butterflyfish",
       "body": {
-        "type": "procedural",
-        "shape": "tall",
-        "pattern": "eye-bar",
-        "colors": {
-          "base": "#ffd23a",
-          "accent": "#1a1a1a",
-          "detail": "#fff6d8"
-        }
+        "type": "gltf",
+        "model": "copperband-butterflyfish"
       },
       "length": {
         "mean": 0.15,
@@ -379,13 +373,8 @@
       "id": "guppy",
       "name": "Guppy",
       "body": {
-        "type": "procedural",
-        "shape": "slender",
-        "pattern": "tail",
-        "colors": {
-          "base": "#cfc8bc",
-          "accent": "#ff6a2a"
-        }
+        "type": "gltf",
+        "model": "guppy"
       },
       "length": {
         "mean": 0.04,
@@ -485,6 +474,30 @@
         "appetite": 0.9,
         "curiosity": 0.3,
         "shyness": 0.4
+      }
+    },
+    {
+      "id": "gilthead-seabream",
+      "name": "Gilthead seabream",
+      "body": {
+        "type": "gltf",
+        "model": "gilthead-seabream"
+      },
+      "length": {
+        "mean": 0.35,
+        "standardDeviation": 0.04
+      },
+      "speed": {
+        "cruise": 0.3,
+        "max": 1.0
+      },
+      "schooling": 0.6,
+      "bands": [1, 4],
+      "heightRange": [0.2, 0.6],
+      "behavior": {
+        "appetite": 0.8,
+        "curiosity": 0.3,
+        "shyness": 0.6
       }
     }
   ]
