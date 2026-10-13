@@ -19,6 +19,10 @@ life with Three.js.
 - **Living fauna**: boids-based schooling, species habitats across five depth
   bands, 1 to 50 individuals per species with natural size variation. New fish
   swim in from the sides; surplus fish swim away instead of vanishing.
+- **Interactive**: feed the fish and watch them rush to the flakes, open
+  their mouths and snap them up; rest the pointer on the glass and the
+  curious ones come to look; tap the glass and they dart away. Bodies curve
+  into every turn and tails beat harder when a fish accelerates.
 - **Shared water current** that bends the plants, drifts the particles and
   nudges the fish.
 - **Anti-aliasing**: MSAA off, 2x (default), 4x or 8x from the panel, plus an
@@ -44,11 +48,14 @@ pnpm dev          # open the printed URL
 
 Controls:
 
-| Key / action   | Effect                              |
-| -------------- | ----------------------------------- |
-| `H`            | Show or hide the control panel      |
-| `F`            | Toggle full screen                  |
-| Move the mouse | Shows the panel button for a moment |
+| Key / action                 | Effect                                                          |
+| ---------------------------- | --------------------------------------------------------------- |
+| `H`                          | Show or hide the control panel                                  |
+| `F`                          | Toggle full screen                                              |
+| `Space`                      | Drop a pinch of food (above the pointer if it is over the tank) |
+| Rest the pointer on the tank | A finger on the glass: curious fish come to look                |
+| Click the tank               | Tap the glass: nearby fish dart away                            |
+| Move the mouse               | Shows the panel button for a moment                             |
 
 URL options:
 
@@ -198,7 +205,11 @@ Species are defined once in `public/species.json`: body shape (`disc`, `round`,
 `slender`, or the reef shapes `tall` and `banner`), color pattern (`belly`,
 `tail`, `bands`, `split`, or the reef patterns `eye-bar`, `stripes`, `bars`,
 `idol`), `base`, `accent` and optional `detail` colors, size, speed, schooling
-(0 = solitary, 1 = tight school), depth bands and height range. The catalog
+(0 = solitary, 1 = tight school), depth bands and height range. An optional
+`behavior` sets how the species reacts, each from 0 to 1: `appetite` (how keen
+it is on food), `curiosity` (the share of individuals that come to look at a
+finger on the glass) and `shyness` (how far away a tap on the glass startles
+it). The catalog
 includes butterflyfish, moorish idols, emperor angelfish, three-bar damsels and
 purple tangs.
 Files are validated on load; mistakes are reported with the exact field.

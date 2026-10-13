@@ -43,6 +43,7 @@ Documento riassuntivo delle attività pianificate, verifiche in sospeso e svilup
   - Integrazione di modelli glTF/GLB animati (es. pesci CC0 Quaternius con animazioni di nuoto riggate) in affiancamento al corpo procedurale MVP attuale.
 - [ ] **Renderer WebGPU (Shaders TSL)**:
   - Preparare l'adattatore WebGPU isolato per Three.js per trarre vantaggio delle nuove API grafiche moderne.
+- [x] **Interazione col mouse e cibo**: dito sul vetro (curiosità), colpo sul vetro (fuga), cibo con Spazio; corpo che si piega nelle virate, colpo di coda e bocca come "rig" procedurale.
 - [ ] **Interazioni Post-MVP**:
   - Telecomando da smartphone (alimentazione dei pesci, tocco sul vetro virtuale).
   - Rilevamento presenza da webcam e prospettiva con head-tracking.

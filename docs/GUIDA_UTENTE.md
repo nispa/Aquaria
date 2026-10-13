@@ -44,11 +44,14 @@ Questa guida completa illustra come utilizzare, configurare ed estendere **Aquar
 
 ### Scorciatoie da Tastiera e Controlli
 
-| Tasto / Gesto       | Azione                 | Descrizione                                                                                                                              |
-| :------------------ | :--------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
-| **`H`**             | Apri / Chiudi Pannello | Mostra o nasconde la barra laterale di controllo.                                                                                        |
-| **`F`**             | Schermo Intero         | Attiva o disattiva la modalità fullscreen (senza barre del browser).                                                                     |
-| **Movimento Mouse** | Mostra Icona Menu      | Muovendo il cursore appare un pulsante d'angolo temporaneo che svanisce dopo 2,5 secondi per prevenire il burn-in dei pixel sui display. |
+| Tasto / Gesto                   | Azione                 | Descrizione                                                                                                                              |
+| :------------------------------ | :--------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| **`H`**                         | Apri / Chiudi Pannello | Mostra o nasconde la barra laterale di controllo.                                                                                        |
+| **`F`**                         | Schermo Intero         | Attiva o disattiva la modalità fullscreen (senza barre del browser).                                                                     |
+| **`Spazio`**                    | Dai da mangiare        | Lascia cadere un pizzico di fiocchi, sopra il puntatore se è sulla vasca (anche col pulsante _Feed the fish_ del pannello).              |
+| **Puntatore fermo sulla vasca** | Dito sul vetro         | Gli individui curiosi di ogni specie vengono a guardare; dopo 8 s senza movimento il dito conta come tolto.                              |
+| **Click sulla vasca**           | Colpo sul vetro        | I pesci vicini scappano di scatto; le specie timide fuggono da più lontano. Si calmano in pochi secondi.                                 |
+| **Movimento Mouse**             | Mostra Icona Menu      | Muovendo il cursore appare un pulsante d'angolo temporaneo che svanisce dopo 2,5 secondi per prevenire il burn-in dei pixel sui display. |
 
 ---
 
@@ -224,6 +227,8 @@ src/app      → Composition root che istanzia i moduli e guida il loop principa
     4. **Fasce di Profondità (Depth Bands)**: 5 fasce orizzontali (da 0 vicino al vetro a 4 sul fondo) per rispettare le abitudini di specie diverse.
     5. **Seabed Clearance**: Una forza repulsiva progressiva che allontana il pesce dalla superficie rocciosa e sabbiosa prima che possa compenetrarla.
     6. **Saccadi dello Sguardo ([`src/sim/gaze.ts`](file:///F:/progetti/Aquaria/src/sim/gaze.ts))**: Gli occhi anticipano la virata ruotando prima che l'intero corpo compia la curva, conferendo un senso di vita naturale.
+    7. **Reazioni**, in ordine di urgenza: paura di un colpo sul vetro, fame per i fiocchi di cibo ([`src/sim/food.ts`](file:///F:/progetti/Aquaria/src/sim/food.ts)), curiosità per un dito sul vetro. Ogni specie le regola con `behavior.appetite`, `curiosity` e `shyness` in `species.json`.
+  - **Un "rig" procedurale al posto dello scheletro**: la simulazione calcola per ogni pesce alcuni valori che fanno da articolazioni e lo shader deforma il corpo di conseguenza ([`src/sim/posture.ts`](file:///F:/progetti/Aquaria/src/sim/posture.ts)): `bend` piega la parte posteriore del corpo lungo l'arco che il pesce percorre (curvatura per lunghezza del corpo, fino alla "C" della fuga), `effort` scala il colpo di coda con velocità e accelerazione, `mouth` abbassa la mandibola prima del morso. Quando arriveranno i pesci glTF, gli stessi canali guideranno le loro animazioni.
   - I pesci entrano ed escono dalle pareti laterali virtuali, donando la sensazione di una finestra aperta su un mare infinito anziché di una gabbia chiusa.
 
 ---

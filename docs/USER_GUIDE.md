@@ -44,11 +44,14 @@ This guide covers everything needed to operate, customize, and understand the de
 
 ### Controls & Hotkeys
 
-| Key / Action   | Function                  | Details                                                                                  |
-| :------------- | :------------------------ | :--------------------------------------------------------------------------------------- |
-| **`H`**        | Show / Hide Control Panel | Toggles the sidebar control panel.                                                       |
-| **`F`**        | Fullscreen Toggle         | Enters or leaves borderless full-screen view.                                            |
-| **Mouse Move** | Reveal Panel Button       | A discreet corner toggle button appears for 2.5s and fades away to avoid screen burn-in. |
+| Key / Action                     | Function                  | Details                                                                                                        |
+| :------------------------------- | :------------------------ | :------------------------------------------------------------------------------------------------------------- |
+| **`H`**                          | Show / Hide Control Panel | Toggles the sidebar control panel.                                                                             |
+| **`F`**                          | Fullscreen Toggle         | Enters or leaves borderless full-screen view.                                                                  |
+| **`Space`**                      | Feed the Fish             | Drops a pinch of flakes, above the pointer when it is over the tank (also the panel's _Feed the fish_ button). |
+| **Rest the pointer on the tank** | Finger on the Glass       | The curious individuals of each species come to look; the finger counts as gone after 8 s without movement.    |
+| **Click the tank**               | Tap the Glass             | Nearby fish dart away; shy species flee from farther away. They calm down within a few seconds.                |
+| **Mouse Move**                   | Reveal Panel Button       | A discreet corner toggle button appears for 2.5s and fades away to avoid screen burn-in.                       |
 
 ---
 
@@ -173,6 +176,8 @@ The codebase enforces a strict downward dependency graph:
 ```mermaid
 graph TD
   App["src/app (Composition Root)"] --> UI["src/ui (DOM & Controls)"]
+  App --> Input["src/input (Pointer → Event Bus)"]
+  Input --> Core
   App --> Render["src/render (Three.js & GLSL Shaders)"]
   App --> Sim["src/sim (Boids & Environment Math)"]
   Render --> Scene["src/scene (Zod Schemas & Catalogs)"]
@@ -226,6 +231,8 @@ graph TD
     4. **Depth Banding**: Restrict species to biological zones (0 = glass, 4 = back).
     5. **Seabed Clearance**: Soft upward repelling force that prevents fish from clipping sand or rocks, with a minimum body-length clearance margin.
     6. **Gaze Saccades**: Eyes lead each turn slightly before the body rotates ([`src/sim/gaze.ts`](file:///F:/progetti/Aquaria/src/sim/gaze.ts)).
+    7. **Reactions**, in order of urgency: fear of a tap on the glass, hunger for food flakes ([`src/sim/food.ts`](file:///F:/progetti/Aquaria/src/sim/food.ts)), curiosity about a finger on the glass. Each species tunes them with `behavior.appetite`, `curiosity` and `shyness` in `species.json`.
+  - **A procedural rig instead of a skeleton**: the simulation computes a few "joint" values per fish and the shader deforms the body with them ([`src/sim/posture.ts`](file:///F:/progetti/Aquaria/src/sim/posture.ts)): `bend` lays the rear of the body along the arc the fish swims (path curvature times body length, up to a C-shaped escape), `effort` scales the tail sweep with speed and acceleration, `mouth` drops the jaw before a bite. When glTF fish arrive, the same channels will drive their animations.
 
 ---
 

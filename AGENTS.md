@@ -52,7 +52,8 @@ src/
   render/    Three.js adapters: scene graph, materials, shaders.
     effects/ Post-processing effects, registered by id; each is a panel switch.
   ui/        Control panel, presets, resolution slider, fps counter.
-  input/     (post-MVP) Phone remote, webcam presence, head tracking.
+  input/     Pointer (finger on the glass, taps) emitting on the event bus.
+             Post-MVP: phone remote, webcam presence, head tracking.
   app/       Composition root: wires layers together, main loop.
 ```
 
