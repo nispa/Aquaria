@@ -1,5 +1,7 @@
 import "../ui/styles.css";
+import { Vector3 } from "three";
 import { createFixedStepClock } from "../core/clock";
+import { createEventBus } from "../core/eventBus";
 import { createFpsMeter } from "../core/fps";
 import { classifyGpu, shortGpuName } from "../core/gpu";
 import { consoleSink, createLogger } from "../core/logger";
@@ -38,6 +40,7 @@ import { createDesigner, type Designer } from "../ui/designer";
 import type { SceneChoice, SceneChoiceGroup } from "../ui/panel";
 import { createSimulation, type Simulation } from "../sim/simulation";
 import { createPanel } from "../ui/panel";
+import { createPointerInput, type PointerEvents } from "../input/pointer";
 import { parseLaunchOptions } from "./launchOptions";
 
 const SETTINGS_KEY = "aquaria.settings";
@@ -56,6 +59,8 @@ const FEED_SEED_OFFSET = 7919;
 /** Food falls in the middle of the view: this share of the width, and this depth range (share of depth). */
 const FEED_WIDTH_SHARE = 0.6;
 const FEED_DEPTH_SHARE = [0.15, 0.6] as const;
+/** Food dropped at the pointer falls this share of the depth behind the glass. */
+const FEED_POINTER_DEPTH_SHARE = 0.25;
 
 function localHour(): number {
   const now = new Date();
@@ -271,8 +276,31 @@ async function start(): Promise<void> {
   };
   let { simulation, view } = mountScene(scene);
   const feedRng = createRng((options.seed ?? scene.seed) + FEED_SEED_OFFSET);
+  // The pointer is a finger on the glass: curious fish come to look, a tap
+  // startles them, and food falls where it points.
+  const input = createEventBus<PointerEvents>();
+  createPointerInput(canvas, input);
+  const finger = new Vector3();
+  const tapPoint = new Vector3();
+  let fingerOnGlass = false;
+  input.on("pointer-move", ({ x, y }) => {
+    fingerOnGlass = view.glassPoint(x, y, finger);
+    simulation.setFinger(fingerOnGlass ? finger : undefined);
+  });
+  input.on("pointer-leave", () => {
+    fingerOnGlass = false;
+    simulation.setFinger(undefined);
+  });
+  input.on("tap", ({ x, y }) => {
+    if (view.glassPoint(x, y, tapPoint)) simulation.tap(tapPoint);
+  });
+
   const feed = (): void => {
     const { width, depth } = scene.tank;
+    if (fingerOnGlass) {
+      simulation.dropFood(finger.x, -depth * FEED_POINTER_DEPTH_SHARE);
+      return;
+    }
     simulation.dropFood(
       feedRng.range(-width / 2, width / 2) * FEED_WIDTH_SHARE,
       -depth * feedRng.range(FEED_DEPTH_SHARE[0], FEED_DEPTH_SHARE[1]),

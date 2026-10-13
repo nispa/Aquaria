@@ -23,6 +23,17 @@ export interface Rng {
 const UINT32_RANGE = 4294967296;
 const MULBERRY_INCREMENT = 0x6d2b79f5;
 
+/**
+ * A fixed pseudo-random value in [0, 1) for an integer, e.g. a stable trait
+ * per fish id that does not draw from (and so does not shift) any generator.
+ */
+export function hashToUnit(value: number): number {
+  let t = Math.imul((value | 0) ^ 0x9e3779b9, 0x85ebca6b);
+  t = Math.imul(t ^ (t >>> 13), 0xc2b2ae35);
+  t ^= t >>> 16;
+  return (t >>> 0) / UINT32_RANGE;
+}
+
 /** Creates a mulberry32 generator: fast, small state, good enough for visuals. */
 export function createRng(seed: number): Rng {
   let state = seed >>> 0;

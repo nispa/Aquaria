@@ -1,8 +1,9 @@
+import { Vector3 } from "three";
 import { describe, expect, it } from "vitest";
 import { createRng } from "../core/rng";
 import { catalogFixture, sceneFixture } from "../scene/fixtures";
 import { parseCatalog, parseScene } from "../scene/parse";
-import type { SceneInput } from "../scene/schema";
+import type { SceneInput, Species } from "../scene/schema";
 import { createSimulation, TOTAL_FISH_LIMIT, type Simulation } from "./simulation";
 import { FLAKES_PER_PINCH } from "./food";
 import { MAX_BEND, MAX_EFFORT, MIN_EFFORT } from "./posture";
@@ -357,5 +358,104 @@ describe("feeding", () => {
     run(simulation, 10);
 
     expect(simulation.fish.every((fish) => fish.satiety < 1)).toBe(true);
+  });
+});
+
+describe("viewer at the glass", () => {
+  const finger = new Vector3(0, 2.5, 0);
+
+  function simulateWithBehavior(behavior: Partial<Species["behavior"]>): Simulation {
+    const input = catalogFixture();
+    for (const species of input.species) species.behavior = behavior;
+    const tuned = parseCatalog(input);
+    return createSimulation({
+      scene: parseScene(sceneFixture(), tuned),
+      catalog: tuned,
+      rng: createRng(1),
+    });
+  }
+
+  const meanDistanceTo = (simulation: Simulation, point: Vector3) =>
+    simulation.fish.reduce((sum, fish) => sum + fish.position.distanceTo(point), 0) /
+    simulation.fish.length;
+
+  const closeTo = (simulation: Simulation, point: Vector3) =>
+    simulation.fish.filter((fish) => fish.position.distanceTo(point) < 1.5).length;
+
+  const nearestToGlass = (simulation: Simulation) =>
+    simulation.fish.reduce((best, fish) => (fish.position.z > best.position.z ? fish : best));
+
+  it("draws curious fish to a finger on the glass", () => {
+    const watched = simulateWithBehavior({ curiosity: 1 });
+    const unwatched = simulateWithBehavior({ curiosity: 1 });
+    watched.setFinger(finger);
+
+    run(watched, 20);
+    run(unwatched, 20);
+
+    // The tangs live near the glass; the sardines stay out in open water.
+    expect(closeTo(watched, finger)).toBeGreaterThanOrEqual(5);
+    expect(closeTo(unwatched, finger)).toBeLessThanOrEqual(1);
+  });
+
+  it("leaves species without curiosity swimming as if nobody were there", () => {
+    const watched = simulateWithBehavior({ curiosity: 0 });
+    const unwatched = simulateWithBehavior({ curiosity: 0 });
+    watched.setFinger(finger);
+
+    run(watched, 5);
+    run(unwatched, 5);
+
+    expect(watched.fish.map((fish) => fish.position.x)).toEqual(
+      unwatched.fish.map((fish) => fish.position.x),
+    );
+  });
+
+  it("lets fish swim off again once the finger is gone", () => {
+    const simulation = simulateWithBehavior({ curiosity: 1 });
+    simulation.setFinger(finger);
+    run(simulation, 20);
+    const gathered = meanDistanceTo(simulation, finger);
+
+    simulation.setFinger(undefined);
+    run(simulation, 20);
+
+    expect(meanDistanceTo(simulation, finger)).toBeGreaterThan(gathered);
+  });
+
+  it("makes fish near a tap on the glass dart away", () => {
+    const simulation = simulateWithBehavior({ shyness: 0.5 });
+    run(simulation, 1);
+    const target = nearestToGlass(simulation);
+    const tap = new Vector3(target.position.x, target.position.y, 0);
+    const before = target.position.distanceTo(tap);
+
+    simulation.tap(tap);
+    run(simulation, 0.5);
+
+    expect(target.fear).toBeGreaterThan(0);
+    expect(target.position.distanceTo(tap)).toBeGreaterThan(before);
+    expect(target.velocity.length()).toBeGreaterThan(target.species.speed.cruise);
+  });
+
+  it("calms startled fish down within a few seconds", () => {
+    const simulation = simulateWithBehavior({ shyness: 1 });
+    simulation.tap(finger);
+
+    run(simulation, 10);
+
+    expect(simulation.fish.every((fish) => fish.fear === 0)).toBe(true);
+  });
+
+  it("startles shy species from farther away than bold ones", () => {
+    const shy = simulateWithBehavior({ shyness: 1 });
+    const bold = simulateWithBehavior({ shyness: 0 });
+
+    shy.tap(finger);
+    bold.tap(finger);
+
+    const frightened = (simulation: Simulation) =>
+      simulation.fish.filter((fish) => fish.fear > 0).length;
+    expect(frightened(shy)).toBeGreaterThan(frightened(bold));
   });
 });

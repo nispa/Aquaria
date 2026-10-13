@@ -2,7 +2,7 @@ import { RECOMMENDED_LIGHTS } from "./lights";
 import { describe, expect, it } from "vitest";
 import { catalogFixture, sceneFixture } from "./fixtures";
 import { parseCatalog, parseScene, SceneValidationError } from "./parse";
-import { DEFAULT_APPETITE } from "./schema";
+import { DEFAULT_APPETITE, DEFAULT_CURIOSITY, DEFAULT_SHYNESS } from "./schema";
 
 describe("parseCatalog", () => {
   it("accepts a valid species catalog", () => {
@@ -308,5 +308,24 @@ describe("species behavior", () => {
     input.species[0]!.behavior = { appetite: 1.5 };
 
     expect(() => parseCatalog(input)).toThrow(/appetite/);
+  });
+});
+
+describe("species reactions to the viewer", () => {
+  it("gives species without them a default curiosity and shyness", () => {
+    const behavior = parseCatalog(catalogFixture()).species[0]?.behavior;
+
+    expect(behavior?.curiosity).toBe(DEFAULT_CURIOSITY);
+    expect(behavior?.shyness).toBe(DEFAULT_SHYNESS);
+  });
+
+  it("reads curiosity and shyness", () => {
+    const input = catalogFixture();
+    input.species[0]!.behavior = { curiosity: 0.9, shyness: 0.1 };
+
+    const behavior = parseCatalog(input).species[0]?.behavior;
+
+    expect(behavior?.curiosity).toBe(0.9);
+    expect(behavior?.shyness).toBe(0.1);
   });
 });

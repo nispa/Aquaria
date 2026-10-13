@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRng } from "./rng";
+import { createRng, hashToUnit } from "./rng";
 
 describe("createRng", () => {
   it("produces the same sequence for the same seed", () => {
@@ -78,5 +78,20 @@ describe("createRng", () => {
     const childB = parentB.fork();
 
     expect(childA.next()).toBe(childB.next());
+  });
+});
+
+describe("hashToUnit", () => {
+  it("always gives the same value for the same number", () => {
+    expect(hashToUnit(17)).toBe(hashToUnit(17));
+  });
+
+  it("spreads consecutive numbers over [0, 1)", () => {
+    const values = Array.from({ length: 1000 }, (_, index) => hashToUnit(index));
+
+    expect(Math.min(...values)).toBeGreaterThanOrEqual(0);
+    expect(Math.max(...values)).toBeLessThan(1);
+    expect(values.filter((value) => value < 0.5).length).toBeGreaterThan(400);
+    expect(values.filter((value) => value < 0.5).length).toBeLessThan(600);
   });
 });

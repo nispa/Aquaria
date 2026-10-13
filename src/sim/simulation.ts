@@ -1,7 +1,7 @@
 import type { Box3 } from "three";
 import { Vector3 } from "three";
-import { clamp, smoothstep } from "../core/math";
-import type { Rng } from "../core/rng";
+import { clamp, lerp, smoothstep } from "../core/math";
+import { hashToUnit, type Rng } from "../core/rng";
 import {
   MAX_INDIVIDUALS_PER_SPECIES,
   type Scene,
@@ -90,6 +90,20 @@ const BITE_SATIETY = 0.15;
 const SATIETY_DECAY_SECONDS = 300;
 /** Above this satiety a fish ignores food. */
 const SATED = 0.8;
+// The viewer. A finger on the glass draws the curious share of a species
+// within CURIOSITY_RADIUS; they come to look from INSPECT_BODY_LENGTHS behind
+// the glass and slow down as they arrive. A tap startles every fish within
+// STARTLE_RADIUS (scaled down to MIN_STARTLE_SHARE for bold species): the
+// escape reflex is all or nothing, then fear fades over FEAR_SECONDS.
+const CURIOSITY_RADIUS = 3;
+const CURIOSITY_WEIGHT = 2.5;
+const INSPECT_BODY_LENGTHS = 2;
+/** Inspecting fish slow down within this many body lengths of their spot. */
+const ARRIVAL_BODY_LENGTHS = 4;
+const STARTLE_RADIUS = 2.5;
+const MIN_STARTLE_SHARE = 0.3;
+const FLEE_WEIGHT = 6;
+const FEAR_SECONDS = 2.5;
 /** A mouth this nearly shut counts as closed. */
 const MOUTH_CLOSED = 0.01;
 
@@ -116,6 +130,8 @@ export interface Fish {
   satiety: number;
   /** 0 closed .. 1 wide open, when snapping at food. */
   mouth: number;
+  /** 1 right after a tap on the glass nearby, fading to 0 as the fish calms down. */
+  fear: number;
   state: FishState;
   /** Wander heading (yaw) in radians. */
   wanderAngle: number;
@@ -146,6 +162,13 @@ export interface Simulation {
   setSeabed(seabed: SeabedHeight): void;
   /** Drops a pinch of food at the surface above (x, z), tank coordinates. */
   dropFood(x: number, z: number): void;
+  /**
+   * Where a viewer's finger rests on the glass (tank coordinates), or
+   * undefined when nobody is touching it. Curious fish come to look.
+   */
+  setFinger(point: Vector3 | undefined): void;
+  /** A tap on the glass at `point`: nearby fish dart away. */
+  tap(point: Vector3): void;
   /** Requests a new population for a species; fish swim in or out gradually. */
   setCount(speciesId: string, count: number): void;
   targetCount(speciesId: string): number;
@@ -241,6 +264,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
       effort: 1,
       satiety: 0,
       mouth: 0,
+      fear: 0,
       state: entering ? "entering" : "swimming",
       wanderAngle: angle,
       side,
@@ -292,6 +316,43 @@ export function createSimulation(options: SimulationOptions): Simulation {
   const drift = new Vector3();
   const previousVelocity = new Vector3();
   const mouthPosition = new Vector3();
+  const finger = new Vector3();
+  let fingerPresent = false;
+  const tapPoint = new Vector3();
+  const inspectSpot = new Vector3();
+
+  /** Darts away from the last tap. Returns the speed the fish wants. */
+  const flee = (group: Group, member: Fish): number => {
+    term.subVectors(member.position, tapPoint);
+    term.y *= WANDER_DEPTH_RATIO;
+    if (term.lengthSq() > 0) force.addScaledVector(term.normalize(), FLEE_WEIGHT * member.fear);
+    return lerp(group.species.speed.cruise, group.species.speed.max, member.fear);
+  };
+
+  /**
+   * Comes to look at the finger on the glass if this individual is one of the
+   * curious ones and the finger is close enough. Returns the speed the fish
+   * wants: slower as it arrives, so it lingers.
+   */
+  const inspect = (group: Group, member: Fish): number => {
+    const { species, forage: reach } = group;
+    const cruise = species.speed.cruise;
+    if (
+      !fingerPresent ||
+      member.state !== "swimming" ||
+      hashToUnit(member.id) >= species.behavior.curiosity ||
+      member.position.distanceTo(finger) > CURIOSITY_RADIUS
+    ) {
+      return cruise;
+    }
+    inspectSpot.copy(finger);
+    inspectSpot.z -= member.length * INSPECT_BODY_LENGTHS;
+    reach.clampPoint(inspectSpot, inspectSpot);
+    term.subVectors(inspectSpot, member.position);
+    const distance = term.length();
+    if (distance > 0) force.addScaledVector(term.normalize(), CURIOSITY_WEIGHT);
+    return cruise * clamp(distance / (member.length * ARRIVAL_BODY_LENGTHS), 0, 1);
+  };
 
   /**
    * Steers a hungry fish towards the nearest flake it can reach, opens its
@@ -304,7 +365,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
     member.satiety = Math.max(member.satiety - deltaSeconds / SATIETY_DECAY_SECONDS, 0);
     const hunger = species.behavior.appetite * (1 - member.satiety);
     const flake =
-      member.state === "swimming" && member.satiety < SATED
+      member.state === "swimming" && member.satiety < SATED && member.fear === 0
         ? food.nearest(member.position, FOOD_SENSE_RADIUS, group.forage)
         : undefined;
     let mouthTarget = 0;
@@ -378,8 +439,14 @@ export function createSimulation(options: SimulationOptions): Simulation {
       force.x += direction * TRANSIT_PULL;
     }
 
-    const wantedSpeed = forage(group, member, deltaSeconds);
-    const feeding = wantedSpeed > cruise;
+    // Reactions in order of urgency: fear, then food, then curiosity.
+    member.fear = Math.max(member.fear - deltaSeconds / FEAR_SECONDS, 0);
+    const feedingSpeed = forage(group, member, deltaSeconds);
+    let wantedSpeed = feedingSpeed;
+    if (member.fear > 0) wantedSpeed = flee(group, member);
+    else if (feedingSpeed === cruise) wantedSpeed = inspect(group, member);
+    // Fleeing and feeding fish climb and dive steeply.
+    const feeding = member.fear > 0 || feedingSpeed > cruise;
 
     member.gaze = nextGaze(member.gaze, turnIntent(member.velocity, force), GAZE_SACCADE_THRESHOLD);
 
@@ -486,6 +553,19 @@ export function createSimulation(options: SimulationOptions): Simulation {
     },
     dropFood(x, z) {
       food.drop(x, z);
+    },
+    setFinger(point) {
+      fingerPresent = point !== undefined;
+      if (point !== undefined) finger.copy(point);
+    },
+    tap(point) {
+      tapPoint.copy(point);
+      for (const group of groups.values()) {
+        const radius = STARTLE_RADIUS * lerp(MIN_STARTLE_SHARE, 1, group.species.behavior.shyness);
+        for (const member of group.members) {
+          if (member.position.distanceTo(point) < radius) member.fear = 1;
+        }
+      }
     },
     setSeabed(next) {
       seabed = next;

@@ -9,7 +9,11 @@ import {
   HemisphereLight,
   PCFShadowMap,
   PerspectiveCamera,
+  Plane,
+  Raycaster,
   Scene as ThreeScene,
+  Vector2,
+  Vector3,
   WebGLRenderer,
   WebGLRenderTarget,
   type Material,
@@ -101,6 +105,12 @@ export interface AquariumView {
    * out here (it follows the camera), so the simulation reads it through the app.
    */
   seabedHeight(x: number, z: number): number;
+  /**
+   * Where a spot on the view (normalized device coordinates) meets the front
+   * glass, in tank coordinates, written into `out`. False when the spot is
+   * not over the glass.
+   */
+  glassPoint(x: number, y: number, out: Vector3): boolean;
   /** The WebGL renderer string: which GPU the browser actually draws with. */
   gpuName(): string;
   /** Hour of the aquarium day shown by the last frame. */
@@ -140,6 +150,10 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   world.fog = fog;
 
   const camera = new PerspectiveCamera(VERTICAL_FOV, cssWidth / cssHeight, 0.05, 80);
+  // The front glass is the plane z = 0, facing the camera.
+  const glass = new Plane(new Vector3(0, 0, 1), 0);
+  const raycaster = new Raycaster();
+  const pointer = new Vector2();
 
   const water = createWaterUniforms(scene);
   const hemisphere = new HemisphereLight(
@@ -396,6 +410,13 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
         info === null ? gl.RENDERER : info.UNMASKED_RENDERER_WEBGL,
       );
       return typeof name === "string" ? name : "unknown";
+    },
+    glassPoint(x, y, out) {
+      pointer.set(x, y);
+      raycaster.setFromCamera(pointer, camera);
+      if (raycaster.ray.intersectPlane(glass, out) === null) return false;
+      const halfWidth = scene.tank.width / 2;
+      return Math.abs(out.x) <= halfWidth && out.y >= 0 && out.y <= scene.tank.height;
     },
     seabedHeight: (x, z) => floorHeight(x, z) + (ridge?.heightAt(x, z) ?? 0),
     render() {

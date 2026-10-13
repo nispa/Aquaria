@@ -66,10 +66,16 @@ const gltfBody = z.object({
 
 /** How keen a species is on food when it is not fed (0 = ignores it, 1 = greedy). */
 export const DEFAULT_APPETITE = 0.6;
+/** Share of a species' individuals that come to look at a finger on the glass. */
+export const DEFAULT_CURIOSITY = 0.3;
+/** How easily a species is startled by a tap on the glass (0 = bold, 1 = flees from afar). */
+export const DEFAULT_SHYNESS = 0.5;
 
 /** How a species reacts to the viewer and to food. Every trait has a default. */
 const behavior = z.object({
   appetite: unit.default(DEFAULT_APPETITE),
+  curiosity: unit.default(DEFAULT_CURIOSITY),
+  shyness: unit.default(DEFAULT_SHYNESS),
 });
 
 export const speciesSchema = z.object({
