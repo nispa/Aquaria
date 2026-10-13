@@ -19,6 +19,8 @@ import {
   type Material,
   type Object3D,
 } from "three";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
@@ -26,6 +28,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import type { Logger } from "../core/logger";
 import { pixelRatioForHeight } from "../core/resolution";
 import { createRng, type Rng } from "../core/rng";
+import type { ModelManifest } from "../scene/modelManifest";
 import type { Scene, SpeciesCatalog } from "../scene/schema";
 import type { Lights } from "../scene/lights";
 import { lookPasses, type Look } from "../scene/look";
@@ -70,6 +73,8 @@ export interface AquariumViewOptions {
   readonly canvas: HTMLCanvasElement;
   readonly scene: Scene;
   readonly catalog: SpeciesCatalog;
+  /** Manifests of the 3D models used by glTF species, by model folder. */
+  readonly modelManifests: ReadonlyMap<string, ModelManifest>;
   readonly simulation: Simulation;
   readonly rng: Rng;
   readonly logger: Logger;
@@ -205,7 +210,14 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   const surfaces = createSurfaceLibrary((url) => textureLoader.loadAsync(url), logger);
   surfaces.setAnisotropy(renderer.capabilities.getMaxAnisotropy());
   const environment = createEnvironment(scene, water, surfaces, rng.fork());
-  const fish = createFishRenderer(catalog, water, logger);
+  // Fish models: meshopt-compressed geometry and KTX2 textures, like the surfaces.
+  const modelLoader = new GLTFLoader()
+    .setKTX2Loader(textureLoader)
+    .setMeshoptDecoder(MeshoptDecoder);
+  const fish = createFishRenderer(catalog, water, logger, {
+    manifests: options.modelManifests,
+    load: (url) => modelLoader.loadAsync(url).then((gltf) => gltf.scene),
+  });
   const food = createFoodRenderer(simulation.food.pellets.length, water);
   // Stable containers: effects keep references to them across rebuilds.
   const floraGroup = new Group();
@@ -390,7 +402,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   setLook(options.look);
 
   return {
-    ready: () => surfaces.settled(),
+    ready: () => Promise.all([surfaces.settled(), fish.settled()]).then(() => undefined),
     setMsaa(samples) {
       msaaSamples = samples;
       buildPipeline(currentLook);

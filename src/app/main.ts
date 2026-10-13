@@ -17,6 +17,13 @@ import {
   slugify,
   writeCustomScene,
 } from "../scene/customScenes";
+import {
+  MODEL_MANIFEST_FILE,
+  modelFolderUrl,
+  modelIdsOf,
+  parseModelManifest,
+  type ModelManifest,
+} from "../scene/modelManifest";
 import { parseCatalog, parseScene, SceneValidationError } from "../scene/parse";
 import type { Scene, SpeciesCatalog } from "../scene/schema";
 import {
@@ -191,6 +198,26 @@ async function loadMaterialIds(): Promise<string[]> {
   }
 }
 
+/**
+ * Manifests of the catalog's 3D models. A missing manifest skips its species
+ * with a warning; an invalid one is an error, like an invalid scene.
+ */
+async function loadModelManifests(catalog: SpeciesCatalog): Promise<Map<string, ModelManifest>> {
+  const entries = await Promise.all(
+    modelIdsOf(catalog).map(async (id): Promise<[string, ModelManifest] | undefined> => {
+      let data: unknown;
+      try {
+        data = await fetchJson(`${modelFolderUrl(id)}/${MODEL_MANIFEST_FILE}`);
+      } catch (error) {
+        logger.warn("Fish model manifest could not be loaded", { model: id, error: String(error) });
+        return undefined;
+      }
+      return [id, parseModelManifest(data, id)];
+    }),
+  );
+  return new Map(entries.filter((entry) => entry !== undefined));
+}
+
 /** A custom scene saved in this browser, or a clear error if it is gone. */
 function customSceneData(custom: Readonly<Record<string, Scene>>, id: string): Scene {
   const scene = custom[id];
@@ -212,6 +239,7 @@ async function start(): Promise<void> {
     loadMaterialIds(),
   ]);
   const catalog = parseCatalog(catalogData);
+  const modelManifests = await loadModelManifests(catalog);
   const customScenes = loadCustomScenes(catalog);
   const sceneIndex = withGroup(
     parseSceneIndex(indexData),
@@ -260,6 +288,7 @@ async function start(): Promise<void> {
       canvas,
       scene: shown,
       catalog,
+      modelManifests,
       simulation: nextSimulation,
       rng: rng.fork(),
       logger: createLogger("render", consoleSink),

@@ -43,13 +43,20 @@ describe("parseCatalog", () => {
     expect(() => parseCatalog(input)).toThrow(/color/i);
   });
 
-  it("accepts a glTF body with a model url", () => {
+  it("accepts a glTF body that names a model folder", () => {
     const input = catalogFixture();
-    input.species[0]!.body = { type: "gltf", url: "assets/species/tang.glb" };
+    input.species[0]!.body = { type: "gltf", model: "blue-tang" };
 
     const catalog = parseCatalog(input);
 
-    expect(catalog.species[0]?.body.type).toBe("gltf");
+    expect(catalog.species[0]?.body).toEqual({ type: "gltf", model: "blue-tang" });
+  });
+
+  it("rejects a glTF body whose model is not a folder name", () => {
+    const input = catalogFixture();
+    input.species[0]!.body = { type: "gltf", model: "../tang" };
+
+    expect(() => parseCatalog(input)).toThrow(/model/);
   });
 });
 

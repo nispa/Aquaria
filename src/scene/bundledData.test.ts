@@ -1,5 +1,6 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { MODEL_MANIFEST_FILE, modelIdsOf, parseModelManifest } from "./modelManifest";
 import { parseCatalog, parseScene } from "./parse";
 import { parseSceneIndex } from "./sceneIndex";
 
@@ -8,6 +9,14 @@ const sceneFiles = readdirSync(SCENES).filter((file) => file !== "index.json");
 
 const readJson = (path: string): unknown =>
   JSON.parse(readFileSync(new URL(path, import.meta.url), "utf8"));
+
+const MODELS = "../../public/assets/species/";
+const modelFolders = existsSync(new URL(MODELS, import.meta.url))
+  ? readdirSync(new URL(MODELS, import.meta.url), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+  : [];
+const assetCredits = readFileSync(new URL("../../ASSETS.md", import.meta.url), "utf8");
 
 describe("bundled data files", () => {
   it("ships a valid species catalog", () => {
@@ -46,5 +55,23 @@ describe("bundled data files", () => {
     const index = readJson("../../public/assets/materials/index.json") as { materials: string[] };
 
     expect([...index.materials].sort()).toEqual(folders.sort());
+  });
+
+  it.each(modelFolders)("ships a valid manifest and model file for the %s model", (id) => {
+    const manifest = parseModelManifest(readJson(`${MODELS}${id}/${MODEL_MANIFEST_FILE}`), id);
+
+    expect(existsSync(new URL(`${MODELS}${id}/${manifest.file}`, import.meta.url))).toBe(true);
+  });
+
+  it.each(modelFolders)("credits the %s model in ASSETS.md", (id) => {
+    const manifest = parseModelManifest(readJson(`${MODELS}${id}/${MODEL_MANIFEST_FILE}`), id);
+
+    expect(assetCredits).toContain(manifest.credit.source);
+  });
+
+  it("ships a model folder for every glTF species", () => {
+    const catalog = parseCatalog(readJson("../../public/species.json"));
+
+    expect(modelIdsOf(catalog).filter((id) => !modelFolders.includes(id))).toEqual([]);
   });
 });

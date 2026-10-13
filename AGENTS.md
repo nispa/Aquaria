@@ -159,8 +159,11 @@ Shaders:
 ## Scenes and species
 
 - A scene is a JSON file in `public/scenes/`, validated by `src/scene/schema.ts`.
-- A species is an entry in `public/species.json`. It uses either a `.glb` model
-  in `public/assets/species/` or a built-in procedural body (MVP default).
+- A species is an entry in `public/species.json`. It uses either a built-in
+  procedural body or a 3D model: a folder in `public/assets/species/<id>/`
+  with a glTF file and a `model.json` manifest (orientation, swimming, mouth
+  morph target, credit), validated by `src/scene/modelManifest.ts`. Both
+  kinds swim together in the same tank.
 - Adding a new scene or species must not require code changes, only data and
   assets. If it does, the engine is missing an abstraction: fix that first.
 
@@ -169,7 +172,9 @@ Shaders:
 - Code is licensed under the repository `LICENSE`. Assets may have different
   licenses.
 - Every third-party asset must be listed in `ASSETS.md` with source URL,
-  author and license. Only use CC0, CC-BY or equivalently permissive assets.
+  author and license. Only use licenses that allow reuse, modification and
+  redistribution, also commercially: CC0, CC-BY, MIT, Apache-2.0, BSD, 0BSD,
+  Unlicense. No NC, ND or SA licenses.
 - Do not use names, logos or trademarks of real aquariums or brands.
 
 ## Git and pull requests

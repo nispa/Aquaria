@@ -59,9 +59,12 @@ const proceduralBody = z.object({
     .transform((colors) => ({ ...colors, detail: colors.detail ?? colors.accent })),
 });
 
+/** A 3D model: a folder in `public/assets/species/` with a glTF file and a `model.json`. */
 const gltfBody = z.object({
   type: z.literal("gltf"),
-  url: z.string().min(1),
+  model: z
+    .string()
+    .regex(/^[a-z0-9-]+$/, "model is a folder name: lowercase letters, digits and dashes."),
 });
 
 /** How keen a species is on food when it is not fed (0 = ignores it, 1 = greedy). */

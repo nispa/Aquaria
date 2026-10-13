@@ -214,6 +214,66 @@ includes butterflyfish, moorish idols, emperor angelfish, three-bar damsels and
 purple tangs.
 Files are validated on load; mistakes are reported with the exact field.
 
+### 3D fish models
+
+A species can use a realistic 3D model instead of a procedural body, and both
+kinds swim together in the same tank. A model is a folder:
+
+```
+public/assets/species/barramundi/
+  model.json   the manifest: orientation, swimming, credit
+  model.glb    the model, textures included
+```
+
+Instead of a `.glb`, the folder may hold a `.gltf` with its `.bin` and
+texture files next to it. The species points to the folder:
+
+```json
+{ "id": "barramundi", "name": "Barramundi", "body": { "type": "gltf", "model": "barramundi" }, ... }
+```
+
+`model.json`:
+
+```json
+{
+  "name": "Barramundi",
+  "file": "model.glb",
+  "forward": "+z",
+  "up": "+y",
+  "swimAmplitude": 0.06,
+  "mouth": { "morphTarget": "MouthOpen" },
+  "credit": {
+    "author": "Microsoft",
+    "source": "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish",
+    "license": "CC0-1.0"
+  }
+}
+```
+
+- `forward` and `up` are the model's axes towards the snout and the dorsal
+  fin (default `+x` and `+y`). The engine turns, centres and scales the model
+  to the species' length, so models can come in any size.
+- `swimAmplitude` is the tail sweep in body lengths (default 0.07). The
+  model needs no skeleton: the engine bends its rear half to swim and turn.
+- `mouth.morphTarget` (optional) is a morph target (a Blender shape key) with
+  the mouth wide open, used when the fish eats; without it the mouth stays
+  shut.
+- `credit.license` must be one of `CC0-1.0`, `CC-BY-3.0`, `CC-BY-4.0`, `MIT`,
+  `Apache-2.0`, `BSD-2-Clause`, `BSD-3-Clause`, `0BSD`, `Unlicense`. List the
+  model in `ASSETS.md` too; the tests check it.
+- Materials are the model's own glTF PBR materials (base color, normal,
+  roughness/metalness, occlusion, and extensions such as iridescence). No
+  displacement map is needed: the normal map gives the scales their relief.
+
+Optimize a downloaded model before adding it: meshopt geometry, KTX2
+textures, and fewer triangles for scanned models (aim for 5,000 to 20,000).
+[glTF Transform](https://gltf-transform.dev) does all of it; it needs
+KTX-Software (see "Materials") on the `PATH`:
+
+```bash
+pnpm dlx @gltf-transform/cli@4.5.1 optimize source.glb public/assets/species/<id>/model.glb   --compress meshopt --texture-compress ktx2 --texture-size 1024 --simplify-ratio 0.05
+```
+
 ## Lights and day cycle
 
 The tank is lit like a reef aquarium, by four LED channels: white, actinic

@@ -11,15 +11,11 @@ const PUPIL_TRAVEL = 0.009;
 /** Fins are thin: see-through and paler than the body. */
 const FIN_OPACITY = 0.62;
 const FIN_PALENESS = 0.22;
-/** Where the body starts bending into a turn, in body lengths from the centre (the head stays rigid). */
-const BEND_PIVOT = 0.2;
 /** The jaw: where it starts along the body (x) and how far it drops when wide open, in body lengths. */
 const JAW_START = 0.3;
 const JAW_DROP = 0.12;
 /** The upper lip lifts by this share of the jaw drop. */
 const UPPER_LIP_LIFT = 0.35;
-/** Below this curvature the body is treated as straight, avoiding a division by zero. */
-const MIN_CURVATURE = 1e-4;
 
 /** Pattern ids shared with the fish geometry code. Order matters (GLSL int). */
 export const PATTERN_IDS = {
@@ -45,72 +41,39 @@ export type FishUniforms = {
   readonly uPattern: IUniform<number>;
   /** Half the body height in body lengths (0.1..0.4), used to normalise patterns. */
   readonly uHalfHeight: IUniform<number>;
-  /** Tail sweep in body lengths (0..0.2). */
-  readonly uSwimAmplitude: IUniform<number>;
 };
 
 /**
- * Procedural fish: bends the body with a travelling wave driven by each
- * instance's swim phase, paints the species pattern, adds eyes and fades
- * individual fish in and out. The skin gets overlapping scales with real
- * relief (derivative bump mapping), fins are paler, translucent and ribbed.
+ * Procedural fish skin: paints the species pattern and adds eyes. The skin
+ * gets overlapping scales with real relief (derivative bump mapping), fins
+ * are paler, translucent and ribbed, and the jaw drops to eat. Swimming is
+ * fishMotionPatch's job; apply this patch first.
  *
- * The rear of the body also curves into turns along a circular arc, like a
- * spine, and the tail sweep scales with swimming effort.
- *
- * Instance attributes: aSwimPhase (radians), aOpacity (0..1), aGaze (-1 right .. 1 left),
- * aBend (curvature times body length, positive into a left turn, -2.5..2.5),
- * aEffort (tail sweep relative to cruising, 0.5..2.2),
+ * Instance attributes: aGaze (-1 right .. 1 left),
  * aMouth (0 closed .. 1 wide open: the jaw drops and a dark gape shows).
  * Vertex attribute: aFin (0 body, 1 fin).
  * The geometry is one body length long along +x, nose at +0.5.
  */
 export function fishPatch(uniforms: FishUniforms): ShaderPatch {
   return {
-    name: "fish",
+    name: "fish-skin",
     uniforms,
     vertexHead: /* glsl */ `
-      attribute float aSwimPhase;
-      attribute float aOpacity;
       attribute float aFin;
       attribute float aGaze;
-      attribute float aBend;
-      attribute float aEffort;
       attribute float aMouth;
-      uniform float uSwimAmplitude;
       varying float vMouth;
       varying vec3 vBodyPosition;
-      varying float vOpacity;
       varying float vFin;
       varying float vBodyLength;
       varying float vGaze;
-
-      // The body behind the pivot follows a circular arc of curvature aBend
-      // (in body lengths). Returns the arc angle at this point; -z is the
-      // fish's left, so a left turn curls the tail towards -z.
-      float bendAngle(float x) {
-        return aBend * max(${BEND_PIVOT.toFixed(2)} - x, 0.0);
-      }
-      vec2 rotateBend(vec2 xz, float angle) {
-        float c = cos(angle);
-        float s = sin(angle);
-        return vec2(xz.x * c - xz.y * s, xz.x * s + xz.y * c);
-      }
     `,
     vertex: [
-      [
-        "#include <beginnormal_vertex>",
-        /* glsl */ `
-        #include <beginnormal_vertex>
-        objectNormal.xz = rotateBend(objectNormal.xz, bendAngle(position.x));
-        `,
-      ],
       [
         "#include <begin_vertex>",
         /* glsl */ `
         #include <begin_vertex>
         vBodyPosition = position;
-        vOpacity = aOpacity;
         vFin = aFin;
         vGaze = aGaze;
         vMouth = aMouth;
@@ -126,29 +89,6 @@ export function fishPatch(uniforms: FishUniforms): ShaderPatch {
           float jaw = aMouth * ${JAW_DROP.toFixed(2)} * smoothstep(${JAW_START.toFixed(2)}, 0.5, position.x);
           transformed.y += position.y < 0.0 ? -jaw : jaw * ${UPPER_LIP_LIFT.toFixed(2)};
         }
-        {
-          // Only the rear two thirds bend; the head stays steady like a real fish.
-          float rear = smoothstep(0.25, -0.5, position.x);
-          float wave = sin(aSwimPhase - position.x * 6.0);
-          float sweep = uSwimAmplitude * aEffort;
-          transformed.z += wave * sweep * rear;
-          transformed.x -= abs(wave) * sweep * 0.15 * rear;
-        }
-        {
-          // Lay the point along the arc: the spine point at arc length d behind
-          // the pivot, plus the sideways offset rotated with the spine.
-          float d = max(${BEND_PIVOT.toFixed(2)} - transformed.x, 0.0);
-          float curvature = abs(aBend) < ${MIN_CURVATURE} ? ${MIN_CURVATURE} : aBend;
-          float angle = curvature * d;
-          // Points ahead of the pivot (the head) keep their x.
-          float ahead = max(transformed.x - ${BEND_PIVOT.toFixed(2)}, 0.0);
-          vec2 spine = vec2(
-            ${BEND_PIVOT.toFixed(2)} + ahead - sin(angle) / curvature,
-            -(1.0 - cos(angle)) / curvature
-          );
-          vec2 side = rotateBend(vec2(0.0, transformed.z), angle);
-          transformed.xz = spine + side;
-        }
         `,
       ],
     ],
@@ -159,7 +99,6 @@ export function fishPatch(uniforms: FishUniforms): ShaderPatch {
       uniform int uPattern;
       uniform float uHalfHeight;
       varying vec3 vBodyPosition;
-      varying float vOpacity;
       varying float vFin;
       varying float vBodyLength;
       varying float vGaze;
@@ -279,7 +218,7 @@ export function fishPatch(uniforms: FishUniforms): ShaderPatch {
           bodyColor = mix(bodyColor, vec3(0.05, 0.02, 0.02), inside * (1.0 - vFin) * step(0.001, vMouth));
         }
         float finAlpha = mix(1.0, ${FIN_OPACITY.toFixed(2)}, vFin);
-        vec4 diffuseColor = vec4(bodyColor, opacity * vOpacity * finAlpha);
+        vec4 diffuseColor = vec4(bodyColor, opacity * finAlpha);
         `,
       ],
       [
