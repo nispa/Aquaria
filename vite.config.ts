@@ -47,6 +47,19 @@ export default defineConfig({
   build: {
     target: "es2022",
     sourcemap: true,
+    // Three.js alone is ~850 kB minified and cannot be split usefully; warn only beyond it.
+    chunkSizeWarningLimit: 900,
+    rolldownOptions: {
+      output: {
+        // Libraries change far less often than the app: separate chunks stay cached across releases.
+        codeSplitting: {
+          groups: [
+            { name: "three", test: /node_modules[\\/](\.pnpm[\\/])?three/ },
+            { name: "vendor", test: /node_modules/ },
+          ],
+        },
+      },
+    },
   },
   test: {
     include: ["src/**/*.test.ts"],
