@@ -69,6 +69,12 @@ URL options:
 
 Panel settings (populations, fish size, scenery, lights, effects, resolution, fps counter) are saved in the browser.
 
+## Online version
+
+Every push to `main` that passes CI is published to GitHub Pages at
+<https://nispa.github.io/Aquaria/> (workflow `.github/workflows/pages.yml`).
+The same URL options work there, e.g. `?scene=home-reef`.
+
 ## Running on a wall
 
 Build once, serve the `dist` folder and open it in Chrome in kiosk mode:
