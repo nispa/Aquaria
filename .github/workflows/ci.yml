@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   check:
@@ -22,7 +23,10 @@ jobs:
       - run: pnpm test:coverage
       - run: pnpm build
 
+  # Browser tests are slow and are run locally before pushing; CI repeats them
+  # only for pull requests, or on demand from the Actions tab.
   e2e:
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     needs: check
     steps:

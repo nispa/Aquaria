@@ -190,7 +190,10 @@ Shaders:
 - PRs describe what changed, why, and how it was tested. Visual changes
   include a screenshot.
 - CI (GitHub Actions) runs lint, typecheck, unit tests with coverage, build
-  and e2e tests on every PR. Do not merge on red.
+  and e2e tests on every PR. Do not merge on red. Pushes to `main` skip the
+  e2e job (run `pnpm test:e2e` locally first); it can be started by hand
+  from the Actions tab. A green CI on `main` publishes the site to GitHub
+  Pages, built to start at 720p (`VITE_DEFAULT_RENDER_HEIGHT`).
 
 ## Documentation
 
