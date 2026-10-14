@@ -60,17 +60,34 @@ export interface ParsedSettings {
 }
 
 /**
+ * The render height a build starts at, from its configuration (e.g. a lighter
+ * one for the web). Missing or unsupported values fall back to 4K.
+ */
+export function defaultRenderHeight(configured: string | undefined): number {
+  const result = settingsSchema.shape.renderHeight.safeParse(Number(configured));
+  return result.success ? result.data : DEFAULT_SETTINGS.renderHeight;
+}
+
+/**
  * Reads saved settings. Never throws: corrupted preferences must not stop the
  * aquarium from starting, so they are replaced by the defaults.
+ * `startHeight` is the render height used until the viewer saves one.
  */
-export function parseSettings(input: unknown): ParsedSettings {
+export function parseSettings(
+  input: unknown,
+  startHeight: number = DEFAULT_SETTINGS.renderHeight,
+): ParsedSettings {
+  const defaults: Settings = { ...DEFAULT_SETTINGS, renderHeight: startHeight };
   if (input === null || input === undefined) {
-    return { settings: DEFAULT_SETTINGS, valid: true };
+    return { settings: defaults, valid: true };
   }
   const result = settingsSchema.safeParse(input);
-  return result.success
-    ? { settings: result.data, valid: true }
-    : { settings: DEFAULT_SETTINGS, valid: false };
+  if (!result.success) return { settings: defaults, valid: false };
+  const savedHeight = typeof input === "object" && "renderHeight" in input;
+  return {
+    settings: savedHeight ? result.data : { ...result.data, renderHeight: startHeight },
+    valid: true,
+  };
 }
 
 /**

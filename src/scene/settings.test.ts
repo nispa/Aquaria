@@ -5,6 +5,7 @@ import {
   applyCountOverrides,
   DEFAULT_MSAA_SAMPLES,
   DEFAULT_SETTINGS,
+  defaultRenderHeight,
   parseSettings,
 } from "./settings";
 
@@ -34,6 +35,22 @@ describe("parseSettings", () => {
       settings: DEFAULT_SETTINGS,
       valid: false,
     });
+  });
+
+  it("starts at the given default render height when nothing was saved", () => {
+    expect(parseSettings(null, 720).settings.renderHeight).toBe(720);
+  });
+
+  it("uses the given default render height when the saved settings have none", () => {
+    expect(parseSettings({ showFps: true }, 720).settings.renderHeight).toBe(720);
+  });
+
+  it("keeps a saved render height over the given default", () => {
+    expect(parseSettings({ renderHeight: 1080 }, 720).settings.renderHeight).toBe(1080);
+  });
+
+  it("uses the given default render height for corrupted settings", () => {
+    expect(parseSettings({ renderHeight: "huge" }, 720).settings.renderHeight).toBe(720);
   });
 
   it("rejects render heights outside the supported range", () => {
@@ -160,5 +177,23 @@ describe("anti-aliasing preference", () => {
 
   it("rejects other sample counts", () => {
     expect(parseSettings({ msaaSamples: 3 }).valid).toBe(false);
+  });
+});
+
+describe("defaultRenderHeight", () => {
+  it("reads a configured render height", () => {
+    expect(defaultRenderHeight("720")).toBe(720);
+  });
+
+  it("falls back to 4K when nothing is configured", () => {
+    expect(defaultRenderHeight(undefined)).toBe(2160);
+  });
+
+  it("falls back to 4K for a configured height outside the supported range", () => {
+    expect(defaultRenderHeight("100")).toBe(2160);
+  });
+
+  it("falls back to 4K for a configured height that is not a number", () => {
+    expect(defaultRenderHeight("hd")).toBe(2160);
   });
 });

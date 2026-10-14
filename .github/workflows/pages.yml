@@ -35,6 +35,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+        env:
+          # Web visitors have all kinds of GPUs: start light, the panel goes up to 4K.
+          VITE_DEFAULT_RENDER_HEIGHT: 720
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

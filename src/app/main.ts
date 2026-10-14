@@ -31,6 +31,7 @@ import {
   applyCountOverrides,
   DEFAULT_MSAA_SAMPLES,
   MSAA_SAMPLE_CHOICES,
+  defaultRenderHeight,
   parseSettings,
   type Settings,
 } from "../scene/settings";
@@ -89,15 +90,21 @@ async function fetchJson(path: string): Promise<unknown> {
   return response.json();
 }
 
+/** Render height before the viewer picks one; the web build starts lighter (VITE_DEFAULT_RENDER_HEIGHT). */
+const START_RENDER_HEIGHT = defaultRenderHeight(import.meta.env.VITE_DEFAULT_RENDER_HEIGHT);
+
 /** Browser storage can be missing or blocked (private mode); settings are optional. */
 function loadSettings(): Settings {
   try {
     const raw = window.localStorage.getItem(SETTINGS_KEY);
-    const { settings, valid } = parseSettings(raw === null ? null : JSON.parse(raw));
+    const { settings, valid } = parseSettings(
+      raw === null ? null : JSON.parse(raw),
+      START_RENDER_HEIGHT,
+    );
     if (!valid) logger.warn("Saved settings were invalid and have been reset.");
     return settings;
   } catch {
-    return parseSettings(null).settings;
+    return parseSettings(null, START_RENDER_HEIGHT).settings;
   }
 }
 
