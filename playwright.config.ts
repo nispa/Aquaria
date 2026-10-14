@@ -19,6 +19,8 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     ...devices["Desktop Chrome"],
     viewport: { width: 1280, height: 720 },
+    // A cached app would hide changes and break request mocking; pwa.spec.ts allows it.
+    serviceWorkers: "block",
     launchOptions: {
       args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
       ...(chromiumPath === undefined ? {} : { executablePath: chromiumPath }),

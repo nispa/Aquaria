@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import type { Plugin } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vitest/config";
 
 /**
@@ -41,9 +42,50 @@ function basisTranscoder(): Plugin {
   };
 }
 
+/**
+ * Installable web app that keeps working offline: the app itself is cached on
+ * the first visit, textures and models once they have been shown.
+ */
+function installableApp(): Plugin[] {
+  return VitePWA({
+    registerType: "autoUpdate",
+    injectRegister: "script-defer",
+    includeAssets: ["icons/icon.svg", "icons/apple-touch-icon.png"],
+    manifest: {
+      name: "Aquaria",
+      short_name: "Aquaria",
+      description: "A real-time 3D aquarium for large screens.",
+      display: "fullscreen",
+      orientation: "landscape",
+      background_color: "#062a45",
+      theme_color: "#0f5f8f",
+      icons: [
+        { src: "icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+        { src: "icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+        { src: "icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      ],
+    },
+    workbox: {
+      // The app shell, plus every scene, species and model manifest (all small JSON).
+      globPatterns: ["**/*.{js,css,html,json,wasm,svg}"],
+      // Textures and models (~50 MB) are cached on first use, not on install:
+      // visitors download only what they see. The pattern must be inline: this
+      // function is copied as text into the service worker.
+      runtimeCaching: [
+        {
+          urlPattern: ({ url, sameOrigin }) =>
+            sameOrigin && /\.(?:ktx2|glb|gltf|bin|png|jpe?g|webp)$/.test(url.pathname),
+          handler: "CacheFirst",
+          options: { cacheName: "aquaria-assets" },
+        },
+      ],
+    },
+  });
+}
+
 export default defineConfig({
   base: "./",
-  plugins: [basisTranscoder()],
+  plugins: [basisTranscoder(), installableApp()],
   build: {
     target: "es2022",
     sourcemap: true,

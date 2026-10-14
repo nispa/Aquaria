@@ -75,6 +75,12 @@ Every push to `main` that passes CI is published to GitHub Pages at
 <https://nispa.github.io/Aquaria/> (workflow `.github/workflows/pages.yml`).
 The same URL options work there, e.g. `?scene=home-reef`.
 
+It is an installable web app (PWA): use the browser's _Install_ button (in the
+address bar, or _Add to Home screen_ on phones and tablets) to open it full
+screen like a program. After the first visit it works offline: the app, scenes
+and species are cached at once, textures and fish models once they have been
+shown. New versions install themselves and take effect on the next start.
+
 ## Running on a wall
 
 Build once, serve the `dist` folder and open it in Chrome in kiosk mode:

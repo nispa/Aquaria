@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Full-bleed background so the icon also works when masked to a circle (fish in the safe zone). -->
+  <defs>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3fb4d8"/>
+      <stop offset="0.55" stop-color="#0f5f8f"/>
+      <stop offset="1" stop-color="#062a45"/>
+    </linearGradient>
+    <linearGradient id="ray" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffb347"/>
+      <stop offset="1" stop-color="#f06a1d"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#water)"/>
+  <path d="M120 0h60l-70 512h-60zM250 0h40l-20 512h-60zM370 0h70l40 512h-50z" fill="url(#ray)"/>
+  <path d="M0 440c90-18 180-18 256-6s170 10 256-6v84H0z" fill="#c9ad74"/>
+  <g transform="translate(266 250) scale(0.85)">
+    <path d="M-150 0c40-62 120-92 190-70 34 11 62 34 82 70-20 36-48 59-82 70-70 22-150-8-190-70z" fill="url(#body)"/>
+    <path d="M-150 0l-60-58c4 30 4 86 0 116z" fill="#f06a1d"/>
+    <path d="M-40-74c-8 48-8 100 0 148" stroke="#ffffff" stroke-width="18" fill="none"/>
+    <path d="M40-70c-6 44-6 96 0 140" stroke="#ffffff" stroke-width="16" fill="none"/>
+    <path d="M-46-62c20-46 80-62 120-36-26 2-44 12-60 30z" fill="#f06a1d"/>
+    <circle cx="82" cy="-14" r="16" fill="#ffffff"/>
+    <circle cx="86" cy="-14" r="9" fill="#10233a"/>
+  </g>
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.7" stroke-width="5">
+    <circle cx="392" cy="196" r="12"/>
+    <circle cx="410" cy="150" r="8"/>
+    <circle cx="398" cy="114" r="5"/>
+  </g>
+</svg>
