@@ -3,6 +3,7 @@ import type { GpuKind } from "../core/gpu";
 import type { Lights } from "../scene/lights";
 import type { Look, LookFeature, LookFeatureKind } from "../scene/look";
 import { checkbox, collapsible, element, select, slider } from "./controls";
+import { createFishCards, type DrawPortraits } from "./fishCards";
 import { createLightsSection, type LightsSectionState } from "./lightsSection";
 import type { SceneryEntry } from "../scene/scenery";
 import type { Species } from "../scene/schema";
@@ -46,6 +47,8 @@ export interface PanelState {
   readonly sizeBalance: number;
   /** Species with a 3D model, and whether it is shown instead of the procedural body. */
   readonly fishModels: Readonly<Record<string, boolean>>;
+  /** Draws the fish cards' pictures, the first time the panel opens. */
+  readonly drawPortraits: DrawPortraits;
   /** The GPU the browser draws with, and whether it is the fast one. */
   readonly gpu: { readonly name: string; readonly kind: GpuKind };
   /** LED setup and cycle. */
@@ -190,67 +193,20 @@ export function createPanel(
   sizeRow.append(element("span", "panel__label", "Fish size"), size, sizeValue);
   fauna.append(sizeRow);
 
-  // A "3D" badge marks species drawn with a realistic model; it switches
-  // between the model and the lighter procedural body.
-  const badges = new Map<string, HTMLButtonElement>();
-  const setBadge = (badge: HTMLButtonElement, enabled: boolean): void => {
-    badge.setAttribute("aria-pressed", String(enabled));
-    badge.title = enabled
-      ? "Realistic 3D model. Click for the lighter procedural fish."
-      : "Procedural fish. Click for the realistic 3D model.";
-  };
-  const setModels = (ids: readonly string[], enabled: boolean): void => {
-    for (const id of ids) {
-      const badge = badges.get(id);
-      if (badge !== undefined) setBadge(badge, enabled);
-    }
-    callbacks.onFishModelChange(ids, enabled);
-  };
-  const modelIds = Object.keys(state.fishModels);
-  if (modelIds.length > 0) {
-    const allRow = element("div", "panel__row panel__row--select");
-    const buttons = element("div", "panel__presets");
-    for (const [label, enabled] of [
-      ["All 3D", true],
-      ["None 3D", false],
-    ] as const) {
-      const button = element("button", "panel__button", label);
-      button.type = "button";
-      button.addEventListener("click", () => {
-        setModels(modelIds, enabled);
-      });
-      buttons.append(button);
-    }
-    allRow.append(element("span", "panel__label", "3D models"), buttons);
-    fauna.append(allRow);
-  }
-
-  for (const species of state.species) {
-    const row = element("div", "panel__row panel__row--species");
-    const value = element("output", "panel__value", String(state.counts[species.id] ?? 0));
-    const input = slider(0, species.maxCount, 1, state.counts[species.id] ?? 0);
-    input.dataset.species = species.id;
-    input.setAttribute("aria-label", species.name);
-    input.addEventListener("input", () => {
-      value.textContent = input.value;
-      callbacks.onCountChange(species.id, Number(input.value));
-    });
-    const name = element("span", "panel__label", species.name);
-    const enabled = state.fishModels[species.id];
-    if (enabled !== undefined) {
-      const badge = element("button", "panel__badge", "3D");
-      badge.type = "button";
-      badge.dataset.model = species.id;
-      setBadge(badge, enabled);
-      badge.addEventListener("click", () => {
-        setModels([species.id], badge.getAttribute("aria-pressed") !== "true");
-      });
-      badges.set(species.id, badge);
-      name.append(" ", badge);
-    }
-    row.append(name, input, value);
-    fauna.append(row);
-  }
+  const fishCards = createFishCards({
+    species: state.species,
+    counts: state.counts,
+    fishModels: state.fishModels,
+    drawPortraits: state.drawPortraits,
+    onCountChange: (speciesId, count) => {
+      callbacks.onCountChange(speciesId, count);
+    },
+    onModelChange: (speciesIds, enabled) => {
+      callbacks.onFishModelChange(speciesIds, enabled);
+    },
+  });
+  if (fishCards.modelRow !== undefined) fauna.append(fishCards.modelRow);
+  fauna.append(fishCards.grid);
 
   const scenery = section("scenery", "Scenery");
   for (const entry of state.scenery) {
@@ -370,6 +326,7 @@ export function createPanel(
   };
   const toggle = (): void => {
     panel.hidden = !panel.hidden;
+    if (!panel.hidden) fishCards.showPortraits();
   };
   opener.addEventListener("click", toggle);
   const onKey = (event: KeyboardEvent): void => {

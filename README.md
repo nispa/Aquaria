@@ -259,8 +259,11 @@ rebuilds the tank.
 ### 3D fish models
 
 Every species has a procedural body, and may also have a realistic 3D model.
-Procedural and 3D fish swim together in the same tank. In the panel's Fauna
-section a **3D** badge marks the species with a model: click it to switch
+Procedural and 3D fish swim together in the same tank. The panel's Fauna
+section shows a card per species, with a picture of the fish drawn live (by a
+small renderer of its own, created when the panel first opens and released
+right after), its name and a count slider; species in the tank come first.
+A **3D** badge on the picture marks the species with a model: click it to switch
 that species between its model and the lighter procedural body, or use
 **All 3D** / **None 3D**. The choice is saved. A model is downloaded only
 when it is shown, and the procedural body stays while it loads or if it

@@ -50,3 +50,21 @@ export function createWaterUniforms(scene: Scene): WaterUniforms {
     uSpotMix: { value: 0 },
   };
 }
+
+/** Plain daylight without caustics or water tint, for drawing a fish on its own. */
+export function neutralWaterUniforms(): WaterUniforms {
+  return {
+    uTime: { value: 0 },
+    uCausticsIntensity: { value: 0 },
+    uCausticsScale: { value: 1 },
+    uSurfaceY: { value: 1 },
+    uLightColor: { value: new Color(1, 1, 1) },
+    uCurrent: { value: new Vector3() },
+    uWaterColor: { value: new Color(0, 0, 0) },
+    uDaylight: { value: 1 },
+    uFluorescence: { value: 0 },
+    uSpots: { value: Array.from({ length: MAX_SPOTS }, () => new Vector3()) },
+    uSpotCount: { value: 0 },
+    uSpotMix: { value: 0 },
+  };
+}

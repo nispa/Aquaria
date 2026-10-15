@@ -8,6 +8,7 @@ import { consoleSink, createLogger } from "../core/logger";
 import { createRng } from "../core/rng";
 import { versionLabel } from "../core/version";
 import { createAquariumView, type AquariumView } from "../render/aquariumView";
+import { drawFishPortraits, type FishPortraitRequest } from "../render/fishPortraits";
 import { EFFECTS } from "../render/effects";
 import {
   customSceneId,
@@ -379,6 +380,16 @@ async function start(): Promise<void> {
     saveSettings(settings);
   };
 
+  // One batch of fish pictures at a time: each batch has its own small renderer.
+  let portraits = Promise.resolve();
+  const drawPortraits = (requests: readonly FishPortraitRequest[]): void => {
+    portraits = portraits
+      .then(() => drawFishPortraits(catalog, modelManifests, requests, logger))
+      .catch((error: unknown) => {
+        logger.warn("Fish pictures could not be drawn", { error: String(error) });
+      });
+  };
+
   const panel = createPanel(
     document.body,
     {
@@ -398,6 +409,7 @@ async function start(): Promise<void> {
             : [],
         ),
       ),
+      drawPortraits,
       renderHeight: settings.renderHeight,
       showFps: settings.showFps,
       msaaSamples: settings.msaaSamples ?? DEFAULT_MSAA_SAMPLES,

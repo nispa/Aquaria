@@ -104,6 +104,24 @@ test("changes the resolution from the panel", async ({ page }) => {
   expect(bufferHeight).toBe(1080);
 });
 
+test("draws a picture of each fish on its card", async ({ page }) => {
+  await openLive(page);
+  await waitForState(page);
+
+  await page.keyboard.press("h");
+
+  // A drawn picture has opaque pixels; an empty canvas is fully transparent.
+  await expect
+    .poll(() =>
+      page.locator('[data-species-card="clownfish"] canvas').evaluate((node) => {
+        const canvas = node as HTMLCanvasElement;
+        const pixels = canvas.getContext("2d")?.getImageData(0, 0, canvas.width, canvas.height);
+        return pixels?.data.some((value, index) => index % 4 === 3 && value > 0) ?? false;
+      }),
+    )
+    .toBe(true);
+});
+
 test("changes a population from the panel", async ({ page }) => {
   await openLive(page);
   await waitForState(page);
@@ -111,9 +129,7 @@ test("changes a population from the panel", async ({ page }) => {
 
   await page.locator('input[data-species="clownfish"]').fill("12");
 
-  await expect(page.locator(".panel__row", { hasText: "Clownfish" }).locator("output")).toHaveText(
-    "12",
-  );
+  await expect(page.locator('[data-species-card="clownfish"] output')).toHaveText("12");
 });
 
 test("shows a clear error for a missing scene", async ({ page }) => {

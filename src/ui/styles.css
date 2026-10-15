@@ -235,6 +235,82 @@ body {
   opacity: 1;
 }
 
+/* Fish cards: a picture, the name and a count per species. */
+.fish-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.fish-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.04);
+  transition: opacity 0.15s;
+}
+
+.fish-card--empty {
+  opacity: 0.55;
+}
+
+.fish-card--empty:hover,
+.fish-card--empty:focus-within {
+  opacity: 1;
+}
+
+.fish-card__picture {
+  position: relative;
+  aspect-ratio: 192 / 120;
+  border-radius: 7px;
+  background: radial-gradient(ellipse at 50% 35%, #1d5f80 0%, #0a2c42 75%);
+  overflow: hidden;
+}
+
+.fish-card__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.fish-card__badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  margin: 0;
+  background: rgb(4 22 34 / 0.6);
+}
+
+.fish-card__name {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fish-card__count {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 4px;
+}
+
+.fish-card__slider {
+  width: 100%;
+  margin: 0;
+}
+
+.fish-card__value {
+  font-size: 12px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .panel__button--wide {
   width: 100%;
   margin-top: 8px;

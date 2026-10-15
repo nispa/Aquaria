@@ -60,7 +60,7 @@ This guide covers everything needed to operate, customize, and understand the de
 Pressing **`H`** opens the control panel powered by [`createPanel`](file:///F:/progetti/Aquaria/src/ui/panel.ts#L102):
 
 - **Scene Selection**: Choose from bundled scenes (e.g., _Tropical reef_, _Home reef_, _Planted tank_, _Iwagumi_) or your saved custom scenes (_My scenes_).
-- **Fauna Population**: Real-time sliders for each species defined in [`species.json`](file:///F:/progetti/Aquaria/public/species.json). Increasing or decreasing numbers causes fish to swim realistically into or out of the side boundaries rather than popping into existence.
+- **Fauna Population**: A card per species, with a live picture of the fish and a count slider; species in the tank come first. Real-time sliders for each species defined in [`species.json`](file:///F:/progetti/Aquaria/public/species.json). Increasing or decreasing numbers causes fish to swim realistically into or out of the side boundaries rather than popping into existence.
 - **Scenery Elements**: Adjust the count of corals, kelp, sea anemones, driftwood, rocks, and shells. Adding items never displaces already positioned flora or props.
 
 #### Bundled scenes

@@ -19,9 +19,6 @@ import {
   type Material,
   type Object3D,
 } from "three";
-import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
@@ -40,6 +37,7 @@ import type { Simulation } from "../sim/simulation";
 import type { EffectDefinition, EffectInstance } from "./effects/types";
 import { createEnvironment } from "./environment";
 import { createWaterEnvironment } from "./environmentLight";
+import { createAssetLoaders } from "./assetLoaders";
 import { createFishRenderer } from "./fishRenderer";
 import { createFloraRenderer, type FloraRenderer } from "./floraRenderer";
 import { cameraFraming } from "./framing";
@@ -63,7 +61,6 @@ const SHADOW_NORMAL_BIAS = 0.02;
 const SHADOW_FAR = 30;
 const SHADOW_MAP_SIZE = 2048;
 const SEED_MAX = 2 ** 31 - 1;
-const BASIS_TRANSCODER_PATH = "basis/";
 /** Derives the ridge seed from the props seed, keeping earlier seeds unchanged. */
 const ROCKWORK_SEED_OFFSET = 1;
 /** Relative aspect change that makes the scenery spread again across the view. */
@@ -209,24 +206,17 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   // generators, so every rebuild starts from the same state.
   const scenerySeeds = { flora: rng.int(0, SEED_MAX), props: rng.int(0, SEED_MAX) };
   const particleSeed = rng.int(0, SEED_MAX);
-  // KTX2 textures stay compressed on the GPU (about a quarter of the memory of
-  // PNG or WebP), which matters at 4K. The Basis transcoder is in public/basis/.
-  const textureLoader = new KTX2Loader().setTranscoderPath(BASIS_TRANSCODER_PATH);
-  textureLoader.detectSupport(renderer);
-  const surfaces = createSurfaceLibrary((url) => textureLoader.loadAsync(url), logger);
+  const loaders = createAssetLoaders(renderer);
+  const surfaces = createSurfaceLibrary((url) => loaders.textures.loadAsync(url), logger);
   surfaces.setAnisotropy(renderer.capabilities.getMaxAnisotropy());
   const environment = createEnvironment(scene, water, surfaces, rng.fork());
-  // Fish models: meshopt-compressed geometry and KTX2 textures, like the surfaces.
-  const modelLoader = new GLTFLoader()
-    .setKTX2Loader(textureLoader)
-    .setMeshoptDecoder(MeshoptDecoder);
   const fish = createFishRenderer(
     catalog,
     water,
     logger,
     {
       manifests: options.modelManifests,
-      load: (url) => modelLoader.loadAsync(url).then((gltf) => gltf.scene),
+      load: loaders.loadModel,
     },
     options.fishModelEnabled,
   );
@@ -490,7 +480,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       environmentMap.dispose();
       fixture.dispose();
       surfaces.dispose();
-      textureLoader.dispose();
+      loaders.dispose();
       renderer.dispose();
     },
   };

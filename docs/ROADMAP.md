@@ -23,11 +23,12 @@ and `pnpm test:e2e` green.
 
 ### A2. Fish cards with live previews
 
-- [ ] Fauna is a grid of cards: preview, name, − / count / +, 3D badge.
+- [x] Fauna is a grid of cards: preview, name, count slider, 3D badge.
       Species in the tank first; absent ones dimmed.
-- [ ] Previews rendered at runtime with the main renderer into one small
-      shared render target, cached per species and body (procedural or 3D
-      model); redrawn when the 3D badge changes.
+- [x] Previews rendered at runtime by a small renderer of their own, created
+      when the panel first opens and released after the batch (the
+      aquarium's renderer and effects are untouched); redrawn when the 3D
+      badge changes.
 - [ ] The same cards are reused by the scene editor's palette (C3).
 
 ## B. Fish behavior

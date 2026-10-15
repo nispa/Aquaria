@@ -64,7 +64,7 @@ Il pannello, gestito da [`createPanel`](file:///F:/progetti/Aquaria/src/ui/panel
    - Contiene il pulsante **Scene Designer** per aprire l'editor visuale.
 
 2. **Popolazione della Fauna**:
-   - Ciascuna specie di pesce definita nel catalogo [`public/species.json`](file:///F:/progetti/Aquaria/public/species.json) ha un cursore da 0 a 50 individui.
+   - Ciascuna specie di pesce definita nel catalogo [`public/species.json`](file:///F:/progetti/Aquaria/public/species.json) ha una scheda con l'immagine del pesce, disegnata dal vivo, e un cursore per il numero di individui. Le specie presenti in vasca compaiono per prime.
    - Quando si riduce o aumenta il numero, **i pesci non spariscono né compaiono nel nulla**: nuotano verso l'esterno o entrano gradualmente dai lati della vasca.
 
 3. **Elementi di Arredo (Scenery)**:
