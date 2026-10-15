@@ -34,6 +34,8 @@ export const settingsSchema = z.object({
   fishModels: z.record(z.string(), z.boolean()).optional(),
   /** How fish sizes are drawn: 0 real .. 1 all alike; DEFAULT_SIZE_BALANCE when absent. */
   sizeBalance: z.number().min(0).max(1).optional(),
+  /** Open (true) or closed (false) per control panel section id; absent = the section's default. */
+  panelSections: z.record(z.string(), z.boolean()).optional(),
   /** Custom LED setup; when absent the scene's own lights are used. */
   lights: customLightsSchema.optional(),
   /** Scenery count overrides per scene id, then per scenery key (see `sceneryEntries`). */

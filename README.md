@@ -331,13 +331,18 @@ The **fixture** is either the open sky (one sun, for sea scenes) or an
 aquarium lamp with a row of **LED spots**: they shine above the water, with
 soft cones of light and pools of light on the bottom.
 
-The panel's Lights section starts on **Recommended** (the scene's setup).
+Panel sections open and close from their headings, and the panel remembers
+which ones you left open: Fauna starts open, the more technical ones (Time,
+Lights, Scenery, Lighting, Post-processing, Quality) start closed.
+
+The Lights and Time sections start on **Recommended** (the scene's setup).
 Changing any control switches to **Custom**, saved in the browser:
 
 - **Fixture**: open sky or LED spots, and how many spots.
-- **Cycle**: _Fixed hour_, _Real clock_ (follows the local time) or
-  _Accelerated day_ (a whole day in the chosen minutes, starting from the
-  chosen hour).
+- **Cycle** (in Time): _Hour at start_ (the default: the local hour the
+  aquarium was started, then still), _Fixed hour_, _Real clock_ (follows the
+  local time) or _Accelerated day_ (a whole day in the chosen minutes,
+  starting from the chosen hour).
 - **Sunrise**, **Sunset** and **Dawn / dusk** length. The blue switches on one
   dawn earlier and off one dusk later than the white, as on real reefs.
 - **Color and level** of each channel, and the **moonlight** level.

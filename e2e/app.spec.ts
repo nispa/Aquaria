@@ -11,6 +11,13 @@ async function openLive(page: Page, query = "?effects=none"): Promise<void> {
   await page.goto(`/${query}`);
 }
 
+/** Opens a collapsible panel section, unless it is open already (e.g. remembered). */
+async function openSection(page: Page, id: string): Promise<void> {
+  const section = page.locator(`details[data-section="${id}"]`);
+  const open = await section.evaluate((node) => (node as HTMLDetailsElement).open);
+  if (!open) await section.locator("summary").click();
+}
+
 async function waitForState(page: Page): Promise<string | undefined> {
   await page.waitForFunction(() => document.body.dataset.state !== undefined);
   return page.evaluate(() => document.body.dataset.state);
@@ -50,10 +57,30 @@ test("opens the control panel with the H key", async ({ page }) => {
   await expect(page.getByText("Blue tang")).toBeVisible();
 });
 
+test("keeps the advanced sections closed until opened, and remembers them", async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem("aquaria.settings") === null) {
+      localStorage.setItem("aquaria.settings", JSON.stringify({ renderHeight: 540 }));
+    }
+  });
+  await page.goto("/?effects=none");
+  await waitForState(page);
+  await page.keyboard.press("h");
+  await expect(page.getByRole("button", { name: "Full HD" })).toBeHidden();
+
+  await page.locator('details[data-section="quality"] summary').click();
+  await page.reload();
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await expect(page.getByRole("button", { name: "Full HD" })).toBeVisible();
+});
+
 test("changes the resolution from the panel", async ({ page }) => {
   await openLive(page);
   await waitForState(page);
   await page.keyboard.press("h");
+  await openSection(page, "quality");
 
   await page.getByRole("button", { name: "Full HD" }).click();
 
@@ -89,6 +116,8 @@ test("switches effects on and off from the panel", async ({ page }) => {
   await openLive(page);
   await waitForState(page);
   await page.keyboard.press("h");
+  await openSection(page, "lighting");
+  await openSection(page, "effect");
 
   await page.getByRole("checkbox", { name: "Ambient occlusion" }).check();
   await page.getByRole("checkbox", { name: "Shadows" }).check();
@@ -108,11 +137,13 @@ test("remembers effect choices after a reload", async ({ page }) => {
   await page.goto("/");
   await waitForState(page);
   await page.keyboard.press("h");
+  await openSection(page, "effect");
   await page.getByRole("checkbox", { name: "Depth of field" }).check();
 
   await page.reload();
   await waitForState(page);
   await page.keyboard.press("h");
+  await openSection(page, "effect");
 
   await expect(page.getByRole("checkbox", { name: "Depth of field" })).toBeChecked();
 });
@@ -123,6 +154,7 @@ test("changes the scenery from the panel", async ({ page }) => {
   await openLive(page);
   await waitForState(page);
   await page.keyboard.press("h");
+  await openSection(page, "scenery");
 
   await page.locator('input[data-scenery="brain-coral"]').fill("12");
 
@@ -185,6 +217,8 @@ test("customizes the LED lights and cycle from the panel", async ({ page }) => {
   await openLive(page);
   await waitForState(page);
   await page.keyboard.press("h");
+  await openSection(page, "time");
+  await openSection(page, "lights");
 
   await page.locator('select[name="light-mode"]').selectOption("accelerated");
   await page.locator('input[name="light-accent-level"]').fill("60");
@@ -198,6 +232,7 @@ test("goes back to the recommended lights", async ({ page }) => {
   await openLive(page);
   await waitForState(page);
   await page.keyboard.press("h");
+  await openSection(page, "lights");
   await page.locator('input[name="light-accent-level"]').fill("60");
 
   await page.locator('select[name="light-setup"]').selectOption("recommended");
@@ -233,6 +268,8 @@ test("changes the anti-aliasing from the panel", async ({ page }) => {
   await openLive(page);
   await waitForState(page);
   await page.keyboard.press("h");
+  await openSection(page, "quality");
+  await openSection(page, "effect");
 
   await page.locator('select[name="msaa"]').selectOption("4");
   await page.getByRole("checkbox", { name: "SMAA anti-aliasing" }).check();
@@ -247,6 +284,7 @@ test("switches the light fixture to LED spots", async ({ page }) => {
   await openLive(page);
   await waitForState(page);
   await page.keyboard.press("h");
+  await openSection(page, "lights");
 
   await page.locator('select[name="light-fixture"]').selectOption("spots");
   await page.locator('input[name="light-spots"]').fill("9");

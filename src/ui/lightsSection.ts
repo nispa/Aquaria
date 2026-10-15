@@ -24,6 +24,7 @@ const CHANNEL_LABELS: Readonly<Record<LightChannel, string>> = {
 };
 
 const MODES: readonly (readonly [CycleMode, string])[] = [
+  ["startup", "Hour at start"],
   ["fixed", "Fixed hour"],
   ["clock", "Real clock"],
   ["accelerated", "Accelerated day"],
@@ -48,7 +49,12 @@ export interface LightsSectionState {
 }
 
 export interface LightsSection {
-  readonly element: HTMLElement;
+  /** Cycle mode and hours of the day. */
+  readonly timeRows: readonly HTMLElement[];
+  /** Setup, fixture, LED channels and moonlight. */
+  readonly lightRows: readonly HTMLElement[];
+  /** The aquarium's current time, kept up to date by `setHour`. */
+  readonly clock: HTMLElement;
   /** Shows the aquarium's current time; cheap to call every frame. */
   setHour(hour: number): void;
 }
@@ -60,18 +66,16 @@ interface Control {
 }
 
 /**
- * LED channels and daily cycle. "Recommended" uses the scene's setup; changing
- * any control switches to "Custom", which is passed on as a whole setup.
- * Choosing "Recommended" again passes `undefined` and restores the controls.
+ * LED channels and daily cycle, shown by the panel in two sections (lights and
+ * time). "Recommended" uses the scene's setup; changing any control switches
+ * to "Custom", which is passed on as a whole setup. Choosing "Recommended"
+ * again passes `undefined` and restores the controls.
  */
 export function createLightsSection(
   state: LightsSectionState,
   onChange: (lights: Lights | undefined) => void,
 ): LightsSection {
-  const section = element("section", "panel__section");
-  section.dataset.section = "lights";
-  section.append(element("h2", "panel__heading", "Lights"));
-  const clock = element("p", "panel__clock", "");
+  const clock = element("span", "panel__clock", "");
   let current = state.lights;
   let shownMinute = -1;
 
@@ -201,18 +205,21 @@ export function createLightsSection(
     },
   };
 
-  const controls: Control[] = [
-    fixtureControl,
-    spotsControl,
+  const timeControls: Control[] = [
     modeControl,
     cycleSlider("Hour", "hour", hourRange, formatHour),
     cycleSlider("Day length", "minutes", { ...DAY_MINUTES, step: 1 }, (value) => `${value} min`),
     cycleSlider("Sunrise", "sunrise", hourRange, formatHour),
     cycleSlider("Sunset", "sunset", hourRange, formatHour),
     cycleSlider("Dawn / dusk", "ramp", { ...RAMP_HOURS, step: HOUR_STEP }, (value) => `${value} h`),
+  ];
+  const lightControls: Control[] = [
+    fixtureControl,
+    spotsControl,
     ...LIGHT_CHANNELS.map(channelControl),
     moonControl,
   ];
+  const controls = [...timeControls, ...lightControls];
   const showAll = (lights: Lights): void => {
     controls.forEach((control) => {
       control.show(lights);
@@ -230,15 +237,15 @@ export function createLightsSection(
     }
   });
 
-  section.append(clock, setup.row, ...controls.map((control) => control.row));
-
   return {
-    element: section,
+    timeRows: timeControls.map((control) => control.row),
+    lightRows: [setup.row, ...lightControls.map((control) => control.row)],
+    clock,
     setHour(hour) {
       const minute = Math.floor(hour * MINUTES_PER_HOUR);
       if (minute === shownMinute) return;
       shownMinute = minute;
-      clock.textContent = `Aquarium time ${formatHour(hour)}`;
+      clock.textContent = formatHour(hour);
     },
   };
 }

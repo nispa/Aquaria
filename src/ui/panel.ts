@@ -2,7 +2,7 @@ import { FULL_HD_HEIGHT, resolutionLabel, UHD_HEIGHT } from "../core/resolution"
 import type { GpuKind } from "../core/gpu";
 import type { Lights } from "../scene/lights";
 import type { Look, LookFeature, LookFeatureKind } from "../scene/look";
-import { checkbox, element, select, slider } from "./controls";
+import { checkbox, collapsible, element, select, slider } from "./controls";
 import { createLightsSection, type LightsSectionState } from "./lightsSection";
 import type { SceneryEntry } from "../scene/scenery";
 import type { Species } from "../scene/schema";
@@ -14,6 +14,8 @@ const HEIGHT_STEP = 60;
 const BUTTON_IDLE_MS = 2500;
 const PERCENT = 100;
 const SIZE_STEP = 5;
+/** Sections open until the viewer closes them; every other section starts closed. */
+const OPEN_BY_DEFAULT: ReadonlySet<string> = new Set(["fauna"]);
 
 /** "Real" at 0, "Alike" at 1, a percentage in between. */
 function sizeBalanceLabel(balance: number): string {
@@ -58,6 +60,8 @@ export interface PanelState {
   /** Switchable lighting features and effects, and which ones are on. */
   readonly features: readonly LookFeature[];
   readonly look: Look;
+  /** Saved open/closed state per section id; absent sections use their default. */
+  readonly openSections: Readonly<Record<string, boolean>>;
 }
 
 export interface PanelCallbacks {
@@ -78,6 +82,7 @@ export interface PanelCallbacks {
   onFullscreen(): void;
   /** Drops a pinch of food into the tank. */
   onFeed(): void;
+  onSectionToggle(sectionId: string, open: boolean): void;
 }
 
 export interface Panel {
@@ -93,23 +98,25 @@ const FEATURE_HEADINGS: Readonly<Record<LookFeatureKind, string>> = {
   effect: "Post-processing",
 };
 
+type SectionFactory = (id: string, title: string) => HTMLDetailsElement;
+
 /** One section per feature kind, one switch per feature. */
 function featureSections(
   features: readonly LookFeature[],
   look: Look,
+  section: SectionFactory,
   onChange: (featureId: string, enabled: boolean) => void,
 ): HTMLElement[] {
   return (Object.keys(FEATURE_HEADINGS) as LookFeatureKind[]).map((kind) => {
-    const section = element("section", "panel__section");
-    section.append(element("h2", "panel__heading", FEATURE_HEADINGS[kind]));
+    const box = section(kind, FEATURE_HEADINGS[kind]);
     for (const feature of features.filter((candidate) => candidate.kind === kind)) {
       const row = checkbox(feature.name, look.has(feature.id), (checked) => {
         onChange(feature.id, checked);
       });
       row.dataset.feature = feature.id;
-      section.append(row);
+      box.append(row);
     }
-    return section;
+    return box;
   });
 }
 
@@ -126,6 +133,12 @@ export function createPanel(
   const panel = element("aside", "panel");
   panel.setAttribute("aria-label", "Aquarium controls");
   panel.hidden = true;
+
+  const sectionWithSummary = (id: string, title: string) =>
+    collapsible(id, title, state.openSections[id] ?? OPEN_BY_DEFAULT.has(id), (open) => {
+      callbacks.onSectionToggle(id, open);
+    });
+  const section: SectionFactory = (id, title) => sectionWithSummary(id, title).section;
 
   panel.append(element("h1", "panel__title", state.sceneName));
   const sceneSelect = select("Scene", [], state.sceneId);
@@ -160,8 +173,7 @@ export function createPanel(
   });
   panel.append(sceneSelect.row, designerButton, feedButton);
 
-  const fauna = element("section", "panel__section");
-  fauna.append(element("h2", "panel__heading", "Fauna"));
+  const fauna = section("fauna", "Fauna");
   const sizeRow = element("label", "panel__row");
   const sizeValue = element("output", "panel__value", sizeBalanceLabel(state.sizeBalance));
   const size = slider(0, PERCENT, SIZE_STEP, Math.round(state.sizeBalance * PERCENT));
@@ -238,8 +250,7 @@ export function createPanel(
     fauna.append(row);
   }
 
-  const scenery = element("section", "panel__section");
-  scenery.append(element("h2", "panel__heading", "Scenery"));
+  const scenery = section("scenery", "Scenery");
   for (const entry of state.scenery) {
     const row = element("label", "panel__row");
     const value = element("output", "panel__value", String(entry.count));
@@ -256,9 +267,13 @@ export function createPanel(
   const lightsSection = createLightsSection(state.lights, (lights) => {
     callbacks.onLightsChange(lights);
   });
+  const time = sectionWithSummary("time", "Time");
+  time.summary.append(lightsSection.clock);
+  time.section.append(...lightsSection.timeRows);
+  const lights = section("lights", "Lights");
+  lights.append(...lightsSection.lightRows);
 
-  const quality = element("section", "panel__section");
-  quality.append(element("h2", "panel__heading", "Quality"));
+  const quality = section("quality", "Quality");
   const resolutionRow = element("label", "panel__row");
   const resolutionValue = element("output", "panel__value", resolutionLabel(state.renderHeight));
   const resolution = slider(MIN_HEIGHT, UHD_HEIGHT, HEIGHT_STEP, state.renderHeight);
@@ -324,9 +339,10 @@ export function createPanel(
   quality.append(resolutionRow, presets, antialias.row, fpsRow, fullscreen);
   panel.append(
     fauna,
+    time.section,
+    lights,
     scenery,
-    lightsSection.element,
-    ...featureSections(state.features, state.look, (featureId, enabled) => {
+    ...featureSections(state.features, state.look, section, (featureId, enabled) => {
       callbacks.onFeatureChange(featureId, enabled);
     }),
     quality,

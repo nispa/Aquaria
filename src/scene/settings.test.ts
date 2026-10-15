@@ -164,6 +164,18 @@ describe("scene preference", () => {
   });
 });
 
+describe("panel sections", () => {
+  it("remembers which panel sections the viewer opened or closed", () => {
+    const saved = { panelSections: { fauna: false, time: true } };
+
+    expect(parseSettings(saved).settings.panelSections).toEqual({ fauna: false, time: true });
+  });
+
+  it("rejects section states that are not open/closed values", () => {
+    expect(parseSettings({ panelSections: { time: "open" } }).valid).toBe(false);
+  });
+});
+
 describe("anti-aliasing preference", () => {
   it("defaults to 2x multisampling", () => {
     expect(DEFAULT_SETTINGS.msaaSamples ?? DEFAULT_MSAA_SAMPLES).toBe(2);

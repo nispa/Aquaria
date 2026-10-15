@@ -92,6 +92,7 @@ Aquaria simulates a true marine aquarium lighting rig using four distinct spectr
 
 **Cycle Modes**:
 
+- **Hour at Start** (default): Keeps the hour at which the aquarium was started, so the light matches the room and then stays still.
 - **Fixed Hour**: Freezes the aquarium clock at a specific hour (0.0 to 24.0) for photography or steady ambiance.
 - **Real Clock**: Synchronizes lighting with the local wall-clock time of your machine.
 - **Accelerated Day**: Compresses a full 24-hour sunrise-to-night cycle into a configurable number of real minutes.

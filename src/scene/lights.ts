@@ -60,10 +60,11 @@ export const customLightsSchema = z.object({
   cycle: z
     .object({
       /**
+       * startup: the local hour the aquarium was started, then still.
        * fixed: always `hour`. clock: follows the local time. accelerated: a
        * whole day every `minutes`, starting from `hour`.
        */
-      mode: z.enum(["fixed", "clock", "accelerated"]).default("fixed"),
+      mode: z.enum(["startup", "fixed", "clock", "accelerated"]).default("startup"),
       hour: hour.default(13),
       minutes: z.number().min(1).max(MINUTES_PER_DAY).default(10),
       /** White and violet reach full level after the ramp that starts here. */

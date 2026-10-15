@@ -272,7 +272,9 @@ async function start(): Promise<void> {
   const scene = applySceneryOverrides(baseScene, sceneryCounts);
 
   // The wall clock is read once a second, not every frame (Date allocates).
-  let clockHour = localHour();
+  // Scene switches keep the hour of the first start: the light stays put.
+  const startHour = localHour();
+  let clockHour = startHour;
   window.setInterval(() => {
     clockHour = localHour();
   }, CLOCK_REFRESH_MS);
@@ -314,6 +316,7 @@ async function start(): Promise<void> {
       lights: effectiveLights(settings.lights),
       msaaSamples: settings.msaaSamples ?? DEFAULT_MSAA_SAMPLES,
       clockHour: () => clockHour,
+      startHour,
     });
     nextSimulation.setSeabed((x, z) => nextView.seabedHeight(x, z));
     nextView.resize(window.innerWidth, window.innerHeight);
@@ -400,6 +403,7 @@ async function start(): Promise<void> {
       msaaChoices: MSAA_SAMPLE_CHOICES,
       features,
       look,
+      openSections: settings.panelSections ?? {},
       scenery: sceneryEntries(scene),
       lights: {
         lights: settings.lights ?? scene.lights,
@@ -476,6 +480,9 @@ async function start(): Promise<void> {
         update({ look: { ...settings.look, [featureId]: enabled } });
       },
       onFeed: feed,
+      onSectionToggle(sectionId, open) {
+        update({ panelSections: { ...settings.panelSections, [sectionId]: open } });
+      },
       onFullscreen() {
         if (document.fullscreenElement === null) {
           document.documentElement.requestFullscreen().catch(() => {

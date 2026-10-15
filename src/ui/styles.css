@@ -124,9 +124,42 @@ body {
 }
 
 .panel__clock {
-  margin: 0 0 8px;
+  margin-left: auto;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+/* Collapsible sections: the heading opens and closes them. */
+.panel__summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.panel__summary::-webkit-details-marker {
+  display: none;
+}
+
+.panel__summary::before {
+  content: "\25B8";
+  transition: transform 0.15s;
+}
+
+.panel__collapsible[open] > .panel__summary {
+  margin-bottom: 8px;
+}
+
+.panel__collapsible[open] > .panel__summary::before {
+  transform: rotate(90deg);
+}
+
+.panel__summary:hover {
+  color: var(--text);
 }
 
 .panel__row--check {

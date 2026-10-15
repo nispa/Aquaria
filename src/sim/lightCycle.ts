@@ -32,6 +32,8 @@ export interface LightState {
 export interface CycleInput {
   /** Local time of day in hours, from the wall clock. */
   readonly clockHour: number;
+  /** Local time of day in hours when the aquarium was started. */
+  readonly startHour: number;
   /** Seconds since the aquarium started. */
   readonly elapsedSeconds: number;
 }
@@ -39,6 +41,8 @@ export interface CycleInput {
 /** The hour of the aquarium's day for the chosen cycle mode. */
 export function cycleHour(cycle: Lights["cycle"], input: CycleInput): number {
   switch (cycle.mode) {
+    case "startup":
+      return input.startHour;
     case "fixed":
       return cycle.hour;
     case "clock":

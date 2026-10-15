@@ -99,6 +99,7 @@ Aquaria riproduce fedelmente l'illuminazione professionale per acquari marini e 
 
 **Modalità del Ciclo Solare**:
 
+- **Hour at Start** (predefinita): Mantiene l'ora in cui l'acquario è stato avviato, così la luce corrisponde alla stanza e poi resta ferma.
 - **Fixed Hour**: Fissa l'ora dell'acquario (da 0.0 a 24.0) per esposizioni o fotografie.
 - **Real Clock**: Sincronizza l'illuminazione con l'ora reale del computer.
 - **Accelerated Day**: Comprime un ciclo completo di 24 ore in pochi minuti configurabili (es. 10 minuti).

@@ -22,8 +22,8 @@ describe("lights", () => {
     expect(channels.accent.level).toBe(0);
   });
 
-  it("starts at a fixed midday hour, so the aquarium looks the same until changed", () => {
-    expect(RECOMMENDED_LIGHTS.cycle).toMatchObject({ mode: "fixed", hour: 13 });
+  it("keeps the hour the aquarium was started at, so the light matches the room", () => {
+    expect(RECOMMENDED_LIGHTS.cycle.mode).toBe("startup");
   });
 
   it("rejects hours outside the day", () => {

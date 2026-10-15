@@ -54,3 +54,25 @@ export function select(
   row.append(element("span", "panel__label", label), input);
   return { row, input };
 }
+
+/**
+ * A panel section the viewer opens and closes by its heading. Content goes
+ * into the returned `section`; `onToggle` reports each new state.
+ */
+export function collapsible(
+  id: string,
+  title: string,
+  open: boolean,
+  onToggle: (open: boolean) => void,
+): { readonly section: HTMLDetailsElement; readonly summary: HTMLElement } {
+  const section = element("details", "panel__section panel__collapsible");
+  section.dataset.section = id;
+  section.open = open;
+  const summary = element("summary", "panel__heading panel__summary");
+  summary.append(element("span", "", title));
+  section.append(summary);
+  section.addEventListener("toggle", () => {
+    onToggle(section.open);
+  });
+  return { section, summary };
+}

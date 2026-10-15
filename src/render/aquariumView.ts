@@ -92,6 +92,8 @@ export interface AquariumViewOptions {
   readonly msaaSamples: number;
   /** Local time of day in hours, for the clock cycle mode. Called every frame: keep it cheap. */
   readonly clockHour: () => number;
+  /** Local time of day in hours when the aquarium was started, for the startup cycle mode. */
+  readonly startHour: number;
 }
 
 export interface AquariumView {
@@ -201,7 +203,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   let mixer = createLightMixer(lights);
   let currentHour = lights.cycle.hour;
   // Reused every frame so the render loop does not allocate.
-  const cycleInput = { clockHour: 0, elapsedSeconds: 0 };
+  const cycleInput = { clockHour: 0, startHour: options.startHour, elapsedSeconds: 0 };
 
   // Scenery is rebuilt when the viewer changes counts: keep the seeds, not the
   // generators, so every rebuild starts from the same state.
