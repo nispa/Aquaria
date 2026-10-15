@@ -26,19 +26,25 @@ describe("cycleHour", () => {
   it("follows the wall clock in clock mode", () => {
     const lights = withCycle({ mode: "clock" });
 
-    expect(cycleHour(lights.cycle, { clockHour: 21.5, startHour: 9, elapsedSeconds: 0 })).toBe(21.5);
+    expect(cycleHour(lights.cycle, { clockHour: 21.5, startHour: 9, elapsedSeconds: 0 })).toBe(
+      21.5,
+    );
   });
 
   it("runs a whole day in the chosen minutes in accelerated mode, from the chosen hour", () => {
     const lights = withCycle({ mode: "accelerated", minutes: 10, hour: 6 });
 
-    expect(cycleHour(lights.cycle, { clockHour: 0, startHour: 9, elapsedSeconds: 150 })).toBeCloseTo(12);
+    expect(
+      cycleHour(lights.cycle, { clockHour: 0, startHour: 9, elapsedSeconds: 150 }),
+    ).toBeCloseTo(12);
   });
 
   it("wraps past midnight", () => {
     const lights = withCycle({ mode: "accelerated", minutes: 10, hour: 18 });
 
-    expect(cycleHour(lights.cycle, { clockHour: 0, startHour: 9, elapsedSeconds: 300 })).toBeCloseTo(6);
+    expect(
+      cycleHour(lights.cycle, { clockHour: 0, startHour: 9, elapsedSeconds: 300 }),
+    ).toBeCloseTo(6);
   });
 });
 
