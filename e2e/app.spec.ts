@@ -78,6 +78,10 @@ test("keeps the advanced sections closed until opened, and remembers them", asyn
   await expect(page.getByRole("button", { name: "Full HD" })).toBeHidden();
 
   await page.locator('details[data-section="quality"] summary').click();
+  // The toggle event, which saves the state, fires after the click returns.
+  await page.waitForFunction(() =>
+    localStorage.getItem("aquaria.settings")?.includes('"quality":true'),
+  );
   await page.reload();
   await waitForState(page);
   await page.keyboard.press("h");
