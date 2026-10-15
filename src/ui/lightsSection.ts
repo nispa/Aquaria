@@ -30,6 +30,14 @@ const MODES: readonly (readonly [CycleMode, string])[] = [
   ["accelerated", "Accelerated day"],
 ];
 
+/** Cycle settings that only matter in some modes; the others are hidden. */
+const MODE_ONLY: Readonly<Partial<Record<CycleKey, readonly CycleMode[]>>> = {
+  hour: ["fixed", "accelerated"],
+  minutes: ["accelerated"],
+};
+
+type CycleKey = "hour" | "sunrise" | "sunset" | "ramp" | "minutes";
+
 const FIXTURES = [
   ["sun", "Open sky (sun)"],
   ["spots", "LED spots"],
@@ -90,7 +98,7 @@ export function createLightsSection(
 
   const cycleSlider = (
     label: string,
-    key: "hour" | "sunrise" | "sunset" | "ramp" | "minutes",
+    key: CycleKey,
     range: { readonly min: number; readonly max: number; readonly step: number },
     format: (value: number) => string,
   ): Control => {
@@ -106,6 +114,7 @@ export function createLightsSection(
     return {
       row,
       show(lights) {
+        row.hidden = !(MODE_ONLY[key]?.includes(lights.cycle.mode) ?? true);
         input.value = String(lights.cycle[key]);
         value.textContent = format(lights.cycle[key]);
       },
@@ -117,6 +126,7 @@ export function createLightsSection(
   mode.input.name = "light-mode";
   mode.input.addEventListener("change", () => {
     change({ ...current, cycle: { ...current.cycle, mode: mode.input.value as CycleMode } });
+    showAll(current);
   });
   const modeControl: Control = {
     row: mode.row,

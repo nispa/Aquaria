@@ -64,6 +64,12 @@ body {
   border-top: 1px solid var(--panel-border);
 }
 
+.panel > .panel__section:first-of-type {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--panel-border);
+}
+
 .panel__heading {
   margin: 0 0 8px;
   font-size: 12px;
