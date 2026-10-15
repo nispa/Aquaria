@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
@@ -40,6 +41,26 @@ function basisTranscoder(): Plugin {
       }
     },
   };
+}
+
+/** The release from package.json, shown in the control panel. */
+function appVersion(): string {
+  const manifest: unknown = JSON.parse(readFileSync("package.json", "utf8"));
+  const version =
+    typeof manifest === "object" && manifest !== null && "version" in manifest
+      ? manifest.version
+      : undefined;
+  if (typeof version !== "string") throw new Error("package.json has no version.");
+  return version;
+}
+
+/** Short hash of the commit being built; empty outside a git checkout. */
+function appCommit(): string {
+  try {
+    return execSync("git rev-parse --short HEAD", { encoding: "utf8" }).trim();
+  } catch {
+    return "";
+  }
 }
 
 /**
@@ -85,6 +106,10 @@ function installableApp(): Plugin[] {
 
 export default defineConfig({
   base: "./",
+  define: {
+    "import.meta.env.APP_VERSION": JSON.stringify(appVersion()),
+    "import.meta.env.APP_COMMIT": JSON.stringify(appCommit()),
+  },
   plugins: [basisTranscoder(), installableApp()],
   build: {
     target: "es2022",

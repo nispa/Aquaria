@@ -60,6 +60,8 @@ export interface PanelState {
   /** Switchable lighting features and effects, and which ones are on. */
   readonly features: readonly LookFeature[];
   readonly look: Look;
+  /** Release and build shown at the bottom, e.g. "v1.0.1 · 9b2d5f7". */
+  readonly version: string;
   /** Saved open/closed state per section id; absent sections use their default. */
   readonly openSections: Readonly<Record<string, boolean>>;
 }
@@ -347,6 +349,7 @@ export function createPanel(
     }),
     quality,
     element("p", "panel__hint", "H: show/hide · F: full screen"),
+    element("p", "panel__version", `Aquaria ${state.version}`),
   );
 
   const fpsCounter = element("div", "fps");

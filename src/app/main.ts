@@ -6,6 +6,7 @@ import { createFpsMeter } from "../core/fps";
 import { classifyGpu, shortGpuName } from "../core/gpu";
 import { consoleSink, createLogger } from "../core/logger";
 import { createRng } from "../core/rng";
+import { versionLabel } from "../core/version";
 import { createAquariumView, type AquariumView } from "../render/aquariumView";
 import { EFFECTS } from "../render/effects";
 import {
@@ -404,6 +405,7 @@ async function start(): Promise<void> {
       features,
       look,
       openSections: settings.panelSections ?? {},
+      version: versionLabel(import.meta.env.APP_VERSION, import.meta.env.APP_COMMIT),
       scenery: sceneryEntries(scene),
       lights: {
         lights: settings.lights ?? scene.lights,

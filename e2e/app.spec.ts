@@ -57,6 +57,15 @@ test("opens the control panel with the H key", async ({ page }) => {
   await expect(page.getByText("Blue tang")).toBeVisible();
 });
 
+test("shows the release and build in the panel", async ({ page }) => {
+  await openLive(page);
+  await waitForState(page);
+
+  await page.keyboard.press("h");
+
+  await expect(page.locator(".panel__version")).toHaveText(/^Aquaria v\d+\.\d+\.\d+/);
+});
+
 test("keeps the advanced sections closed until opened, and remembers them", async ({ page }) => {
   await page.addInitScript(() => {
     if (localStorage.getItem("aquaria.settings") === null) {

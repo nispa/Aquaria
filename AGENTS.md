@@ -195,6 +195,18 @@ Shaders:
   from the Actions tab. A green CI on `main` publishes the site to GitHub
   Pages, built to start at 720p (`VITE_DEFAULT_RENDER_HEIGHT`).
 
+## Versioning
+
+- The release is the `version` in `package.json`, following SemVer. The
+  control panel shows it with the commit the build was made from
+  (`v1.0.1 · 9b2d5f7`), so a viewer can tell which build a screen runs.
+- Bump it in its own commit, `chore(release): vX.Y.Z`, with
+  `pnpm version <patch|minor|major> --no-git-tag-version`, then tag the
+  commit `vX.Y.Z`. Patch: fixes only. Minor: new features, scenes or
+  species. Major: scene or species JSON that no longer loads unchanged.
+- Until the roadmap (`docs/ROADMAP.md`) is complete the project stays on
+  `0.x`.
+
 ## Documentation
 
 - Code, comments, commit messages and docs are in **English**.
