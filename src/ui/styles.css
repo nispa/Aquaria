@@ -285,6 +285,18 @@ body {
   background: rgb(4 22 34 / 0.6);
 }
 
+.fish-card__length {
+  position: absolute;
+  bottom: 2px;
+  left: 4px;
+  font-size: 9px;
+  line-height: 1.2;
+  color: rgb(230 243 248 / 0.75);
+  text-shadow: 0 0 3px rgb(0 0 0 / 0.8);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
 .fish-card__name {
   overflow: hidden;
   font-size: 12px;

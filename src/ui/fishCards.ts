@@ -4,6 +4,10 @@ import { element, slider } from "./controls";
 /** Picture size in device pixels: sharp on 2x screens at the card's CSS size. */
 const PORTRAIT_WIDTH = 192;
 const PORTRAIT_HEIGHT = 120;
+const CENTIMETERS_PER_METER = 100;
+/** Below this length (cm) the label keeps one decimal: 3.5 cm, not 4 cm. */
+const SMALL_FISH_CM = 10;
+const TENTHS = 10;
 
 /** One picture for the panel to have drawn: the species with its 3D model or procedural body. */
 export interface PortraitRequest {
@@ -40,6 +44,16 @@ export function cardOrder<T extends { readonly id: string }>(
 ): T[] {
   const inTank = (entry: T): boolean => (counts[entry.id] ?? 0) > 0;
   return [...species.filter(inTank), ...species.filter((entry) => !inTank(entry))];
+}
+
+/** A species' real body length, e.g. "25 cm" or "3.5 cm" for small fish. */
+export function lengthLabel(meters: number): string {
+  const centimeters = meters * CENTIMETERS_PER_METER;
+  const rounded =
+    centimeters < SMALL_FISH_CM
+      ? Math.round(centimeters * TENTHS) / TENTHS
+      : Math.round(centimeters);
+  return `${rounded} cm`;
 }
 
 /**
@@ -109,7 +123,9 @@ export function createFishCards(options: FishCardsOptions): FishCards {
     canvas.height = PORTRAIT_HEIGHT;
     canvas.setAttribute("aria-hidden", "true");
     canvases.set(species.id, canvas);
-    picture.append(canvas);
+    const length = element("span", "fish-card__length", lengthLabel(species.length.mean));
+    length.title = "Real body length";
+    picture.append(canvas, length);
     const enabled = options.fishModels[species.id];
     if (enabled !== undefined) {
       const badge = element("button", "panel__badge fish-card__badge", "3D");
