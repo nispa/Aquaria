@@ -119,10 +119,11 @@ export interface AquariumView {
   places(): readonly Place[];
   /**
    * Where a spot on the view (normalized device coordinates) meets the front
-   * glass, in tank coordinates, written into `out`. False when the spot is
-   * not over the glass.
+   * glass, in tank coordinates, written into `out`, and, when given, the
+   * direction of the line of sight through it into `sight`. False when the
+   * spot is not over the glass.
    */
-  glassPoint(x: number, y: number, out: Vector3): boolean;
+  glassPoint(x: number, y: number, out: Vector3, sight?: Vector3): boolean;
   /**
    * Where a point of the tank shows on the view, as normalized device
    * coordinates (-1..1) written into `out`. False when it is off screen.
@@ -438,9 +439,10 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       );
       return typeof name === "string" ? name : "unknown";
     },
-    glassPoint(x, y, out) {
+    glassPoint(x, y, out, sight) {
       pointer.set(x, y);
       raycaster.setFromCamera(pointer, camera);
+      sight?.copy(raycaster.ray.direction);
       if (raycaster.ray.intersectPlane(glass, out) === null) return false;
       const halfWidth = scene.tank.width / 2;
       return Math.abs(out.x) <= halfWidth && out.y >= 0 && out.y <= scene.tank.height;

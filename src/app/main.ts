@@ -336,11 +336,12 @@ async function start(): Promise<void> {
   const input = createEventBus<PointerEvents>();
   createPointerInput(canvas, input);
   const finger = new Vector3();
+  const sight = new Vector3();
   const tapPoint = new Vector3();
   let fingerOnGlass = false;
   input.on("pointer-move", ({ x, y }) => {
-    fingerOnGlass = view.glassPoint(x, y, finger);
-    simulation.setFinger(fingerOnGlass ? finger : undefined);
+    fingerOnGlass = view.glassPoint(x, y, finger, sight);
+    simulation.setFinger(fingerOnGlass ? finger : undefined, sight);
   });
   input.on("pointer-leave", () => {
     fingerOnGlass = false;

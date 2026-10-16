@@ -16,9 +16,19 @@ import {
   type SwimState,
 } from "./behaviors";
 import { nextGaze, turnIntent } from "./gaze";
+import { createGesture, isScribbling, spinOf, trackFinger } from "./gesture";
 import { createCurrentField, type CurrentField } from "./current";
 import { createFood, type Food } from "./food";
 import { createPlaceFinder, type Place } from "./places";
+import {
+  applyPlay,
+  createPlay,
+  isEnchanted,
+  nextRoll,
+  updatePlay,
+  wriggleBend,
+  type PlayState,
+} from "./play";
 import { easeToward, tailEffort, turnBend } from "./posture";
 import {
   addAlignment,
@@ -124,6 +134,11 @@ const FLEE_WEIGHT = 6;
 const FEAR_SECONDS = 2.5;
 /** A mouth this nearly shut counts as closed. */
 const MOUTH_CLOSED = 0.01;
+// Playing with the viewer (sim/play): circles drawn within HYPNOSIS_RADIUS of
+// a fish's line of sight hypnotize it; scribbles right over its body tickle it.
+const HYPNOSIS_RADIUS = 0.6;
+const ON_BODY_LENGTHS = 0.7;
+const ON_BODY_MIN_RADIUS = 0.05;
 
 export type FishState = "entering" | "swimming" | "leaving";
 
@@ -155,6 +170,10 @@ export interface Fish {
   readonly swim: SwimState;
   /** What the fish is doing (wandering, pecking…); see sim/behaviors. */
   readonly activity: ActivityState;
+  /** Hypnosis, dizziness and tickling by the viewer; see sim/play. */
+  readonly play: PlayState;
+  /** Roll about the body's length, radians: 0 upright, ±π belly up. */
+  roll: number;
   /** -1 or 1: which side wall the fish is travelling through when entering or leaving. */
   side: number;
 }
@@ -190,9 +209,12 @@ export interface Simulation {
   setPlaces(places: () => readonly Place[]): void;
   /**
    * Where a viewer's finger rests on the glass (tank coordinates), or
-   * undefined when nobody is touching it. Curious fish come to look.
+   * undefined when nobody is touching it. Curious fish come to look, and
+   * the finger's gestures play with the fish it points at (see sim/play).
+   * `sight` is the direction of the viewer's line of sight through the
+   * finger; straight into the tank when not given.
    */
-  setFinger(point: Vector3 | undefined): void;
+  setFinger(point: Vector3 | undefined, sight?: Vector3): void;
   /** A tap on the glass at `point`: nearby fish dart away. */
   tap(point: Vector3): void;
   /** Requests a new population for a species; fish swim in or out gradually. */
@@ -349,6 +371,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
       state: entering ? "entering" : "swimming",
       swim: createSwimState(angle),
       activity: createActivityState(),
+      play: createPlay(),
+      roll: 0,
       side,
     };
     if (!entering) startSwimming(group, member, position);
@@ -406,6 +430,11 @@ export function createSimulation(options: SimulationOptions): Simulation {
   const mouthPosition = new Vector3();
   const finger = new Vector3();
   let fingerPresent = false;
+  /** Direction of the viewer's line of sight through the finger. */
+  const sight = new Vector3(0, 0, -1);
+  const gesture = createGesture();
+  const playInput = { spin: 0, scribbling: false };
+  const offset = new Vector3();
   const tapPoint = new Vector3();
   const inspectSpot = new Vector3();
   const walls = new Box3();
@@ -492,6 +521,39 @@ export function createSimulation(options: SimulationOptions): Simulation {
     return speed;
   };
 
+  /**
+   * What the viewer's finger does to a fish: circles drawn near its line of
+   * sight hypnotize it, scribbles right over its body tickle it.
+   */
+  const playWithViewer = (member: Fish, deltaSeconds: number): void => {
+    playInput.spin = 0;
+    playInput.scribbling = false;
+    if (fingerPresent) {
+      offset.subVectors(member.position, finger);
+      const along = offset.dot(sight);
+      if (along > 0) {
+        const across = offset.addScaledVector(sight, -along).length();
+        const body = Math.max(member.length * ON_BODY_LENGTHS, ON_BODY_MIN_RADIUS);
+        if (across < HYPNOSIS_RADIUS) playInput.spin = spinOf(gesture);
+        playInput.scribbling = across < body && isScribbling(gesture);
+      }
+    }
+    updatePlay(member.play, playInput, deltaSeconds);
+  };
+
+  /** Where a hypnotized fish's eyes turn: towards the finger, -1 (right) .. 1 (left). */
+  const gazeAtFinger = (member: Fish): number => {
+    const { velocity, position } = member;
+    const heading = Math.hypot(velocity.x, velocity.z);
+    const towardsX = finger.x - position.x;
+    const towardsZ = finger.z - position.z;
+    const distance = Math.hypot(towardsX, towardsZ);
+    if (heading === 0 || distance === 0) return member.gaze;
+    // Positive to the left of the heading, like gaze and bend.
+    const side = (velocity.z * towardsX - velocity.x * towardsZ) / (heading * distance);
+    return clamp(side, -1, 1);
+  };
+
   const steer = (group: Group, member: Fish, deltaSeconds: number): void => {
     const { species, habitat } = group;
     const cruise = species.speed.cruise;
@@ -545,6 +607,14 @@ export function createSimulation(options: SimulationOptions): Simulation {
       ) {
         chooser.choose(activity, swim, species.activities, swimContext, group.visit);
       }
+      playWithViewer(member, deltaSeconds);
+      if (isEnchanted(member.play)) {
+        if (activity.id !== "wander") {
+          chooser.wander(activity, swim, species.activities, swimContext);
+        }
+        const heading = Math.atan2(member.velocity.z, member.velocity.x);
+        applyPlay(member.play, swim, heading, member.position.y, member.length);
+      }
       term.set(0, 0, 0);
       addHeading(member.velocity, swim.yaw, term);
       force.addScaledVector(term, HEADING_WEIGHT);
@@ -560,8 +630,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
     // set the pace instead of the swimming style while they last.
     member.fear = Math.max(member.fear - deltaSeconds / FEAR_SECONDS, 0);
     const feedingSpeed = forage(group, member, deltaSeconds);
-    const reactionSpeed =
-      member.fear > 0 ? flee(group, member) : (feedingSpeed ?? inspectFinger(group, member));
+    // A spell of the viewer's (hypnosis, tickling) beats curiosity.
+    const curiousSpeed = isEnchanted(member.play) ? undefined : inspectFinger(group, member);
+    const reactionSpeed = member.fear > 0 ? flee(group, member) : (feedingSpeed ?? curiousSpeed);
     // Fright, food or a finger on the glass call off what the fish was doing.
     if (reactionSpeed !== undefined && activity.id !== "wander") {
       chooser.wander(activity, swim, species.activities, swimContext);
@@ -574,6 +645,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
     const thrust = styled ? swim.thrust : 1;
 
     member.gaze = nextGaze(member.gaze, turnIntent(member.velocity, force), GAZE_SACCADE_THRESHOLD);
+    if (member.play.hypnosis > 0 && fingerPresent) member.gaze = gazeAtFinger(member);
 
     const speed = member.velocity.length();
     term.copy(member.velocity).multiplyScalar(((wantedSpeed - speed) / speed) * response);
@@ -599,6 +671,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
       EFFORT_RESPONSE_SECONDS,
       deltaSeconds,
     );
+    member.bend = wriggleBend(member.play) ?? member.bend;
+    member.roll = nextRoll(member.play, member.roll, deltaSeconds);
   };
 
   const move = (member: Fish, deltaSeconds: number): void => {
@@ -675,6 +749,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
         }
       }
       food.step(deltaSeconds, timeSeconds, current, seabed);
+      trackFinger(gesture, fingerPresent ? finger : undefined, deltaSeconds);
       for (const group of groups.values()) {
         for (const member of group.members) steer(group, member, deltaSeconds);
         for (const member of group.leaving) steer(group, member, deltaSeconds);
@@ -703,8 +778,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
     dropFood(x, z) {
       food.drop(x, z);
     },
-    setFinger(point) {
+    setFinger(point, towards) {
       fingerPresent = point !== undefined;
+      if (towards !== undefined) sight.copy(towards).normalize();
       if (point !== undefined) finger.copy(point);
     },
     tap(point) {

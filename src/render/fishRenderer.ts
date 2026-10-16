@@ -353,7 +353,11 @@ export function createFishRenderer(
         if (instances === undefined || instances.count >= MAX_INDIVIDUALS_PER_SPECIES) continue;
         const { velocity } = individual;
         const horizontal = Math.hypot(velocity.x, velocity.z);
-        euler.set(0, Math.atan2(-velocity.z, velocity.x), Math.atan2(velocity.y, horizontal));
+        euler.set(
+          individual.roll,
+          Math.atan2(-velocity.z, velocity.x),
+          Math.atan2(velocity.y, horizontal),
+        );
         rotation.setFromEuler(euler);
         scale.setScalar(individual.length);
         matrix.compose(individual.position, rotation, scale);

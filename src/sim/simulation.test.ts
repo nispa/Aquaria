@@ -718,3 +718,72 @@ describe("activities", () => {
     expect(busy?.swim.mouth).toBe(0);
   });
 });
+
+describe("playing with the viewer", () => {
+  const straightIn = new Vector3(0, 0, -1);
+
+  function oneFish(): { simulation: Simulation; fish: Fish } {
+    const simulation = simulate({ fauna: [{ species: "blue-tang", count: 1 }] }, 4);
+    const [fish] = simulation.fish;
+    if (fish === undefined) throw new Error("The scene has no fish.");
+    return { simulation, fish };
+  }
+
+  /** Moves the finger along `path` (offsets from the fish, on the glass) for `seconds`. */
+  function draw(
+    simulation: Simulation,
+    fish: Fish,
+    path: (time: number) => readonly [number, number],
+    seconds: number,
+  ): void {
+    const point = new Vector3();
+    for (let time = 0; time < seconds; time += STEP) {
+      const [x, y] = path(time);
+      simulation.setFinger(point.set(fish.position.x + x, fish.position.y + y, 0), straightIn);
+      simulation.step(STEP);
+    }
+  }
+
+  const circles = (offset: number) => (time: number) =>
+    [offset + 0.25 * Math.cos(9 * time), 0.25 * Math.sin(9 * time)] as const;
+  const scribble = (time: number) => [0.15 * Math.sin(Math.PI * 5 * time), 0] as const;
+
+  it("hypnotizes a fish when circles are drawn in front of it", () => {
+    const { simulation, fish } = oneFish();
+
+    draw(simulation, fish, circles(0), 2);
+
+    expect(fish.play.hypnosis).toBeGreaterThan(0.9);
+    expect(fish.velocity.length()).toBeLessThan(fish.species.speed.cruise * 0.3);
+    expect(fish.roll).not.toBe(0);
+  });
+
+  it("leaves it dizzy once the circles stop", () => {
+    const { simulation, fish } = oneFish();
+    draw(simulation, fish, circles(0), 2);
+
+    simulation.setFinger(undefined);
+    run(simulation, 1);
+
+    expect(fish.play.dizzy).toBeGreaterThan(0);
+  });
+
+  it("leaves fish alone when the circles are drawn far from them", () => {
+    const { simulation, fish } = oneFish();
+
+    draw(simulation, fish, circles(2), 2);
+
+    expect(fish.play.hypnosis).toBe(0);
+  });
+
+  it("tickles a fish when scribbling right over it: it flips belly up", () => {
+    const { simulation, fish } = oneFish();
+    draw(simulation, fish, scribble, 0.7);
+
+    simulation.setFinger(undefined);
+    run(simulation, 0.6);
+
+    expect(fish.play.tickled).toBeGreaterThan(0);
+    expect(Math.abs(fish.roll)).toBeGreaterThan(2.5);
+  });
+});
