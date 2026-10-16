@@ -54,6 +54,7 @@ Questa guida completa illustra come utilizzare, configurare ed estendere **Aquar
 | **Cerchi veloci vicino a un pesce** | Ipnosi                 | Si ferma, galleggia, gira e si avvita coi tuoi cerchi; quando smetti se ne va stordito.                                                  |
 | **Scarabocchio sopra un pesce**     | Solletico              | Si contorce a pancia in su, poi scappa a zig-zag.                                                                                        |
 | **`A`**                             | Cosa fanno i pesci     | Etichette su ogni pesce e una scheda per quello più vicino al puntatore. Vedi [Giocare con i pesci](INTERAZIONE.md).                     |
+| **`C`** (con `A` acceso)            | Forme di collisione    | Disegna le forme attorno a cui nuotano i pesci: rocce, coralli, legni.                                                                   |
 | **`T`**                             | Torcia                 | Il puntatore proietta un fascio nella vasca; alcune specie vi si radunano, le timide scappano. Meglio di notte.                          |
 | **Pulsanti d'angolo**               | Torcia, Cibo, Pannello | Compaiono muovendo il mouse o toccando lo schermo, grandi abbastanza per un dito, e poi svaniscono.                                      |
 | **Movimento Mouse**                 | Mostra Icona Menu      | Muovendo il cursore appare un pulsante d'angolo temporaneo che svanisce dopo 2,5 secondi per prevenire il burn-in dei pixel sui display. |

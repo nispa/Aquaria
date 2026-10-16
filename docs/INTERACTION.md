@@ -102,6 +102,8 @@ nearest the pointer gets a card: species and size, swimming style and
 activity, speed relative to cruise speed, how full it is and how
 frightened. At the top, a line says what the finger is drawing
 (`circles ↺`, `circles ↻`, `scribbling`). Press `A` again to hide it all.
+With it on, `C` outlines the collision shapes of rocks, corals and wood
+(see [Swimming styles](SWIMMING.md#collisions)).
 
 ## Who wins
 

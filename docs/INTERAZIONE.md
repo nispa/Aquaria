@@ -102,7 +102,9 @@ pesce più vicino al puntatore ha una scheda: specie e misura, stile di nuoto
 e attività, velocità rispetto alla crociera, quanto è sazio e quanto è
 spaventato. In alto una riga dice cosa sta disegnando il dito
 (`circles ↺`, `circles ↻`, `scribbling`). Premi di nuovo `A` per
-nascondere tutto.
+nascondere tutto. Con l'overlay acceso, `C` disegna il contorno delle
+forme di collisione di rocce, coralli e legni (vedi
+[Stili di nuoto](NUOTO.md#collisioni)).
 
 ## Chi vince
 

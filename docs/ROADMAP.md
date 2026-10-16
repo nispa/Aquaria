@@ -80,6 +80,16 @@ by Zod. Swimming styles and activities are one file each in
       Styles are assigned (see `docs/SWIMMING.md`); activities and the
       visual review in the tank are still to do.
 
+### B5. Collisions
+
+- [x] Fish swim around rocks, corals and wood (rough shapes per kind,
+      look-ahead swerve, hard gap), and come right up to them at a place.
+- [x] Fish of different species keep out of each other's way, the
+      smaller giving way; overlapping bodies are pulled apart.
+- [x] `C` in the `A` overlay outlines the collision shapes.
+- [ ] Voxel rockwork (C1) answers the same distance query, so overhangs
+      and caves need no change in behavior.
+
 ## C. Scene editor
 
 Entering editing turns the same window into an editing view: fish, food,

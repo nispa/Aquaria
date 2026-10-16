@@ -260,6 +260,7 @@ di giro, il punto di casa).
 flowchart LR
   S[Stile di nuoto] -->|yaw, height| F[Forze di guida]
   B[Boids: separazione, banco, pareti dell'habitat, fondale] --> F
+  O[Collisioni: rocce, coralli, altri pesci] --> F
   R[Reazioni: paura, cibo, curiosità] -->|impongono la velocità| V
   S -->|speed, response| V[Controllo della velocità]
   F --> M[Velocità del pesce]
@@ -281,7 +282,8 @@ A ogni passo, per ogni pesce ([`src/sim/simulation.ts`](../src/sim/simulation.ts
    verticale è limitata), quindi un cambio di quota appare come un pendio
    lento, non come un ascensore.
 4. **Tutto il resto** aggiunge la sua forza come prima: separazione, banco,
-   pareti morbide dell'habitat, distanza da sabbia e rocce.
+   pareti morbide dell'habitat, distanza da sabbia e rocce, e le
+   collisioni descritte sotto.
 5. **Velocità.** Il pesce accelera o rallenta verso `speed` con il ritmo
    `response`. Se sta reagendo a qualcosa (fugge da un tocco sul vetro, va
    verso il cibo, osserva un dito sul vetro), è la reazione a imporre il
@@ -327,6 +329,37 @@ dentro. Quote e punti di casa sono sempre scelti al suo interno, così uno
 stile non chiede mai a un pesce di lottare contro il proprio habitat.
 L'unica eccezione è una casa in un luogo (`hover` con `home`): le pareti
 morbide del pesce si allargano attorno a quel luogo.
+
+### Collisioni
+
+I pesci girano attorno agli oggetti solidi e l'uno attorno all'altro
+([`src/sim/obstacles.ts`](../src/sim/obstacles.ts),
+[`src/sim/crowd.ts`](../src/sim/crowd.ts)).
+
+- **Rocce, coralli, legni.** Ogni tipo di oggetto ha una forma di
+  collisione approssimata, un ellissoide dimensionato sulla sua mesh
+  (`PROP_SHAPES`; un test di render tiene allineate le due cose). Quella
+  del corallo a tavola è sollevata sul gambo, così i pesci passano sotto
+  il piatto. Un pesce guarda avanti lungo la rotta (0,6 s di nuoto,
+  almeno 1,5 lunghezze del corpo): un oggetto lì davanti lo fa virare di
+  lato, di traverso alla rotta, così scarta senza rallentare, e l'inerzia
+  fa della scartata una curva. Tiene una lunghezza del corpo dagli oggetti
+  che ha accanto, e una distanza rigida di 0,4 lunghezze fa scivolare
+  fuori il raro pesce che ci finisce dentro lo stesso. Un pesce che
+  becchetta, riposa o si nasconde in un luogo ci si accosta del tutto. Le
+  piante sono morbide: i pesci attraversano il kelp e si infilano negli
+  anemoni. Sabbia e rockwork sono il fondale, come prima.
+- **Gli altri pesci.** I banchi distanziano i propri membri. In più ogni
+  pesce ha uno spazio personale di mezza lunghezza del corpo: i pesci di
+  altre specie che ci entrano lo spingono via, il più grande più forte,
+  così è il tetra a cedere il passo allo scalare e non il contrario. Due
+  corpi che si sovrappongono comunque, di qualunque specie, vengono
+  separati, e il più piccolo si sposta di più.
+
+Entrambi guardano solo ciò che è vicino: ostacoli e pesci sono smistati
+in griglie di celle viste dall'alto. Con `A` acceso, `C` disegna il
+contorno di ogni forma di collisione. Un nuovo tipo di oggetto ha bisogno
+della sua forma in `PROP_SHAPES`.
 
 ### Determinismo
 

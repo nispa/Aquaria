@@ -254,6 +254,7 @@ round, the home spot).
 flowchart LR
   S[Swimming style] -->|yaw, height| F[Steering forces]
   B[Boids: separation, school, habitat walls, seabed] --> F
+  O[Collisions: rocks, corals, other fish] --> F
   R[Reactions: fear, food, curiosity] -->|override speed| V
   S -->|speed, response| V[Speed control]
   F --> M[Velocity]
@@ -274,7 +275,8 @@ Every step, for every fish ([`src/sim/simulation.ts`](../src/sim/simulation.ts))
    0.3 m away. Fish still climb and dive gently (their vertical speed is
    capped), so a change of height looks like a slow slope, not a lift.
 4. **Everything else** adds its force as before: separation, schooling,
-   the soft walls of the habitat, clearance over sand and rock.
+   the soft walls of the habitat, clearance over sand and rock, and the
+   collisions below.
 5. **Speed.** The fish speeds up or slows down towards `speed` at the rate
    `response`. If it is reacting to something (fleeing a tap, going for
    food, inspecting a finger on the glass), the reaction sets the pace
@@ -317,6 +319,33 @@ range) less the soft walls that push fish back inside. Heights and home
 spots are always picked inside it, so a style never asks a fish to fight
 its own habitat. The one exception is a home at a place (`hover` with
 `home`): the fish's soft walls then widen around that place.
+
+### Collisions
+
+Fish swim around the solid scenery and around each other
+([`src/sim/obstacles.ts`](../src/sim/obstacles.ts),
+[`src/sim/crowd.ts`](../src/sim/crowd.ts)).
+
+- **Rocks, corals, wood.** Every kind of object has a rough collision
+  shape, an ellipsoid sized from its mesh (`PROP_SHAPES`; a render test
+  keeps the two in step). A table coral's is raised on its stalk, so fish
+  swim under the plate. A fish looks ahead along its course (0.6 s of
+  swimming, at least 1.5 body lengths): an object there turns it aside,
+  across its course, so it swerves without slowing, and the inertia keeps
+  the swerve a curve. It keeps a body length off objects beside it, and a
+  hard gap of 0.4 body lengths slides out the rare one that still dives
+  in. A fish pecking, resting or hiding at a place comes right up to it.
+  Plants are soft: fish swim through kelp and nestle in anemones. The
+  sand and the rockwork are the seabed, as before.
+- **Other fish.** Schools space their own members. Besides, every fish
+  has a personal space of half a body length: fish of other species in it
+  push it away, the larger pushing harder, so a tetra gives way to an
+  angelfish rather than the other way round. Any two bodies that still
+  overlap, of any species, are pulled apart, the smaller moving more.
+
+Both look only at what is near: obstacles and fish are sorted into grids
+of cells seen from above. With `A` on, `C` outlines every collision
+shape. A new kind of object needs its shape in `PROP_SHAPES`.
 
 ### Determinism
 
