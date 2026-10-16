@@ -80,6 +80,7 @@ Controls:
 | `A`                          | Show what every fish is doing                                   |
 | `C` (with `A` on)            | Outline the collision shapes of rocks, corals and wood          |
 | `T`                          | Torch: the pointer lights the tank, fish react to the beam      |
+| `Z`                          | Magnifier: a lens over the pointer shows the fish up close      |
 | Corner buttons               | Torch, feed, control panel (shown on a mouse move or a touch)   |
 | Move the mouse               | Shows the panel button for a moment                             |
 

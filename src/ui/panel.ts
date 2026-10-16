@@ -114,6 +114,8 @@ export interface PanelCallbacks {
   onFeed(): void;
   /** Switches the torch on or off. */
   onTorchToggle(): void;
+  /** Switches the magnifier on or off. */
+  onLensToggle(): void;
   onSectionToggle(sectionId: string, open: boolean): void;
 }
 
@@ -125,6 +127,8 @@ export interface Panel {
   setHour(hour: number): void;
   /** Shows whether the torch is on. */
   setTorch(on: boolean): void;
+  /** Shows whether the magnifier is on. */
+  setLens(on: boolean): void;
   dispose(): void;
 }
 
@@ -181,6 +185,12 @@ const FEED_ICON =
   '<rect x="14" y="8" width="4" height="4" rx="1" transform="rotate(-20 16 10)"/>' +
   '<rect x="8" y="15" width="4" height="4" rx="1" transform="rotate(35 10 17)"/></svg>';
 
+/** A magnifying glass: the magnifier button's icon. */
+const LENS_ICON =
+  '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" ' +
+  'stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
+  '<circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L20 20"/></svg>';
+
 /** A hand torch with its beam: the torch button's icon. */
 const TORCH_ICON =
   '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor">' +
@@ -189,7 +199,7 @@ const TORCH_ICON =
 
 /**
  * Hidden control panel. Nothing stays on screen permanently (static elements
- * wear LED walls unevenly): a row of corner buttons (torch, feed, panel)
+ * wear LED walls unevenly): a row of corner buttons (torch, magnifier, feed, panel)
  * appears only while the pointer moves or touches the screen, and the panel
  * opens with it or with the H key.
  */
@@ -396,7 +406,11 @@ export function createPanel(
       callbacks.onFeatureChange(featureId, enabled);
     }),
     quality,
-    element("p", "panel__hint", "H: show/hide · F: full screen · T: torch · A: what fish do"),
+    element(
+      "p",
+      "panel__hint",
+      "H: show/hide · F: full screen · T: torch · Z: magnifier · A: what fish do",
+    ),
   );
 
   const fpsCounter = element("div", "fps");
@@ -421,11 +435,20 @@ export function createPanel(
   torchButton.addEventListener("click", () => {
     callbacks.onTorchToggle();
   });
+  const lensButton = element("button", "corner__button");
+  lensButton.type = "button";
+  lensButton.innerHTML = LENS_ICON;
+  lensButton.setAttribute("aria-label", "Magnifier");
+  lensButton.setAttribute("aria-pressed", "false");
+  lensButton.title = "Magnifier (Z): look at the fish up close";
+  lensButton.addEventListener("click", () => {
+    callbacks.onLensToggle();
+  });
   const opener = element("button", "corner__button", "☰");
   opener.type = "button";
   opener.setAttribute("aria-label", "Open controls");
   opener.title = "Controls (H)";
-  corner.append(torchButton, cornerFeed, opener);
+  corner.append(torchButton, lensButton, cornerFeed, opener);
 
   let idleTimer: number | undefined;
   const onPointerMove = (): void => {
@@ -445,6 +468,7 @@ export function createPanel(
     if (event.key === "h" || event.key === "H") toggle();
     if (event.key === "f" || event.key === "F") callbacks.onFullscreen();
     if (event.key === "t" || event.key === "T") callbacks.onTorchToggle();
+    if (event.key === "z" || event.key === "Z") callbacks.onLensToggle();
     // A focused button would also click on Space: leave it to the button.
     if (event.key === " " && !(event.target instanceof HTMLButtonElement)) {
       event.preventDefault();
@@ -465,6 +489,9 @@ export function createPanel(
     },
     setTorch(on) {
       torchButton.setAttribute("aria-pressed", String(on));
+    },
+    setLens(on) {
+      lensButton.setAttribute("aria-pressed", String(on));
     },
     setFps(fps, height) {
       const rate = fps === undefined ? "– fps" : `${fps} fps`;

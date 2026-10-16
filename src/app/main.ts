@@ -1,5 +1,5 @@
 import "../ui/styles.css";
-import { Vector3 } from "three";
+import { Vector2, Vector3 } from "three";
 import { createFixedStepClock } from "../core/clock";
 import { createEventBus } from "../core/eventBus";
 import { createFpsMeter } from "../core/fps";
@@ -351,6 +351,9 @@ async function start(): Promise<void> {
   const fishModelEnabled = (speciesId: string): boolean => settings.fishModels?.[speciesId] ?? true;
   /** The torch: while on, the pointer lights up the tank instead of being a finger. */
   let torchOn = false;
+  /** The magnifier: while on, a lens over the pointer shows the tank up close. */
+  let lensOn = false;
+  const pointerAt = new Vector2();
   let shownScene = scene;
   let { simulation, view } = mountScene(scene);
   const feedRng = createRng((options.seed ?? scene.seed) + FEED_SEED_OFFSET);
@@ -363,6 +366,8 @@ async function start(): Promise<void> {
   const tapPoint = new Vector3();
   let fingerOnGlass = false;
   input.on("pointer-move", ({ x, y }) => {
+    pointerAt.set(x, y);
+    if (lensOn) view.aimLens(pointerAt);
     fingerOnGlass = view.glassPoint(x, y, finger, sight);
     simulation.setFinger(fingerOnGlass ? finger : undefined, sight);
     if (torchOn) view.aimTorch(fingerOnGlass ? finger : undefined);
@@ -371,6 +376,7 @@ async function start(): Promise<void> {
     fingerOnGlass = false;
     simulation.setFinger(undefined);
     view.aimTorch(undefined);
+    view.aimLens(undefined);
   });
   input.on("tap", ({ x, y }) => {
     if (view.glassPoint(x, y, tapPoint)) simulation.tap(tapPoint);
@@ -566,6 +572,11 @@ async function start(): Promise<void> {
         update({ look: { ...settings.look, [featureId]: enabled } });
       },
       onFeed: feed,
+      onLensToggle() {
+        lensOn = !lensOn;
+        view.aimLens(lensOn ? pointerAt : undefined);
+        panel.setLens(lensOn);
+      },
       onTorchToggle() {
         torchOn = !torchOn;
         simulation.setTorch(torchOn);

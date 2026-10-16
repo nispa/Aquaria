@@ -19,6 +19,7 @@ altri scappano, e qualche gesto fa cose che nessun pesce vero farebbe.
 | **Scarabocchi proprio sopra un pesce**      | Gli fai il **solletico**: si contorce, si gira a pancia in su, poi scappa a zig-zag.                                                 |
 | **Premi `A`**                               | Mostra cosa sta facendo ogni pesce, e una scheda con i dettagli del pesce più vicino al puntatore.                                   |
 | **Premi `T`** (o il pulsante della torcia)  | Il puntatore diventa una **torcia**: i pesci che amano la luce si radunano nel fascio, i timidi scappano. Meglio di notte.           |
+| **Premi `Z`** (o il pulsante della lente)   | Una **lente** rotonda sopra il puntatore mostra la vasca tre volte più grande: per guardare un pesce da vicino.                      |
 
 Muovendo il mouse o toccando lo schermo compaiono in alto a destra tre
 pulsanti, grandi abbastanza per un dito: la **torcia**, il **cibo** (un
@@ -81,6 +82,13 @@ proprio sopra il pesce: entro 0,7 lunghezze del corpo (almeno 5 cm), visto
 attraverso il dito. Dopo 0,4 s il pesce ha il solletico per 2,6 s: un
 secondo contorcendosi a pancia in su, poi uno scatto a zig-zag a 2,2 volte
 la sua velocità di crociera, e di nuovo dritto.
+
+### La lente: `Z`
+
+Con la lente accesa (`Z` o il suo pulsante d'angolo), una lente rotonda
+segue il puntatore e mostra ciò che c'è sotto tre volte più grande, visto
+dal tuo occhio come il resto della vasca. Il puntatore resta un dito sul
+vetro, così i pesci curiosi vengono a guardarti attraverso la lente.
 
 ### La torcia: `T`
 

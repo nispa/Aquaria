@@ -56,6 +56,7 @@ Questa guida completa illustra come utilizzare, configurare ed estendere **Aquar
 | **`A`**                             | Cosa fanno i pesci     | Etichette su ogni pesce e una scheda per quello più vicino al puntatore. Vedi [Giocare con i pesci](INTERAZIONE.md).                     |
 | **`C`** (con `A` acceso)            | Forme di collisione    | Disegna le forme attorno a cui nuotano i pesci: rocce, coralli, legni.                                                                   |
 | **`T`**                             | Torcia                 | Il puntatore proietta un fascio nella vasca; alcune specie vi si radunano, le timide scappano. Meglio di notte.                          |
+| **`Z`**                             | Lente                  | Una lente rotonda sopra il puntatore mostra la vasca tre volte più grande: per guardare i pesci da vicino.                               |
 | **Pulsanti d'angolo**               | Torcia, Cibo, Pannello | Compaiono muovendo il mouse o toccando lo schermo, grandi abbastanza per un dito, e poi svaniscono.                                      |
 | **Movimento Mouse**                 | Mostra Icona Menu      | Muovendo il cursore appare un pulsante d'angolo temporaneo che svanisce dopo 2,5 secondi per prevenire il burn-in dei pixel sui display. |
 

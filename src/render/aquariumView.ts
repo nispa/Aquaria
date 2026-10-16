@@ -30,6 +30,7 @@ import type { Scene, SpeciesCatalog } from "../scene/schema";
 import type { Lights } from "../scene/lights";
 import { lookPasses, type Look } from "../scene/look";
 import { layoutFlora, layoutProps } from "../sim/layout";
+import { createLens } from "./lens";
 import { createGpuTimer } from "./gpuTimer";
 import { obstaclesOf, type Obstacle } from "../sim/obstacles";
 import { placesOf, type Place } from "../sim/places";
@@ -139,6 +140,11 @@ export interface AquariumView {
   screenPoint(point: Vector3, out: Vector3): boolean;
   /** Shines the viewer's torch through `point` on the glass, or switches it off. */
   aimTorch(point: Vector3 | undefined): void;
+  /**
+   * Shows the magnifier over a spot of the view (normalized device
+   * coordinates), or hides it.
+   */
+  aimLens(point: Vector2 | undefined): void;
   /** The WebGL renderer string: which GPU the browser actually draws with. */
   gpuName(): string;
   /**
@@ -217,6 +223,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   world.add(hemisphere, sun, sun.target, ambient);
   const torch = createTorchLight();
   world.add(torch.light, torch.light.target);
+  const lens = createLens();
   const rig = createLightRig({
     scene,
     sun,
@@ -471,6 +478,9 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       const halfWidth = scene.tank.width / 2;
       return Math.abs(out.x) <= halfWidth && out.y >= 0 && out.y <= scene.tank.height;
     },
+    aimLens(point) {
+      lens.aim(point);
+    },
     aimTorch(point) {
       torch.aim(camera.position, point);
     },
@@ -498,6 +508,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       });
       gpuTimer?.begin();
       composer?.render();
+      lens.render(renderer, world, camera);
       gpuTimer?.end();
     },
     gpuMs: () => gpuTimer?.latestMs(),
@@ -521,6 +532,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     },
     dispose() {
       gpuTimer?.dispose();
+      lens.dispose();
       disposePipeline();
       environment.dispose();
       flora?.dispose();

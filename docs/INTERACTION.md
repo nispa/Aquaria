@@ -9,16 +9,17 @@ and a few gestures do things no real fish would.
 
 ## What you can do
 
-| You…                                   | The fish…                                                                                                                        |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| **Rest the pointer on the tank**       | The curious ones come to look: they swim up behind the glass and slow down there. The finger counts as gone after 8 s still.     |
-| **Click (tap) the tank**               | Those nearby dart away, or run for the nearest shelter and hide there; a startled school packs together. They calm down soon.    |
-| **Press `Space`** (or _Feed the fish_) | Flakes drift down above the pointer. Hungry fish swim up to snap them, mouth wide open; full ones lose interest.                 |
-| **Draw quick circles near a fish**     | It is **hypnotized**: it stops, floats, follows the finger with its eyes, turns the way of your circles and rolls over and over. |
-| **…then stop**                         | It comes round **dizzy**, swimming a wobbly corkscrew for a few seconds.                                                         |
-| **Scribble right over a fish**         | It is **tickled**: it wriggles, flips belly up, then darts off in a zigzag.                                                      |
-| **Press `A`**                          | Shows what every fish is doing, and a card with the details of the fish nearest the pointer.                                     |
-| **Press `T`** (or the torch button)    | The pointer becomes a **torch**: fish that love light gather in its beam, shy ones flee it. Best at night.                       |
+| You…                                    | The fish…                                                                                                                        |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Rest the pointer on the tank**        | The curious ones come to look: they swim up behind the glass and slow down there. The finger counts as gone after 8 s still.     |
+| **Click (tap) the tank**                | Those nearby dart away, or run for the nearest shelter and hide there; a startled school packs together. They calm down soon.    |
+| **Press `Space`** (or _Feed the fish_)  | Flakes drift down above the pointer. Hungry fish swim up to snap them, mouth wide open; full ones lose interest.                 |
+| **Draw quick circles near a fish**      | It is **hypnotized**: it stops, floats, follows the finger with its eyes, turns the way of your circles and rolls over and over. |
+| **…then stop**                          | It comes round **dizzy**, swimming a wobbly corkscrew for a few seconds.                                                         |
+| **Scribble right over a fish**          | It is **tickled**: it wriggles, flips belly up, then darts off in a zigzag.                                                      |
+| **Press `A`**                           | Shows what every fish is doing, and a card with the details of the fish nearest the pointer.                                     |
+| **Press `T`** (or the torch button)     | The pointer becomes a **torch**: fish that love light gather in its beam, shy ones flee it. Best at night.                       |
+| **Press `Z`** (or the magnifier button) | A round **lens** over the pointer shows the tank three times larger: look at a fish up close.                                    |
 
 Moving the mouse or touching the screen shows three buttons in the top
 right corner, big enough for a finger: the **torch**, **feed** (a pinch of
@@ -82,6 +83,13 @@ over the fish: within 0.7 body lengths of it (at least 5 cm), seen through
 the finger. After 0.4 s of it the fish is tickled for 2.6 s: one second of
 wriggling belly up, then a zigzag dash at 2.2 times its cruise speed, and back
 upright.
+
+### The magnifier: `Z`
+
+With the magnifier on (`Z` or its corner button), a round lens follows the
+pointer and shows what lies under it three times larger, seen from the
+viewer's eye like the rest of the tank. The pointer is still a finger on the
+glass, so curious fish come to look at you through the lens.
 
 ### The torch: `T`
 

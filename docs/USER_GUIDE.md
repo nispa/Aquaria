@@ -56,6 +56,7 @@ This guide covers everything needed to operate, customize, and understand the de
 | **`A`**                          | What the Fish Are Doing   | Labels over every fish and a card for the one nearest the pointer. See [Playing with the fish](INTERACTION.md). |
 | **`C`** (with `A` on)            | Collision Shapes          | Outlines the shapes fish swim around: rocks, corals, wood.                                                      |
 | **`T`**                          | Torch                     | The pointer shines a beam into the tank; some species gather in it, shy ones flee. Best at night.               |
+| **`Z`**                          | Magnifier                 | A round lens over the pointer shows the tank three times larger: look at the fish up close.                     |
 | **Corner buttons**               | Torch, Feed, Panel        | Appear on a mouse move or a touch, big enough for a finger, and fade again.                                     |
 | **Mouse Move**                   | Reveal Panel Button       | A discreet corner toggle button appears for 2.5s and fades away to avoid screen burn-in.                        |
 

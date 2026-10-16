@@ -278,6 +278,23 @@ test("switches the torch on and off with T and with its corner button", async ({
   expect(errors).toEqual([]);
 });
 
+test("switches the magnifier on and off with Z and with its corner button", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await openLive(page);
+  await waitForState(page);
+  await page.mouse.move(640, 360);
+  const lens = page.getByRole("button", { name: "Magnifier" });
+
+  await page.keyboard.press("z");
+  await expect(lens).toHaveAttribute("aria-pressed", "true");
+  await page.mouse.move(600, 340);
+  await lens.click();
+
+  await expect(lens).toHaveAttribute("aria-pressed", "false");
+  expect(errors).toEqual([]);
+});
+
 test("switches to realistic mode from the panel and remembers it", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
