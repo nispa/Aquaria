@@ -5,6 +5,13 @@ Full HD monitor up to a 4K LED wall. Every tank is described in a JSON file
 (water, light, current, plants, rocks and fish), and the engine brings it to
 life with Three.js.
 
+### ▶ [Play the live demo](https://nispa.github.io/Aquaria/)
+
+Runs in any recent desktop browser, no install. Feed the fish, tap the glass,
+draw circles to hypnotize them, light them with a torch (`T`), press `A` to see
+what each one is doing and `H` for the control panel. On a laptop, let the
+browser use the dedicated GPU (see [Use the dedicated GPU](#use-the-dedicated-gpu)).
+
 ![The tropical reef scene with shadows, reflections, ambient occlusion, volumetric light and depth of field](docs/screenshot-realistic.jpg)
 
 <sub>With most effects on. A lighter setup is in
@@ -27,8 +34,9 @@ life with Three.js.
   nudges the fish.
 - **Anti-aliasing**: MSAA off, 2x (default), 4x or 8x from the panel, plus an
   optional SMAA pass.
-- **Resolution slider** from 540p to 4K, independent of the screen size, with
-  Full HD and 4K presets.
+- **Resolution slider** from 540p to 4K, with Full HD and 4K presets, and an
+  **automatic resolution** that follows the GPU, plus a frame limit: the
+  aquarium never takes the whole GPU and stalls the screen.
 - **Made for LED walls**: dithering against banding in dark gradients, no
   permanent on-screen elements, full-screen kiosk use.
 - **Every effect is a switch**: turn caustics, shadows, water reflections,
