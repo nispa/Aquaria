@@ -2,7 +2,8 @@ import { Box3, Vector3 } from "three";
 import { describe, expect, it } from "vitest";
 import { createRng } from "../core/rng";
 import type { Plant, Prop } from "./layout";
-import { createPlaceFinder, placesOf, PROP_HEIGHT_SHARE } from "./places";
+import { propTop } from "./obstacles";
+import { createPlaceFinder, placesOf } from "./places";
 
 const plant = (x: number, z: number, tags: readonly string[]): Plant => ({
   kind: "anemone",
@@ -34,10 +35,10 @@ describe("placesOf", () => {
     expect(places.map((place) => place.tags)).toEqual([["anemone"], ["rock"]]);
   });
 
-  it("uses a plant's height and part of a prop's size as the height of the place", () => {
+  it("uses a plant's height and the top of a prop's shape as the height of the place", () => {
     const places = placesOf([plant(1, -1, ["anemone"])], [prop(2, -2, 0.4)]);
 
-    expect(places.map((place) => place.height)).toEqual([0.2, 0.4 * PROP_HEIGHT_SHARE]);
+    expect(places.map((place) => place.height)).toEqual([0.2, propTop("rock", 0.4)]);
   });
 });
 

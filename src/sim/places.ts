@@ -1,6 +1,7 @@
 import type { Box3, Vector3 } from "three";
 import type { Rng } from "../core/rng";
 import type { Plant, Prop } from "./layout";
+import { propTop } from "./obstacles";
 import type { SeabedHeight } from "./steering";
 
 /**
@@ -17,14 +18,11 @@ export interface Place {
   readonly tags: readonly string[];
 }
 
-/** A prop's top stands at this share of its rough diameter above its base. */
-export const PROP_HEIGHT_SHARE = 0.5;
-
 /** The places of a laid-out scenery: every plant and prop with at least one tag. */
 export function placesOf(plants: readonly Plant[], props: readonly Prop[]): Place[] {
   return [
     ...plants.map(({ x, z, height, tags }) => ({ x, z, height, tags })),
-    ...props.map(({ x, z, size, tags }) => ({ x, z, height: size * PROP_HEIGHT_SHARE, tags })),
+    ...props.map(({ kind, x, z, size, tags }) => ({ x, z, height: propTop(kind, size), tags })),
   ].filter((place) => place.tags.length > 0);
 }
 

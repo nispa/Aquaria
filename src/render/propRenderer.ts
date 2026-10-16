@@ -12,6 +12,7 @@ import {
 } from "three";
 import { createRng, type Rng } from "../core/rng";
 import type { Prop } from "../sim/layout";
+import { PROP_SHAPES } from "../sim/obstacles";
 import { floorHeight } from "../sim/terrain";
 import {
   branchCoralGeometry,
@@ -46,11 +47,9 @@ interface PropStyle {
   readonly castShadow: boolean;
   /** Glows under actinic light (living corals). */
   readonly fluorescent: boolean;
-  /** Vertical offset relative to the prop size: < 0 sinks it into the sand. */
-  readonly sink: number;
 }
 
-const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
+export const PROP_STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
   rock: {
     variants: 5,
     build: rockGeometry,
@@ -59,7 +58,6 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     doubleSided: false,
     castShadow: true,
     fluorescent: false,
-    sink: 0,
   },
   starfish: {
     variants: 4,
@@ -69,7 +67,6 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     doubleSided: false,
     castShadow: false,
     fluorescent: false,
-    sink: 0,
   },
   shell: {
     variants: 3,
@@ -79,7 +76,6 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     doubleSided: true,
     castShadow: true,
     fluorescent: false,
-    sink: -0.05,
   },
   "brain-coral": {
     variants: 3,
@@ -89,7 +85,6 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     doubleSided: false,
     castShadow: true,
     fluorescent: true,
-    sink: -0.04,
   },
   "branch-coral": {
     variants: 4,
@@ -99,7 +94,6 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     doubleSided: false,
     castShadow: true,
     fluorescent: true,
-    sink: -0.03,
   },
   "fan-coral": {
     variants: 3,
@@ -109,7 +103,6 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     doubleSided: false,
     castShadow: true,
     fluorescent: true,
-    sink: -0.02,
   },
   "table-coral": {
     variants: 3,
@@ -119,7 +112,6 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     doubleSided: false,
     castShadow: true,
     fluorescent: true,
-    sink: -0.02,
   },
   "mushroom-coral": {
     variants: 3,
@@ -129,7 +121,6 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     doubleSided: false,
     castShadow: false,
     fluorescent: true,
-    sink: -0.02,
   },
   "leather-coral": {
     variants: 3,
@@ -139,7 +130,6 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     doubleSided: false,
     castShadow: true,
     fluorescent: true,
-    sink: -0.03,
   },
   driftwood: {
     variants: 4,
@@ -149,7 +139,6 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     doubleSided: false,
     castShadow: true,
     fluorescent: false,
-    sink: -0.02,
   },
   "dragon-stone": {
     variants: 4,
@@ -159,7 +148,6 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     doubleSided: false,
     castShadow: true,
     fluorescent: false,
-    sink: -0.03,
   },
   moss: {
     variants: 3,
@@ -169,7 +157,6 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     doubleSided: false,
     castShadow: true,
     fluorescent: false,
-    sink: -0.05,
   },
   pebble: {
     variants: 4,
@@ -179,7 +166,6 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
     doubleSided: false,
     castShadow: false,
     fluorescent: false,
-    sink: -0.1,
   },
 };
 
@@ -187,6 +173,11 @@ const STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
 const STARFISH_TURN_SECONDS = 1800;
 /** Seeds the shape variants so they look the same whatever the scene holds. */
 const VARIANT_SEED = 7919;
+
+/** The mesh of one shape variant of a kind of prop, standing on y = 0, one unit across. */
+export function propGeometry(kind: Prop["kind"], variant: number): BufferGeometry {
+  return PROP_STYLES[kind].build(createRng(VARIANT_SEED + variant));
+}
 
 export interface PropRenderer {
   readonly object: Group;
@@ -214,7 +205,7 @@ export function createPropRenderer(
     const key = `${kind}|${variant}`;
     const existing = geometries.get(key);
     if (existing !== undefined) return existing;
-    const geometry = STYLES[kind].build(createRng(VARIANT_SEED + variant));
+    const geometry = propGeometry(kind, variant);
     geometries.set(key, geometry);
     disposables.push(geometry);
     return geometry;
@@ -222,7 +213,7 @@ export function createPropRenderer(
 
   const groups = new Map<string, Placed[]>();
   for (const prop of items) {
-    const variant = createRng(prop.seed).int(0, STYLES[prop.kind].variants - 1);
+    const variant = createRng(prop.seed).int(0, PROP_STYLES[prop.kind].variants - 1);
     const material = prop.material;
     const surface =
       material === undefined
@@ -240,9 +231,8 @@ export function createPropRenderer(
   const starfish: { mesh: InstancedMesh; props: Prop[] }[] = [];
 
   const place = (mesh: InstancedMesh, index: number, prop: Prop, turn: number): void => {
-    const style = STYLES[prop.kind];
     const base = floorHeight(prop.x, prop.z) + (prop.elevation ?? 0);
-    position.set(prop.x, base + style.sink * prop.size, prop.z);
+    position.set(prop.x, base + PROP_SHAPES[prop.kind].sink * prop.size, prop.z);
     rotation.setFromEuler(euler.set(0, prop.rotation + turn, 0));
     scale.setScalar(prop.size);
     matrix.compose(position, rotation, scale);
@@ -252,7 +242,7 @@ export function createPropRenderer(
   for (const members of groups.values()) {
     const first = members[0];
     if (first === undefined) continue;
-    const style = STYLES[first.prop.kind];
+    const style = PROP_STYLES[first.prop.kind];
     const surface = first.prop.material;
     const patches: ShaderPatch[] =
       surface === undefined
