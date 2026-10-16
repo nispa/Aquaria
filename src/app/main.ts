@@ -325,11 +325,14 @@ async function start(): Promise<void> {
     nextSimulation.setPlaces(() => nextView.places());
     nextSimulation.setDaylight(() => nextView.daylight());
     nextSimulation.setRealistic(settings.realistic === true);
+    nextSimulation.setTorch(torchOn);
     nextView.resize(window.innerWidth, window.innerHeight);
     return { simulation: nextSimulation, view: nextView };
   };
   /** Species show their 3D model unless the viewer switched it off. */
   const fishModelEnabled = (speciesId: string): boolean => settings.fishModels?.[speciesId] ?? true;
+  /** The torch: while on, the pointer lights up the tank instead of being a finger. */
+  let torchOn = false;
   let shownScene = scene;
   let { simulation, view } = mountScene(scene);
   const feedRng = createRng((options.seed ?? scene.seed) + FEED_SEED_OFFSET);
@@ -344,10 +347,12 @@ async function start(): Promise<void> {
   input.on("pointer-move", ({ x, y }) => {
     fingerOnGlass = view.glassPoint(x, y, finger, sight);
     simulation.setFinger(fingerOnGlass ? finger : undefined, sight);
+    if (torchOn) view.aimTorch(fingerOnGlass ? finger : undefined);
   });
   input.on("pointer-leave", () => {
     fingerOnGlass = false;
     simulation.setFinger(undefined);
+    view.aimTorch(undefined);
   });
   input.on("tap", ({ x, y }) => {
     if (view.glassPoint(x, y, tapPoint)) simulation.tap(tapPoint);
@@ -504,6 +509,12 @@ async function start(): Promise<void> {
         update({ look: { ...settings.look, [featureId]: enabled } });
       },
       onFeed: feed,
+      onTorchToggle() {
+        torchOn = !torchOn;
+        simulation.setTorch(torchOn);
+        view.aimTorch(torchOn && fingerOnGlass ? finger : undefined);
+        panel.setTorch(torchOn);
+      },
       onSectionToggle(sectionId, open) {
         update({ panelSections: { ...settings.panelSections, [sectionId]: open } });
       },

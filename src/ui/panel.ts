@@ -90,6 +90,8 @@ export interface PanelCallbacks {
   onFullscreen(): void;
   /** Drops a pinch of food into the tank. */
   onFeed(): void;
+  /** Switches the torch on or off. */
+  onTorchToggle(): void;
   onSectionToggle(sectionId: string, open: boolean): void;
 }
 
@@ -98,6 +100,8 @@ export interface Panel {
   setFps(fps: number | undefined): void;
   /** Shows the aquarium's time of day. Cheap to call every frame. */
   setHour(hour: number): void;
+  /** Shows whether the torch is on. */
+  setTorch(on: boolean): void;
   dispose(): void;
 }
 
@@ -128,10 +132,24 @@ function featureSections(
   });
 }
 
+/** Three flakes drifting down: the feed button's icon. */
+const FEED_ICON =
+  '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor">' +
+  '<rect x="5" y="4" width="4" height="4" rx="1" transform="rotate(15 7 6)"/>' +
+  '<rect x="14" y="8" width="4" height="4" rx="1" transform="rotate(-20 16 10)"/>' +
+  '<rect x="8" y="15" width="4" height="4" rx="1" transform="rotate(35 10 17)"/></svg>';
+
+/** A hand torch with its beam: the torch button's icon. */
+const TORCH_ICON =
+  '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor">' +
+  '<path d="M3 10h7l3-3v10l-3-3H3z"/>' +
+  '<path d="M15 9l6-3v2l-6 2zM15 12h6v1h-6zM15 15l6 2v2l-6-3z" opacity="0.7"/></svg>';
+
 /**
  * Hidden control panel. Nothing stays on screen permanently (static elements
- * wear LED walls unevenly): a corner button appears only while the mouse
- * moves, and the panel opens with it or with the H key.
+ * wear LED walls unevenly): a row of corner buttons (torch, feed, panel)
+ * appears only while the pointer moves or touches the screen, and the panel
+ * opens with it or with the H key.
  */
 export function createPanel(
   root: HTMLElement,
@@ -312,24 +330,44 @@ export function createPanel(
       callbacks.onFeatureChange(featureId, enabled);
     }),
     quality,
-    element("p", "panel__hint", "H: show/hide · F: full screen"),
+    element("p", "panel__hint", "H: show/hide · F: full screen · T: torch · A: what fish do"),
     element("p", "panel__version", `Aquaria ${state.version}`),
   );
 
   const fpsCounter = element("div", "fps");
   fpsCounter.hidden = !state.showFps;
 
-  const opener = element("button", "opener", "☰");
+  const corner = element("div", "corner");
+  corner.hidden = true;
+  const cornerFeed = element("button", "corner__button");
+  cornerFeed.type = "button";
+  cornerFeed.innerHTML = FEED_ICON;
+  cornerFeed.setAttribute("aria-label", "Feed the fish");
+  cornerFeed.title = "Feed the fish (Space)";
+  cornerFeed.addEventListener("click", () => {
+    callbacks.onFeed();
+  });
+  const torchButton = element("button", "corner__button");
+  torchButton.type = "button";
+  torchButton.innerHTML = TORCH_ICON;
+  torchButton.setAttribute("aria-label", "Torch");
+  torchButton.setAttribute("aria-pressed", "false");
+  torchButton.title = "Torch (T): the pointer lights up the tank";
+  torchButton.addEventListener("click", () => {
+    callbacks.onTorchToggle();
+  });
+  const opener = element("button", "corner__button", "☰");
   opener.type = "button";
   opener.setAttribute("aria-label", "Open controls");
-  opener.hidden = true;
+  opener.title = "Controls (H)";
+  corner.append(torchButton, cornerFeed, opener);
 
   let idleTimer: number | undefined;
   const onPointerMove = (): void => {
-    opener.hidden = false;
+    corner.hidden = false;
     window.clearTimeout(idleTimer);
     idleTimer = window.setTimeout(() => {
-      opener.hidden = true;
+      corner.hidden = true;
     }, BUTTON_IDLE_MS);
   };
   const toggle = (): void => {
@@ -341,6 +379,7 @@ export function createPanel(
     if (event.target instanceof HTMLInputElement && event.target.type !== "range") return;
     if (event.key === "h" || event.key === "H") toggle();
     if (event.key === "f" || event.key === "F") callbacks.onFullscreen();
+    if (event.key === "t" || event.key === "T") callbacks.onTorchToggle();
     // A focused button would also click on Space: leave it to the button.
     if (event.key === " " && !(event.target instanceof HTMLButtonElement)) {
       event.preventDefault();
@@ -348,14 +387,19 @@ export function createPanel(
     }
   };
   window.addEventListener("pointermove", onPointerMove);
+  // A touch may come without any move before it.
+  window.addEventListener("pointerdown", onPointerMove);
   window.addEventListener("keydown", onKey);
 
-  root.append(panel, opener, fpsCounter);
+  root.append(panel, corner, fpsCounter);
 
   return {
     toggle,
     setHour(hour) {
       lightsSection.setHour(hour);
+    },
+    setTorch(on) {
+      torchButton.setAttribute("aria-pressed", String(on));
     },
     setFps(fps) {
       fpsCounter.textContent = fps === undefined ? "– fps" : `${fps} fps`;
@@ -363,9 +407,10 @@ export function createPanel(
     dispose() {
       window.clearTimeout(idleTimer);
       window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerdown", onPointerMove);
       window.removeEventListener("keydown", onKey);
       panel.remove();
-      opener.remove();
+      corner.remove();
       fpsCounter.remove();
     },
   };

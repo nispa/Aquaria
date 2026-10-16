@@ -50,6 +50,7 @@ import { createSurfaceLibrary } from "./surfaceLibrary";
 import { createPropRenderer, type PropRenderer } from "./propRenderer";
 import { createRockworkRenderer, type RockworkRenderer } from "./rockworkRenderer";
 import { createWaterUniforms } from "./uniforms";
+import { createTorchLight } from "./torchLight";
 
 const VERTICAL_FOV = 38;
 const BASE_EXPOSURE = 1.05;
@@ -129,6 +130,8 @@ export interface AquariumView {
    * coordinates (-1..1) written into `out`. False when it is off screen.
    */
   screenPoint(point: Vector3, out: Vector3): boolean;
+  /** Shines the viewer's torch through `point` on the glass, or switches it off. */
+  aimTorch(point: Vector3 | undefined): void;
   /** The WebGL renderer string: which GPU the browser actually draws with. */
   gpuName(): string;
   /** Hour of the aquarium day shown by the last frame. */
@@ -198,6 +201,8 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   sun.shadow.normalBias = SHADOW_NORMAL_BIAS;
   const ambient = new AmbientLight(scene.water.color, 0.6);
   world.add(hemisphere, sun, sun.target, ambient);
+  const torch = createTorchLight();
+  world.add(torch.light, torch.light.target);
   const rig = createLightRig({
     scene,
     sun,
@@ -449,6 +454,9 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       if (raycaster.ray.intersectPlane(glass, out) === null) return false;
       const halfWidth = scene.tank.width / 2;
       return Math.abs(out.x) <= halfWidth && out.y >= 0 && out.y <= scene.tank.height;
+    },
+    aimTorch(point) {
+      torch.aim(camera.position, point);
     },
     screenPoint(point, out) {
       out.copy(point).project(camera);

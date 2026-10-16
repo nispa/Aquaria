@@ -47,7 +47,7 @@ body {
 }
 
 .panel[hidden],
-.opener[hidden],
+.corner[hidden],
 .fps[hidden] {
   display: none;
 }
@@ -342,18 +342,32 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.opener {
+/* Corner buttons: big enough for a finger on a touch screen. */
+.corner {
   position: fixed;
   top: 16px;
   right: 16px;
-  width: 40px;
-  height: 40px;
+  display: flex;
+  gap: 8px;
+}
+
+.corner__button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--panel-border);
   border-radius: 10px;
   background: var(--panel-bg);
   color: var(--text);
   font-size: 18px;
   cursor: pointer;
+  touch-action: manipulation;
+}
+
+.corner__button[aria-pressed="true"] {
+  color: #ffd98a;
+  border-color: #ffd98a;
 }
 
 .fps {

@@ -28,7 +28,8 @@
         "appetite": 0.8,
         "curiosity": 0.5,
         "shyness": 0.5,
-        "hiding": 0.3
+        "hiding": 0.3,
+        "torch": 0.2
       },
       "swim": {
         "style": "cruise"
@@ -76,7 +77,8 @@
       "behavior": {
         "appetite": 0.7,
         "curiosity": 0.6,
-        "shyness": 0.3
+        "shyness": 0.3,
+        "torch": -0.3
       },
       "swim": {
         "style": "hover",
@@ -111,7 +113,8 @@
       "behavior": {
         "appetite": 0.6,
         "curiosity": 0.0,
-        "shyness": 0.9
+        "shyness": 0.9,
+        "torch": 1
       },
       "swim": {
         "style": "cruise",
@@ -147,7 +150,8 @@
         "appetite": 0.8,
         "curiosity": 0.4,
         "shyness": 0.5,
-        "hiding": 0.3
+        "hiding": 0.3,
+        "torch": 0.2
       },
       "swim": {
         "style": "cruise"
@@ -188,7 +192,8 @@
         "appetite": 0.6,
         "curiosity": 0.2,
         "shyness": 0.8,
-        "hiding": 0.9
+        "hiding": 0.9,
+        "torch": -0.8
       },
       "swim": {
         "style": "hover"
@@ -232,7 +237,8 @@
         "appetite": 0.5,
         "curiosity": 0.3,
         "shyness": 0.6,
-        "hiding": 0.5
+        "hiding": 0.5,
+        "torch": -0.2
       },
       "swim": {
         "style": "patrol",
@@ -332,7 +338,8 @@
         "appetite": 0.7,
         "curiosity": 0.5,
         "shyness": 0.3,
-        "hiding": 0.4
+        "hiding": 0.4,
+        "torch": -0.3
       },
       "swim": {
         "style": "glide",
@@ -383,7 +390,8 @@
         "appetite": 0.8,
         "curiosity": 0.5,
         "shyness": 0.2,
-        "hiding": 0.8
+        "hiding": 0.8,
+        "torch": -0.5
       },
       "swim": {
         "style": "burst-coast"
@@ -425,7 +433,8 @@
         "appetite": 0.8,
         "curiosity": 0.4,
         "shyness": 0.4,
-        "hiding": 0.3
+        "hiding": 0.3,
+        "torch": 0.2
       },
       "swim": {
         "style": "cruise"
@@ -466,7 +475,8 @@
       "behavior": {
         "appetite": 0.7,
         "curiosity": 0.1,
-        "shyness": 0.8
+        "shyness": 0.8,
+        "torch": 0.7
       },
       "swim": {
         "style": "cruise",
@@ -499,7 +509,8 @@
       "behavior": {
         "appetite": 0.7,
         "curiosity": 0.1,
-        "shyness": 0.7
+        "shyness": 0.7,
+        "torch": 0.6
       },
       "swim": {
         "style": "cruise",
@@ -533,7 +544,8 @@
         "appetite": 0.8,
         "curiosity": 0.7,
         "shyness": 0.3,
-        "hiding": 0.4
+        "hiding": 0.4,
+        "torch": 0.3
       },
       "swim": {
         "style": "glide",
@@ -583,7 +595,8 @@
         "appetite": 0.9,
         "curiosity": 0.6,
         "shyness": 0.3,
-        "hiding": 0.5
+        "hiding": 0.5,
+        "torch": 0.5
       },
       "swim": {
         "style": "burst-coast",
@@ -626,7 +639,8 @@
         "appetite": 0.9,
         "curiosity": 0.5,
         "shyness": 0.3,
-        "hiding": 0.5
+        "hiding": 0.5,
+        "torch": 0.4
       },
       "swim": {
         "style": "burst-coast",
@@ -671,7 +685,8 @@
         "appetite": 0.6,
         "curiosity": 0.5,
         "shyness": 0.5,
-        "hiding": 0.7
+        "hiding": 0.7,
+        "torch": -0.4
       },
       "swim": {
         "style": "hover",
@@ -715,7 +730,8 @@
         "appetite": 0.9,
         "curiosity": 0.3,
         "shyness": 0.4,
-        "active": "night"
+        "active": "night",
+        "torch": 0.8
       },
       "swim": {
         "style": "patrol",
@@ -759,7 +775,8 @@
       "behavior": {
         "appetite": 0.8,
         "curiosity": 0.3,
-        "shyness": 0.6
+        "shyness": 0.6,
+        "torch": 0.5
       },
       "swim": {
         "style": "cruise",

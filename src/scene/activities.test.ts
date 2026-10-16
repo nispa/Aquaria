@@ -90,3 +90,16 @@ describe("hiding", () => {
     expect(parseCatalog(catalogFixture()).species[0]?.behavior.hiding).toBe(0);
   });
 });
+
+describe("torch", () => {
+  it("leaves species indifferent to the torch unless they say otherwise", () => {
+    expect(parseCatalog(catalogFixture()).species[0]?.behavior.torch).toBe(0);
+  });
+
+  it("rejects a liking for light outside -1..1", () => {
+    const input = catalogFixture();
+    input.species = input.species.map((species) => ({ ...species, behavior: { torch: 2 } }));
+
+    expect(() => parseCatalog(input)).toThrow(/torch/);
+  });
+});

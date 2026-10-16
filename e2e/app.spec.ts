@@ -216,6 +216,38 @@ test("resizes the fish from the panel and remembers it", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test("shows the corner buttons on a touch, and feeds the fish from one", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await openLive(page);
+  await waitForState(page);
+  const feed = page.getByRole("button", { name: "Feed the fish" });
+  await expect(feed).toBeHidden();
+
+  await page.mouse.click(640, 360);
+  await feed.click();
+
+  await expect(page.getByRole("button", { name: "Open controls" })).toBeVisible();
+  await expect(page.locator(".panel")).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
+test("switches the torch on and off with T and with its corner button", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await openLive(page);
+  await waitForState(page);
+  await page.mouse.move(640, 360);
+  const torch = page.getByRole("button", { name: "Torch" });
+
+  await page.keyboard.press("t");
+  await expect(torch).toHaveAttribute("aria-pressed", "true");
+  await torch.click();
+
+  await expect(torch).toHaveAttribute("aria-pressed", "false");
+  expect(errors).toEqual([]);
+});
+
 test("switches to realistic mode from the panel and remembers it", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

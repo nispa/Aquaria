@@ -23,6 +23,7 @@ import { createGesture, isScribbling, spinOf, trackFinger, type Gesture } from "
 import { createCurrentField, type CurrentField } from "./current";
 import { createFood, type Food } from "./food";
 import { createPlaceFinder, type Place } from "./places";
+import { beamOffset, beamRadius, torchStrength } from "./torch";
 import {
   applyPlay,
   breakSpells,
@@ -164,6 +165,14 @@ const HIDE_ARRIVAL_BODY_LENGTHS = 2;
 /** Keeps the hiding draw independent of the curiosity draw for the same fish. */
 const HIDING_SALT = 0x5bd1e995;
 const SHELTER: Readonly<Record<string, number>> = { shelter: 1 };
+// The torch (sim/torch). Fish that love light feel the beam from TORCH_REACH
+// away and mill about slowly in it; shy ones flee it from SHY_MARGIN times
+// its radius, and those that hide hide for TORCH_HIDE_SECONDS.
+const TORCH_REACH = 3;
+const TORCH_WEIGHT = 2.5;
+const GATHER_SPEED = 0.5;
+const SHY_MARGIN = 1.5;
+const TORCH_HIDE_SECONDS = 4;
 
 export type FishState = "entering" | "swimming" | "leaving";
 
@@ -252,6 +261,12 @@ export interface Simulation {
    * never rest and the spells are on.
    */
   setRealistic(realistic: boolean): void;
+  /**
+   * Switches the torch: while on, the finger is a torch shining into the
+   * tank along the line of sight, instead of a finger fish come to look at
+   * or play with.
+   */
+  setTorch(on: boolean): void;
   /** How much of a day it is, 0 (night) .. 1 (full day); read on every step. */
   setDaylight(daylight: () => number): void;
   /** A tap on the glass at `point`: nearby fish dart away. */
@@ -308,6 +323,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
   let seabed: SeabedHeight = () => 0;
   let places: () => readonly Place[] = () => NO_PLACES;
   let realistic = false;
+  let torchOn = false;
   let daylightNow: () => number = () => 1;
   let daylight = 1;
   let knownPlaces = NO_PLACES;
@@ -514,6 +530,33 @@ export function createSimulation(options: SimulationOptions): Simulation {
   };
 
   /**
+   * Reacts to the torch, if it is on and the species cares: gathers in the
+   * beam or flees it. Returns the speed the fish wants, or undefined.
+   */
+  const shine = (group: Group, member: Fish): number | undefined => {
+    const { torch: liking } = group.species.behavior;
+    if (!torchOn || !fingerPresent || liking === 0 || member.state !== "swimming") {
+      return undefined;
+    }
+    const along = beamOffset(member.position, finger, sight, offset);
+    if (along < 0) return undefined;
+    const distance = offset.length();
+    const radius = beamRadius(along);
+    const strength = torchStrength(daylight) * Math.abs(liking);
+    const { cruise, max } = group.species.speed;
+    if (liking > 0) {
+      if (distance > TORCH_REACH) return undefined;
+      // Towards the beam's axis; in the beam they mill about slowly.
+      if (distance > 0) force.addScaledVector(offset, (-TORCH_WEIGHT * strength) / distance);
+      return distance < radius ? cruise * GATHER_SPEED : cruise;
+    }
+    if (distance > radius * SHY_MARGIN) return undefined;
+    if (distance > 0) force.addScaledVector(offset, (TORCH_WEIGHT * strength) / distance);
+    if (member.hiding === 0 && seekRefuge(group, member)) member.hiding = TORCH_HIDE_SECONDS;
+    return lerp(cruise, max, strength);
+  };
+
+  /**
    * On a fright: whether this fish hides, and where. A host fish hides in its
    * anemone; one of the species' hiding individuals in the nearest shelter.
    */
@@ -630,7 +673,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
   const playWithViewer = (member: Fish, deltaSeconds: number): void => {
     playInput.spin = 0;
     playInput.scribbling = false;
-    if (fingerPresent && !realistic) {
+    if (fingerPresent && !realistic && !torchOn) {
       offset.subVectors(member.position, finger);
       const along = offset.dot(sight);
       if (along > 0) {
@@ -747,7 +790,12 @@ export function createSimulation(options: SimulationOptions): Simulation {
     member.fear = Math.max(member.fear - deltaSeconds / FEAR_SECONDS, 0);
     const feedingSpeed = forage(group, member, deltaSeconds);
     // A spell of the viewer's (hypnosis, tickling) beats curiosity.
-    const curiousSpeed = isEnchanted(member.play) ? undefined : inspectFinger(group, member);
+    // With the torch on, the finger is a torch: no curiosity, only light.
+    const curiousSpeed = torchOn
+      ? shine(group, member)
+      : isEnchanted(member.play)
+        ? undefined
+        : inspectFinger(group, member);
     const reactionSpeed = member.fear > 0 ? flee(group, member) : (feedingSpeed ?? curiousSpeed);
     // Fright, food or a finger on the glass call off what the fish was doing.
     if (reactionSpeed !== undefined && activity.id !== "wander") {
@@ -936,6 +984,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
           }
         }
       }
+    },
+    setTorch(on) {
+      torchOn = on;
     },
     setDaylight(next) {
       daylightNow = next;

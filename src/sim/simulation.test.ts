@@ -1047,3 +1047,87 @@ describe("schools", () => {
     expect(spacing(simulation)).toBeGreaterThan(packed * 1.05);
   });
 });
+
+describe("the torch", () => {
+  const intoTank = new Vector3(0, 0, -1);
+
+  function lit(torch: number, count = 20, species = "sardine"): Simulation {
+    const input = catalogFixture();
+    const tuned = parseCatalog({
+      species: input.species.map((entry) => ({ ...entry, behavior: { torch, curiosity: 1 } })),
+    });
+    const simulation = createSimulation({
+      scene: parseScene({ ...sceneFixture(), fauna: [{ species, count }] }, tuned),
+      catalog: tuned,
+      rng: createRng(10),
+    });
+    simulation.setDaylight(() => 0);
+    return simulation;
+  }
+
+  /** Mean distance of the fish from the beam's axis, through (x, y) on the glass. */
+  const offBeam = (simulation: Simulation, x: number, y: number) =>
+    simulation.fish.reduce(
+      (sum, fish) => sum + Math.hypot(fish.position.x - x, fish.position.y - y),
+      0,
+    ) / simulation.fish.length;
+
+  const aim = (simulation: Simulation, x: number, y: number) => {
+    simulation.setFinger(new Vector3(x, y, 0), intoTank);
+  };
+
+  it("gathers fish that love light in its beam", () => {
+    const shining = lit(1);
+    const dark = lit(1);
+    shining.setTorch(true);
+    aim(shining, 0, 3);
+
+    run(shining, 15);
+    run(dark, 15);
+
+    expect(offBeam(shining, 0, 3)).toBeLessThan(offBeam(dark, 0, 3) * 0.6);
+  });
+
+  it("drives shy fish out of it", () => {
+    const shining = lit(-1, 6, "blue-tang");
+    const dark = lit(-1, 6, "blue-tang");
+    shining.setTorch(true);
+    const [first] = shining.fish;
+    const x = first?.position.x ?? 0;
+    const y = first?.position.y ?? 2;
+    aim(shining, x, y);
+
+    run(shining, 3);
+    run(dark, 3);
+
+    expect(offBeam(shining, x, y)).toBeGreaterThan(offBeam(dark, x, y));
+  });
+
+  it("leaves fish indifferent to light alone", () => {
+    const shining = lit(0);
+    const dark = lit(0);
+    shining.setTorch(true);
+    aim(shining, 0, 3);
+    aim(dark, 0, 3);
+
+    run(shining, 5);
+    run(dark, 5);
+
+    // With the torch on, the pointer is a torch, not a finger: nobody comes to look.
+    expect(offBeam(shining, 0, 3)).toBeGreaterThan(offBeam(dark, 0, 3));
+  });
+
+  it("does nothing while it is switched off", () => {
+    const off = lit(1);
+    const never = lit(1);
+    off.setTorch(true);
+    off.setTorch(false);
+
+    run(off, 5);
+    run(never, 5);
+
+    expect(off.fish.map((fish) => fish.position.toArray())).toEqual(
+      never.fish.map((fish) => fish.position.toArray()),
+    );
+  });
+});

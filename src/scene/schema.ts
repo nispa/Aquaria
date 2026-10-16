@@ -90,6 +90,11 @@ const behavior = z.object({
    * rather than only darting away (always the same individuals).
    */
   hiding: unit.default(0),
+  /**
+   * How it takes the viewer's torch, -1..1: above 0 it gathers in the beam
+   * (sardines to a lamp), below 0 it leaves it and, if it hides, hides.
+   */
+  torch: z.number().min(-1).max(1).default(0),
 });
 
 export const speciesSchema = z.object({
