@@ -95,3 +95,19 @@ export function applySceneryOverrides(
     })),
   };
 }
+
+/**
+ * A copy of the scene holding a single item of one scenery entry, even one
+ * the viewer has emptied: what the panel's card for that entry shows.
+ */
+export function sceneryAlone(scene: Scene, key: string): Scene {
+  const keys = keyed([...scene.flora, ...scene.props]);
+  const index = keys.indexOf(key);
+  const chosen = (offset: number) => (_entry: unknown, position: number) =>
+    position + offset === index;
+  return {
+    ...scene,
+    flora: scene.flora.filter(chosen(0)).map((entry) => ({ ...entry, count: 1 })),
+    props: scene.props.filter(chosen(scene.flora.length)).map((entry) => ({ ...entry, count: 1 })),
+  };
+}

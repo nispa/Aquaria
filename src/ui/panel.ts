@@ -6,6 +6,7 @@ import { checkbox, collapsible, element, select, slider } from "./controls";
 import { createFishCards, type DrawPortraits } from "./fishCards";
 import { createLightsSection, type LightsSectionState } from "./lightsSection";
 import { createSceneCards } from "./sceneCards";
+import { createSceneryCards, type DrawSceneryPortraits } from "./sceneryCards";
 import type { SceneryEntry } from "../scene/scenery";
 import type { Species } from "../scene/schema";
 
@@ -56,6 +57,7 @@ export interface PanelState {
   readonly lights: LightsSectionState;
   /** Plants, rocks, corals and shells with their current counts. */
   readonly scenery: readonly SceneryEntry[];
+  readonly drawSceneryPortraits: DrawSceneryPortraits;
   readonly renderHeight: number;
   /** Frames per second at most, one of `frameLimitChoices`; 0 = no limit. */
   readonly frameLimit: number;
@@ -292,18 +294,14 @@ export function createPanel(
   fauna.append(fishCards.grid);
 
   const scenery = section("scenery", "Scenery");
-  for (const entry of state.scenery) {
-    const row = element("label", "panel__row");
-    const value = element("output", "panel__value", String(entry.count));
-    const input = slider(0, entry.max, 1, entry.count);
-    input.dataset.scenery = entry.key;
-    input.addEventListener("input", () => {
-      value.textContent = input.value;
-      callbacks.onSceneryChange(entry.key, Number(input.value));
-    });
-    row.append(element("span", "panel__label", entry.label), input, value);
-    scenery.append(row);
-  }
+  const sceneryCards = createSceneryCards({
+    entries: state.scenery,
+    drawPortraits: state.drawSceneryPortraits,
+    onCountChange: (key, count) => {
+      callbacks.onSceneryChange(key, count);
+    },
+  });
+  scenery.append(sceneryCards.grid);
 
   const lightsSection = createLightsSection(state.lights, (lights) => {
     callbacks.onLightsChange(lights);
@@ -484,7 +482,9 @@ export function createPanel(
   };
   const toggle = (): void => {
     panel.hidden = !panel.hidden;
-    if (!panel.hidden) fishCards.showPortraits();
+    if (panel.hidden) return;
+    fishCards.showPortraits();
+    sceneryCards.showPortraits();
   };
   opener.addEventListener("click", toggle);
   const onKey = (event: KeyboardEvent): void => {

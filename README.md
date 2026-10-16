@@ -267,7 +267,8 @@ Scenery entries:
   (m), `rocks`, `color` and an optional `material`. Flora and prop entries
   with `"on": "rockwork"` grow on its surface instead of the sand.
 - Any entry may have a `name`, used as its label in the panel. Every entry
-  gets a slider in the panel's Scenery section; adding items never moves the
+  gets a card (a picture of one item and a count slider) in the panel's
+  Scenery section; adding items never moves the
   ones already placed.
 
 Species are defined once in `public/species.json`: body shape (`disc`, `round`,

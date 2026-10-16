@@ -77,7 +77,7 @@ Il pannello, gestito da [`createPanel`](file:///F:/progetti/Aquaria/src/ui/panel
    - Quando si riduce o aumenta il numero, **i pesci non spariscono né compaiono nel nulla**: nuotano verso l'esterno o entrano gradualmente dai lati della vasca.
 
 3. **Elementi di Arredo (Scenery)**:
-   - Cursori per aumentare o diminuire la quantità di piante acquatiche, gorgonie, anemoni, rocce e coralli. L'aggiunta di elementi preserva la posizione di quelli già esistenti.
+   - Una scheda per elemento, con la sua immagine e un cursore per aumentare o diminuire la quantità di piante acquatiche, gorgonie, anemoni, rocce e coralli. L'aggiunta di elementi preserva la posizione di quelli già esistenti.
 
 #### Le scene incluse
 

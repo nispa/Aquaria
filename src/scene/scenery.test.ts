@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { catalogFixture, sceneFixture } from "./fixtures";
 import { parseCatalog, parseScene } from "./parse";
-import { applySceneryOverrides, sceneryEntries } from "./scenery";
+import { applySceneryOverrides, sceneryAlone, sceneryEntries } from "./scenery";
 import type { SceneInput } from "./schema";
 
 const catalog = parseCatalog(catalogFixture());
@@ -74,5 +74,28 @@ describe("applySceneryOverrides", () => {
     applySceneryOverrides(scene, { kelp: 1 });
 
     expect(scene.flora[0]?.count).toBe(12);
+  });
+});
+
+describe("sceneryAlone", () => {
+  it("keeps one item of the chosen entry and nothing else", () => {
+    const alone = sceneryAlone(sceneWith(reefInput), "rock-2");
+
+    expect([alone.flora, alone.props.map((entry) => [entry.name, entry.count])]).toEqual([
+      [],
+      [["Sandstone", 1]],
+    ]);
+  });
+
+  it("shows an entry the viewer has emptied", () => {
+    const emptied = applySceneryOverrides(sceneWith(reefInput), { kelp: 0 });
+
+    expect(sceneryAlone(emptied, "kelp").flora.map((entry) => entry.count)).toEqual([1]);
+  });
+
+  it("is empty for an unknown key", () => {
+    const alone = sceneryAlone(sceneWith(reefInput), "sea-monster");
+
+    expect([alone.flora, alone.props]).toEqual([[], []]);
   });
 });

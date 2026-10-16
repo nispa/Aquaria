@@ -70,7 +70,7 @@ Pressing **`H`** opens the control panel powered by [`createPanel`](file:///F:/p
 - **Scenes**: A square card with a picture of each bundled scene (_Aquaria_, _Tropical reef_, _Home reef_, _Planted tank_, _Iwagumi_), then your saved scenes; the open one is highlighted. The last card, **Designer**, opens the scene designer.
 - **About (ⓘ)**: Next to the scene's name at the top: version, author, license and a link to the code.
 - **Fauna Population**: A card per species, with a live picture of the fish and a count slider; species in the tank come first. Real-time sliders for each species defined in [`species.json`](file:///F:/progetti/Aquaria/public/species.json). Increasing or decreasing numbers causes fish to swim realistically into or out of the side boundaries rather than popping into existence.
-- **Scenery Elements**: Adjust the count of corals, kelp, sea anemones, driftwood, rocks, and shells. Adding items never displaces already positioned flora or props.
+- **Scenery Elements**: One card per element, with its picture and a slider: adjust the count of corals, kelp, sea anemones, driftwood, rocks, and shells. Adding items never displaces already positioned flora or props.
 
 #### Bundled scenes
 

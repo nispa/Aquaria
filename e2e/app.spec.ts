@@ -217,9 +217,7 @@ test("changes the scenery from the panel", async ({ page }) => {
 
   await page.locator('input[data-scenery="brain-coral"]').fill("12");
 
-  await expect(page.locator("label", { hasText: "Brain corals" }).locator("output")).toHaveText(
-    "12",
-  );
+  await expect(page.locator('[data-scenery-card="brain-coral"] output')).toHaveText("12");
   expect(errors).toEqual([]);
 });
 

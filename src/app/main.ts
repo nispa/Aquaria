@@ -11,6 +11,7 @@ import { createRng } from "../core/rng";
 import { versionLabel } from "../core/version";
 import { createAquariumView, type AquariumView } from "../render/aquariumView";
 import { drawFishPortraits, type FishPortraitRequest } from "../render/fishPortraits";
+import { drawSceneryPortraits, type SceneryPortraitRequest } from "../render/sceneryPortraits";
 import { EFFECTS } from "../render/effects";
 import {
   customSceneId,
@@ -462,6 +463,14 @@ async function start(): Promise<void> {
         logger.warn("Fish pictures could not be drawn", { error: String(error) });
       });
   };
+  // Scenery pictures wait their turn too: one small renderer at a time.
+  const drawSceneryPictures = (requests: readonly SceneryPortraitRequest[]): void => {
+    portraits = portraits
+      .then(() => drawSceneryPortraits(scene, requests, logger))
+      .catch((error: unknown) => {
+        logger.warn("Scenery pictures could not be drawn", { error: String(error) });
+      });
+  };
 
   const panel = createPanel(
     document.body,
@@ -505,6 +514,7 @@ async function start(): Promise<void> {
           ? `${import.meta.env.BASE_URL}scenes/thumbnails/${id}.jpg`
           : undefined,
       scenery: sceneryEntries(scene),
+      drawSceneryPortraits: drawSceneryPictures,
       lights: {
         lights: settings.lights ?? scene.lights,
         recommended: scene.lights,
