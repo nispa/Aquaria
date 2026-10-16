@@ -1,21 +1,33 @@
 # Aquaria
 
+[![Aquaria, a real-time 3D aquarium for the browser](docs/hero.jpg)](https://nispa.github.io/Aquaria/)
+
+<h3 align="center">▶ <a href="https://nispa.github.io/Aquaria/">Play the live demo</a></h3>
+
+<p align="center">No install: it runs in any recent desktop browser.</p>
+
 A real-time 3D aquarium for the browser, built for large screens: from a
 Full HD monitor up to a 4K LED wall. Every tank is described in a JSON file
 (water, light, current, plants, rocks and fish), and the engine brings it to
 life with Three.js.
 
-### ▶ [Play the live demo](https://nispa.github.io/Aquaria/)
+In the demo, feed the fish, tap the glass, draw circles to hypnotize them,
+light them with a torch (`T`), press `A` to see what each one is doing and `H`
+for the control panel. On a laptop, let the browser use the dedicated GPU (see
+[Use the dedicated GPU](#use-the-dedicated-gpu)).
 
-Runs in any recent desktop browser, no install. Feed the fish, tap the glass,
-draw circles to hypnotize them, light them with a torch (`T`), press `A` to see
-what each one is doing and `H` for the control panel. On a laptop, let the
-browser use the dedicated GPU (see [Use the dedicated GPU](#use-the-dedicated-gpu)).
+![The open reef with caustics, shadows, reflections, ambient occlusion, volumetric light and depth of field](docs/screenshot-realistic.jpg)
 
-![The tropical reef scene with shadows, reflections, ambient occlusion, volumetric light and depth of field](docs/screenshot-realistic.jpg)
+<sub>The open reef with most effects on.</sub>
 
-<sub>With most effects on. A lighter setup is in
-[docs/screenshot.jpg](docs/screenshot.jpg).</sub>
+![A reef tank with the A overlay: what every fish is doing, and a card for the fish under the pointer](docs/screenshot.jpg)
+
+<sub>A reef tank with `A` on: what every fish is doing (wandering, pecking,
+inspecting), and a card for the fish under the pointer.</sub>
+
+| [![Tropical reef](docs/scenes/reef.jpg)](#bundled-scenes) | [![Home reef](docs/scenes/home-reef.jpg)](#bundled-scenes) | [![Planted tank](docs/scenes/planted-tank.jpg)](#bundled-scenes) | [![Iwagumi](docs/scenes/iwagumi.jpg)](#bundled-scenes) |
+| :-------------------------------------------------------: | :--------------------------------------------------------: | :--------------------------------------------------------------: | :----------------------------------------------------: |
+|                       Tropical reef                       |                         Home reef                          |                           Planted tank                           |                        Iwagumi                         |
 
 ## Features
 

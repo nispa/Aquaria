@@ -27,9 +27,9 @@ export default defineConfig({
     },
   },
   projects: [
-    { name: "e2e", testIgnore: /(visual|gallery|swimming)\.spec\.ts/ },
+    { name: "e2e", testIgnore: /(visual|gallery|swimming|readme)\.spec\.ts/ },
     { name: "visual", testMatch: /visual\.spec\.ts/ },
-    { name: "gallery", testMatch: /(gallery|swimming)\.spec\.ts/ },
+    { name: "gallery", testMatch: /(gallery|swimming|readme)\.spec\.ts/ },
   ],
   webServer: {
     command: `pnpm build && pnpm preview --port ${PORT} --strictPort`,
