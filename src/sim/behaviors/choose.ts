@@ -4,6 +4,21 @@ import { activityOf } from "./activities";
 import { settleDown } from "./shared";
 import type { ActivityState, SwimContext, SwimState } from "./types";
 
+/**
+ * In its hours of rest a fish is this much more drawn to rest than a weight
+ * of 1 would make it, so it rests most of the night.
+ */
+const REST_PULL = 10;
+
+/**
+ * How much a species wants to rest at a given daylight (0 night .. 1 day):
+ * 0 in its active hours, 1 in the middle of its hours of rest.
+ */
+export function restfulness(active: "day" | "night" | "always", daylight: number): number {
+  if (active === "always") return 0;
+  return active === "day" ? 1 - daylight : daylight;
+}
+
 /** A fish notices places within this many body lengths… */
 const SENSE_BODY_LENGTHS = 12;
 /** …and never fewer than this many meters, so small fish still find some. */
@@ -15,6 +30,8 @@ export interface ActivityChooser {
    * Starts the next activity, drawn in proportion to the weights among those
    * the fish can do now: wandering always, an activity at a place only with
    * an interesting place nearby whose top lies `within` where it may go.
+   * `restfulness` (see `restfulness()`) draws it to rest and away from the
+   * rest.
    */
   choose(
     state: ActivityState,
@@ -22,6 +39,7 @@ export interface ActivityChooser {
     activities: ActivitiesSpec,
     context: SwimContext,
     within: Box3,
+    restfulness?: number,
   ): void;
   /** Calls off the current activity and wanders, e.g. when startled. */
   wander(
@@ -59,14 +77,15 @@ export function createActivityChooser(): ActivityChooser {
     activities: ActivitiesSpec,
     context: SwimContext,
     within: Box3,
+    rest: number,
   ): number => {
     const activity = activityOf(id);
     const params = activities[id];
-    if (params.weight === 0 || !activity.atPlace || !("tags" in params)) {
-      return activity.atPlace ? 0 : params.weight;
-    }
+    const weight = params.weight * (activity.restful ? REST_PULL * rest : 1 - rest);
+    sizes.set(id, -1);
+    if (weight === 0) return 0;
     const spot = spots.get(id);
-    if (spot === undefined) return 0;
+    if (!activity.atPlace || !("tags" in params) || spot === undefined) return weight;
     const radius = Math.max(SENSE_BODY_LENGTHS * context.length, MIN_SENSE_RADIUS);
     const size = context.places.pick(
       params.tags,
@@ -77,14 +96,14 @@ export function createActivityChooser(): ActivityChooser {
       spot,
     );
     sizes.set(id, size);
-    return size < 0 ? 0 : params.weight;
+    return size >= 0 || !activity.needsPlace ? weight : 0;
   };
 
   return {
-    choose(state, wishes, activities, context, within) {
+    choose(state, wishes, activities, context, within, rest = 0) {
       let total = 0;
       for (const id of ACTIVITY_IDS) {
-        const weight = appeal(id, activities, context, within);
+        const weight = appeal(id, activities, context, within, rest);
         weights.set(id, weight);
         total += weight;
       }

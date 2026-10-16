@@ -4,6 +4,8 @@ import type { Activity } from "./types";
 export const wanderActivity: Activity<"wander"> = {
   id: "wander",
   atPlace: false,
+  needsPlace: false,
+  restful: false,
   start(state, params, context) {
     state.timer = context.rng.range(params.seconds[0], params.seconds[1]);
   },

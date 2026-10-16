@@ -79,6 +79,12 @@ const behavior = z.object({
   appetite: unit.default(DEFAULT_APPETITE),
   curiosity: unit.default(DEFAULT_CURIOSITY),
   shyness: unit.default(DEFAULT_SHYNESS),
+  /**
+   * When the species is up and about: by `day` (most reef and aquarium
+   * fish), by `night`, or `always`. In realistic mode it rests the rest of
+   * the time.
+   */
+  active: z.enum(["day", "night", "always"]).default("day"),
 });
 
 export const speciesSchema = z.object({

@@ -15,6 +15,7 @@ const COLORS: Readonly<Record<ActivityId, string>> = {
   wander: "rgba(255, 255, 255, 0.55)",
   inspect: "#5ad1ff",
   peck: "#ffb347",
+  rest: "#9fa8ff",
 };
 const SPELL_COLORS = { hypnotized: "#d58cff", dizzy: "#7dff9b", tickled: "#ff6fb5" } as const;
 const FONT = "12px system-ui, sans-serif";
@@ -35,9 +36,11 @@ export function activityColor(id: ActivityId): string {
   return COLORS[id];
 }
 
-/** Short text for an activity: the time left for wandering, pecks left for pecking. */
+/** Short text for an activity: the time left for wandering or resting, pecks left for pecking. */
 export function activityLabel(activity: ActivityState): string {
-  if (activity.id === "wander") return `wander ${Math.round(activity.timer)}s`;
+  if (activity.id === "wander" || activity.id === "rest") {
+    return `${activity.id} ${Math.round(activity.timer)}s`;
+  }
   if (activity.id === "peck") return `peck ×${activity.count}`;
   return activity.id;
 }

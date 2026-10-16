@@ -21,6 +21,8 @@ const LOOK_THRUST = 0.6;
 export const inspectActivity: Activity<"inspect"> = {
   id: "inspect",
   atPlace: true,
+  needsPlace: true,
+  restful: false,
   start(state, _params, context) {
     state.phase = APPROACH;
     state.timer = APPROACH_SECONDS;

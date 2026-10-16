@@ -216,6 +216,27 @@ test("resizes the fish from the panel and remembers it", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test("switches to realistic mode from the panel and remembers it", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    if (localStorage.getItem("aquaria.settings") === null) {
+      localStorage.setItem("aquaria.settings", JSON.stringify({ renderHeight: 540 }));
+    }
+  });
+  await page.goto("/?effects=none");
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await page.getByLabel("Realistic").check();
+  await page.reload();
+  await waitForState(page);
+  await page.keyboard.press("h");
+
+  await expect(page.getByLabel("Realistic")).toBeChecked();
+  expect(errors).toEqual([]);
+});
+
 test("switches a species to its procedural body and remembers it", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

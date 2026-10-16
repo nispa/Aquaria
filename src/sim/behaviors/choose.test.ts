@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createRng } from "../../core/rng";
 import { activitiesSchema } from "../../scene/activities";
 import { createPlaceFinder, type Place } from "../places";
-import { createActivityChooser } from "./choose";
+import { createActivityChooser, restfulness } from "./choose";
 import { createActivityState, createSwimState, type SwimContext } from "./types";
 
 const rock: Place = { x: 1, z: -1, height: 0.3, tags: ["rock", "algae"] };
@@ -101,5 +101,65 @@ describe("choosing what to do next", () => {
     expect(state.id).toBe("wander");
     expect(state.timer).toBeGreaterThan(0);
     expect([wishes.mouth, wishes.steep]).toEqual([0, false]);
+  });
+});
+
+describe("resting", () => {
+  const shelter: Place = { x: 1, z: -1, height: 0.4, tags: ["coral", "shelter"] };
+
+  /** The activities chosen in 100 draws at a given restfulness. */
+  function restfulChoices(restfulness: number, places: readonly Place[]): string[] {
+    const spec = activitiesSchema.parse({ peck: { weight: 1, tags: { coral: 1 } } });
+    const chooser = createActivityChooser();
+    const context = contextAmong(places);
+    const state = createActivityState();
+    return Array.from({ length: 100 }, () => {
+      chooser.choose(state, createSwimState(), spec, context, everywhere, restfulness);
+      return state.id;
+    });
+  }
+
+  it("never rests in its active hours", () => {
+    expect(restfulChoices(0, [shelter])).not.toContain("rest");
+  });
+
+  it("mostly rests in its hours of rest", () => {
+    const picks = restfulChoices(1, [shelter]);
+
+    expect(picks.filter((pick) => pick === "rest").length).toBeGreaterThan(80);
+  });
+
+  it("rests even without a shelter nearby", () => {
+    const state = createActivityState();
+    const spec = activitiesSchema.parse({ wander: { weight: 0 } });
+
+    createActivityChooser().choose(state, createSwimState(), spec, contextAmong([]), everywhere, 1);
+
+    expect(state.id).toBe("rest");
+    expect(state.targetSize).toBe(-1);
+  });
+
+  it("rests in a shelter when there is one", () => {
+    const state = createActivityState();
+    const spec = activitiesSchema.parse({ wander: { weight: 0 } });
+
+    createActivityChooser().choose(
+      state,
+      createSwimState(),
+      spec,
+      contextAmong([shelter]),
+      everywhere,
+      1,
+    );
+
+    expect(state.target.toArray()).toEqual([1, 0.4, -1]);
+  });
+});
+
+describe("restfulness", () => {
+  it("follows the night for species active by day, the day for nocturnal ones", () => {
+    expect(restfulness("day", 0.25)).toBe(0.75);
+    expect(restfulness("night", 0.25)).toBe(0.25);
+    expect(restfulness("always", 0)).toBe(0);
   });
 });

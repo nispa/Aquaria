@@ -14,6 +14,14 @@ describe("parseSettings", () => {
     expect(parseSettings(null)).toEqual({ settings: DEFAULT_SETTINGS, valid: true });
   });
 
+  it("starts in playful mode, not realistic", () => {
+    expect(DEFAULT_SETTINGS.realistic).not.toBe(true);
+  });
+
+  it("remembers realistic mode", () => {
+    expect(parseSettings({ realistic: true }).settings.realistic).toBe(true);
+  });
+
   it("defaults to rendering in 4K", () => {
     expect(DEFAULT_SETTINGS.renderHeight).toBe(2160);
   });

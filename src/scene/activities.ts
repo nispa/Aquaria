@@ -7,7 +7,8 @@ import { tagSchema } from "./tags";
  * weights. `wander` lets the swimming style lead; activities at a place
  * (`inspect`, `peck`) need a place nearby with a tag the species cares about,
  * and say how much each tag interests it (0..1). A species that declares
- * nothing only wanders. The motion lives in `sim/behaviors/`.
+ * nothing only wanders, and rests in its hours of rest. The motion lives in
+ * `sim/behaviors/`.
  */
 
 const weight = z.number().min(0);
@@ -45,10 +46,24 @@ const peck = z.strictObject({
   pecks: range(3, 7, z.number().int().positive()),
 });
 
+/**
+ * In its hours of rest (night for a species active by day, see
+ * `behavior.active`), a fish settles in a shelter nearby, or else near the
+ * bottom of its habitat, and barely moves. Out of them it never rests. The
+ * weight says how much it rests then, compared with the other species.
+ */
+const rest = z.strictObject({
+  weight: weight.default(1),
+  tags: interests.default({ shelter: 1 }),
+  /** How long a fish rests before choosing again. */
+  seconds: seconds(40, 90),
+});
+
 export const activitiesSchema = z.strictObject({
   wander: wander.prefault({}),
   inspect: inspect.prefault({}),
   peck: peck.prefault({}),
+  rest: rest.prefault({}),
 });
 
 export type ActivitiesSpec = z.output<typeof activitiesSchema>;

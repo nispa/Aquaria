@@ -323,6 +323,8 @@ async function start(): Promise<void> {
     });
     nextSimulation.setSeabed((x, z) => nextView.seabedHeight(x, z));
     nextSimulation.setPlaces(() => nextView.places());
+    nextSimulation.setDaylight(() => nextView.daylight());
+    nextSimulation.setRealistic(settings.realistic === true);
     nextView.resize(window.innerWidth, window.innerHeight);
     return { simulation: nextSimulation, view: nextView };
   };
@@ -415,6 +417,7 @@ async function start(): Promise<void> {
       drawPortraits,
       renderHeight: settings.renderHeight,
       showFps: settings.showFps,
+      realistic: settings.realistic === true,
       msaaSamples: settings.msaaSamples ?? DEFAULT_MSAA_SAMPLES,
       msaaChoices: MSAA_SAMPLE_CHOICES,
       features,
@@ -487,6 +490,10 @@ async function start(): Promise<void> {
       },
       onShowFpsChange(show) {
         update({ showFps: show });
+      },
+      onRealisticChange(realistic) {
+        simulation.setRealistic(realistic);
+        update({ realistic });
       },
       onFeatureChange(featureId, enabled) {
         const next = new Set(look);

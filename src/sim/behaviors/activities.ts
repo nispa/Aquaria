@@ -1,6 +1,7 @@
 import { ACTIVITY_IDS, type ActivitiesSpec, type ActivityId } from "../../scene/activities";
 import { inspectActivity } from "./inspect";
 import { peckActivity } from "./peck";
+import { restActivity } from "./rest";
 import type { Activity } from "./types";
 import { wanderActivity } from "./wander";
 
@@ -13,6 +14,7 @@ export const ACTIVITIES: { readonly [Id in ActivityId]: Activity<Id> } = {
   wander: wanderActivity,
   inspect: inspectActivity,
   peck: peckActivity,
+  rest: restActivity,
 };
 
 export function activityOf(id: ActivityId): Activity<ActivityId> {
@@ -20,9 +22,20 @@ export function activityOf(id: ActivityId): Activity<ActivityId> {
 }
 
 /**
- * Whether a species ever does anything but wander. Those that do not skip
- * activities altogether: no work per frame, no random numbers drawn.
+ * Whether a species does anything but wander in its active hours. Those that
+ * do not skip activities altogether (outside realistic mode, where they may
+ * rest): no work per frame, no random numbers drawn.
  */
 export function doesMoreThanWander(activities: ActivitiesSpec): boolean {
-  return ACTIVITY_IDS.some((id) => id !== "wander" && activities[id].weight > 0);
+  return ACTIVITY_IDS.some(
+    (id) => id !== "wander" && !ACTIVITIES[id].restful && activities[id].weight > 0,
+  );
+}
+
+/** Whether a species ever rests, given when it is active. */
+export function evenRests(activities: ActivitiesSpec, active: "day" | "night" | "always"): boolean {
+  return (
+    active !== "always" &&
+    ACTIVITY_IDS.some((id) => ACTIVITIES[id].restful && activities[id].weight > 0)
+  );
 }

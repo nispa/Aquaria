@@ -82,6 +82,16 @@ function levelsInto(lights: Lights, hour: number, into: Record<LightChannel, num
   into.accent = accent.level * day;
 }
 
+/**
+ * How much of a day it is at an hour, 0 (night) .. 1 (full day): the white
+ * daylight window between sunrise and sunset, with its ramps. Fish rest or
+ * wake by it.
+ */
+export function daylight(lights: Lights, hour: number): number {
+  const { sunrise, sunset, ramp } = lights.cycle;
+  return onWindow(hour, sunrise, sunset, ramp);
+}
+
 /** Level of each channel at an hour of the day. */
 export function channelLevels(lights: Lights, hour: number): ChannelLevels {
   const levels: Record<LightChannel, number> = { white: 0, blue: 0, violet: 0, accent: 0 };

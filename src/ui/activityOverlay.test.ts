@@ -57,6 +57,14 @@ describe("activityLabel", () => {
     expect(activityLabel(activity)).toBe("peck ×3");
   });
 
+  it("shows how long a fish keeps resting", () => {
+    const activity = createActivityState();
+    activity.id = "rest";
+    activity.timer = 41.6;
+
+    expect(activityLabel(activity)).toBe("rest 42s");
+  });
+
   it("names other activities plainly", () => {
     const activity = createActivityState();
     activity.id = "inspect";
@@ -67,9 +75,9 @@ describe("activityLabel", () => {
 
 describe("activityColor", () => {
   it("gives every activity its own color", () => {
-    const colors = (["wander", "inspect", "peck"] as const).map(activityColor);
+    const colors = (["wander", "inspect", "peck", "rest"] as const).map(activityColor);
 
-    expect(new Set(colors).size).toBe(3);
+    expect(new Set(colors).size).toBe(4);
   });
 });
 

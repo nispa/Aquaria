@@ -21,6 +21,11 @@ export const settingsSchema = z.object({
   /** Height of the drawing buffer in pixels; the canvas always fills the screen. */
   renderHeight: z.number().int().min(MIN_RENDER_HEIGHT).max(UHD_HEIGHT).default(UHD_HEIGHT),
   showFps: z.boolean().default(false),
+  /**
+   * Realistic mode: fish keep the hours of their species (resting at night)
+   * and the playful spells (hypnosis, tickling) are off. Absent = off.
+   */
+  realistic: z.boolean().optional(),
   /** Multisample anti-aliasing samples; DEFAULT_MSAA_SAMPLES when absent. */
   msaaSamples: z.union(MSAA_SAMPLE_CHOICES.map((samples) => z.literal(samples))).optional(),
   /** On/off choice per look feature id; features not listed use their default. */

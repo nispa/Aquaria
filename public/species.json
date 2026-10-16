@@ -702,7 +702,8 @@
       "behavior": {
         "appetite": 0.9,
         "curiosity": 0.3,
-        "shyness": 0.4
+        "shyness": 0.4,
+        "active": "night"
       },
       "swim": {
         "style": "patrol",

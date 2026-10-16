@@ -796,3 +796,103 @@ describe("playing with the viewer", () => {
     expect(Math.abs(fish.roll)).toBeGreaterThan(2.5);
   });
 });
+
+describe("day and night", () => {
+  function simulateActiveBy(active: "day" | "night" | "always"): Simulation {
+    const input = catalogFixture();
+    const tuned = parseCatalog({
+      species: input.species.map((entry) => ({
+        ...entry,
+        behavior: { active },
+        activities: { wander: { seconds: [1, 2] } },
+      })),
+    });
+    return createSimulation({
+      scene: parseScene({ ...sceneFixture(), fauna: [{ species: "blue-tang", count: 6 }] }, tuned),
+      catalog: tuned,
+      rng: createRng(6),
+    });
+  }
+
+  const restingShare = (simulation: Simulation) =>
+    simulation.fish.filter((fish) => fish.activity.id === "rest").length / simulation.fish.length;
+
+  it("lets fish active by day rest at night, in realistic mode", () => {
+    const simulation = simulateActiveBy("day");
+    simulation.setRealistic(true);
+    simulation.setDaylight(() => 0);
+
+    run(simulation, 40);
+
+    expect(restingShare(simulation)).toBeGreaterThan(0.6);
+  });
+
+  it("keeps them awake by day", () => {
+    const simulation = simulateActiveBy("day");
+    simulation.setRealistic(true);
+    simulation.setDaylight(() => 1);
+
+    run(simulation, 40);
+
+    expect(restingShare(simulation)).toBe(0);
+  });
+
+  it("lets nocturnal species rest by day instead", () => {
+    const simulation = simulateActiveBy("night");
+    simulation.setRealistic(true);
+    simulation.setDaylight(() => 1);
+
+    run(simulation, 40);
+
+    expect(restingShare(simulation)).toBeGreaterThan(0.6);
+  });
+
+  it("never sends species that are always active to rest", () => {
+    const simulation = simulateActiveBy("always");
+    simulation.setRealistic(true);
+    simulation.setDaylight(() => 0);
+
+    run(simulation, 40);
+
+    expect(restingShare(simulation)).toBe(0);
+  });
+
+  it("keeps every fish awake at night outside realistic mode", () => {
+    const simulation = simulateActiveBy("day");
+    simulation.setDaylight(() => 0);
+
+    run(simulation, 40);
+
+    expect(restingShare(simulation)).toBe(0);
+  });
+
+  it("slows resting fish down", () => {
+    const simulation = simulateActiveBy("day");
+    simulation.setRealistic(true);
+    simulation.setDaylight(() => 0);
+    run(simulation, 40);
+
+    const resting = simulation.fish.filter((fish) => fish.activity.id === "rest");
+    const meanSpeed =
+      resting.reduce((sum, fish) => sum + fish.velocity.length() / fish.species.speed.cruise, 0) /
+      resting.length;
+
+    expect(meanSpeed).toBeLessThan(0.4);
+  });
+
+  it("casts no spells in realistic mode", () => {
+    const simulation = simulate({ fauna: [{ species: "blue-tang", count: 1 }] }, 4);
+    simulation.setRealistic(true);
+    const [fish] = simulation.fish;
+    const point = new Vector3();
+
+    for (let time = 0; time < 2; time += STEP) {
+      const x = (fish?.position.x ?? 0) + 0.25 * Math.cos(9 * time);
+      const y = (fish?.position.y ?? 0) + 0.25 * Math.sin(9 * time);
+      simulation.setFinger(point.set(x, y, 0), new Vector3(0, 0, -1));
+      simulation.step(STEP);
+    }
+
+    expect(fish?.play.hypnosis).toBe(0);
+  });
+});

@@ -56,6 +56,31 @@ describe("activities", () => {
   });
 
   it("offers the activities of the roadmap", () => {
-    expect(ACTIVITY_IDS).toEqual(["wander", "inspect", "peck"]);
+    expect(ACTIVITY_IDS).toEqual(["wander", "inspect", "peck", "rest"]);
+  });
+});
+
+describe("resting", () => {
+  it("makes species active by day unless they say otherwise", () => {
+    expect(parseCatalog(catalogFixture()).species[0]?.behavior.active).toBe("day");
+  });
+
+  it("reads nocturnal and always-active species", () => {
+    const input = catalogFixture();
+    input.species = input.species.map((species, index) => ({
+      ...species,
+      behavior: { active: index === 0 ? "night" : "always" },
+    }));
+
+    const actives = parseCatalog(input).species.map((species) => species.behavior.active);
+
+    expect(actives).toEqual(["night", "always"]);
+  });
+
+  it("lets every species rest in a shelter by default", () => {
+    const { rest } = parseCatalog(catalogFixture()).species[0]?.activities ?? {};
+
+    expect(rest?.weight).toBe(1);
+    expect(rest?.tags).toEqual({ shelter: 1 });
   });
 });

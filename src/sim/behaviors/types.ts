@@ -100,8 +100,10 @@ export interface ActivityState {
   turn: number;
   /** The top of the place the activity is about. */
   readonly target: Vector3;
-  /** Height of that place, m. */
+  /** Height of that place, m; -1 when an activity that may do without one has none. */
   targetSize: number;
+  /** A heading the activity keeps, radians, e.g. while resting. */
+  heading: number;
 }
 
 /**
@@ -112,6 +114,10 @@ export interface Activity<Id extends ActivityId> {
   readonly id: Id;
   /** Whether it is about a place, found among those its `tags` interest. */
   readonly atPlace: boolean;
+  /** Whether it cannot happen without such a place (resting can). */
+  readonly needsPlace: boolean;
+  /** Whether it is what a fish does in its hours of rest, rather than in its active hours. */
+  readonly restful: boolean;
   /** Begins; an activity at a place finds it in `state.target`. */
   start(state: ActivityState, params: ActivityParams<Id>, context: SwimContext): void;
   /** Sets the wishes for this step; false once the activity is over. Must not allocate. */
@@ -134,5 +140,6 @@ export function createActivityState(): ActivityState {
     turn: 1,
     target: new Vector3(),
     targetSize: 0,
+    heading: 0,
   };
 }

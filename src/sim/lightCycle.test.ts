@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { lightsSchema, type Lights } from "../scene/lights";
-import { channelLevels, createLightMixer, cycleHour, hexToLinear, lightMix } from "./lightCycle";
+import {
+  channelLevels,
+  createLightMixer,
+  cycleHour,
+  daylight,
+  hexToLinear,
+  lightMix,
+} from "./lightCycle";
 
 const recommended: Lights = lightsSchema.parse({});
 const withCycle = (cycle: Partial<Lights["cycle"]>): Lights => ({
@@ -166,5 +173,24 @@ describe("light mixer", () => {
     const mixer = createLightMixer(recommended);
 
     expect(mixer.at(2)).toBe(mixer.at(13));
+  });
+});
+
+describe("daylight", () => {
+  const day = withCycle({ sunrise: 8, sunset: 20, ramp: 1 });
+
+  it("is full in the middle of the day", () => {
+    expect(daylight(day, 13)).toBe(1);
+  });
+
+  it("is none at night", () => {
+    expect(daylight(day, 2)).toBe(0);
+  });
+
+  it("rises through the dawn ramp", () => {
+    const dawn = daylight(day, 8.5);
+
+    expect(dawn).toBeGreaterThan(0);
+    expect(dawn).toBeLessThan(1);
   });
 });

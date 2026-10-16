@@ -8,7 +8,9 @@ import {
   createActivityChooser,
   createActivityState,
   createSwimState,
+  restfulness,
   doesMoreThanWander,
+  evenRests,
   settleDown,
   swimStyleOf,
   type ActivityState,
@@ -22,6 +24,7 @@ import { createFood, type Food } from "./food";
 import { createPlaceFinder, type Place } from "./places";
 import {
   applyPlay,
+  breakSpells,
   createPlay,
   isEnchanted,
   nextRoll,
@@ -217,6 +220,14 @@ export interface Simulation {
    * finger; straight into the tank when not given.
    */
   setFinger(point: Vector3 | undefined, sight?: Vector3): void;
+  /**
+   * Realistic mode: fish keep the hours of their species (resting in theirs,
+   * see `setDaylight`) and the viewer casts no spells (sim/play). Off, they
+   * never rest and the spells are on.
+   */
+  setRealistic(realistic: boolean): void;
+  /** How much of a day it is, 0 (night) .. 1 (full day); read on every step. */
+  setDaylight(daylight: () => number): void;
   /** A tap on the glass at `point`: nearby fish dart away. */
   tap(point: Vector3): void;
   /** Requests a new population for a species; fish swim in or out gradually. */
@@ -236,8 +247,10 @@ interface Group {
    * (widened like `forage`), all the way down to the floor.
    */
   readonly visit: Box3;
-  /** Whether the species ever does anything but wander. */
+  /** Whether the species does anything but wander in its active hours. */
   readonly restless: boolean;
+  /** Whether it ever rests (in realistic mode). */
+  readonly sleeper: boolean;
   /** Entering and swimming fish. */
   readonly members: Fish[];
   /** Positions of `members`, kept in sync so steering needs no per-frame arrays. */
@@ -266,6 +279,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
   let nextId = 0;
   let seabed: SeabedHeight = () => 0;
   let places: () => readonly Place[] = () => NO_PLACES;
+  let realistic = false;
+  let daylightNow: () => number = () => 1;
+  let daylight = 1;
   let knownPlaces = NO_PLACES;
   let timeSeconds = 0;
   // Shares the simulation's generator: it only draws numbers when food is
@@ -287,6 +303,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
       forage,
       visit,
       restless: doesMoreThanWander(species.activities),
+      sleeper: evenRests(species.activities, species.behavior.active),
       members: [],
       positions: [],
       leaving: [],
@@ -330,11 +347,17 @@ export function createSimulation(options: SimulationOptions): Simulation {
     return swimContext;
   };
 
+  /**
+   * Whether a group does anything but wander right now: activities in its
+   * active hours, or rest in realistic mode.
+   */
+  const hasActivities = (group: Group): boolean => group.restless || (realistic && group.sleeper);
+
   /** Starts the species' swimming style for a fish now free in the tank, wandering. */
   const startSwimming = (group: Group, member: Fish, at: Vector3): void => {
     contextFor(group, member, at);
     swimStyleOf(group.species.swim).start(member.swim, group.species.swim, swimContext);
-    if (!group.restless) return;
+    if (!hasActivities(group)) return;
     chooser.wander(member.activity, member.swim, group.species.activities, swimContext);
     // Partway through, so fish that start together do not all choose at once.
     member.activity.timer *= rng.next();
@@ -530,7 +553,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
   const playWithViewer = (member: Fish, deltaSeconds: number): void => {
     playInput.spin = 0;
     playInput.scribbling = false;
-    if (fingerPresent) {
+    if (fingerPresent && !realistic) {
       offset.subVectors(member.position, finger);
       const along = offset.dot(sight);
       if (along > 0) {
@@ -583,7 +606,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
       walls.expandByPoint(term.copy(member.swim.home).add(reach));
     }
     const { activity } = member;
-    if (activityOf(activity.id).atPlace) {
+    if (activityOf(activity.id).atPlace && activity.targetSize >= 0) {
       walls.expandByPoint(term.copy(activity.target).sub(reach));
       walls.expandByPoint(term.copy(activity.target).add(reach));
     }
@@ -604,10 +627,11 @@ export function createSimulation(options: SimulationOptions): Simulation {
       swimStyleOf(species.swim).step(swim, species.swim, swimContext, deltaSeconds);
       const params = species.activities[activity.id];
       if (
-        group.restless &&
+        hasActivities(group) &&
         !activityOf(activity.id).step(activity, swim, params, swimContext, deltaSeconds)
       ) {
-        chooser.choose(activity, swim, species.activities, swimContext, group.visit);
+        const rest = realistic ? restfulness(species.behavior.active, daylight) : 0;
+        chooser.choose(activity, swim, species.activities, swimContext, group.visit, rest);
       }
       playWithViewer(member, deltaSeconds);
       if (isEnchanted(member.play)) {
@@ -753,6 +777,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
       }
       food.step(deltaSeconds, timeSeconds, current, seabed);
       trackFinger(gesture, fingerPresent ? finger : undefined, deltaSeconds);
+      daylight = daylightNow();
       for (const group of groups.values()) {
         for (const member of group.members) steer(group, member, deltaSeconds);
         for (const member of group.leaving) steer(group, member, deltaSeconds);
@@ -800,6 +825,22 @@ export function createSimulation(options: SimulationOptions): Simulation {
     },
     setPlaces(next) {
       places = next;
+    },
+    setRealistic(next) {
+      realistic = next;
+      for (const group of groups.values()) {
+        for (const member of group.members) {
+          if (realistic) breakSpells(member.play);
+          else if (member.activity.id === "rest") {
+            // Out of realistic mode nobody sleeps: wake the resting ones.
+            const context = contextFor(group, member);
+            chooser.wander(member.activity, member.swim, group.species.activities, context);
+          }
+        }
+      }
+    },
+    setDaylight(next) {
+      daylightNow = next;
     },
     setCount(speciesId, count) {
       const group = groupOf(speciesId);

@@ -57,6 +57,8 @@ export interface PanelState {
   readonly scenery: readonly SceneryEntry[];
   readonly renderHeight: number;
   readonly showFps: boolean;
+  /** Fish keep their hours and the playful spells are off. */
+  readonly realistic: boolean;
   /** Multisample anti-aliasing samples, one of `msaaChoices`. */
   readonly msaaSamples: number;
   readonly msaaChoices: readonly number[];
@@ -82,6 +84,7 @@ export interface PanelCallbacks {
   onLightsChange(lights: Lights | undefined): void;
   onRenderHeightChange(height: number): void;
   onShowFpsChange(show: boolean): void;
+  onRealisticChange(realistic: boolean): void;
   onMsaaChange(samples: number): void;
   onFeatureChange(featureId: string, enabled: boolean): void;
   onFullscreen(): void;
@@ -191,7 +194,12 @@ export function createPanel(
     callbacks.onSizeBalanceChange(Number(size.value) / PERCENT);
   });
   sizeRow.append(element("span", "panel__label", "Fish size"), size, sizeValue);
-  fauna.append(sizeRow);
+  const realisticRow = checkbox("Realistic", state.realistic, (checked) => {
+    callbacks.onRealisticChange(checked);
+  });
+  realisticRow.title =
+    "Fish rest at night like real ones; hypnosis and tickling are off. Off: playful mode.";
+  fauna.append(sizeRow, realisticRow);
 
   const fishCards = createFishCards({
     species: state.species,

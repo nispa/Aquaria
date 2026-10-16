@@ -25,6 +25,8 @@ const PAUSE_THRUST = 0.5;
 export const peckActivity: Activity<"peck"> = {
   id: "peck",
   atPlace: true,
+  needsPlace: true,
+  restful: false,
   start(state, params, context) {
     state.phase = APPROACH;
     state.timer = APPROACH_SECONDS;

@@ -196,3 +196,12 @@ export function wriggleBend(state: PlayState): number | undefined {
   if (state.tickled === 0 || sinceTickled(state) >= WRIGGLE_SECONDS) return undefined;
   return Math.sin(state.clock * WRIGGLE_RATE) * MAX_BEND * WRIGGLE_STRENGTH;
 }
+
+/** Lifts every spell at once, e.g. when realistic mode is switched on. */
+export function breakSpells(state: PlayState): void {
+  state.hypnosis = 0;
+  state.deep = false;
+  state.dizzy = 0;
+  state.tickle = 0;
+  state.tickled = 0;
+}

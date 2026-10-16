@@ -6,8 +6,8 @@ import { hoverStyle } from "./hover";
 import { patrolStyle } from "./patrol";
 import type { SwimStyle } from "./types";
 
-export { activityOf, doesMoreThanWander } from "./activities";
-export { createActivityChooser } from "./choose";
+export { activityOf, doesMoreThanWander, evenRests } from "./activities";
+export { createActivityChooser, restfulness } from "./choose";
 export { settleDown } from "./shared";
 export {
   createActivityState,

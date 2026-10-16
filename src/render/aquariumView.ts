@@ -31,7 +31,7 @@ import type { Lights } from "../scene/lights";
 import { lookPasses, type Look } from "../scene/look";
 import { layoutFlora, layoutProps } from "../sim/layout";
 import { placesOf, type Place } from "../sim/places";
-import { createLightMixer, cycleHour } from "../sim/lightCycle";
+import { createLightMixer, cycleHour, daylight } from "../sim/lightCycle";
 import { createRockwork, type Rockwork } from "../sim/rockwork";
 import { floorHeight } from "../sim/terrain";
 import type { Simulation } from "../sim/simulation";
@@ -133,6 +133,8 @@ export interface AquariumView {
   gpuName(): string;
   /** Hour of the aquarium day shown by the last frame. */
   hour(): number;
+  /** How much of a day it is at that hour, 0 (night) .. 1 (full day). */
+  daylight(): number;
   /** Rebuilds plants, rocks, corals and shells for new scenery counts. */
   setScenery(flora: Scene["flora"], props: Scene["props"]): void;
   /** Draws a species with its 3D model or its procedural body. */
@@ -431,6 +433,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       mixer = createLightMixer(next);
     },
     hour: () => currentHour,
+    daylight: () => daylight(lights, currentHour),
     gpuName: () => {
       const gl = renderer.getContext();
       const info = gl.getExtension("WEBGL_debug_renderer_info");
