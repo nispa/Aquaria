@@ -20,6 +20,7 @@ and a few gestures do things no real fish would.
 | **Press `A`**                           | Shows what every fish is doing, and a card with the details of the fish nearest the pointer.                                     |
 | **Press `T`** (or the torch button)     | The pointer becomes a **torch**: fish that love light gather in its beam, shy ones flee it. Best at night.                       |
 | **Press `Z`** (or the magnifier button) | A round **lens** over the pointer shows the tank three times larger: look at a fish up close.                                    |
+| **Press `M`**                           | Sound on or off: the water bubbles softly, a tap thuds on the glass, food patters, the torch clicks and the lens chimes.         |
 
 Moving the mouse or touching the screen shows three buttons in the top
 right corner, big enough for a finger: the **torch**, **feed** (a pinch of

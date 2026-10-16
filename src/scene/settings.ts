@@ -36,6 +36,10 @@ export const settingsSchema = z.object({
    * back, up to `renderHeight`); on when absent.
    */
   autoResolution: z.boolean().optional(),
+  /** Whether the aquarium makes its sounds; on when absent. */
+  sound: z.boolean().optional(),
+  /** Sound volume 0..1; DEFAULT_VOLUME when absent. */
+  volume: z.number().min(0).max(1).optional(),
   /**
    * Realistic mode: fish keep the hours of their species (resting at night)
    * and the playful spells (hypnosis, tickling) are off. Absent = off.
@@ -78,6 +82,19 @@ export const DEFAULT_SETTINGS: Settings = settingsSchema.parse({});
 /** The frame limit the settings ask for. */
 export function frameLimitOf(settings: Settings): FrameLimit {
   return settings.frameLimit ?? DEFAULT_FRAME_LIMIT;
+}
+
+/** A gentle volume: the bubbling stays in the background. */
+export const DEFAULT_VOLUME = 0.6;
+
+/** Whether the settings let the aquarium make its sounds. */
+export function soundOf(settings: Settings): boolean {
+  return settings.sound ?? true;
+}
+
+/** The sound volume the settings ask for, 0..1. */
+export function volumeOf(settings: Settings): number {
+  return settings.volume ?? DEFAULT_VOLUME;
 }
 
 /** Whether the settings let the resolution follow the GPU. */

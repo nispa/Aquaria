@@ -52,6 +52,7 @@ src/
   scene/     Scene descriptor + species catalog: Zod schemas, loading, validation.
   sim/       Simulation: boids, species behaviors, population manager, current.
   render/    Three.js adapters: scene graph, materials, shaders.
+  audio/     Web Audio adapters: synthesized sounds, recipes as plain data.
     effects/ Post-processing effects, registered by id; each is a panel switch.
   ui/        Control panel, presets, resolution slider, fps counter.
   input/     Pointer (finger on the glass, taps) emitting on the event bus.
@@ -61,7 +62,7 @@ src/
 
 Rules:
 
-- `core`, `scene` and `sim` **must not import from `render`, `ui` or the DOM.**
+- `core`, `scene` and `sim` **must not import from `render`, `audio`, `ui` or the DOM.**
   They must run in Node so they can be unit-tested without a browser or GPU.
 - `sim` may use Three.js **math classes only** (`Vector3`, `Quaternion`, etc.),
   never renderer, material or scene-graph classes.

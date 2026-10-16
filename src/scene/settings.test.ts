@@ -9,6 +9,8 @@ import {
   defaultRenderHeight,
   frameLimitOf,
   parseSettings,
+  soundOf,
+  volumeOf,
 } from "./settings";
 
 describe("parseSettings", () => {
@@ -78,6 +80,17 @@ describe("parseSettings", () => {
 
   it("rejects a frame limit it does not offer", () => {
     expect(parseSettings({ frameLimit: 45 }).valid).toBe(false);
+  });
+
+  it("makes its sounds at a gentle volume unless told otherwise", () => {
+    expect(soundOf(DEFAULT_SETTINGS)).toBe(true);
+    expect(volumeOf(DEFAULT_SETTINGS)).toBeLessThan(1);
+  });
+
+  it("remembers sound switched off and the volume", () => {
+    const { settings } = parseSettings({ sound: false, volume: 0.3 });
+
+    expect([soundOf(settings), volumeOf(settings)]).toEqual([false, 0.3]);
   });
 
   it("adapts the resolution to the GPU unless told not to", () => {

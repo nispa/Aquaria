@@ -38,6 +38,8 @@ import {
   FRAME_LIMIT_CHOICES,
   frameLimitOf,
   MIN_RENDER_HEIGHT,
+  soundOf,
+  volumeOf,
   MSAA_SAMPLE_CHOICES,
   defaultRenderHeight,
   parseSettings,
@@ -59,6 +61,7 @@ import type { SceneChoice, SceneChoiceGroup } from "../ui/panel";
 import { createSimulation, type Simulation } from "../sim/simulation";
 import { createPanel } from "../ui/panel";
 import { createPointerInput, type PointerEvents } from "../input/pointer";
+import { createSoundBoard } from "../audio/soundBoard";
 import { ABOUT } from "./about";
 import { parseLaunchOptions } from "./launchOptions";
 import { createActivityOverlay, type ScreenProjection } from "../ui/activityOverlay";
@@ -77,6 +80,8 @@ const FPS_WINDOW_SECONDS = 1;
 const GPU_FRAME_SHARE = 0.75;
 /** Frames per second the budget is set for when there is no frame limit. */
 const UNLIMITED_BUDGET_FPS = 60;
+/** Keeps the sound's generator apart from the scene's. */
+const SOUND_SEED_OFFSET = 7;
 /** The automatic resolution moves in steps of this many pixels. */
 const RESOLUTION_STEP = 60;
 const MS_PER_SECOND = 1000;
@@ -311,7 +316,19 @@ async function start(): Promise<void> {
    * preview calls it again with a draft: the old view is disposed and the
    * new one draws on the same canvas, with the current settings.
    */
+  // Sounds: the bubbling all along, and a sound for taps, food and the tools.
+  const sounds = createSoundBoard(createRng((options.seed ?? scene.seed) + SOUND_SEED_OFFSET));
+  sounds.setVolume(volumeOf(settings));
+  sounds.setEnabled(soundOf(settings));
+  // Browsers allow sound only after the viewer's first click or key.
+  const unlockSound = (): void => {
+    sounds.unlock();
+  };
+  window.addEventListener("pointerdown", unlockSound);
+  window.addEventListener("keydown", unlockSound);
+
   const mountScene = (shown: Scene): { simulation: Simulation; view: AquariumView } => {
+    sounds.setBubbling(shown.water.bubbles);
     const rng = createRng(options.seed ?? shown.seed);
     // The simulation sees the sizes as drawn; the catalog keeps the real ones.
     const sized = displayCatalog(
@@ -379,11 +396,14 @@ async function start(): Promise<void> {
     view.aimLens(undefined);
   });
   input.on("tap", ({ x, y }) => {
-    if (view.glassPoint(x, y, tapPoint)) simulation.tap(tapPoint);
+    if (!view.glassPoint(x, y, tapPoint)) return;
+    simulation.tap(tapPoint);
+    sounds.play("tap");
   });
 
   const feed = (): void => {
     const { width, depth } = scene.tank;
+    sounds.play("feed");
     if (fingerOnGlass) {
       simulation.dropFood(finger.x, -depth * FEED_POINTER_DEPTH_SHARE);
       return;
@@ -467,6 +487,8 @@ async function start(): Promise<void> {
       frameLimit: frameLimitOf(settings),
       frameLimitChoices: FRAME_LIMIT_CHOICES,
       autoResolution: autoResolutionOf(settings),
+      sound: soundOf(settings),
+      volume: volumeOf(settings),
       showFps: settings.showFps,
       realistic: settings.realistic === true,
       msaaSamples: settings.msaaSamples ?? DEFAULT_MSAA_SAMPLES,
@@ -574,11 +596,23 @@ async function start(): Promise<void> {
       onFeed: feed,
       onLensToggle() {
         lensOn = !lensOn;
+        sounds.play(lensOn ? "lens-on" : "lens-off");
         view.aimLens(lensOn ? pointerAt : undefined);
         panel.setLens(lensOn);
       },
+      onSoundChange(enabled) {
+        // A key press may come before any click: it unlocks the sound too.
+        sounds.unlock();
+        sounds.setEnabled(enabled);
+        update({ sound: enabled });
+      },
+      onVolumeChange(volume) {
+        sounds.setVolume(volume);
+        update({ volume });
+      },
       onTorchToggle() {
         torchOn = !torchOn;
+        sounds.play(torchOn ? "torch-on" : "torch-off");
         simulation.setTorch(torchOn);
         view.aimTorch(torchOn && fingerOnGlass ? finger : undefined);
         panel.setTorch(torchOn);

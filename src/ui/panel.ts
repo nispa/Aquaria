@@ -62,6 +62,9 @@ export interface PanelState {
   readonly frameLimitChoices: readonly number[];
   /** The resolution drops when the GPU cannot keep up, up to `renderHeight`. */
   readonly autoResolution: boolean;
+  /** Whether the aquarium makes its sounds, and how loud, 0..1. */
+  readonly sound: boolean;
+  readonly volume: number;
   readonly showFps: boolean;
   /** Fish keep their hours and the playful spells are off. */
   readonly realistic: boolean;
@@ -116,6 +119,8 @@ export interface PanelCallbacks {
   onTorchToggle(): void;
   /** Switches the magnifier on or off. */
   onLensToggle(): void;
+  onSoundChange(enabled: boolean): void;
+  onVolumeChange(volume: number): void;
   onSectionToggle(sectionId: string, open: boolean): void;
 }
 
@@ -129,6 +134,8 @@ export interface Panel {
   setTorch(on: boolean): void;
   /** Shows whether the magnifier is on. */
   setLens(on: boolean): void;
+  /** Shows whether the sound is on (it may be switched with M). */
+  setSound(on: boolean): void;
   dispose(): void;
 }
 
@@ -307,6 +314,22 @@ export function createPanel(
   const lights = section("lights", "Lights");
   lights.append(...lightsSection.lightRows);
 
+  const sound = section("sound", "Sound");
+  const soundRow = checkbox("Sound (M)", state.sound, (checked) => {
+    callbacks.onSoundChange(checked);
+  });
+  const soundInput = soundRow.querySelector("input");
+  const volumeRow = element("label", "panel__row");
+  const volumeValue = element("output", "panel__value", `${Math.round(state.volume * PERCENT)}%`);
+  const volume = slider(0, PERCENT, 1, Math.round(state.volume * PERCENT));
+  volume.name = "volume";
+  volume.addEventListener("input", () => {
+    volumeValue.textContent = `${volume.value}%`;
+    callbacks.onVolumeChange(Number(volume.value) / PERCENT);
+  });
+  volumeRow.append(element("span", "panel__label", "Volume"), volume, volumeValue);
+  sound.append(soundRow, volumeRow);
+
   const quality = section("quality", "Quality");
   const resolutionRow = element("label", "panel__row");
   const resolutionValue = element("output", "panel__value", resolutionLabel(state.renderHeight));
@@ -405,11 +428,12 @@ export function createPanel(
     ...featureSections(state.features, state.look, section, (featureId, enabled) => {
       callbacks.onFeatureChange(featureId, enabled);
     }),
+    sound,
     quality,
     element(
       "p",
       "panel__hint",
-      "H: show/hide · F: full screen · T: torch · Z: magnifier · A: what fish do",
+      "H: show/hide · F: full screen · T: torch · Z: magnifier · M: sound · A: what fish do",
     ),
   );
 
@@ -469,6 +493,11 @@ export function createPanel(
     if (event.key === "f" || event.key === "F") callbacks.onFullscreen();
     if (event.key === "t" || event.key === "T") callbacks.onTorchToggle();
     if (event.key === "z" || event.key === "Z") callbacks.onLensToggle();
+    if (event.key === "m" || event.key === "M") {
+      const next = soundInput?.checked !== true;
+      if (soundInput !== null) soundInput.checked = next;
+      callbacks.onSoundChange(next);
+    }
     // A focused button would also click on Space: leave it to the button.
     if (event.key === " " && !(event.target instanceof HTMLButtonElement)) {
       event.preventDefault();
@@ -492,6 +521,9 @@ export function createPanel(
     },
     setLens(on) {
       lensButton.setAttribute("aria-pressed", String(on));
+    },
+    setSound(on) {
+      if (soundInput !== null) soundInput.checked = on;
     },
     setFps(fps, height) {
       const rate = fps === undefined ? "– fps" : `${fps} fps`;

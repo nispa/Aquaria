@@ -41,8 +41,8 @@ export default defineConfig(
         {
           patterns: [
             {
-              group: ["**/render/**", "**/ui/**", "**/app/**", "**/input/**"],
-              message: "core, scene and sim must not depend on render, ui, input or app.",
+              group: ["**/render/**", "**/audio/**", "**/ui/**", "**/app/**", "**/input/**"],
+              message: "core, scene and sim must not depend on render, audio, ui, input or app.",
             },
             {
               group: ["three", "three/*"],

@@ -20,6 +20,7 @@ altri scappano, e qualche gesto fa cose che nessun pesce vero farebbe.
 | **Premi `A`**                               | Mostra cosa sta facendo ogni pesce, e una scheda con i dettagli del pesce più vicino al puntatore.                                   |
 | **Premi `T`** (o il pulsante della torcia)  | Il puntatore diventa una **torcia**: i pesci che amano la luce si radunano nel fascio, i timidi scappano. Meglio di notte.           |
 | **Premi `Z`** (o il pulsante della lente)   | Una **lente** rotonda sopra il puntatore mostra la vasca tre volte più grande: per guardare un pesce da vicino.                      |
+| **Premi `M`**                               | Suoni sì o no: l'acqua ribolle piano, un tocco fa un tonfo sul vetro, il cibo crepita, la torcia scatta e la lente tintinna.         |
 
 Muovendo il mouse o toccando lo schermo compaiono in alto a destra tre
 pulsanti, grandi abbastanza per un dito: la **torcia**, il **cibo** (un
