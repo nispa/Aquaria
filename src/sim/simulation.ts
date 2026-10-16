@@ -20,6 +20,7 @@ import {
 } from "./behaviors";
 import { nextGaze, turnIntent } from "./gaze";
 import { createGesture, isScribbling, spinOf, trackFinger, type Gesture } from "./gesture";
+import { createCrowd } from "./crowd";
 import { createCurrentField, type CurrentField } from "./current";
 import { createFood, type Food } from "./food";
 import { createObstacleField, type Obstacle } from "./obstacles";
@@ -92,6 +93,8 @@ const OBSTACLE_BODY_LENGTHS = 1;
 const OBSTACLE_MIN_CLEARANCE = 0.06;
 const OBSTACLE_GAP_BODY_LENGTHS = 0.4;
 const CLOSE_IN_GAPS = 1.5;
+/** Push away from fish of other species in a fish's personal space (sim/crowd). */
+const CROWD_WEIGHT = 2;
 /** Pull towards the heading the swimming style wants; it only turns the fish. */
 const HEADING_WEIGHT = 0.8;
 /** Pull towards the height the swimming style wants, at full strength this far away, m. */
@@ -348,6 +351,12 @@ export function createSimulation(options: SimulationOptions): Simulation {
   let obstacles: () => readonly Obstacle[] = () => NO_OBSTACLES;
   let knownObstacles: readonly Obstacle[] = NO_OBSTACLES;
   let obstacleField = createObstacleField(NO_OBSTACLES);
+  const crowd = createCrowd({
+    minX: -halfWidth - EXIT_OFFSET,
+    maxX: halfWidth + EXIT_OFFSET,
+    minZ: -scene.tank.depth,
+    maxZ: 0,
+  });
   let realistic = false;
   let torchOn = false;
   let daylightNow: () => number = () => 1;
@@ -737,6 +746,10 @@ export function createSimulation(options: SimulationOptions): Simulation {
     addSeparation(member.position, group.positions, spacing, term);
     force.addScaledVector(term, SEPARATION_WEIGHT);
 
+    term.set(0, 0, 0);
+    crowd.addPersonalSpace(member, term);
+    force.addScaledVector(term, CROWD_WEIGHT);
+
     if (species.schooling > 0 && member.state === "swimming") {
       const radius = member.length * SCHOOL_BODY_LENGTHS;
       term.set(0, 0, 0);
@@ -977,10 +990,13 @@ export function createSimulation(options: SimulationOptions): Simulation {
       food.step(deltaSeconds, timeSeconds, current, seabed);
       trackFinger(gesture, fingerPresent ? finger : undefined, deltaSeconds);
       daylight = daylightNow();
+      crowd.sort(fish);
       for (const group of groups.values()) {
         for (const member of group.members) steer(group, member, deltaSeconds);
         for (const member of group.leaving) steer(group, member, deltaSeconds);
       }
+      // Before moving, so the seabed and the rocks still have the last word.
+      crowd.separate();
       for (const group of groups.values()) {
         for (const member of group.members) {
           move(member, deltaSeconds);

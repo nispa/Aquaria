@@ -1237,3 +1237,36 @@ describe("obstacles", () => {
     );
   });
 });
+
+describe("the crowd", () => {
+  /**
+   * The closest two fish of different species came, in body lengths of the
+   * larger one, while food kept falling in the middle for both to crowd to.
+   */
+  function closestStrangers(simulation: Simulation, seconds: number): number {
+    let closest = Infinity;
+    for (let elapsed = 0; elapsed < seconds; elapsed += STEP) {
+      if (elapsed % 2 < STEP) simulation.dropFood(0, -1.5);
+      simulation.step(STEP);
+      for (const one of simulation.fish) {
+        for (const other of simulation.fish) {
+          if (one.species === other.species) continue;
+          const larger = Math.max(one.length, other.length);
+          closest = Math.min(closest, one.position.distanceTo(other.position) / larger);
+        }
+      }
+    }
+    return closest;
+  }
+
+  it("keeps fish of different species from swimming through each other", () => {
+    const simulation = simulate({
+      fauna: [
+        { species: "blue-tang", count: 12 },
+        { species: "sardine", count: 40 },
+      ],
+    });
+
+    expect(closestStrangers(simulation, 20)).toBeGreaterThan(0.25);
+  });
+});
