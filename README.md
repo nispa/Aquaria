@@ -248,7 +248,9 @@ attention: `cruise`, `burst-coast`, `hover`, `glide` or `patrol`, each with
 parameters to tune; see [Swimming styles](docs/SWIMMING.md). Clownfish keep
 station over the nearest anemone: plants and objects carry tags (`anemone`,
 `shelter`, `coral`…) that fish look for, and a scene entry may set its own
-`tags`. The catalog
+`tags`. An optional `activities` entry lets a species do more than swim
+about: `inspect` a place or `peck` at it, choosing places by those tags (in a
+dev build, press A to see what each fish is doing). The catalog
 includes butterflyfish, moorish idols, emperor angelfish, three-bar damsels and
 purple tangs.
 Files are validated on load; mistakes are reported with the exact field.

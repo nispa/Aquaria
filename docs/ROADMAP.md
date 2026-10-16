@@ -53,15 +53,14 @@ by Zod. Swimming styles and activities are one file each in
 - [ ] Each fish has a current activity with a duration; when it ends the
       next one is picked by weights from the species data, the nearby
       environment and the hour (seeded RNG, deterministic tests).
-- [ ] Points of interest: every flora and prop kind declares tags in data
+      Done except the hour, which comes with resting at night (B3).
+- [x] Points of interest: every flora and prop kind declares tags in data
       (e.g. `anemone: [anemone, shelter]`, `starfish: [starfish]`,
       `branch-coral: [coral, shelter]`, `rock: [rock, algae]`). Species
       declare which tags interest them and how much.
-      Tags and places are done (`src/scene/tags.ts`, `src/sim/places.ts`);
-      species interests are still to do.
-- [ ] Activities: `wander`, `inspect` (approach, circle or hover, leave),
+- [x] Activities: `wander`, `inspect` (approach, circle or hover, leave),
       `peck` (head down, short thrusts, mouth opens).
-- [ ] Development overlay showing each fish's activity (dev builds only).
+- [x] Development overlay showing each fish's activity (dev builds only).
 
 ### B3. Shelter, hosts and night
 

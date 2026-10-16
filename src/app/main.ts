@@ -53,6 +53,7 @@ import { createSimulation, type Simulation } from "../sim/simulation";
 import { createPanel } from "../ui/panel";
 import { createPointerInput, type PointerEvents } from "../input/pointer";
 import { parseLaunchOptions } from "./launchOptions";
+import { createActivityOverlay, type ScreenProjection } from "../ui/activityOverlay";
 
 const SETTINGS_KEY = "aquaria.settings";
 const CUSTOM_SCENES_KEY = "aquaria.customScenes";
@@ -600,6 +601,9 @@ async function start(): Promise<void> {
   }
 
   const fps = createFpsMeter(FPS_WINDOW_SECONDS);
+  // Development builds only: what every fish is doing, toggled with A.
+  const activityOverlay = import.meta.env.DEV ? createActivityOverlay(document.body) : undefined;
+  const project: ScreenProjection = (point, out) => view.screenPoint(point, out);
   let previous: number | undefined;
   const frame = (now: number): void => {
     const delta = previous === undefined ? 0 : (now - previous) / MS_PER_SECOND;
@@ -607,6 +611,7 @@ async function start(): Promise<void> {
     const steps = clock.advance(delta);
     for (let step = 0; step < steps; step += 1) simulation.step(clock.stepSeconds);
     view.render();
+    activityOverlay?.draw(simulation.fish, project);
     fps.frame(delta);
     if (settings.showFps) panel.setFps(fps.fps);
     panel.setHour(view.hour());

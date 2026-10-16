@@ -157,6 +157,66 @@ round. It swims at the height of its home.
 | `glide`       | moorish idol, emperor angelfish, freshwater angelfish                                 |
 | `patrol`      | butterflyfish, barramundi                                                             |
 
+## Activities: what a fish is doing
+
+A style says _how_ a fish swims; an **activity** says _what it is doing_.
+Every fish has one at a time, with a duration; when it ends, the next one
+is drawn. Three exist:
+
+| Activity  | What the fish does                                                                                   |
+| --------- | ---------------------------------------------------------------------------------------------------- |
+| `wander`  | Swims about in its own style. The default.                                                           |
+| `inspect` | Swims up to a place, circles it or hovers facing it for a few seconds, then swims off.               |
+| `peck`    | Dives to a place and picks at it: short darts with the mouth open, backing off in between, then off. |
+
+Declare them in the species' `activities` entry:
+
+```json
+"activities": {
+  "wander": { "weight": 1, "seconds": [12, 30] },
+  "peck": { "weight": 0.8, "tags": { "algae": 1, "plant": 0.6 } },
+  "inspect": { "weight": 0.3, "tags": { "coral": 1, "starfish": 0.5 } }
+}
+```
+
+- `weight`: how often the activity is chosen, relative to the others.
+  `wander` defaults to 1, the others to 0, so a species that declares
+  nothing only wanders and behaves exactly as without activities.
+- `tags`: for activities at a place, how much each tag interests the
+  species, 0 to 1 (see [Places and tags](#places-and-tags)).
+- `wander.seconds`: how long a fish wanders before choosing again.
+- `inspect.seconds` (default `[4, 10]`): time spent looking;
+  `inspect.distanceBodyLengths` (default 2): how far from the place it
+  looks from.
+- `peck.pecks` (default `[3, 7]`): pecks before leaving.
+
+**Choosing.** When an activity ends, each activity at a place looks for a
+place nearby (12 body lengths, at least 0.6 m) with a tag that interests
+the species, favouring the most interesting and the closest. The place
+must lie in the species' depth bands; height does not matter, so a
+mid-water tang still dives to graze the rocks. Activities with no such
+place drop out, and the next one is drawn among the rest by weight, with
+the seeded generator.
+
+**Taking over from the style.** The style keeps running and the activity
+overrides its wishes: heading, height, speed, tail. It can also open the
+mouth and dive steeply, head down, which a style never does. While a fish
+heads for a place, its soft walls widen around it.
+
+**Called off.** A tap on the glass, food or a finger on the glass end any
+activity: the fish goes back to wandering. So does a change of scenery,
+since the place may be gone.
+
+**Seeing it.** In a dev build (`pnpm dev`) press **A**: every fish shows
+its activity (`wander 12s`, `peck ×3`, `inspect`), with a line to the
+place it is about.
+
+Activities live in `src/sim/behaviors/` next to the styles (`wander.ts`,
+`inspect.ts`, `peck.ts`, the chooser in `choose.ts`), registered in
+`ACTIVITIES` in `activities.ts`; their parameters are declared in
+[`src/scene/activities.ts`](../src/scene/activities.ts). Adding one
+follows the same steps as adding a style.
+
 ## How it works
 
 ### A style only says what the fish wants

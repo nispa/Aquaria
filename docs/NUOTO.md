@@ -162,6 +162,66 @@ di giro. Nuota alla quota della sua casa.
 | `glide`       | idolo moresco, pesce angelo imperatore, scalare (pesce angelo d'acqua dolce) |
 | `patrol`      | pesce farfalla, barramundi                                                   |
 
+## Attività: cosa sta facendo un pesce
+
+Lo stile dice _come_ nuota un pesce; l'**attività** dice _cosa sta
+facendo_. Ogni pesce ne ha una alla volta, con una durata; quando finisce,
+si estrae la successiva. Ce ne sono tre:
+
+| Attività  | Cosa fa il pesce                                                                                      |
+| --------- | ----------------------------------------------------------------------------------------------------- |
+| `wander`  | Nuota col suo stile. È quella predefinita.                                                            |
+| `inspect` | Si avvicina a un luogo, gli gira attorno o resta fermo a guardarlo per qualche secondo, poi se ne va. |
+| `peck`    | Scende su un luogo e lo becchetta: brevi scatti a bocca aperta, indietreggiando tra l'uno e l'altro.  |
+
+Si dichiarano nella voce `activities` della specie:
+
+```json
+"activities": {
+  "wander": { "weight": 1, "seconds": [12, 30] },
+  "peck": { "weight": 0.8, "tags": { "algae": 1, "plant": 0.6 } },
+  "inspect": { "weight": 0.3, "tags": { "coral": 1, "starfish": 0.5 } }
+}
+```
+
+- `weight`: quanto spesso si sceglie l'attività, rispetto alle altre.
+  `wander` vale 1 per default, le altre 0: una specie che non dichiara
+  niente vaga soltanto, esattamente come senza attività.
+- `tags`: per le attività su un luogo, quanto interessa ogni tag alla
+  specie, da 0 a 1 (vedi [Luoghi e tag](#luoghi-e-tag)).
+- `wander.seconds`: quanto vaga un pesce prima di scegliere di nuovo.
+- `inspect.seconds` (default `[4, 10]`): quanto tempo guarda;
+  `inspect.distanceBodyLengths` (default 2): da quanto lontano guarda.
+- `peck.pecks` (default `[3, 7]`): quante beccate prima di andarsene.
+
+**La scelta.** Quando un'attività finisce, ogni attività su un luogo cerca
+nei paraggi (12 lunghezze del corpo, almeno 0,6 m) un luogo con un tag che
+interessa la specie, preferendo i più interessanti e i più vicini. Il
+luogo deve stare nelle fasce di profondità della specie; la quota non
+conta, così un chirurgo che vive a mezz'acqua scende comunque a brucare le
+rocce. Le attività senza un luogo adatto escono dalla scelta, e la
+successiva si estrae fra le altre in base al peso, col generatore con seme.
+
+**Al posto dello stile.** Lo stile continua a girare e l'attività ne
+sostituisce i desideri: direzione, quota, velocità, coda. Può anche aprire
+la bocca e scendere in picchiata a testa in giù, cosa che uno stile non fa
+mai. Mentre il pesce va verso un luogo, le sue pareti morbide si allargano
+attorno a quel luogo.
+
+**Interruzioni.** Un tocco sul vetro, il cibo o un dito sul vetro
+interrompono qualunque attività: il pesce torna a vagare. Lo stesso
+succede se cambia lo scenario, perché il luogo potrebbe non esserci più.
+
+**Vederle.** In una build di sviluppo (`pnpm dev`) premi **A**: ogni pesce
+mostra la sua attività (`wander 12s`, `peck ×3`, `inspect`), con una linea
+verso il luogo di cui si occupa.
+
+Le attività stanno in `src/sim/behaviors/` accanto agli stili
+(`wander.ts`, `inspect.ts`, `peck.ts`, la scelta in `choose.ts`),
+registrate in `ACTIVITIES` in `activities.ts`; i loro parametri sono
+dichiarati in [`src/scene/activities.ts`](../src/scene/activities.ts). Per
+aggiungerne una si seguono gli stessi passi di uno stile.
+
 ## Come funziona
 
 ### Lo stile dice solo cosa vuole il pesce

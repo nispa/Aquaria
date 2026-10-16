@@ -123,6 +123,11 @@ export interface AquariumView {
    * not over the glass.
    */
   glassPoint(x: number, y: number, out: Vector3): boolean;
+  /**
+   * Where a point of the tank shows on the view, as normalized device
+   * coordinates (-1..1) written into `out`. False when it is off screen.
+   */
+  screenPoint(point: Vector3, out: Vector3): boolean;
   /** The WebGL renderer string: which GPU the browser actually draws with. */
   gpuName(): string;
   /** Hour of the aquarium day shown by the last frame. */
@@ -439,6 +444,10 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       if (raycaster.ray.intersectPlane(glass, out) === null) return false;
       const halfWidth = scene.tank.width / 2;
       return Math.abs(out.x) <= halfWidth && out.y >= 0 && out.y <= scene.tank.height;
+    },
+    screenPoint(point, out) {
+      out.copy(point).project(camera);
+      return out.z < 1 && Math.abs(out.x) <= 1 && Math.abs(out.y) <= 1;
     },
     seabedHeight: (x, z) => floorHeight(x, z) + (ridge?.heightAt(x, z) ?? 0),
     places: () => places,
