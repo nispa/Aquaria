@@ -5,7 +5,9 @@ import { parseCatalog, parseScene } from "./parse";
 import { parseSceneIndex } from "./sceneIndex";
 
 const SCENES = new URL("../../public/scenes/", import.meta.url);
-const sceneFiles = readdirSync(SCENES).filter((file) => file !== "index.json");
+const sceneFiles = readdirSync(SCENES).filter(
+  (file) => file.endsWith(".json") && file !== "index.json",
+);
 
 const readJson = (path: string): unknown =>
   JSON.parse(readFileSync(new URL(path, import.meta.url), "utf8"));
@@ -43,6 +45,16 @@ describe("bundled data files", () => {
     expect([...index.scenes].sort()).toEqual(
       sceneFiles.map((file) => file.replace(".json", "")).sort(),
     );
+  });
+
+  it("has a picture for the card of every scene in the scene index", () => {
+    const index = parseSceneIndex(readJson("../../public/scenes/index.json"));
+
+    const missing = index.scenes.filter(
+      (id) => !existsSync(new URL(`../../public/scenes/thumbnails/${id}.jpg`, import.meta.url)),
+    );
+
+    expect(missing).toEqual([]);
   });
 
   it("lists every material folder in the material index, and nothing else", () => {

@@ -59,6 +59,7 @@ import type { SceneChoice, SceneChoiceGroup } from "../ui/panel";
 import { createSimulation, type Simulation } from "../sim/simulation";
 import { createPanel } from "../ui/panel";
 import { createPointerInput, type PointerEvents } from "../input/pointer";
+import { ABOUT } from "./about";
 import { parseLaunchOptions } from "./launchOptions";
 import { createActivityOverlay, type ScreenProjection } from "../ui/activityOverlay";
 
@@ -468,6 +469,13 @@ async function start(): Promise<void> {
       look,
       openSections: settings.panelSections ?? {},
       version: versionLabel(import.meta.env.APP_VERSION, import.meta.env.APP_COMMIT),
+      about: ABOUT,
+      logo: `${import.meta.env.BASE_URL}title.webp`,
+      // Bundled scenes have a card picture; the viewer's own do not.
+      scenePicture: (id) =>
+        sceneIndex.scenes.includes(id)
+          ? `${import.meta.env.BASE_URL}scenes/thumbnails/${id}.jpg`
+          : undefined,
       scenery: sceneryEntries(scene),
       lights: {
         lights: settings.lights ?? scene.lights,

@@ -5,6 +5,7 @@ import type { Look, LookFeature, LookFeatureKind } from "../scene/look";
 import { checkbox, collapsible, element, select, slider } from "./controls";
 import { createFishCards, type DrawPortraits } from "./fishCards";
 import { createLightsSection, type LightsSectionState } from "./lightsSection";
+import { createSceneCards } from "./sceneCards";
 import type { SceneryEntry } from "../scene/scenery";
 import type { Species } from "../scene/schema";
 
@@ -16,7 +17,7 @@ const BUTTON_IDLE_MS = 2500;
 const PERCENT = 100;
 const SIZE_STEP = 5;
 /** Sections open until the viewer closes them; every other section starts closed. */
-const OPEN_BY_DEFAULT: ReadonlySet<string> = new Set(["fauna"]);
+const OPEN_BY_DEFAULT: ReadonlySet<string> = new Set(["scenes", "fauna"]);
 
 /** "Real" at 0, "Alike" at 1, a percentage in between. */
 function sizeBalanceLabel(balance: number): string {
@@ -70,10 +71,24 @@ export interface PanelState {
   /** Switchable lighting features and effects, and which ones are on. */
   readonly features: readonly LookFeature[];
   readonly look: Look;
-  /** Release and build shown at the bottom, e.g. "v1.0.1 · 9b2d5f7". */
+  /** Release and build, e.g. "v1.0.1 · 9b2d5f7". */
   readonly version: string;
+  /** URL of the Aquaria title picture at the top of the panel. */
+  readonly logo: string;
+  /** Who made Aquaria and where its code lives, for the About box. */
+  readonly about: About;
+  /** The square picture of a scene's card, or undefined for a scene without one. */
+  scenePicture(sceneId: string): string | undefined;
   /** Saved open/closed state per section id; absent sections use their default. */
   readonly openSections: Readonly<Record<string, boolean>>;
+}
+
+export interface About {
+  readonly author: string;
+  /** E.g. "© 2026 Aquaria contributors". */
+  readonly copyright: string;
+  readonly license: string;
+  readonly repository: string;
 }
 
 export interface PanelCallbacks {
@@ -140,6 +155,25 @@ function featureSections(
   });
 }
 
+/** Version, author, copyright, license and a link to the code, opened from the ⓘ. */
+function aboutBox(version: string, about: About): HTMLElement {
+  const box = element("div", "panel__about");
+  box.hidden = true;
+  const link = element("a", "panel__link", about.repository.replace(/^https:\/\//, ""));
+  link.href = about.repository;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  const repository = element("p", "panel__about-line", "Code: ");
+  repository.append(link);
+  box.append(
+    element("p", "panel__version", `Aquaria ${version}`),
+    element("p", "panel__about-line", `By ${about.author}`),
+    element("p", "panel__about-line", `${about.copyright} · ${about.license}`),
+    repository,
+  );
+  return box;
+}
+
 /** Three flakes drifting down: the feed button's icon. */
 const FEED_ICON =
   '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor">' +
@@ -174,38 +208,36 @@ export function createPanel(
     });
   const section: SectionFactory = (id, title) => sectionWithSummary(id, title).section;
 
-  panel.append(element("h1", "panel__title", state.sceneName));
-  const sceneSelect = select("Scene", [], state.sceneId);
-  for (const group of state.scenes) {
-    const optgroup = element("optgroup", "");
-    optgroup.label = group.name;
-    for (const choice of group.scenes) {
-      const option = element("option", "", choice.name);
-      option.value = choice.id;
-      optgroup.append(option);
-    }
-    sceneSelect.input.append(optgroup);
-  }
-  sceneSelect.input.value = state.sceneId;
-  sceneSelect.input.name = "scene";
-  sceneSelect.input.addEventListener("change", () => {
-    callbacks.onSceneChange(sceneSelect.input.value);
+  const header = element("div", "panel__header");
+  const infoButton = element("button", "panel__info", "i");
+  infoButton.type = "button";
+  infoButton.setAttribute("aria-label", "About Aquaria");
+  infoButton.setAttribute("aria-expanded", "false");
+  const about = aboutBox(state.version, state.about);
+  infoButton.addEventListener("click", () => {
+    about.hidden = !about.hidden;
+    infoButton.setAttribute("aria-expanded", String(!about.hidden));
   });
-  const designerButton = element("button", "panel__button panel__button--wide", "Scene designer");
-  designerButton.type = "button";
-  designerButton.addEventListener("click", () => {
-    callbacks.onOpenDesigner();
-  });
-  const feedButton = element(
-    "button",
-    "panel__button panel__button--wide",
-    "Feed the fish (Space)",
+  header.append(element("h1", "panel__title", state.sceneName), infoButton);
+  const logo = element("img", "panel__logo");
+  logo.src = state.logo;
+  logo.alt = "Aquaria";
+  panel.append(logo, header, about);
+
+  const scenes = section("scenes", "Scenes");
+  scenes.append(
+    createSceneCards({
+      groups: state.scenes,
+      selected: state.sceneId,
+      pictureOf: (id) => state.scenePicture(id),
+      onSelect: (id) => {
+        callbacks.onSceneChange(id);
+      },
+      onOpenDesigner: () => {
+        callbacks.onOpenDesigner();
+      },
+    }),
   );
-  feedButton.type = "button";
-  feedButton.addEventListener("click", () => {
-    callbacks.onFeed();
-  });
-  panel.append(sceneSelect.row, designerButton, feedButton);
 
   const fauna = section("fauna", "Fauna");
   const sizeRow = element("label", "panel__row");
@@ -355,6 +387,7 @@ export function createPanel(
     fullscreen,
   );
   panel.append(
+    scenes,
     fauna,
     time.section,
     lights,
@@ -364,7 +397,6 @@ export function createPanel(
     }),
     quality,
     element("p", "panel__hint", "H: show/hide · F: full screen · T: torch · A: what fish do"),
-    element("p", "panel__version", `Aquaria ${state.version}`),
   );
 
   const fpsCounter = element("div", "fps");

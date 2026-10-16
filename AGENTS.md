@@ -176,7 +176,8 @@ Shaders:
   `docs/SWIMMING.md`.
 - Adding a new scene or species must not require code changes, only data and
   assets. A new bundled scene also gets a caption in `e2e/gallery.spec.ts`,
-  a picture (`pnpm docs:gallery`) and a visual baseline. If it does, the engine is missing an abstraction: fix that first.
+  a picture and a square card picture in `public/scenes/thumbnails/`
+  (both from `pnpm docs:gallery`) and a visual baseline. If it does, the engine is missing an abstraction: fix that first.
 
 ## Assets and licensing
 

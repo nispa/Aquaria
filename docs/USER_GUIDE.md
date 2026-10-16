@@ -48,7 +48,7 @@ This guide covers everything needed to operate, customize, and understand the de
 | :------------------------------- | :------------------------ | :-------------------------------------------------------------------------------------------------------------- |
 | **`H`**                          | Show / Hide Control Panel | Toggles the sidebar control panel.                                                                              |
 | **`F`**                          | Fullscreen Toggle         | Enters or leaves borderless full-screen view.                                                                   |
-| **`Space`**                      | Feed the Fish             | Drops a pinch of flakes, above the pointer when it is over the tank (also the panel's _Feed the fish_ button).  |
+| **`Space`**                      | Feed the Fish             | Drops a pinch of flakes, above the pointer when it is over the tank (also the feed corner button).              |
 | **Rest the pointer on the tank** | Finger on the Glass       | The curious individuals of each species come to look; the finger counts as gone after 8 s without movement.     |
 | **Click the tank**               | Tap the Glass             | Nearby fish dart away; shy species flee from farther away. They calm down within a few seconds.                 |
 | **Quick circles near a fish**    | Hypnosis                  | It stops, floats, turns and rolls with your circles; when they stop it swims off dizzy.                         |
@@ -65,13 +65,14 @@ This guide covers everything needed to operate, customize, and understand the de
 
 Pressing **`H`** opens the control panel powered by [`createPanel`](file:///F:/progetti/Aquaria/src/ui/panel.ts#L102):
 
-- **Scene Selection**: Choose from bundled scenes (e.g., _Tropical reef_, _Home reef_, _Planted tank_, _Iwagumi_) or your saved custom scenes (_My scenes_).
+- **Scenes**: A square card with a picture of each bundled scene (_Aquaria_, _Tropical reef_, _Home reef_, _Planted tank_, _Iwagumi_), then your saved scenes; the open one is highlighted. The last card, **Designer**, opens the scene designer.
+- **About (ⓘ)**: Next to the scene's name at the top: version, author, license and a link to the code.
 - **Fauna Population**: A card per species, with a live picture of the fish and a count slider; species in the tank come first. Real-time sliders for each species defined in [`species.json`](file:///F:/progetti/Aquaria/public/species.json). Increasing or decreasing numbers causes fish to swim realistically into or out of the side boundaries rather than popping into existence.
 - **Scenery Elements**: Adjust the count of corals, kelp, sea anemones, driftwood, rocks, and shells. Adding items never displaces already positioned flora or props.
 
 #### Bundled scenes
 
-The four bundled scenes are examples of what can be built; every one is editable in the Scene designer or in its JSON file.
+The five bundled scenes are examples of what can be built; every one is editable in the Scene designer or in its JSON file.
 
 | Scene         | Kind of aquarium                                         |
 | ------------- | -------------------------------------------------------- |

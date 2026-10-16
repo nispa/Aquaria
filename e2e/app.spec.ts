@@ -57,13 +57,19 @@ test("opens the control panel with the H key", async ({ page }) => {
   await expect(page.getByText("Blue tang")).toBeVisible();
 });
 
-test("shows the release and build in the panel", async ({ page }) => {
+test("shows the release, the author and a link to the code under the info button", async ({
+  page,
+}) => {
   await openLive(page);
   await waitForState(page);
-
   await page.keyboard.press("h");
 
+  await page.getByRole("button", { name: "About Aquaria" }).click();
+
   await expect(page.locator(".panel__version")).toHaveText(/^Aquaria v\d+\.\d+\.\d+/);
+  const link = page.locator(".panel__about a");
+  await expect(link).toHaveAttribute("href", "https://github.com/nispa/Aquaria");
+  await expect(link).toHaveAttribute("target", "_blank");
 });
 
 test("keeps the advanced sections closed until opened, and remembers them", async ({ page }) => {
@@ -359,13 +365,16 @@ test("switches scene from the panel and remembers it", async ({ page }) => {
 
   await Promise.all([
     page.waitForEvent("load"),
-    page.locator('select[name="scene"]').selectOption("home-reef"),
+    page.locator('.scene-card[data-scene="home-reef"]').click(),
   ]);
   await waitForState(page);
   await page.keyboard.press("h");
 
   await expect(page.getByRole("heading", { name: "Home reef" })).toBeVisible();
-  await expect(page.locator('select[name="scene"]')).toHaveValue("home-reef");
+  await expect(page.locator('.scene-card[data-scene="home-reef"]')).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
 });
 
 test("changes the anti-aliasing from the panel", async ({ page }) => {
@@ -460,10 +469,13 @@ test.describe("scene designer", () => {
     await waitForState(page);
 
     await expect(designer(page)).toBeVisible();
-    await expect(page.locator('select[name="scene"]')).toHaveValue("my-night-reef");
-    await expect(
-      page.locator('select[name="scene"] optgroup[label="My scenes"] option'),
-    ).toHaveText("Night reef");
+    await expect(page.locator('.scene-card[data-scene="my-night-reef"]')).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(page.locator('.scene-card[data-group="My scenes"] .scene-card__name')).toHaveText(
+      "Night reef",
+    );
   });
 
   test("exports the scene as a JSON file ready for public/scenes", async ({ page }) => {
@@ -491,7 +503,10 @@ test.describe("scene designer", () => {
     ]);
     await waitForState(page);
 
-    await expect(page.locator('select[name="scene"]')).toHaveValue("my-reef");
+    await expect(page.locator('.scene-card[data-scene="my-reef"]')).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   test("explains why an imported file is not a valid scene", async ({ page }) => {

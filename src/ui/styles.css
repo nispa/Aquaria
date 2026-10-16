@@ -31,12 +31,13 @@ body {
   height: 100vh;
 }
 
+/* Below the corner buttons, which stay on top while the pointer moves. */
 .panel {
   position: fixed;
-  top: 16px;
+  top: 72px;
   right: 16px;
   width: min(340px, calc(100vw - 32px));
-  max-height: calc(100vh - 32px);
+  max-height: calc(100vh - 88px);
   overflow-y: auto;
   padding: 16px 18px;
   background: var(--panel-bg);
@@ -53,9 +54,138 @@ body {
 }
 
 .panel__title {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 18px;
   font-weight: 600;
+}
+
+/* The Aquaria title, on a transparent ground. */
+.panel__logo {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: -4px 0 6px;
+}
+
+/* The scene's name and the About button. */
+.panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.panel__info {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--panel-border);
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font:
+    italic 600 13px/1 Georgia,
+    serif;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.panel__info:hover,
+.panel__info[aria-expanded="true"] {
+  border-color: #4fc3f7;
+  opacity: 1;
+}
+
+.panel__about {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.04);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.panel__about p {
+  margin: 0;
+}
+
+.panel__about .panel__version {
+  font-weight: 600;
+  opacity: 1;
+}
+
+.panel__link {
+  color: #7fd3f7;
+}
+
+/* Scene cards: a square picture and the name of each scene, all in one grid. */
+.scene-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.scene-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 4px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.04);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.scene-card:hover {
+  border-color: rgb(79 195 247 / 0.6);
+}
+
+.scene-card[aria-pressed="true"] {
+  border-color: #4fc3f7;
+  background: rgb(79 195 247 / 0.18);
+  cursor: default;
+}
+
+.scene-card__picture {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 7px;
+  background: radial-gradient(ellipse at 50% 35%, #1d5f80 0%, #0a2c42 75%);
+}
+
+.scene-card__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scene-card__initial {
+  font-size: 30px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.scene-card__icon {
+  color: #7fd3f7;
+}
+
+.scene-card__name {
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .panel__section + .panel__section {
@@ -491,4 +621,12 @@ body {
   background: rgb(255 255 255 / 0.06);
   color: var(--text);
   font: inherit;
+}
+
+/* Menu entries on the panel's ground, not the browser's light one. */
+select,
+option,
+optgroup {
+  background-color: #0b2433;
+  color: var(--text);
 }

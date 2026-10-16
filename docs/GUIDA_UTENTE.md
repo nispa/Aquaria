@@ -48,7 +48,7 @@ Questa guida completa illustra come utilizzare, configurare ed estendere **Aquar
 | :---------------------------------- | :--------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
 | **`H`**                             | Apri / Chiudi Pannello | Mostra o nasconde la barra laterale di controllo.                                                                                        |
 | **`F`**                             | Schermo Intero         | Attiva o disattiva la modalità fullscreen (senza barre del browser).                                                                     |
-| **`Spazio`**                        | Dai da mangiare        | Lascia cadere un pizzico di fiocchi, sopra il puntatore se è sulla vasca (anche col pulsante _Feed the fish_ del pannello).              |
+| **`Spazio`**                        | Dai da mangiare        | Lascia cadere un pizzico di fiocchi, sopra il puntatore se è sulla vasca (anche col pulsante d'angolo del cibo).                         |
 | **Puntatore fermo sulla vasca**     | Dito sul vetro         | Gli individui curiosi di ogni specie vengono a guardare; dopo 8 s senza movimento il dito conta come tolto.                              |
 | **Click sulla vasca**               | Colpo sul vetro        | I pesci vicini scappano di scatto; le specie timide fuggono da più lontano. Si calmano in pochi secondi.                                 |
 | **Cerchi veloci vicino a un pesce** | Ipnosi                 | Si ferma, galleggia, gira e si avvita coi tuoi cerchi; quando smetti se ne va stordito.                                                  |
@@ -65,9 +65,10 @@ Questa guida completa illustra come utilizzare, configurare ed estendere **Aquar
 
 Il pannello, gestito da [`createPanel`](file:///F:/progetti/Aquaria/src/ui/panel.ts#L102), offre il pieno controllo in tempo reale:
 
-1. **Selezione Scena**:
-   - Permette di selezionare le ambientazioni predefinite (es. _Tropical reef_, _Home reef_, _Planted tank_, _Iwagumi_) o quelle salvate dall'utente (_My scenes_).
-   - Contiene il pulsante **Scene Designer** per aprire l'editor visuale.
+1. **Scene**:
+   - Una scheda quadrata con l'immagine di ogni ambientazione (_Aquaria_, _Tropical reef_, _Home reef_, _Planted tank_, _Iwagumi_), seguite da quelle salvate dall'utente; quella aperta è evidenziata.
+   - L'ultima scheda, **Designer**, apre l'editor visuale.
+   - In cima al pannello, l'icona ⓘ mostra versione, autore, licenza e il link al codice.
 
 2. **Popolazione della Fauna**:
    - Ciascuna specie di pesce definita nel catalogo [`public/species.json`](file:///F:/progetti/Aquaria/public/species.json) ha una scheda con l'immagine del pesce, disegnata dal vivo, e un cursore per il numero di individui. Le specie presenti in vasca compaiono per prime.
