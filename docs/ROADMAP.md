@@ -128,3 +128,32 @@ scene.
 - [ ] Environment tab: water, floor, backdrop, murkiness.
 - [ ] "Convert to blocks" for scenes with a procedural ridge.
 - [ ] Remove the old form-based designer; update README and user guides.
+
+## D. Beyond the fish
+
+Animals that are not fish, after the editor (crabs walk on the rockwork C1
+builds). Models in `downloads/` (licenses checked): a sea turtle
+(CC-BY-4.0), a hermit crab (CC-BY-4.0), a freshwater crab (CC0).
+
+### D1. Skeletal animation
+
+- [ ] `model.json` names the clips (swim, walk, idle) and how their speed
+      follows the animal's; skinned models play them, few instances each,
+      while fish keep their instanced, shader-swum bodies.
+
+### D2. Distant turtles
+
+- [ ] Scenery fauna: turtles swim slowly far behind the tank, in the haze
+      of the backdrop, now and then; not a fauna card, not selectable, no
+      reactions. Data-driven per scene.
+
+### D3. Crabs and hermit crabs
+
+- [ ] A `crawl` style: walking on the seabed (sand and rockwork), crabs
+      sideways, around obstacles, stopping to pick at the sand, eating
+      flakes that reach the bottom.
+- [ ] Tapped, they scuttle away or hide: a crab under the nearest shelter,
+      a hermit crab into its shell (it stops and sinks down), coming out
+      again when calm.
+- [ ] Species entries and fauna cards (freshwater crab for planted tanks,
+      hermit crab for reefs), docs, `ASSETS.md`.
