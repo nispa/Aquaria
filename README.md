@@ -25,9 +25,9 @@ for the control panel. On a laptop, let the browser use the dedicated GPU (see
 <sub>A reef tank with `A` on: what every fish is doing (wandering, pecking,
 inspecting), and a card for the fish under the pointer.</sub>
 
-| [![Tropical reef](docs/scenes/reef.jpg)](#bundled-scenes) | [![Home reef](docs/scenes/home-reef.jpg)](#bundled-scenes) | [![Planted tank](docs/scenes/planted-tank.jpg)](#bundled-scenes) | [![Iwagumi](docs/scenes/iwagumi.jpg)](#bundled-scenes) |
-| :-------------------------------------------------------: | :--------------------------------------------------------: | :--------------------------------------------------------------: | :----------------------------------------------------: |
-|                       Tropical reef                       |                         Home reef                          |                           Planted tank                           |                        Iwagumi                         |
+| [![Aquaria](docs/scenes/aquaria.jpg)](#bundled-scenes) | [![Tropical reef](docs/scenes/reef.jpg)](#bundled-scenes) | [![Home reef](docs/scenes/home-reef.jpg)](#bundled-scenes) | [![Planted tank](docs/scenes/planted-tank.jpg)](#bundled-scenes) | [![Iwagumi](docs/scenes/iwagumi.jpg)](#bundled-scenes) |
+| :----------------------------------------------------: | :-------------------------------------------------------: | :--------------------------------------------------------: | :--------------------------------------------------------------: | :----------------------------------------------------: |
+|                        Aquaria                         |                       Tropical reef                       |                         Home reef                          |                           Planted tank                           |                        Iwagumi                         |
 
 ## Features
 
@@ -168,13 +168,15 @@ examples, not fixed content: each one is a plain JSON file in
 `public/scenes/`, and every value (tank, water, light, plants, rocks, fish)
 can be changed in the **Scene designer** or in the file itself.
 
-| Scene                                                         | Kind of aquarium                                         | Tank (w × h × d) |
-| ------------------------------------------------------------- | -------------------------------------------------------- | ---------------- |
-| [Tropical reef](docs/scenes/reef.jpg) (`reef`)                | Open sea: tropical coral reef, saltwater                 | 5.4 × 3 × 4 m    |
-| [Home reef](docs/scenes/home-reef.jpg) (`home-reef`)          | Marine reef aquarium, saltwater                          | 6 × 2.6 × 2.4 m  |
-| [Planted tank](docs/scenes/planted-tank.jpg) (`planted-tank`) | Planted community aquarium, freshwater                   | 2.4 × 1.1 × 1 m  |
-| [Iwagumi](docs/scenes/iwagumi.jpg) (`iwagumi`)                | Iwagumi aquascape (stones and carpet plants), freshwater | 2.2 × 1.1 × 1 m  |
+| Scene                                                         | Kind of aquarium                                                                | Tank (w × h × d) |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------- | ---------------- |
+| [Aquaria](docs/scenes/aquaria.jpg) (`aquaria`, the default)   | Demo: a showcase tank like the hero image, a fantasy mix of sea and fresh water | 6 × 3.2 × 3.2 m  |
+| [Tropical reef](docs/scenes/reef.jpg) (`reef`)                | Open sea: tropical coral reef, saltwater                                        | 5.4 × 3 × 4 m    |
+| [Home reef](docs/scenes/home-reef.jpg) (`home-reef`)          | Marine reef aquarium, saltwater                                                 | 6 × 2.6 × 2.4 m  |
+| [Planted tank](docs/scenes/planted-tank.jpg) (`planted-tank`) | Planted community aquarium, freshwater                                          | 2.4 × 1.1 × 1 m  |
+| [Iwagumi](docs/scenes/iwagumi.jpg) (`iwagumi`)                | Iwagumi aquascape (stones and carpet plants), freshwater                        | 2.2 × 1.1 × 1 m  |
 
+![Aquaria: the demo showcase tank. Editable.](docs/scenes/aquaria.jpg)
 ![Tropical reef: open sea, tropical coral reef. Editable.](docs/scenes/reef.jpg)
 ![Home reef: marine reef aquarium. Editable.](docs/scenes/home-reef.jpg)
 ![Planted tank: freshwater planted community aquarium. Editable.](docs/scenes/planted-tank.jpg)

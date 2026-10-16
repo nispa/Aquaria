@@ -402,8 +402,12 @@ test("switches the light fixture to LED spots", async ({ page }) => {
 test.describe("scene designer", () => {
   async function openDesigner(page: Page): Promise<void> {
     await page.addInitScript(() => {
+      // The designer tests start from the tropical reef, whatever the default scene.
       if (localStorage.getItem("aquaria.settings") === null) {
-        localStorage.setItem("aquaria.settings", JSON.stringify({ renderHeight: 540 }));
+        localStorage.setItem(
+          "aquaria.settings",
+          JSON.stringify({ renderHeight: 540, scene: "reef" }),
+        );
       }
     });
     await page.goto("/?effects=none");
