@@ -37,6 +37,7 @@ function fishFixture(): Fish {
     activity: createActivityState(),
     play: createPlay(),
     roll: 0,
+    turnRate: 0,
     hiding: 0,
     refuge: new Vector3(),
     side: 1,

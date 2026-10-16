@@ -1,6 +1,19 @@
 import { Vector3 } from "three";
 import { describe, expect, it } from "vitest";
-import { easeToward, MAX_BEND, MAX_EFFORT, MIN_EFFORT, tailEffort, turnBend } from "./posture";
+import {
+  easeToward,
+  MAX_BEND,
+  MAX_EFFORT,
+  MIN_EFFORT,
+  tailEffort,
+  turnBend,
+  CALM_TURN_ACCELERATION,
+  CALM_TURN_RATE,
+  turnWithInertia,
+  MAX_TURN_RATE,
+  MIN_TURN_RATE,
+  maxTurnRate,
+} from "./posture";
 
 const STEP = 0.1;
 
@@ -88,5 +101,100 @@ describe("easeToward", () => {
 
   it("jumps to the target when there is no response time", () => {
     expect(easeToward(0, 1, 0, STEP)).toBe(1);
+  });
+});
+
+describe("turnWithInertia", () => {
+  const yawOf = (velocity: Vector3) => Math.atan2(velocity.z, velocity.x);
+  const calm = { turnRate: 0 };
+
+  it("limits how fast a calm fish turns", () => {
+    const turn = { turnRate: 0 };
+    const next = new Vector3(0, 0, 1);
+
+    for (let step = 0; step < 30; step += 1) {
+      turnWithInertia(new Vector3(1, 0, 0), next.set(0, 0, 1), turn, 1, 0, STEP);
+    }
+
+    expect(Math.abs(turn.turnRate)).toBeLessThanOrEqual(CALM_TURN_RATE + 1e-9);
+  });
+
+  it("builds up a turn gradually instead of snapping into it", () => {
+    const turn = { ...calm };
+    const next = new Vector3(0, 0, 1);
+
+    turnWithInertia(new Vector3(1, 0, 0), next, turn, 1, 0, STEP);
+
+    expect(Math.abs(turn.turnRate)).toBeLessThanOrEqual(CALM_TURN_ACCELERATION * STEP + 1e-9);
+    expect(Math.abs(yawOf(next))).toBeLessThanOrEqual(CALM_TURN_ACCELERATION * STEP * STEP + 1e-9);
+  });
+
+  it("keeps the speed and the climb, changing only the heading", () => {
+    const turn = { turnRate: 0 };
+    const next = new Vector3(0.1, 0.2, 0.3);
+    const speed = next.length();
+
+    turnWithInertia(new Vector3(0.3, 0, 0), next, turn, 1, 0, STEP);
+
+    expect(next.length()).toBeCloseTo(speed);
+    expect(next.y).toBeCloseTo(0.2);
+  });
+
+  it("turns round in a curve rather than flipping over", () => {
+    const turn = { turnRate: 0 };
+    const previous = new Vector3(1, 0, 0);
+    const next = new Vector3();
+    const yaws: number[] = [];
+
+    for (let step = 0; step < 120; step += 1) {
+      turnWithInertia(previous, next.set(-1, 0, 0.001), turn, 1, 0, STEP);
+      yaws.push(yawOf(next));
+      previous.copy(next);
+    }
+
+    const steps = yaws.slice(1).map((yaw, index) => {
+      const before = yaws[index] ?? yaw;
+      return Math.abs(Math.atan2(Math.sin(yaw - before), Math.cos(yaw - before)));
+    });
+    expect(Math.max(...steps)).toBeLessThanOrEqual(CALM_TURN_RATE * STEP + 1e-6);
+    expect(Math.abs(yawOf(previous))).toBeGreaterThan(Math.PI * 0.9);
+  });
+
+  it("lets a frightened fish turn much faster", () => {
+    const calmTurn = { turnRate: 0 };
+    const scaredTurn = { turnRate: 0 };
+
+    for (let step = 0; step < 10; step += 1) {
+      turnWithInertia(new Vector3(1, 0, 0), new Vector3(0, 0, 1), calmTurn, 1, 0, STEP);
+      turnWithInertia(new Vector3(1, 0, 0), new Vector3(0, 0, 1), scaredTurn, 1, 1, STEP);
+    }
+
+    expect(Math.abs(scaredTurn.turnRate)).toBeGreaterThan(Math.abs(calmTurn.turnRate) * 2);
+  });
+
+  it("lets small, quick species turn faster than slow, large ones", () => {
+    const nimble = { turnRate: 0 };
+    const stately = { turnRate: 0 };
+
+    for (let step = 0; step < 10; step += 1) {
+      turnWithInertia(new Vector3(1, 0, 0), new Vector3(0, 0, 1), nimble, 4, 0, STEP);
+      turnWithInertia(new Vector3(1, 0, 0), new Vector3(0, 0, 1), stately, 0.5, 0, STEP);
+    }
+
+    expect(Math.abs(nimble.turnRate)).toBeGreaterThan(Math.abs(stately.turnRate) * 3);
+  });
+
+  it("keeps turn limits within what any fish can do", () => {
+    expect(maxTurnRate(100, 0)).toBe(MAX_TURN_RATE);
+    expect(maxTurnRate(0.01, 0)).toBe(MIN_TURN_RATE);
+  });
+
+  it("leaves a fish going straight alone", () => {
+    const turn = { turnRate: 0 };
+    const next = new Vector3(0.3, 0, 0);
+
+    turnWithInertia(new Vector3(0.3, 0, 0), next, turn, 1, 0, STEP);
+
+    expect(next.toArray()).toEqual([0.3, 0, 0]);
   });
 });

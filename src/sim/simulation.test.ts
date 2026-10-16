@@ -7,7 +7,7 @@ import type { SceneInput, Species } from "../scene/schema";
 import { createSimulation, TOTAL_FISH_LIMIT, type Fish, type Simulation } from "./simulation";
 import { FLAKES_PER_PINCH } from "./food";
 import { spinOf } from "./gesture";
-import { MAX_BEND, MAX_EFFORT, MIN_EFFORT } from "./posture";
+import { MAX_BEND, MAX_EFFORT, MIN_EFFORT, maxTurnRate } from "./posture";
 import { habitatBox } from "./tank";
 
 const STEP = 1 / 60;
@@ -1038,13 +1038,24 @@ describe("schools", () => {
     const nearest = simulation.fish.reduce((best, fish) =>
       fish.position.z > best.position.z ? fish : best,
     );
+    // Spacing wanders on its own, so compare averages rather than moments.
+    const meanSpacing = (seconds: number) => {
+      let total = 0;
+      let samples = 0;
+      for (let elapsed = 0; elapsed < seconds; elapsed += 0.5) {
+        run(simulation, 0.5);
+        total += spacing(simulation);
+        samples += 1;
+      }
+      return total / samples;
+    };
     simulation.tap(new Vector3(nearest.position.x, nearest.position.y, 0));
-    run(simulation, 2);
-    const packed = spacing(simulation);
 
-    run(simulation, 15);
+    const packed = meanSpacing(2);
+    run(simulation, 3);
+    const relaxed = meanSpacing(15);
 
-    expect(spacing(simulation)).toBeGreaterThan(packed * 1.05);
+    expect(relaxed).toBeGreaterThan(packed * 1.05);
   });
 });
 
@@ -1129,5 +1140,49 @@ describe("the torch", () => {
     expect(off.fish.map((fish) => fish.position.toArray())).toEqual(
       never.fish.map((fish) => fish.position.toArray()),
     );
+  });
+});
+
+describe("inertia", () => {
+  /**
+   * The fastest any fish turned in a step over `seconds`, as a share of its
+   * own turn limit at fear `fear`.
+   */
+  function fastestTurnShare(simulation: Simulation, seconds: number, fear: number): number {
+    const yaws = new Map<number, number>();
+    let fastest = 0;
+    for (let elapsed = 0; elapsed < seconds; elapsed += STEP) {
+      simulation.step(STEP);
+      for (const fish of simulation.fish) {
+        const yaw = Math.atan2(fish.velocity.z, fish.velocity.x);
+        const before = yaws.get(fish.id);
+        if (before !== undefined) {
+          const turn = Math.abs(Math.atan2(Math.sin(yaw - before), Math.cos(yaw - before)));
+          const limit = maxTurnRate(fish.species.speed.cruise / fish.length, fear);
+          fastest = Math.max(fastest, turn / STEP / limit);
+        }
+        yaws.set(fish.id, yaw);
+      }
+    }
+    return fastest;
+  }
+
+  it("never lets a calm fish turn faster than its body can", () => {
+    const simulation = simulate();
+
+    expect(fastestTurnShare(simulation, 30, 0)).toBeLessThanOrEqual(1 + 1e-6);
+  });
+
+  it("lets a frightened fish turn faster, up to an escape", () => {
+    const calm = simulate();
+    const startled = simulate();
+    run(calm, 2);
+    run(startled, 2);
+    for (const fish of startled.fish) {
+      startled.tap(new Vector3(fish.position.x, fish.position.y, 0));
+    }
+
+    expect(fastestTurnShare(startled, 3, 1)).toBeLessThanOrEqual(1 + 1e-6);
+    expect(fastestTurnShare(startled, 3, 0)).toBeGreaterThan(fastestTurnShare(calm, 3, 0));
   });
 });

@@ -34,7 +34,7 @@ import {
   wriggleBend,
   type PlayState,
 } from "./play";
-import { easeToward, tailEffort, turnBend } from "./posture";
+import { easeToward, tailEffort, turnBend, turnWithInertia } from "./posture";
 import {
   addAlignment,
   addCohesion,
@@ -208,6 +208,8 @@ export interface Fish {
   readonly play: PlayState;
   /** Roll about the body's length, radians: 0 upright, ±π belly up. */
   roll: number;
+  /** Yaw rate, rad/s: a body gets into and out of its turns gradually (sim/posture). */
+  turnRate: number;
   /** Seconds it still stays hidden after a fright, 0 when it is not hiding. */
   hiding: number;
   /** Where it hides, while `hiding`. */
@@ -443,6 +445,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
       activity: createActivityState(),
       play: createPlay(),
       roll: 0,
+      turnRate: 0,
       hiding: 0,
       refuge: new Vector3(),
       side,
@@ -822,6 +825,10 @@ export function createSimulation(options: SimulationOptions): Simulation {
     member.velocity.y = clamp(member.velocity.y, -maxVertical, maxVertical);
     const clamped = clamp(member.velocity.length(), cruise * MIN_SPEED_RATIO, species.speed.max);
     member.velocity.setLength(clamped);
+    // A tickled fish twists like a frightened one.
+    const urgency = member.play.tickled > 0 ? 1 : member.fear;
+    const agility = cruise / member.length;
+    turnWithInertia(previousVelocity, member.velocity, member, agility, urgency, deltaSeconds);
 
     member.bend = easeToward(
       member.bend,
