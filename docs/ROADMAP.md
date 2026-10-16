@@ -50,10 +50,9 @@ by Zod. Swimming styles and activities are one file each in
 
 ### B2. Activities (what a fish is doing)
 
-- [ ] Each fish has a current activity with a duration; when it ends the
+- [x] Each fish has a current activity with a duration; when it ends the
       next one is picked by weights from the species data, the nearby
       environment and the hour (seeded RNG, deterministic tests).
-      Done except the hour, which comes with resting at night (B3).
 - [x] Points of interest: every flora and prop kind declares tags in data
       (e.g. `anemone: [anemone, shelter]`, `starfish: [starfish]`,
       `branch-coral: [coral, shelter]`, `rock: [rock, algae]`). Species
@@ -65,15 +64,15 @@ by Zod. Swimming styles and activities are one file each in
 
 ### B3. Shelter, hosts and night
 
-- [ ] `host`: a clownfish adopts an anemone, stays close, nestles in it, and
+- [x] `host`: a clownfish adopts an anemone, stays close, nestles in it, and
       hides there when startled.
-      Adopting and staying close is done (`hover` with `home: "anemone"`);
-      nestling and hiding are still to do.
-- [ ] `shelter`: a startled fish heads for the nearest shelter instead of
+- [x] `shelter`: a startled fish heads for the nearest shelter instead of
       only darting away.
-- [ ] `rest`: diurnal species rest near the floor or in a shelter at night;
-      nocturnal ones become more active.
-- [ ] Schools loosen when calm and tighten when startled.
+- [x] `rest`: diurnal species rest near the floor or in a shelter at night;
+      nocturnal ones become more active. In realistic mode (a panel switch,
+      added at the viewer's request), which also turns the playful spells
+      off.
+- [x] Schools loosen when calm and tighten when startled.
 
 ### B4. Tuning
 

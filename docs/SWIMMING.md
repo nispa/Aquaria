@@ -163,11 +163,12 @@ A style says _how_ a fish swims; an **activity** says _what it is doing_.
 Every fish has one at a time, with a duration; when it ends, the next one
 is drawn. Three exist:
 
-| Activity  | What the fish does                                                                                   |
-| --------- | ---------------------------------------------------------------------------------------------------- |
-| `wander`  | Swims about in its own style. The default.                                                           |
-| `inspect` | Swims up to a place, circles it or hovers facing it for a few seconds, then swims off.               |
-| `peck`    | Dives to a place and picks at it: short darts with the mouth open, backing off in between, then off. |
+| Activity  | What the fish does                                                                                            |
+| --------- | ------------------------------------------------------------------------------------------------------------- |
+| `wander`  | Swims about in its own style. The default.                                                                    |
+| `inspect` | Swims up to a place, circles it or hovers facing it for a few seconds, then swims off.                        |
+| `peck`    | Dives to a place and picks at it: short darts with the mouth open, backing off in between, then off.          |
+| `rest`    | In its hours of rest: settles beside a shelter, halfway up, or near the bottom of its habitat, barely moving. |
 
 Declare them in the species' `activities` entry:
 
@@ -189,6 +190,9 @@ Declare them in the species' `activities` entry:
   `inspect.distanceBodyLengths` (default 2): how far from the place it
   looks from.
 - `peck.pecks` (default `[3, 7]`): pecks before leaving.
+- `rest` (weight 1, tags `{ "shelter": 1 }`, `seconds` `[40, 90]` by
+  default): how much and where the species rests. It only rests in its
+  hours of rest, and only in realistic mode (below).
 
 **Choosing.** When an activity ends, each activity at a place looks for a
 place nearby (12 body lengths, at least 0.6 m) with a tag that interests
@@ -206,6 +210,15 @@ heads for a place, its soft walls widen around it.
 **Called off.** A tap on the glass, food or a finger on the glass end any
 activity: the fish goes back to wandering. So does a change of scenery,
 since the place may be gone.
+
+**Day and night (realistic mode).** With _Realistic_ on in the panel's
+Fauna section, fish keep the hours of their species. `behavior.active`
+says when a species is up: `day` (the default), `night` (the barramundi)
+or `always`. How much it wants to rest follows the daylight of the light
+cycle, from 0 in its active hours to 1 in the middle of its hours of
+rest. That draws it to `rest` (ten times its weight at full restfulness)
+and damps its other activities, so a reef quiets down at night while a
+nocturnal hunter wakes. Outside realistic mode nobody sleeps.
 
 **Seeing it.** Press **A**: every fish shows its activity (`wander 12s`,
 `peck ×3`, `inspect`), with a line to the place it is about (see

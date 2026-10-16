@@ -9,17 +9,21 @@ altri scappano, e qualche gesto fa cose che nessun pesce vero farebbe.
 
 ## Cosa puoi fare
 
-| Tu…                                         | I pesci…                                                                                                                           |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| **Appoggi il puntatore sulla vasca**        | I curiosi vengono a guardare: si avvicinano dietro il vetro e lì rallentano. Dopo 8 s di puntatore fermo il dito conta come tolto. |
-| **Clicchi (tocchi) la vasca**               | Quelli vicini scappano di scatto; le specie timide fuggono da più lontano. Si calmano in pochi secondi.                            |
-| **Premi `Spazio`** (o _Feed the fish_)      | Scendono fiocchi sopra il puntatore. I pesci affamati salgono ad azzannarli a bocca spalancata; quelli sazi perdono interesse.     |
-| **Disegni cerchi veloci vicino a un pesce** | Resta **ipnotizzato**: si ferma, galleggia, segue il dito con gli occhi, gira nel verso dei tuoi cerchi e si avvita su se stesso.  |
-| **…poi smetti**                             | Si risveglia **stordito** e per qualche secondo nuota a cavatappi, barcollando.                                                    |
-| **Scarabocchi proprio sopra un pesce**      | Gli fai il **solletico**: si contorce, si gira a pancia in su, poi scappa a zig-zag.                                               |
-| **Premi `A`**                               | Mostra cosa sta facendo ogni pesce, e una scheda con i dettagli del pesce più vicino al puntatore.                                 |
+| Tu…                                         | I pesci…                                                                                                                             |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Appoggi il puntatore sulla vasca**        | I curiosi vengono a guardare: si avvicinano dietro il vetro e lì rallentano. Dopo 8 s di puntatore fermo il dito conta come tolto.   |
+| **Clicchi (tocchi) la vasca**               | Quelli vicini scappano di scatto, o corrono a nascondersi nel rifugio più vicino; un banco spaventato si stringe. Si calmano presto. |
+| **Premi `Spazio`** (o _Feed the fish_)      | Scendono fiocchi sopra il puntatore. I pesci affamati salgono ad azzannarli a bocca spalancata; quelli sazi perdono interesse.       |
+| **Disegni cerchi veloci vicino a un pesce** | Resta **ipnotizzato**: si ferma, galleggia, segue il dito con gli occhi, gira nel verso dei tuoi cerchi e si avvita su se stesso.    |
+| **…poi smetti**                             | Si risveglia **stordito** e per qualche secondo nuota a cavatappi, barcollando.                                                      |
+| **Scarabocchi proprio sopra un pesce**      | Gli fai il **solletico**: si contorce, si gira a pancia in su, poi scappa a zig-zag.                                                 |
+| **Premi `A`**                               | Mostra cosa sta facendo ogni pesce, e una scheda con i dettagli del pesce più vicino al puntatore.                                   |
 
 Ipnosi e solletico sono volutamente surreali: sono giochi, non biologia.
+Attiva _Realistic_ nella sezione Fauna del pannello e si spengono, mentre i
+pesci seguono gli orari della loro specie e di notte riposano (vedi
+[Stili di nuoto](NUOTO.md)). Tutto il resto di questa pagina vale in
+entrambe le modalità.
 
 ### Chi reagisce, e quanto
 
@@ -36,6 +40,15 @@ Ogni specie regola le sue reazioni in `public/species.json`, sotto
   dal loro habitat fino a 0,5 m per raggiungerli. Ogni fiocco sazia un pesce
   del 15%; sopra l'80% ignora il cibo, e un pesce sazio si svuota del tutto
   in cinque minuti.
+- `hiding`: la quota dei suoi individui (sempre gli stessi) che, spaventati,
+  corrono al rifugio più vicino entro 15 lunghezze del corpo (almeno 1 m)
+  invece di scappare soltanto, e ci restano nascosti per sei secondi. I
+  rifugi sono piante e oggetti col tag `shelter`: anemoni, coralli
+  ramificati e a tavola, kelp, legni, piante fitte. Un pesce pagliaccio si
+  nasconde sempre nel suo anemone.
+
+Un pesce spaventato allarma anche il suo banco: tutto il banco si stringe,
+e si riallarga man mano che lo spavento passa.
 
 Ipnosi e solletico funzionano allo stesso modo su tutte le specie.
 

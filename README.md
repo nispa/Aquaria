@@ -256,7 +256,10 @@ station over the nearest anemone: plants and objects carry tags (`anemone`,
 `shelter`, `coral`…) that fish look for, and a scene entry may set its own
 `tags`. An optional `activities` entry lets a species do more than swim
 about: `inspect` a place or `peck` at it, choosing places by those tags (press A to
-see what each fish is doing). The catalog
+see what each fish is doing). With _Realistic_ on in the Fauna section,
+fish keep their hours (`behavior.active`: day, night or always) and rest at
+night, and the playful spells are off; `behavior.hiding` sends startled fish
+to the nearest shelter. The catalog
 includes butterflyfish, moorish idols, emperor angelfish, three-bar damsels and
 purple tangs.
 Files are validated on load; mistakes are reported with the exact field.

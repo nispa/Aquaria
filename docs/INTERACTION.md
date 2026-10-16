@@ -12,7 +12,7 @@ and a few gestures do things no real fish would.
 | You…                                   | The fish…                                                                                                                        |
 | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | **Rest the pointer on the tank**       | The curious ones come to look: they swim up behind the glass and slow down there. The finger counts as gone after 8 s still.     |
-| **Click (tap) the tank**               | Those nearby dart away; shy species flee from farther off. They calm down within a few seconds.                                  |
+| **Click (tap) the tank**               | Those nearby dart away, or run for the nearest shelter and hide there; a startled school packs together. They calm down soon.    |
 | **Press `Space`** (or _Feed the fish_) | Flakes drift down above the pointer. Hungry fish swim up to snap them, mouth wide open; full ones lose interest.                 |
 | **Draw quick circles near a fish**     | It is **hypnotized**: it stops, floats, follows the finger with its eyes, turns the way of your circles and rolls over and over. |
 | **…then stop**                         | It comes round **dizzy**, swimming a wobbly corkscrew for a few seconds.                                                         |
@@ -20,6 +20,10 @@ and a few gestures do things no real fish would.
 | **Press `A`**                          | Shows what every fish is doing, and a card with the details of the fish nearest the pointer.                                     |
 
 Hypnosis and tickling are deliberately surreal: they are toys, not biology.
+Switch _Realistic_ on in the panel's Fauna section and they are off, while
+fish keep the hours of their species and rest at night (see
+[Swimming styles](SWIMMING.md)). Everything else on this page works in both
+modes.
 
 ### Who reacts, and how much
 
@@ -36,6 +40,15 @@ from 0 to 1:
   leave their habitat by up to 0.5 m to reach them. Each flake fills a fish
   by 15%; above 80% it ignores food, and a full fish empties again over
   five minutes.
+- `hiding`: the share of its individuals (always the same ones) that, when
+  startled, run for the nearest shelter within 15 body lengths (at least
+  1 m) instead of only darting away, and lurk in it for six seconds.
+  Shelters are plants and objects tagged `shelter`: anemones, branch and
+  table corals, kelp, driftwood, dense plants. A clownfish always hides in
+  its own anemone.
+
+A startled fish also alarms its school: the whole school closes up, and
+loosens again as the fright fades.
 
 Hypnosis and tickling work on every species alike.
 

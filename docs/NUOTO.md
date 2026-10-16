@@ -168,11 +168,12 @@ Lo stile dice _come_ nuota un pesce; l'**attività** dice _cosa sta
 facendo_. Ogni pesce ne ha una alla volta, con una durata; quando finisce,
 si estrae la successiva. Ce ne sono tre:
 
-| Attività  | Cosa fa il pesce                                                                                      |
-| --------- | ----------------------------------------------------------------------------------------------------- |
-| `wander`  | Nuota col suo stile. È quella predefinita.                                                            |
-| `inspect` | Si avvicina a un luogo, gli gira attorno o resta fermo a guardarlo per qualche secondo, poi se ne va. |
-| `peck`    | Scende su un luogo e lo becchetta: brevi scatti a bocca aperta, indietreggiando tra l'uno e l'altro.  |
+| Attività  | Cosa fa il pesce                                                                                                          |
+| --------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `wander`  | Nuota col suo stile. È quella predefinita.                                                                                |
+| `inspect` | Si avvicina a un luogo, gli gira attorno o resta fermo a guardarlo per qualche secondo, poi se ne va.                     |
+| `peck`    | Scende su un luogo e lo becchetta: brevi scatti a bocca aperta, indietreggiando tra l'uno e l'altro.                      |
+| `rest`    | Nelle sue ore di riposo: si sistema accanto a un rifugio, a metà altezza, o vicino al fondo del suo habitat, quasi fermo. |
 
 Si dichiarano nella voce `activities` della specie:
 
@@ -193,6 +194,9 @@ Si dichiarano nella voce `activities` della specie:
 - `inspect.seconds` (default `[4, 10]`): quanto tempo guarda;
   `inspect.distanceBodyLengths` (default 2): da quanto lontano guarda.
 - `peck.pecks` (default `[3, 7]`): quante beccate prima di andarsene.
+- `rest` (default peso 1, tag `{ "shelter": 1 }`, `seconds` `[40, 90]`):
+  quanto e dove riposa la specie. Riposa solo nelle sue ore di riposo, e
+  solo in modalità realistica (sotto).
 
 **La scelta.** Quando un'attività finisce, ogni attività su un luogo cerca
 nei paraggi (12 lunghezze del corpo, almeno 0,6 m) un luogo con un tag che
@@ -211,6 +215,15 @@ attorno a quel luogo.
 **Interruzioni.** Un tocco sul vetro, il cibo o un dito sul vetro
 interrompono qualunque attività: il pesce torna a vagare. Lo stesso
 succede se cambia lo scenario, perché il luogo potrebbe non esserci più.
+
+**Giorno e notte (modalità realistica).** Con _Realistic_ attivo nella
+sezione Fauna del pannello, i pesci seguono gli orari della loro specie.
+`behavior.active` dice quando una specie è sveglia: `day` (il default),
+`night` (il barramundi) o `always`. La voglia di riposare segue la luce
+del ciclo diurno: 0 nelle ore attive, 1 a metà delle ore di riposo. Questo
+spinge verso `rest` (dieci volte il suo peso a riposo pieno) e smorza le
+altre attività, così di notte la barriera si calma mentre un cacciatore
+notturno si sveglia. Fuori dalla modalità realistica nessuno dorme.
 
 **Vederle.** Premi **A**: ogni pesce mostra la sua attività
 (`wander 12s`, `peck ×3`, `inspect`), con una linea verso il luogo di cui
