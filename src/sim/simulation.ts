@@ -1054,7 +1054,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
           }
         }
       }
-      food.step(deltaSeconds, timeSeconds, current, seabed);
+      food.step(deltaSeconds, timeSeconds, current, seabed, obstacleField);
       trackFinger(gesture, fingerPresent ? finger : undefined, deltaSeconds);
       daylight = daylightNow();
       crowd.sort(fish);

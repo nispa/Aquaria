@@ -2,6 +2,7 @@ import { Vector3, type Box3 } from "three";
 import { clamp } from "../core/math";
 import type { Rng } from "../core/rng";
 import type { CurrentField } from "./current";
+import type { ObstacleField } from "./obstacles";
 import type { SeabedHeight } from "./steering";
 import type { TankSize } from "./tank";
 
@@ -17,6 +18,8 @@ const PINCH_RADIUS = 0.25;
 const SURFACE_GAP = 0.02;
 /** Sinking speed range, m/s: real flakes drift down a few centimeters a second. */
 const SINK_SPEED = [0.05, 0.08] as const;
+/** A flake comes to rest on a surface whose normal points at least this much up (about 60°). */
+const RESTING_SLOPE = 0.5;
 /** Side-to-side flutter while sinking: speed in m/s and frequency in rad/s. */
 const FLUTTER_SPEED = 0.03;
 const FLUTTER_FREQUENCY = 2.2;
@@ -68,6 +71,7 @@ export interface Food {
     timeSeconds: number,
     current: CurrentField,
     seabed: SeabedHeight,
+    obstacles?: ObstacleField,
   ): void;
   /** The closest active flake within `radius` of `position` and inside `region`. */
   nearest(position: Vector3, radius: number, region: Box3): Pellet | undefined;
@@ -89,6 +93,7 @@ export function createFood(options: FoodOptions): Food {
   }));
   const halfWidth = tank.width / 2 - WALL_GAP;
   const drift = new Vector3();
+  const surface = new Vector3();
 
   const keepInside = (position: Vector3): void => {
     position.x = clamp(position.x, -halfWidth, halfWidth);
@@ -120,7 +125,7 @@ export function createFood(options: FoodOptions): Food {
         dropped += 1;
       }
     },
-    step(deltaSeconds, timeSeconds, current, seabed) {
+    step(deltaSeconds, timeSeconds, current, seabed, obstacles) {
       for (const flake of flakes) {
         if (!flake.active) continue;
         if (flake.settled) {
@@ -146,6 +151,13 @@ export function createFood(options: FoodOptions): Food {
         if (position.y <= floor) {
           position.y = floor;
           flake.settled = true;
+        }
+        // A flake landing on a rock or a coral lies on top of it; on a steep
+        // side it slides down instead.
+        const inside = obstacles?.distance(position, surface, 0) ?? Infinity;
+        if (inside < 0) {
+          position.addScaledVector(surface, -inside);
+          if (surface.y > RESTING_SLOPE) flake.settled = true;
         }
       }
     },

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createRng } from "../core/rng";
 import { createCurrentField } from "./current";
 import { BOTTOM_LIFETIME_SECONDS, createFood, FLAKES_PER_PINCH, type Food } from "./food";
+import { createObstacleField } from "./obstacles";
 
 const STEP = 1 / 60;
 const tank = { width: 8, height: 4.5, depth: 5 };
@@ -77,6 +78,25 @@ describe("createFood", () => {
 
     expect(active(food).every((flake) => flake.position.y >= 1)).toBe(true);
     expect(active(food).every((flake) => flake.settled)).toBe(true);
+  });
+
+  it("lets flakes settle on a rock instead of sinking into it", () => {
+    const food = feed();
+    const boulder = createObstacleField([
+      { center: new Vector3(0, 0, -2), radii: new Vector3(1, 1, 1), cos: 1, sin: 0, reach: 1 },
+    ]);
+    const normal = new Vector3();
+    food.drop(0, -2);
+
+    // Until the last flake comes to rest, before the first ones are cleared.
+    for (let time = 0; time < 120 && !active(food).every((flake) => flake.settled); time += STEP) {
+      food.step(STEP, time, stillWater, flatFloor, boulder);
+    }
+
+    const flakes = active(food);
+    expect(flakes).toHaveLength(FLAKES_PER_PINCH);
+    expect(flakes.every((flake) => boulder.distance(flake.position, normal, 1) > -0.01)).toBe(true);
+    expect(flakes.some((flake) => flake.position.y > 0.5)).toBe(true);
   });
 
   it("clears flakes that lie on the bottom for too long", () => {
