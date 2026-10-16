@@ -97,39 +97,93 @@ export interface ObstacleField {
 
 const NO_OBSTACLES: ObstacleField = { distance: () => Infinity };
 
+/** Side of the cells (seen from above) the field sorts obstacles into, m. */
+const CELL_SIZE = 0.5;
+
+/**
+ * Obstacles sorted into a grid of cells seen from above, each listed in
+ * every cell its reach overlaps, so a query only looks at those nearby.
+ */
+interface Grid {
+  readonly cells: readonly (readonly Obstacle[])[];
+  readonly minX: number;
+  readonly minZ: number;
+  readonly columns: number;
+  readonly rows: number;
+}
+
+function gridOf(obstacles: readonly Obstacle[]): Grid {
+  const minX = Math.min(...obstacles.map((obstacle) => obstacle.center.x - obstacle.reach));
+  const minZ = Math.min(...obstacles.map((obstacle) => obstacle.center.z - obstacle.reach));
+  const maxX = Math.max(...obstacles.map((obstacle) => obstacle.center.x + obstacle.reach));
+  const maxZ = Math.max(...obstacles.map((obstacle) => obstacle.center.z + obstacle.reach));
+  const columns = Math.floor((maxX - minX) / CELL_SIZE) + 1;
+  const rows = Math.floor((maxZ - minZ) / CELL_SIZE) + 1;
+  const cells = Array.from({ length: columns * rows }, (): Obstacle[] => []);
+  for (const obstacle of obstacles) {
+    const { center, reach } = obstacle;
+    const fromColumn = Math.floor((center.x - reach - minX) / CELL_SIZE);
+    const toColumn = Math.floor((center.x + reach - minX) / CELL_SIZE);
+    const fromRow = Math.floor((center.z - reach - minZ) / CELL_SIZE);
+    const toRow = Math.floor((center.z + reach - minZ) / CELL_SIZE);
+    for (let row = fromRow; row <= toRow; row += 1) {
+      for (let column = fromColumn; column <= toColumn; column += 1) {
+        cells[row * columns + column]?.push(obstacle);
+      }
+    }
+  }
+  return { cells, minX, minZ, columns, rows };
+}
+
 /** A field over fixed obstacles; build a new one when the scenery changes. */
 export function createObstacleField(obstacles: readonly Obstacle[]): ObstacleField {
   if (obstacles.length === 0) return NO_OBSTACLES;
+  const { cells, minX, minZ, columns, rows } = gridOf(obstacles);
+  let best = Infinity;
+
+  /** Measures one obstacle, keeping it in `best` and `normal` when it is the nearest yet. */
+  const measure = (obstacle: Obstacle, point: Vector3, normal: Vector3, within: number): void => {
+    const { center, radii, cos, sin, reach } = obstacle;
+    const dx = point.x - center.x;
+    const dy = point.y - center.y;
+    const dz = point.z - center.z;
+    const limit = Math.min(within, best) + reach;
+    if (dx * dx + dy * dy + dz * dz >= limit * limit) return;
+    // Into the obstacle's own frame, undoing its turn about y.
+    const x = dx * cos - dz * sin;
+    const z = dx * sin + dz * cos;
+    // Ellipsoid distance estimate: k0 (k0 - 1) / k1, see
+    // https://iquilezles.org/articles/ellipsoids/ ; its gradient is p / r².
+    const sx = x / radii.x;
+    const sy = dy / radii.y;
+    const sz = z / radii.z;
+    const k0 = Math.hypot(sx, sy, sz);
+    const gx = sx / radii.x;
+    const gy = sy / radii.y;
+    const gz = sz / radii.z;
+    const k1 = Math.hypot(gx, gy, gz);
+    // Right at its centre the gradient vanishes: the way out is up.
+    const distance = k1 === 0 ? -Math.min(radii.x, radii.y, radii.z) : (k0 * (k0 - 1)) / k1;
+    if (distance >= best || distance >= within) return;
+    best = distance;
+    if (k1 === 0) normal.set(0, 1, 0);
+    // Back into the tank's frame.
+    else normal.set((gx * cos + gz * sin) / k1, gy / k1, (-gx * sin + gz * cos) / k1);
+  };
+
   return {
     distance(point, normal, within) {
-      let best = Infinity;
-      for (const obstacle of obstacles) {
-        const { center, radii, cos, sin, reach } = obstacle;
-        const dx = point.x - center.x;
-        const dy = point.y - center.y;
-        const dz = point.z - center.z;
-        const limit = Math.min(within, best) + reach;
-        if (dx * dx + dy * dy + dz * dz >= limit * limit) continue;
-        // Into the obstacle's own frame, undoing its turn about y.
-        const x = dx * cos - dz * sin;
-        const z = dx * sin + dz * cos;
-        // Ellipsoid distance estimate: k0 (k0 - 1) / k1, see
-        // https://iquilezles.org/articles/ellipsoids/ ; its gradient is p / r².
-        const sx = x / radii.x;
-        const sy = dy / radii.y;
-        const sz = z / radii.z;
-        const k0 = Math.hypot(sx, sy, sz);
-        const gx = sx / radii.x;
-        const gy = sy / radii.y;
-        const gz = sz / radii.z;
-        const k1 = Math.hypot(gx, gy, gz);
-        // Right at its centre the gradient vanishes: the way out is up.
-        const distance = k1 === 0 ? -Math.min(radii.x, radii.y, radii.z) : (k0 * (k0 - 1)) / k1;
-        if (distance >= best || distance >= within) continue;
-        best = distance;
-        if (k1 === 0) normal.set(0, 1, 0);
-        // Back into the tank's frame.
-        else normal.set((gx * cos + gz * sin) / k1, gy / k1, (-gx * sin + gz * cos) / k1);
+      best = Infinity;
+      const fromColumn = Math.max(Math.floor((point.x - within - minX) / CELL_SIZE), 0);
+      const toColumn = Math.min(Math.floor((point.x + within - minX) / CELL_SIZE), columns - 1);
+      const fromRow = Math.max(Math.floor((point.z - within - minZ) / CELL_SIZE), 0);
+      const toRow = Math.min(Math.floor((point.z + within - minZ) / CELL_SIZE), rows - 1);
+      for (let row = fromRow; row <= toRow; row += 1) {
+        for (let column = fromColumn; column <= toColumn; column += 1) {
+          const cell = cells[row * columns + column];
+          if (cell === undefined) continue;
+          for (const obstacle of cell) measure(obstacle, point, normal, within);
+        }
       }
       return best;
     },

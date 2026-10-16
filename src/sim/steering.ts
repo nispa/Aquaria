@@ -1,4 +1,5 @@
-import type { Box3, Vector3 } from "three";
+import { Vector3, type Box3 } from "three";
+import type { ObstacleField } from "./obstacles";
 
 /**
  * Classic boids steering terms. Each function adds its force into `out`
@@ -180,4 +181,38 @@ export function addHeading(velocity: Vector3, yaw: number, out: Vector3): Vector
   out.x += acrossX;
   out.z += acrossZ;
   return out;
+}
+
+const surfaceNormal = new Vector3();
+const lookout = new Vector3();
+
+/**
+ * Keeps a fish clear of the solid scenery. It looks `lookAhead` m along its
+ * course: an obstacle there within `clearance` turns it aside, across its
+ * velocity (towards the open side, or over a head-on obstacle), so it swerves
+ * without slowing. An obstacle already within `clearance` of the fish pushes
+ * it straight away. Both grow linearly the closer the surface. Allocation-free.
+ */
+export function addObstacleAvoidance(
+  position: Vector3,
+  velocity: Vector3,
+  field: ObstacleField,
+  lookAhead: number,
+  clearance: number,
+  out: Vector3,
+): Vector3 {
+  const near = field.distance(position, surfaceNormal, clearance);
+  if (near < clearance) out.addScaledVector(surfaceNormal, (clearance - near) / clearance);
+  const speed = velocity.length();
+  if (speed < NEGLIGIBLE || lookAhead <= 0) return out;
+  lookout.copy(position).addScaledVector(velocity, lookAhead / speed);
+  const ahead = field.distance(lookout, surfaceNormal, clearance);
+  if (ahead >= clearance) return out;
+  // The surface normal less its part along the course: which way is open.
+  const along = surfaceNormal.dot(velocity) / speed;
+  surfaceNormal.addScaledVector(velocity, -along / speed);
+  const across = surfaceNormal.length();
+  if (across < NEGLIGIBLE) surfaceNormal.set(-velocity.z, 0, velocity.x).normalize();
+  else surfaceNormal.divideScalar(across);
+  return out.addScaledVector(surfaceNormal, Math.min((clearance - ahead) / clearance, 1));
 }

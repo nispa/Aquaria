@@ -5,9 +5,11 @@ import {
   addCohesion,
   addContainment,
   addHeading,
+  addObstacleAvoidance,
   addSeabedClearance,
   addSeparation,
 } from "./steering";
+import { createObstacleField, type Obstacle } from "./obstacles";
 
 const v = (x: number, y: number, z: number) => new Vector3(x, y, z);
 
@@ -177,5 +179,78 @@ describe("addHeading", () => {
     const out = addHeading(new Vector3(), 0, new Vector3());
 
     expect(out.toArray()).toEqual([1, 0, 0]);
+  });
+});
+
+describe("addObstacleAvoidance", () => {
+  const boulder = (x: number, y: number, z: number, radius: number): Obstacle => ({
+    center: new Vector3(x, y, z),
+    radii: new Vector3(radius, radius, radius),
+    cos: 1,
+    sin: 0,
+    reach: radius,
+  });
+  const lookAhead = 2;
+  const clearance = 0.4;
+
+  it("turns aside a fish heading straight for an obstacle, without slowing it", () => {
+    const field = createObstacleField([boulder(2, 0, 0, 0.5)]);
+
+    const out = addObstacleAvoidance(
+      v(0, 0, 0),
+      v(1, 0, 0),
+      field,
+      lookAhead,
+      clearance,
+      v(0, 0, 0),
+    );
+
+    expect(out.length()).toBeGreaterThan(0.5);
+    expect(out.x).toBeCloseTo(0);
+  });
+
+  it("turns towards the side the obstacle leaves open", () => {
+    const field = createObstacleField([boulder(2, 0, 0.3, 0.5)]);
+
+    const out = addObstacleAvoidance(
+      v(0, 0, 0),
+      v(1, 0, 0),
+      field,
+      lookAhead,
+      clearance,
+      v(0, 0, 0),
+    );
+
+    expect(out.z).toBeLessThan(0);
+  });
+
+  it("pushes away from an obstacle the fish is too close to", () => {
+    const field = createObstacleField([boulder(0, 0, 0.6, 0.5)]);
+
+    const out = addObstacleAvoidance(
+      v(0, 0, 0),
+      v(1, 0, 0),
+      field,
+      lookAhead,
+      clearance,
+      v(0, 0, 0),
+    );
+
+    expect(out.z).toBeLessThan(0);
+  });
+
+  it("ignores obstacles off its course", () => {
+    const field = createObstacleField([boulder(2, 0, 3, 0.5)]);
+
+    const out = addObstacleAvoidance(
+      v(0, 0, 0),
+      v(1, 0, 0),
+      field,
+      lookAhead,
+      clearance,
+      v(0, 0, 0),
+    );
+
+    expect(out.toArray()).toEqual([0, 0, 0]);
   });
 });

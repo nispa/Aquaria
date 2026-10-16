@@ -8,6 +8,7 @@ import { createSimulation, TOTAL_FISH_LIMIT, type Fish, type Simulation } from "
 import { FLAKES_PER_PINCH } from "./food";
 import { spinOf } from "./gesture";
 import { MAX_BEND, MAX_EFFORT, MIN_EFFORT, maxTurnRate } from "./posture";
+import { createObstacleField, type Obstacle } from "./obstacles";
 import { habitatBox } from "./tank";
 
 const STEP = 1 / 60;
@@ -1184,5 +1185,55 @@ describe("inertia", () => {
 
     expect(fastestTurnShare(startled, 3, 1)).toBeLessThanOrEqual(1 + 1e-6);
     expect(fastestTurnShare(startled, 3, 0)).toBeGreaterThan(fastestTurnShare(calm, 3, 0));
+  });
+});
+
+describe("obstacles", () => {
+  /** Boulders filling the middle of the tank, at the height the fish swim. */
+  const boulders: Obstacle[] = [-3, -1.5, 0, 1.5, 3].flatMap((x) =>
+    [-3.5, -2, -0.5].map((z) => ({
+      center: new Vector3(x, 2.4, z),
+      radii: new Vector3(0.5, 0.5, 0.5),
+      cos: 1,
+      sin: 0,
+      reach: 0.5,
+    })),
+  );
+  const field = createObstacleField(boulders);
+  const surface = new Vector3();
+
+  /** The share of fish-steps spent within `bodyLengths` of a boulder, and the deepest any fish went in. */
+  function observe(simulation: Simulation, seconds: number, bodyLengths: number) {
+    let close = 0;
+    let steps = 0;
+    let deepest = Infinity;
+    for (let elapsed = 0; elapsed < seconds; elapsed += STEP) {
+      simulation.step(STEP);
+      for (const fish of simulation.fish) {
+        const distance = field.distance(fish.position, surface, fish.length * 2);
+        deepest = Math.min(deepest, distance);
+        if (distance < fish.length * bodyLengths) close += 1;
+        steps += 1;
+      }
+    }
+    return { closeShare: close / steps, deepest };
+  }
+
+  it("never lets a fish swim into a rock", () => {
+    const simulation = simulate();
+    // The same list on every step, as the view gives it.
+    simulation.setObstacles(() => boulders);
+
+    expect(observe(simulation, 20, 0).deepest).toBeGreaterThan(0);
+  });
+
+  it("steers fish around rocks instead of scraping along them", () => {
+    const steering = simulate();
+    steering.setObstacles(() => boulders);
+    const blind = simulate();
+
+    expect(observe(steering, 20, 0.5).closeShare).toBeLessThan(
+      observe(blind, 20, 0.5).closeShare / 3,
+    );
   });
 });

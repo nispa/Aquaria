@@ -22,6 +22,7 @@ import { nextGaze, turnIntent } from "./gaze";
 import { createGesture, isScribbling, spinOf, trackFinger, type Gesture } from "./gesture";
 import { createCurrentField, type CurrentField } from "./current";
 import { createFood, type Food } from "./food";
+import { createObstacleField, type Obstacle } from "./obstacles";
 import { createPlaceFinder, type Place } from "./places";
 import { beamOffset, beamRadius, torchStrength } from "./torch";
 import {
@@ -40,6 +41,7 @@ import {
   addCohesion,
   addContainment,
   addHeading,
+  addObstacleAvoidance,
   addSeabedClearance,
   addSeparation,
   type SeabedHeight,
@@ -61,6 +63,7 @@ const CONTAINMENT_MARGIN = 0.5;
  */
 const ANCHOR_REACH_BODY_LENGTHS = 4;
 const NO_PLACES: readonly Place[] = [];
+const NO_OBSTACLES: readonly Obstacle[] = [];
 /** Smallest length a randomly drawn individual may have, relative to the mean. */
 const MIN_LENGTH_RATIO = 0.5;
 
@@ -76,6 +79,19 @@ const SEABED_BODY_LENGTHS = 1.5;
 const SEABED_MIN_CLEARANCE = 0.08;
 /** Hard limit: a fish's centre never gets closer to the seabed than this, in body lengths. */
 const SEABED_MIN_GAP_BODY_LENGTHS = 0.5;
+// Obstacles (sim/obstacles). Fish look ahead along their course for the
+// time it takes to swim LOOK_AHEAD_SECONDS (at least LOOK_AHEAD_BODY_LENGTHS)
+// and keep OBSTACLE_BODY_LENGTHS (at least OBSTACLE_MIN_CLEARANCE) off the
+// rocks. A fish at a place (pecking, resting, hiding) only keeps
+// CLOSE_IN_GAPS of its hard gap and does not look ahead, so it can come
+// right up to it. The hard gap stops the rare one that still dives in.
+const OBSTACLE_WEIGHT = 5;
+const LOOK_AHEAD_SECONDS = 0.6;
+const LOOK_AHEAD_BODY_LENGTHS = 1.5;
+const OBSTACLE_BODY_LENGTHS = 1;
+const OBSTACLE_MIN_CLEARANCE = 0.06;
+const OBSTACLE_GAP_BODY_LENGTHS = 0.4;
+const CLOSE_IN_GAPS = 1.5;
 /** Pull towards the heading the swimming style wants; it only turns the fish. */
 const HEADING_WEIGHT = 0.8;
 /** Pull towards the height the swimming style wants, at full strength this far away, m. */
@@ -241,6 +257,11 @@ export interface Simulation {
    * every step, so it may change, e.g. when the scenery is rebuilt.
    */
   setSeabed(seabed: SeabedHeight): void;
+  /**
+   * Sets the solid scenery (rocks, corals, wood) fish swim around. Read on
+   * every step; a different list means the scenery changed.
+   */
+  setObstacles(obstacles: () => readonly Obstacle[]): void;
   /** Drops a pinch of food at the surface above (x, z), tank coordinates. */
   dropFood(x: number, z: number): void;
   /**
@@ -324,6 +345,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
   let nextId = 0;
   let seabed: SeabedHeight = () => 0;
   let places: () => readonly Place[] = () => NO_PLACES;
+  let obstacles: () => readonly Obstacle[] = () => NO_OBSTACLES;
+  let knownObstacles: readonly Obstacle[] = NO_OBSTACLES;
+  let obstacleField = createObstacleField(NO_OBSTACLES);
   let realistic = false;
   let torchOn = false;
   let daylightNow: () => number = () => 1;
@@ -501,6 +525,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
   const force = new Vector3();
   const term = new Vector3();
   const drift = new Vector3();
+  const surfaceNormal = new Vector3();
   const previousVelocity = new Vector3();
   const mouthPosition = new Vector3();
   const finger = new Vector3();
@@ -751,6 +776,21 @@ export function createSimulation(options: SimulationOptions): Simulation {
     addSeabedClearance(member.position, seabed, clearance, term);
     force.addScaledVector(term, SEABED_WEIGHT);
 
+    term.set(0, 0, 0);
+    const closeIn = member.hiding > 0 || activityOf(activity.id).atPlace;
+    const gap = member.length * OBSTACLE_GAP_BODY_LENGTHS;
+    const lookAhead = closeIn
+      ? 0
+      : Math.max(
+          member.velocity.length() * LOOK_AHEAD_SECONDS,
+          member.length * LOOK_AHEAD_BODY_LENGTHS,
+        );
+    const keepOff = closeIn
+      ? gap * CLOSE_IN_GAPS
+      : Math.max(member.length * OBSTACLE_BODY_LENGTHS, OBSTACLE_MIN_CLEARANCE);
+    addObstacleAvoidance(member.position, member.velocity, obstacleField, lookAhead, keepOff, term);
+    force.addScaledVector(term, OBSTACLE_WEIGHT);
+
     const { swim } = member;
     if (member.state === "swimming") {
       contextFor(group, member);
@@ -859,6 +899,11 @@ export function createSimulation(options: SimulationOptions): Simulation {
       member.position.y = floor;
       member.velocity.y = Math.max(member.velocity.y, 0);
     }
+    // Likewise for the rocks: slide it out along the surface. Its velocity is
+    // left to the steering, which turns it within what its body can.
+    const gap = member.length * OBSTACLE_GAP_BODY_LENGTHS;
+    const inside = obstacleField.distance(member.position, surfaceNormal, gap);
+    if (inside < gap) member.position.addScaledVector(surfaceNormal, gap - inside);
     member.swimPhase +=
       (member.velocity.length() / member.length) *
       SWIM_BEATS_PER_BODY_LENGTH *
@@ -908,6 +953,11 @@ export function createSimulation(options: SimulationOptions): Simulation {
       for (const group of groups.values()) {
         group.alarm = 0;
         for (const member of group.members) group.alarm = Math.max(group.alarm, member.fear);
+      }
+      const currentObstacles = obstacles();
+      if (currentObstacles !== knownObstacles) {
+        knownObstacles = currentObstacles;
+        obstacleField = createObstacleField(currentObstacles);
       }
       const currentPlaces = places();
       if (currentPlaces !== knownPlaces) {
@@ -978,6 +1028,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
     },
     setPlaces(next) {
       places = next;
+    },
+    setObstacles(next) {
+      obstacles = next;
     },
     setRealistic(next) {
       realistic = next;

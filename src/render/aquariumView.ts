@@ -30,6 +30,7 @@ import type { Scene, SpeciesCatalog } from "../scene/schema";
 import type { Lights } from "../scene/lights";
 import { lookPasses, type Look } from "../scene/look";
 import { layoutFlora, layoutProps } from "../sim/layout";
+import { obstaclesOf, type Obstacle } from "../sim/obstacles";
 import { placesOf, type Place } from "../sim/places";
 import { createLightMixer, cycleHour, daylight } from "../sim/lightCycle";
 import { createRockwork, type Rockwork } from "../sim/rockwork";
@@ -118,6 +119,11 @@ export interface AquariumView {
    * new list whenever the scenery is laid out again.
    */
   places(): readonly Place[];
+  /**
+   * The scenery's solid props (rocks, corals, wood) for fish to swim around;
+   * a new list whenever the scenery is laid out again.
+   */
+  obstacles(): readonly Obstacle[];
   /**
    * Where a spot on the view (normalized device coordinates) meets the front
    * glass, in tank coordinates, written into `out`, and, when given, the
@@ -266,6 +272,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   let rockwork: RockworkRenderer | undefined;
   let ridge: Rockwork | undefined;
   let places: readonly Place[] = [];
+  let obstacles: readonly Obstacle[] = [];
   let particles: Particles | undefined;
   const frameCamera = (): void => {
     camera.aspect = cssWidth / cssHeight;
@@ -321,6 +328,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       ridge,
     );
     places = placesOf(plants, [...(ridge?.rocks ?? []), ...items]);
+    obstacles = obstaclesOf([...(ridge?.rocks ?? []), ...items]);
     flora = createFloraRenderer(plants, water);
     props = createPropRenderer([...(ridge?.rocks ?? []), ...items], water, surfaces);
     if (ridge !== undefined && scene.rockwork !== undefined) {
@@ -464,6 +472,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     },
     seabedHeight: (x, z) => floorHeight(x, z) + (ridge?.heightAt(x, z) ?? 0),
     places: () => places,
+    obstacles: () => obstacles,
     render() {
       cycleInput.clockHour = options.clockHour();
       cycleInput.elapsedSeconds = simulation.timeSeconds;
