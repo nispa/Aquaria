@@ -76,9 +76,9 @@ by Zod. Swimming styles and activities are one file each in
 
 ### B4. Tuning
 
-- [ ] Styles and activities assigned to all 18 species; visual review.
-      Styles are assigned (see `docs/SWIMMING.md`); activities and the
-      visual review in the tank are still to do.
+- [x] Styles and activities assigned to all 18 species; visual review.
+      Pecking, places, food, shelters and pockets tuned by measurement on
+      the bundled scenes, then reviewed in the tank.
 
 ### B5. Collisions
 
