@@ -1,6 +1,7 @@
 import type { Rng } from "../core/rng";
 import type { RockworkSpec } from "../scene/schema";
 import type { HalfWidthAt, Prop } from "./layout";
+import { DEFAULT_TAGS } from "../scene/tags";
 import { bandDepthRange, type TankSize } from "./tank";
 
 /**
@@ -156,6 +157,7 @@ export function createRockwork(
       seed: Math.floor(rng.next() * SEED_RANGE),
       elevation: Math.max(heightAt(x, z) - size * ROCK_SINK, 0),
       ...(spec.material === undefined ? {} : { material: spec.material }),
+      tags: DEFAULT_TAGS.rock,
     };
   });
 

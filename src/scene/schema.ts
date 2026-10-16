@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { lightsSchema } from "./lights";
 import { swimSchema } from "./swimming";
+import { tagSchema } from "./tags";
 
 /**
  * Schemas for the two external data files: the species catalog and a scene.
@@ -228,6 +229,8 @@ const flora = z.object({
   /** Color the leaves turn towards the top (red-tipped stem plants); none when absent. */
   tipColor: hexColor.optional(),
   on: placement,
+  /** What the plants are to fish; the kind's tags when absent (see scene/tags). */
+  tags: z.array(tagSchema).optional(),
 });
 
 const prop = z.object({
@@ -242,6 +245,8 @@ const prop = z.object({
   /** Size range (rough diameter, m); each kind has a sensible default. */
   size: orderedPair(z.number().positive(), "size").optional(),
   material: surfaceMaterial.optional(),
+  /** What the items are to fish; the kind's tags when absent (see scene/tags). */
+  tags: z.array(tagSchema).optional(),
 });
 
 const fauna = z.object({

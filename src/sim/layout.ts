@@ -1,5 +1,6 @@
 import type { Rng } from "../core/rng";
 import type { FloraSpec, PropSpec, SurfaceMaterialSpec } from "../scene/schema";
+import { tagsOf } from "../scene/tags";
 import type { Rockwork } from "./rockwork";
 import { bandDepthRange, type TankSize } from "./tank";
 
@@ -25,6 +26,8 @@ export interface Plant {
   readonly elevation?: number;
   /** Color the leaves turn towards the top, when the entry sets one. */
   readonly tipColor?: string;
+  /** What the plant is to fish; see scene/tags. */
+  readonly tags: readonly string[];
 }
 
 export interface Prop {
@@ -41,6 +44,8 @@ export interface Prop {
   readonly material?: SurfaceMaterialSpec;
   /** Height of the base above the sand, m, when set on rockwork. */
   readonly elevation?: number;
+  /** What the item is to fish; see scene/tags. */
+  readonly tags: readonly string[];
 }
 
 /** Keeps objects a little away from the glass and the side walls. */
@@ -148,6 +153,7 @@ export function layoutFlora(
         swayPhase: entryRng.range(0, Math.PI * 2),
         seed: Math.floor(entryRng.next() * SEED_RANGE),
         ...(spec.tipColor === undefined ? {} : { tipColor: spec.tipColor }),
+        tags: tagsOf(spec),
       };
     });
   });
@@ -176,6 +182,7 @@ export function layoutProps(
         rotation: entryRng.range(0, Math.PI * 2),
         seed: Math.floor(entryRng.next() * SEED_RANGE),
         ...(spec.material === undefined ? {} : { material: spec.material }),
+        tags: tagsOf(spec),
       };
     });
   });

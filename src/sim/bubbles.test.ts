@@ -56,9 +56,9 @@ describe("bubblePosition", () => {
 
 describe("bubbleStreamsFromProps", () => {
   const props: Prop[] = [
-    { kind: "starfish", color: "#fff", x: 0, z: -1, size: 0.2, rotation: 0, seed: 1 },
-    { kind: "rock", color: "#666", x: 1, z: -2, size: 0.5, rotation: 0, seed: 2 },
-    { kind: "rock", color: "#666", x: -1, z: -3, size: 0.4, rotation: 0, seed: 3 },
+    { kind: "starfish", color: "#fff", x: 0, z: -1, size: 0.2, rotation: 0, seed: 1, tags: [] },
+    { kind: "rock", color: "#666", x: 1, z: -2, size: 0.5, rotation: 0, seed: 2, tags: [] },
+    { kind: "rock", color: "#666", x: -1, z: -3, size: 0.4, rotation: 0, seed: 3, tags: [] },
   ];
 
   it("starts a stream on top of each rock, up to the limit", () => {
@@ -75,7 +75,7 @@ describe("bubbleStreamsFromProps", () => {
 describe("bubbles switched off", () => {
   it("starts no stream when the scene turns bubbles off", () => {
     const rocks: Prop[] = [
-      { kind: "rock", color: "#666", x: 1, z: -2, size: 0.5, rotation: 0, seed: 1 },
+      { kind: "rock", color: "#666", x: 1, z: -2, size: 0.5, rotation: 0, seed: 1, tags: [] },
     ];
 
     expect(bubbleStreamsFromProps(rocks, 3, 5, false)).toEqual([]);

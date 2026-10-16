@@ -245,7 +245,10 @@ it is on food), `curiosity` (the share of individuals that come to look at a
 finger on the glass) and `shyness` (how far away a tap on the glass startles
 it). An optional `swim` picks how the species swims when nothing calls for its
 attention: `cruise`, `burst-coast`, `hover`, `glide` or `patrol`, each with
-parameters to tune; see [Swimming styles](docs/SWIMMING.md). The catalog
+parameters to tune; see [Swimming styles](docs/SWIMMING.md). Clownfish keep
+station over the nearest anemone: plants and objects carry tags (`anemone`,
+`shelter`, `coral`…) that fish look for, and a scene entry may set its own
+`tags`. The catalog
 includes butterflyfish, moorish idols, emperor angelfish, three-bar damsels and
 purple tangs.
 Files are validated on load; mistakes are reported with the exact field.

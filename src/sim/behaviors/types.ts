@@ -1,6 +1,7 @@
 import { Vector3, type Box3 } from "three";
 import type { Rng } from "../../core/rng";
 import type { SwimParams, SwimStyleId } from "../../scene/swimming";
+import type { PlaceFinder } from "../places";
 
 /**
  * What a fish wants from its swimming style, renewed every step. The
@@ -30,6 +31,11 @@ export interface SwimState {
   turn: number;
   /** The spot a fish keeps station at or patrols around. */
   readonly home: Vector3;
+  /**
+   * The home is a place in the scenery (an anemone…): the fish may leave its
+   * habitat to stay there.
+   */
+  anchored: boolean;
 }
 
 /** What a style may look at. */
@@ -40,6 +46,8 @@ export interface SwimContext {
   /** Body length of the individual, m. */
   readonly length: number;
   readonly rng: Rng;
+  /** The scenery's places, by tag. */
+  readonly places: PlaceFinder;
 }
 
 /**
@@ -68,5 +76,6 @@ export function createSwimState(yaw = 0): SwimState {
     phase: 0,
     turn: 1,
     home: new Vector3(),
+    anchored: false,
   };
 }

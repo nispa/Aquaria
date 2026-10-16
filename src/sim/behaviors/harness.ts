@@ -1,6 +1,7 @@
 import { Box3, Vector3 } from "three";
 import { createRng } from "../../core/rng";
 import { swimSchema, type SwimParams, type SwimStyleId } from "../../scene/swimming";
+import { createPlaceFinder, type Place } from "../places";
 import { createSwimState, type SwimContext, type SwimState, type SwimStyle } from "./types";
 
 /** Test support: drives one style for a fish that stays where the test puts it. */
@@ -16,11 +17,15 @@ export interface StyleRun<Id extends SwimStyleId> {
   run(seconds: number, sample?: (state: SwimState) => void): void;
 }
 
-/** Starts `style` with its default parameters plus `overrides`, in a 4 × 2 × 2 m room. */
+/**
+ * Starts `style` with its default parameters plus `overrides`, in a 4 × 2 × 2 m
+ * room over flat sand, among `places`.
+ */
 export function startStyle<Id extends SwimStyleId>(
   style: SwimStyle<Id>,
   overrides: Partial<SwimParams<Id>> = {},
   seed = 1,
+  places: readonly Place[] = [],
 ): StyleRun<Id> {
   // The schema fills in the defaults; the cast only restores the style's own type.
   const params = swimSchema.parse({ ...overrides, style: style.id }) as SwimParams<Id>;
@@ -29,6 +34,10 @@ export function startStyle<Id extends SwimStyleId>(
     room: new Box3(new Vector3(-2, 0, -2), new Vector3(2, 2, 0)),
     length: BODY_LENGTH,
     rng: createRng(seed),
+    places: createPlaceFinder(
+      () => places,
+      () => 0,
+    ),
   };
   const state = createSwimState();
   style.start(state, params, context);

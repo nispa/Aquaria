@@ -321,6 +321,7 @@ async function start(): Promise<void> {
       startHour,
     });
     nextSimulation.setSeabed((x, z) => nextView.seabedHeight(x, z));
+    nextSimulation.setPlaces(() => nextView.places());
     nextView.resize(window.innerWidth, window.innerHeight);
     return { simulation: nextSimulation, view: nextView };
   };

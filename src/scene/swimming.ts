@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { tagSchema } from "./tags";
 
 /**
  * Swimming styles: how a species moves when nothing else (food, a finger on
@@ -57,6 +58,12 @@ const hover = z.strictObject({
   /** How far a fish strays from its spot before turning back, in body lengths. */
   roamBodyLengths: positive.default(4),
   heightChangeSeconds: positive.default(10),
+  /**
+   * Tag of the place to keep station over, e.g. `anemone` for a clownfish:
+   * the nearest one, even outside the habitat. Without it, or when the
+   * scene has none, the fish keeps station where it started.
+   */
+  home: tagSchema.optional(),
 });
 
 /** Slow and graceful: wide figure eights while rising and sinking. Angelfish, idols. */

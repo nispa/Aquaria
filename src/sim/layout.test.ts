@@ -358,3 +358,30 @@ describe("size override", () => {
     expect(props.every((prop) => prop.size >= 0.1 && prop.size <= 0.15)).toBe(true);
   });
 });
+
+describe("tags", () => {
+  it("gives every plant its kind's tags", () => {
+    const anemones: FloraSpec = {
+      kind: "anemone",
+      count: 2,
+      bands: [0, 1],
+      height: [0.1, 0.2],
+      color: "#d98fb0",
+    };
+
+    const plants = layoutFlora(tank, [anemones], createRng(1));
+
+    expect(plants.map((plant) => plant.tags)).toEqual([
+      ["anemone", "shelter"],
+      ["anemone", "shelter"],
+    ]);
+  });
+
+  it("gives props the tags their entry sets", () => {
+    const rocks: PropSpec = { kind: "rock", count: 1, color: "#888888", tags: ["shelter"] };
+
+    const props = layoutProps(tank, [rocks], createRng(1));
+
+    expect(props[0]?.tags).toEqual(["shelter"]);
+  });
+});

@@ -57,6 +57,8 @@ by Zod. Swimming styles and activities are one file each in
       (e.g. `anemone: [anemone, shelter]`, `starfish: [starfish]`,
       `branch-coral: [coral, shelter]`, `rock: [rock, algae]`). Species
       declare which tags interest them and how much.
+      Tags and places are done (`src/scene/tags.ts`, `src/sim/places.ts`);
+      species interests are still to do.
 - [ ] Activities: `wander`, `inspect` (approach, circle or hover, leave),
       `peck` (head down, short thrusts, mouth opens).
 - [ ] Development overlay showing each fish's activity (dev builds only).
@@ -65,6 +67,8 @@ by Zod. Swimming styles and activities are one file each in
 
 - [ ] `host`: a clownfish adopts an anemone, stays close, nestles in it, and
       hides there when startled.
+      Adopting and staying close is done (`hover` with `home: "anemone"`);
+      nestling and hiding are still to do.
 - [ ] `shelter`: a startled fish heads for the nearest shelter instead of
       only darting away.
 - [ ] `rest`: diurnal species rest near the floor or in a shelter at night;

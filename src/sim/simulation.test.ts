@@ -566,3 +566,55 @@ describe("swimming styles", () => {
     expect(meanDrift(simulation, starts)).toBeLessThan(meanDrift(cruising, cruisingStarts));
   });
 });
+
+describe("hosts", () => {
+  const anemone = { x: 1, z: -2, height: 0.2, tags: ["anemone", "shelter"] };
+  const habitatFloor = 0.3 * sceneFixture().tank.height;
+
+  function simulateHosted(): Simulation {
+    const input = catalogFixture();
+    const tuned = parseCatalog({
+      species: input.species.map((entry) =>
+        entry.id === "blue-tang"
+          ? { ...entry, swim: { style: "hover", home: "anemone", roamBodyLengths: 2 } }
+          : entry,
+      ),
+    });
+    return createSimulation({
+      // A pair, like clownfish: more large fish would push each other away.
+      scene: parseScene({ ...sceneFixture(), fauna: [{ species: "blue-tang", count: 2 }] }, tuned),
+      catalog: tuned,
+      rng: createRng(5),
+    });
+  }
+
+  const farthestFrom = (simulation: Simulation, x: number, z: number) =>
+    Math.max(
+      ...simulation.fish.map((fish) => Math.hypot(fish.position.x - x, fish.position.z - z)),
+    );
+
+  it("brings fish to the nearest anemone and keeps them there, below their habitat", () => {
+    const simulation = simulateHosted();
+    simulation.setPlaces(() => [anemone]);
+
+    run(simulation, 40);
+
+    expect(farthestFrom(simulation, anemone.x, anemone.z)).toBeLessThan(1);
+    expect(Math.max(...simulation.fish.map((fish) => fish.position.y))).toBeLessThan(habitatFloor);
+  });
+
+  it("moves fish to another anemone when the scenery changes", () => {
+    const simulation = simulateHosted();
+    let places = [anemone];
+    simulation.setPlaces(() => places);
+    run(simulation, 20);
+
+    places = [{ ...anemone, x: -2 }];
+    run(simulation, 40);
+
+    const closerToTheOld = simulation.fish.filter(
+      (fish) => Math.abs(fish.position.x - anemone.x) < Math.abs(fish.position.x + 2),
+    );
+    expect(closerToTheOld).toEqual([]);
+  });
+});

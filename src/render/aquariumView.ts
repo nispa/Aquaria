@@ -30,6 +30,7 @@ import type { Scene, SpeciesCatalog } from "../scene/schema";
 import type { Lights } from "../scene/lights";
 import { lookPasses, type Look } from "../scene/look";
 import { layoutFlora, layoutProps } from "../sim/layout";
+import { placesOf, type Place } from "../sim/places";
 import { createLightMixer, cycleHour } from "../sim/lightCycle";
 import { createRockwork, type Rockwork } from "../sim/rockwork";
 import { floorHeight } from "../sim/terrain";
@@ -111,6 +112,11 @@ export interface AquariumView {
    * out here (it follows the camera), so the simulation reads it through the app.
    */
   seabedHeight(x: number, z: number): number;
+  /**
+   * The scenery's places (plants and props with tags) for the simulation; a
+   * new list whenever the scenery is laid out again.
+   */
+  places(): readonly Place[];
   /**
    * Where a spot on the view (normalized device coordinates) meets the front
    * glass, in tank coordinates, written into `out`. False when the spot is
@@ -246,6 +252,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   let props: PropRenderer | undefined;
   let rockwork: RockworkRenderer | undefined;
   let ridge: Rockwork | undefined;
+  let places: readonly Place[] = [];
   let particles: Particles | undefined;
   const frameCamera = (): void => {
     camera.aspect = cssWidth / cssHeight;
@@ -300,6 +307,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       halfWidthAt,
       ridge,
     );
+    places = placesOf(plants, [...(ridge?.rocks ?? []), ...items]);
     flora = createFloraRenderer(plants, water);
     props = createPropRenderer([...(ridge?.rocks ?? []), ...items], water, surfaces);
     if (ridge !== undefined && scene.rockwork !== undefined) {
@@ -433,6 +441,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       return Math.abs(out.x) <= halfWidth && out.y >= 0 && out.y <= scene.tank.height;
     },
     seabedHeight: (x, z) => floorHeight(x, z) + (ridge?.heightAt(x, z) ?? 0),
+    places: () => places,
     render() {
       cycleInput.clockHour = options.clockHour();
       cycleInput.elapsedSeconds = simulation.timeSeconds;

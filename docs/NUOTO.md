@@ -97,9 +97,19 @@ mai all'unisono.
 
 Pesci pagliaccio, gramma, gourami. Il pesce ricorda il punto in cui ha
 cominciato a nuotare liberamente e ci resta: deriva piano, fa piccole
-correzioni e ogni pochi secondi si gira sul posto. Se qualcosa lo ha
-portato via (il cibo, uno spavento, il banco), la virata successiva lo
-riporta verso casa. La quota varia di poco attorno a quella del punto.
+correzioni e ogni pochi secondi si gira sul posto. Appena esce dalla sua
+zona torna indietro; se qualcosa lo ha portato lontano (il cibo, uno
+spavento, il banco) torna a casa a velocità di crociera, scendendo o
+salendo a spirale se la casa è molto più in basso o in alto. La quota varia
+di poco attorno al punto.
+
+Con `home`, il punto è invece un **luogo dello scenario**: la pianta o
+l'oggetto più vicino con quel tag (vedi [Luoghi e tag](#luoghi-e-tag)). Un
+pesce pagliaccio con `"home": "anemone"` resta appena sopra l'anemone più
+vicino, anche quando l'anemone è più in basso del suo habitat: le sue pareti
+morbide si allargano per lasciarlo lì. Se nella scena non ci sono anemoni,
+resta dove ha cominciato. Quando lo scenario cambia (un anemone aggiunto o
+tolto dal pannello, la finestra ridimensionata), sceglie di nuovo.
 
 | Parametro             | Predefinito | Significato                                            |
 | --------------------- | ----------- | ------------------------------------------------------ |
@@ -108,6 +118,7 @@ riporta verso casa. La quota varia di poco attorno a quella del punto.
 | `turnAngle`           | 2,2         | Virata più ampia sul posto, radianti (la minima è 0,4) |
 | `roamBodyLengths`     | 4           | Quanto si allontana dal punto prima di tornare         |
 | `heightChangeSeconds` | 10          | Tempo medio tra piccoli cambi di quota                 |
+| `home`                | nessuno     | Tag del luogo sopra cui restare, es. `anemone`         |
 
 ### `glide`: lenti otto
 
@@ -215,12 +226,34 @@ volta dentro, in un punto a caso del suo habitat: altrimenti ogni nuovo
 arrivato resterebbe sospeso o farebbe la pattuglia proprio accanto alla
 parete da cui è entrato.
 
+### Luoghi e tag
+
+Ogni pianta e oggetto di una scena ha dei **tag** che dicono cosa è per un
+pesce. Ogni tipo ha i suoi ([`src/scene/tags.ts`](../src/scene/tags.ts)):
+gli anemoni sono `anemone` e `shelter`, le rocce `rock` e `algae`, i coralli
+ramificati e a tavola `coral` e `shelter`, e così via. Una voce di scena può
+sostituirli con i propri `tags`, per esempio per fare di un mucchio di rocce
+un nascondiglio:
+
+```json
+{ "kind": "rock", "count": 3, "color": "#7d7468", "tags": ["rock", "shelter"] }
+```
+
+Disposti nella vasca, piante e oggetti con tag diventano **luoghi**
+([`src/sim/places.ts`](../src/sim/places.ts)): una posizione, l'altezza
+della cima e i tag. La vista li passa alla simulazione come fa con il
+fondale, e gli stili li cercano per tag: un pesce chiede "l'`anemone` più
+vicino", mai un tipo, quindi basta cambiare i tag nei dati per dare a una
+specie una nuova casa.
+
 ### La stanza
 
 Gli stili lavorano nella **stanza** del pesce: il suo habitat (fasce di
 profondità e intervallo di quota) meno le pareti morbide che lo spingono
 dentro. Quote e punti di casa sono sempre scelti al suo interno, così uno
 stile non chiede mai a un pesce di lottare contro il proprio habitat.
+L'unica eccezione è una casa in un luogo (`hover` con `home`): le pareti
+morbide del pesce si allargano attorno a quel luogo.
 
 ### Determinismo
 

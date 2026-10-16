@@ -95,9 +95,18 @@ step.
 
 Clownfish, grammas, gouramis. The fish remembers the spot where it started
 swimming freely and keeps station there: it drifts slowly, makes small
-corrections, and every few seconds turns on the spot. If something carried
-it away (food, a fright, its school), the next turn points it back home.
-Its height wanders a little around the height of the spot.
+corrections, and every few seconds turns on the spot. As soon as it drifts
+out of its spot it turns back; if something carried it far away (food, a
+fright, its school) it swims home at cruise speed, circling down or up when
+home is far below or above. Its height wanders a little around the spot.
+
+With `home`, the spot is a **place in the scenery** instead: the nearest
+plant or object with that tag (see [Places and tags](#places-and-tags)). A
+clownfish with `"home": "anemone"` keeps station just above the nearest
+anemone, even when the anemone is lower than its habitat; its soft walls
+widen to let it stay there. If the scene has no anemone, it keeps station
+where it started. When the scenery changes (an anemone added or removed
+from the panel, the window resized), it chooses again.
 
 | Parameter             | Default  | Meaning                                                 |
 | --------------------- | -------- | ------------------------------------------------------- |
@@ -106,6 +115,7 @@ Its height wanders a little around the height of the spot.
 | `turnAngle`           | 2.2      | Largest turn on the spot, radians (the smallest is 0.4) |
 | `roamBodyLengths`     | 4        | How far it strays from its spot before heading back     |
 | `heightChangeSeconds` | 10       | Average time between small changes of height            |
+| `home`                | none     | Tag of the place to keep station over, e.g. `anemone`   |
 
 ### `glide`: slow figure eights
 
@@ -208,12 +218,32 @@ is. A fish that swims in through a side wall starts its style at a random
 spot of its habitat once inside. Otherwise every newcomer would hover or
 patrol right next to the wall it came through.
 
+### Places and tags
+
+Every plant and object of a scene has **tags** that say what it is to a
+fish. Each kind has its own ([`src/scene/tags.ts`](../src/scene/tags.ts)):
+anemones are `anemone` and `shelter`, rocks `rock` and `algae`, branch and
+table corals `coral` and `shelter`, and so on. A scene entry can replace
+them with its own `tags`, e.g. to make one rock pile a hiding place:
+
+```json
+{ "kind": "rock", "count": 3, "color": "#7d7468", "tags": ["rock", "shelter"] }
+```
+
+Laid out in the tank, plants and objects with tags become **places**
+([`src/sim/places.ts`](../src/sim/places.ts)): a position, the height of
+their top and their tags. The view hands them to the simulation the same
+way as the seabed, and styles look them up by tag: a fish asks for "the
+nearest `anemone`", never for a kind, so retagging data is enough to give a
+species a new home.
+
 ### The room
 
 Styles work in the fish's **room**: its habitat (depth bands and height
 range) less the soft walls that push fish back inside. Heights and home
 spots are always picked inside it, so a style never asks a fish to fight
-its own habitat.
+its own habitat. The one exception is a home at a place (`hover` with
+`home`): the fish's soft walls then widen around that place.
 
 ### Determinism
 

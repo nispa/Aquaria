@@ -65,7 +65,8 @@
       "swim": {
         "style": "hover",
         "speed": 0.3,
-        "roamBodyLengths": 5
+        "roamBodyLengths": 1.5,
+        "home": "anemone"
       }
     },
     {

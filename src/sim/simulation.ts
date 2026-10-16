@@ -2,10 +2,12 @@ import { Box3, Vector3 } from "three";
 import { clamp, lerp, smoothstep } from "../core/math";
 import { hashToUnit, type Rng } from "../core/rng";
 import type { Scene, Species, SpeciesCatalog } from "../scene/schema";
+import type { SwimSpec } from "../scene/swimming";
 import { createSwimState, swimStyleOf, type SwimContext, type SwimState } from "./behaviors";
 import { nextGaze, turnIntent } from "./gaze";
 import { createCurrentField, type CurrentField } from "./current";
 import { createFood, type Food } from "./food";
+import { createPlaceFinder, type Place } from "./places";
 import { easeToward, tailEffort, turnBend } from "./posture";
 import {
   addAlignment,
@@ -27,6 +29,12 @@ const SPAWN_OFFSET = 1;
 const EXIT_OFFSET = 1.5;
 /** Soft-wall thickness, in meters (capped for thin habitats). */
 const CONTAINMENT_MARGIN = 0.5;
+/**
+ * A fish whose home is a place in the scenery may leave its habitat to stay
+ * there: its soft walls widen to this many body lengths around the home.
+ */
+const ANCHOR_REACH_BODY_LENGTHS = 4;
+const NO_PLACES: readonly Place[] = [];
 /** Smallest length a randomly drawn individual may have, relative to the mean. */
 const MIN_LENGTH_RATIO = 0.5;
 
@@ -162,6 +170,12 @@ export interface Simulation {
   /** Drops a pinch of food at the surface above (x, z), tank coordinates. */
   dropFood(x: number, z: number): void;
   /**
+   * Sets the places of the scenery (plants and props with tags) fish may
+   * use, e.g. a clownfish's anemone. Read on every step; when it returns a
+   * different list, fish that keep to places choose theirs again.
+   */
+  setPlaces(places: () => readonly Place[]): void;
+  /**
    * Where a viewer's finger rests on the glass (tank coordinates), or
    * undefined when nobody is touching it. Curious fish come to look.
    */
@@ -188,6 +202,11 @@ interface Group {
   target: number;
 }
 
+/** Whether a style keeps a fish at a place of the scenery. */
+function keepsToPlaces(spec: SwimSpec): boolean {
+  return "home" in spec && spec.home !== undefined;
+}
+
 function removeItem<T>(items: T[], item: T): void {
   const index = items.indexOf(item);
   if (index >= 0) items.splice(index, 1);
@@ -202,6 +221,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
   const groups = new Map<string, Group>();
   let nextId = 0;
   let seabed: SeabedHeight = () => 0;
+  let places: () => readonly Place[] = () => NO_PLACES;
+  let knownPlaces = NO_PLACES;
   let timeSeconds = 0;
   // Shares the simulation's generator: it only draws numbers when food is
   // dropped, so a tank nobody feeds plays exactly as before.
@@ -244,6 +265,10 @@ export function createSimulation(options: SimulationOptions): Simulation {
     room: new Box3(),
     length: 0,
     rng,
+    places: createPlaceFinder(
+      () => places(),
+      (x, z) => seabed(x, z),
+    ),
   };
   const arrival = new Vector3();
 
@@ -343,6 +368,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
   let fingerPresent = false;
   const tapPoint = new Vector3();
   const inspectSpot = new Vector3();
+  const walls = new Box3();
+  const reach = new Vector3();
 
   /** Darts away from the last tap. Returns the speed the fish wants. */
   const flee = (group: Group, member: Fish): number => {
@@ -442,8 +469,15 @@ export function createSimulation(options: SimulationOptions): Simulation {
       force.addScaledVector(term, (ALIGNMENT_WEIGHT * species.schooling) / cruise);
     }
 
+    const margin = marginFor(habitat);
+    walls.copy(habitat);
+    if (member.swim.anchored) {
+      reach.setScalar(member.length * ANCHOR_REACH_BODY_LENGTHS + margin);
+      walls.expandByPoint(term.copy(member.swim.home).sub(reach));
+      walls.expandByPoint(term.copy(member.swim.home).add(reach));
+    }
     term.set(0, 0, 0);
-    addContainment(member.position, habitat, marginFor(habitat), term, {
+    addContainment(member.position, walls, margin, term, {
       ignoreX: member.state !== "swimming",
     });
     force.addScaledVector(term, CONTAINMENT_WEIGHT);
@@ -569,6 +603,16 @@ export function createSimulation(options: SimulationOptions): Simulation {
     },
     step(deltaSeconds) {
       let removed = false;
+      const currentPlaces = places();
+      if (currentPlaces !== knownPlaces) {
+        knownPlaces = currentPlaces;
+        for (const group of groups.values()) {
+          if (!keepsToPlaces(group.species.swim)) continue;
+          for (const member of group.members) {
+            if (member.state === "swimming") startSwimming(group, member, member.position);
+          }
+        }
+      }
       food.step(deltaSeconds, timeSeconds, current, seabed);
       for (const group of groups.values()) {
         for (const member of group.members) steer(group, member, deltaSeconds);
@@ -613,6 +657,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
     },
     setSeabed(next) {
       seabed = next;
+    },
+    setPlaces(next) {
+      places = next;
     },
     setCount(speciesId, count) {
       const group = groupOf(speciesId);
