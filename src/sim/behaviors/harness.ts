@@ -17,6 +17,8 @@ import {
 
 export const HARNESS_STEP = 1 / 60;
 const BODY_LENGTH = 0.2;
+/** Two body lengths a second, like a calm reef fish. */
+const CRUISE = 0.4;
 
 export interface StyleRun<Id extends SwimStyleId> {
   readonly state: SwimState;
@@ -40,8 +42,10 @@ export function startStyle<Id extends SwimStyleId>(
   const params = swimSchema.parse({ ...overrides, style: style.id }) as SwimParams<Id>;
   const context = {
     position: new Vector3(0, 1, -1),
+    velocity: new Vector3(CRUISE, 0, 0),
     room: new Box3(new Vector3(-2, 0, -2), new Vector3(2, 2, 0)),
     length: BODY_LENGTH,
+    cruise: CRUISE,
     rng: createRng(seed),
     places: createPlaceFinder(
       () => places,
@@ -108,8 +112,10 @@ export function startActivity<Id extends ActivityId>(
   ] as ActivityParams<Id>;
   const context = {
     position: new Vector3(0, 1, -1),
+    velocity: new Vector3(CRUISE, 0, 0),
     room: new Box3(new Vector3(-2, 0, -2), new Vector3(2, 2, 0)),
     length: BODY_LENGTH,
+    cruise: CRUISE,
     rng: createRng(seed),
     places: createPlaceFinder(
       () => [],

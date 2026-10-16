@@ -172,7 +172,7 @@ si estrae la successiva. Ce ne sono tre:
 | --------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `wander`  | Nuota col suo stile. È quella predefinita.                                                                                |
 | `inspect` | Si avvicina a un luogo, gli gira attorno o resta fermo a guardarlo per qualche secondo, poi se ne va.                     |
-| `peck`    | Scende su un luogo e lo becchetta: brevi scatti a bocca aperta, indietreggiando tra l'uno e l'altro.                      |
+| `peck`    | Scende in planata su un luogo e lo becchetta: si allinea poco prima, scatta a bocca aperta, indietreggia, e di nuovo.     |
 | `rest`    | Nelle sue ore di riposo: si sistema accanto a un rifugio, a metà altezza, o vicino al fondo del suo habitat, quasi fermo. |
 
 Si dichiarano nella voce `activities` della specie:
@@ -346,9 +346,16 @@ I pesci girano attorno agli oggetti solidi e l'uno attorno all'altro
   fa della scartata una curva. Tiene una lunghezza del corpo dagli oggetti
   che ha accanto, e una distanza rigida di 0,4 lunghezze fa scivolare
   fuori il raro pesce che ci finisce dentro lo stesso. Un pesce che
-  becchetta, riposa o si nasconde in un luogo ci si accosta del tutto. Le
-  piante sono morbide: i pesci attraversano il kelp e si infilano negli
-  anemoni. Sabbia e rockwork sono il fondale, come prima.
+  becchetta, riposa o si nasconde in un luogo, entro quattro lunghezze dal
+  luogo smette di guardare avanti e ci si accosta del tutto; lungo la
+  strada aggira quello che c'è in mezzo. Le piante sono morbide: i pesci
+  attraversano il kelp e si infilano negli anemoni.
+- **La rockwork.** Sabbia e rockwork sono il fondale, come prima; in più
+  il pesce guarda avanti se la roccia sale lungo la sua rotta e si alza in
+  tempo per superare una parete.
+- **Luoghi irraggiungibili.** Un luogo la cui cima sta dentro un ostacolo
+  (una pianta cresciuta sotto un legno) viene escluso: nessun pesce ci
+  viene mandato.
 - **Gli altri pesci.** I banchi distanziano i propri membri. In più ogni
   pesce ha uno spazio personale di mezza lunghezza del corpo: i pesci di
   altre specie che ci entrano lo spingono via, il più grande più forte,

@@ -6,10 +6,10 @@ import { peckActivity } from "./peck";
 const place = new Vector3(1, 0.3, -1);
 const LENGTH = 0.2;
 
-/** A pecking fish already right above the place. */
+/** A pecking fish lined up to peck at the place: a little short of it and above it. */
 function arrived(pecks: [number, number] = [3, 7]) {
   const pecking = startActivity(peckActivity, { pecks });
-  pecking.context.position.set(place.x, place.y + LENGTH * 0.8, place.z);
+  pecking.context.position.set(place.x - LENGTH * 0.65, place.y + LENGTH * 0.5, place.z);
   return pecking;
 }
 

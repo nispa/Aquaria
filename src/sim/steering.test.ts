@@ -7,6 +7,7 @@ import {
   addHeading,
   addObstacleAvoidance,
   addSeabedClearance,
+  addSeabedLookAhead,
   addSeparation,
 } from "./steering";
 import { createObstacleField, type Obstacle } from "./obstacles";
@@ -239,6 +240,15 @@ describe("addObstacleAvoidance", () => {
     expect(out.z).toBeLessThan(0);
   });
 
+  it("turns a fish swimming into a nearby obstacle along it instead of braking", () => {
+    const field = createObstacleField([boulder(0.8, 0, 0.1, 0.5)]);
+
+    const out = addObstacleAvoidance(v(0, 0, 0), v(1, 0, 0), field, 0, clearance, v(0, 0, 0));
+
+    expect(out.x).toBeCloseTo(0);
+    expect(out.length()).toBeGreaterThan(0.1);
+  });
+
   it("ignores obstacles off its course", () => {
     const field = createObstacleField([boulder(2, 0, 3, 0.5)]);
 
@@ -250,6 +260,29 @@ describe("addObstacleAvoidance", () => {
       clearance,
       v(0, 0, 0),
     );
+
+    expect(out.toArray()).toEqual([0, 0, 0]);
+  });
+});
+
+describe("addSeabedLookAhead", () => {
+  /** Sand at 0, then a rock face rising to 1 m from x = 2. */
+  const ridge = (x: number) => (x >= 2 ? 1 : 0);
+
+  it("lifts a fish heading for rock that rises ahead of it", () => {
+    const out = addSeabedLookAhead(v(1, 0.3, 0), v(1, 0, 0), ridge, 1.5, 0.2, v(0, 0, 0));
+
+    expect(out.y).toBeGreaterThan(0.5);
+  });
+
+  it("leaves a fish heading away from the rock alone", () => {
+    const out = addSeabedLookAhead(v(1, 0.3, 0), v(-1, 0, 0), ridge, 1.5, 0.2, v(0, 0, 0));
+
+    expect(out.toArray()).toEqual([0, 0, 0]);
+  });
+
+  it("leaves a fish already high enough alone", () => {
+    const out = addSeabedLookAhead(v(1, 1.5, 0), v(1, 0, 0), ridge, 1.5, 0.2, v(0, 0, 0));
 
     expect(out.toArray()).toEqual([0, 0, 0]);
   });

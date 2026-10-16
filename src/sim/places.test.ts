@@ -4,6 +4,7 @@ import { createRng } from "../core/rng";
 import type { Plant, Prop } from "./layout";
 import { propTop } from "./obstacles";
 import { createPlaceFinder, placesOf } from "./places";
+import { floorHeight } from "./terrain";
 
 const plant = (x: number, z: number, tags: readonly string[]): Plant => ({
   kind: "anemone",
@@ -29,6 +30,14 @@ const prop = (x: number, z: number, size: number): Prop => ({
 });
 
 describe("placesOf", () => {
+  it("stands a place where its plant or prop is drawn, sunk into the rockwork or not", () => {
+    const sunk = { ...prop(2, -2, 0.4), elevation: 0.3 };
+
+    const [place] = placesOf([], [sunk]);
+
+    expect(place?.base).toBeCloseTo(floorHeight(2, -2) + 0.3);
+  });
+
   it("makes a place of every plant and prop that has tags", () => {
     const places = placesOf([plant(1, -1, ["anemone"]), plant(0, -1, [])], [prop(2, -2, 0.4)]);
 
@@ -43,10 +52,8 @@ describe("placesOf", () => {
 });
 
 describe("createPlaceFinder", () => {
-  const places = placesOf(
-    [plant(-2, -1, ["anemone"]), plant(2, -1, ["anemone"]), plant(0, -1, ["plant"])],
-    [],
-  );
+  const anemone = (x: number) => ({ x, z: -1, height: 0.2, tags: ["anemone"] });
+  const places = [anemone(-2), anemone(2), { x: 0, z: -1, height: 0.2, tags: ["plant"] }];
   const seabed = (x: number) => (x > 0 ? 0.5 : 0);
 
   it("finds the top of the nearest place with a tag", () => {
@@ -57,6 +64,15 @@ describe("createPlaceFinder", () => {
 
     expect(found).toBe(true);
     expect(top.toArray()).toEqual([2, 0.7, -1]);
+  });
+
+  it("stands a place on its own base rather than the seabed, when it has one", () => {
+    const finder = createPlaceFinder(() => [{ ...anemone(2), base: 0.3 }], seabed);
+    const top = new Vector3();
+
+    finder.nearest("anemone", new Vector3(1, 1, -1), top);
+
+    expect(top.y).toBeCloseTo(0.5);
   });
 
   it("finds nothing when no place has the tag", () => {

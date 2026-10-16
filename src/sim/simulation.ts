@@ -24,7 +24,7 @@ import { createCrowd } from "./crowd";
 import { createCurrentField, type CurrentField } from "./current";
 import { createFood, type Food } from "./food";
 import { createObstacleField, type Obstacle } from "./obstacles";
-import { createPlaceFinder, type Place } from "./places";
+import { createPlaceFinder, topOf, type Place } from "./places";
 import { beamOffset, beamRadius, torchStrength } from "./torch";
 import {
   applyPlay,
@@ -44,6 +44,7 @@ import {
   addHeading,
   addObstacleAvoidance,
   addSeabedClearance,
+  addSeabedLookAhead,
   addSeparation,
   type SeabedHeight,
 } from "./steering";
@@ -80,6 +81,13 @@ const SEABED_BODY_LENGTHS = 1.5;
 const SEABED_MIN_CLEARANCE = 0.08;
 /** Hard limit: a fish's centre never gets closer to the seabed than this, in body lengths. */
 const SEABED_MIN_GAP_BODY_LENGTHS = 0.5;
+/**
+ * At a place (pecking at the sand, resting, hiding) a fish keeps only this
+ * many body lengths off the seabed, and its hard limit shrinks to
+ * CLOSE_IN_SEABED_GAP: its belly may nearly touch, its mouth reach.
+ */
+const CLOSE_IN_SEABED_BODY_LENGTHS = 0.5;
+const CLOSE_IN_SEABED_GAP = 0.3;
 // Obstacles (sim/obstacles). Fish look ahead along their course for the
 // time it takes to swim LOOK_AHEAD_SECONDS (at least LOOK_AHEAD_BODY_LENGTHS)
 // and keep OBSTACLE_BODY_LENGTHS (at least OBSTACLE_MIN_CLEARANCE) off the
@@ -93,6 +101,12 @@ const OBSTACLE_BODY_LENGTHS = 1;
 const OBSTACLE_MIN_CLEARANCE = 0.06;
 const OBSTACLE_GAP_BODY_LENGTHS = 0.4;
 const CLOSE_IN_GAPS = 1.5;
+/** A place is open when this far above its top lies outside every obstacle, m. */
+const OPEN_PROBE = 0.03;
+/** A fish counts as at its place within this many body lengths of it. */
+const CLOSE_IN_BODY_LENGTHS = 4;
+/** At a place, the hard gap shrinks to this share: the body may touch, the mouth reach. */
+const CLOSE_IN_GAP_SHARE = 0.6;
 /** Push away from fish of other species in a fish's personal space (sim/crowd). */
 const CROWD_WEIGHT = 2;
 /** Pull towards the heading the swimming style wants; it only turns the fish. */
@@ -100,6 +114,15 @@ const HEADING_WEIGHT = 0.8;
 /** Pull towards the height the swimming style wants, at full strength this far away, m. */
 const HEIGHT_WEIGHT = 0.5;
 const HEIGHT_PULL_RANGE = 0.3;
+/**
+ * A fish diving steeply (pecking, hiding) aims at its height once within
+ * HEIGHT_PULL_RANGE of it: it climbs or dives at the speed that would get it
+ * there in STEEP_HEIGHT_SECONDS (as steep as it may), matching that speed
+ * within STEEP_RESPONSE_SECONDS. The gentle pull alone would leave a small
+ * fish hovering above a spot, and a stiff one would bob it about.
+ */
+const STEEP_HEIGHT_SECONDS = 0.4;
+const STEEP_RESPONSE_SECONDS = 0.2;
 /** Speed response when food, a finger or a fright sets the pace, 1/s. */
 const SPEED_RESPONSE = 1.5;
 const TRANSIT_PULL = 2;
@@ -362,6 +385,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
   let daylightNow: () => number = () => 1;
   let daylight = 1;
   let knownPlaces = NO_PLACES;
+  /** The places whose top is clear of every obstacle: the only ones fish can get to. */
+  let openPlaces: readonly Place[] = NO_PLACES;
   let timeSeconds = 0;
   // Shares the simulation's generator: it only draws numbers when food is
   // dropped, so a tank nobody feeds plays exactly as before.
@@ -408,11 +433,13 @@ export function createSimulation(options: SimulationOptions): Simulation {
   // What swimming styles see; refilled for each fish, so it is never reallocated.
   const swimContext: { -readonly [Key in keyof SwimContext]: SwimContext[Key] } = {
     position: new Vector3(),
+    velocity: new Vector3(),
     room: new Box3(),
     length: 0,
+    cruise: 0,
     rng,
     places: createPlaceFinder(
-      () => places(),
+      () => openPlaces,
       (x, z) => seabed(x, z),
     ),
   };
@@ -422,8 +449,10 @@ export function createSimulation(options: SimulationOptions): Simulation {
   /** What styles and activities see for this fish, standing at `at`. */
   const contextFor = (group: Group, member: Fish, at: Vector3 = member.position): SwimContext => {
     swimContext.position = at;
+    swimContext.velocity = member.velocity;
     swimContext.room = group.room;
     swimContext.length = member.length;
+    swimContext.cruise = group.species.speed.cruise;
     return swimContext;
   };
 
@@ -535,6 +564,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
   const term = new Vector3();
   const drift = new Vector3();
   const surfaceNormal = new Vector3();
+  const probe = new Vector3();
   const previousVelocity = new Vector3();
   const mouthPosition = new Vector3();
   const finger = new Vector3();
@@ -736,6 +766,27 @@ export function createSimulation(options: SimulationOptions): Simulation {
     return clamp(side, -1, 1);
   };
 
+  /**
+   * Whether the top of a place is clear of the obstacles, its own surface
+   * aside: a plant grown under driftwood is out of reach, inside its shape.
+   */
+  const isOpen = (place: Place): boolean => {
+    probe.set(place.x, topOf(place, seabed) + OPEN_PROBE, place.z);
+    return obstacleField.distance(probe, surfaceNormal, OPEN_PROBE) > 0;
+  };
+
+  /**
+   * Whether a fish is at its place (pecking, resting, hiding…), within
+   * CLOSE_IN_BODY_LENGTHS of it, where it may come right up to the rock. On
+   * the way there it still looks ahead and swims around what is in between.
+   */
+  const closeIn = (member: Fish): boolean => {
+    const { activity, length, position } = member;
+    const reach = length * CLOSE_IN_BODY_LENGTHS;
+    if (member.hiding > 0) return position.distanceTo(member.refuge) < reach;
+    return activityOf(activity.id).atPlace && position.distanceTo(activity.target) < reach;
+  };
+
   const steer = (group: Group, member: Fish, deltaSeconds: number): void => {
     const { species, habitat } = group;
     const cruise = species.speed.cruise;
@@ -785,24 +836,30 @@ export function createSimulation(options: SimulationOptions): Simulation {
     force.addScaledVector(term, CONTAINMENT_WEIGHT);
 
     term.set(0, 0, 0);
-    const clearance = Math.max(member.length * SEABED_BODY_LENGTHS, SEABED_MIN_CLEARANCE);
+    const clearance = closeIn(member)
+      ? member.length * CLOSE_IN_SEABED_BODY_LENGTHS
+      : Math.max(member.length * SEABED_BODY_LENGTHS, SEABED_MIN_CLEARANCE);
     addSeabedClearance(member.position, seabed, clearance, term);
     force.addScaledVector(term, SEABED_WEIGHT);
 
     term.set(0, 0, 0);
-    const closeIn = member.hiding > 0 || activityOf(activity.id).atPlace;
-    const gap = member.length * OBSTACLE_GAP_BODY_LENGTHS;
-    const lookAhead = closeIn
+    const atPlace = closeIn(member);
+    const gap = member.length * OBSTACLE_GAP_BODY_LENGTHS * (atPlace ? CLOSE_IN_GAP_SHARE : 1);
+    const lookAhead = atPlace
       ? 0
       : Math.max(
           member.velocity.length() * LOOK_AHEAD_SECONDS,
           member.length * LOOK_AHEAD_BODY_LENGTHS,
         );
-    const keepOff = closeIn
+    const keepOff = atPlace
       ? gap * CLOSE_IN_GAPS
       : Math.max(member.length * OBSTACLE_BODY_LENGTHS, OBSTACLE_MIN_CLEARANCE);
     addObstacleAvoidance(member.position, member.velocity, obstacleField, lookAhead, keepOff, term);
     force.addScaledVector(term, OBSTACLE_WEIGHT);
+    // Rock faces of the rockwork, seen coming like the props.
+    term.set(0, 0, 0);
+    addSeabedLookAhead(member.position, member.velocity, seabed, lookAhead, clearance, term);
+    force.addScaledVector(term, SEABED_WEIGHT);
 
     const { swim } = member;
     if (member.state === "swimming") {
@@ -833,8 +890,14 @@ export function createSimulation(options: SimulationOptions): Simulation {
       term.set(0, 0, 0);
       addHeading(member.velocity, swim.yaw, term);
       force.addScaledVector(term, HEADING_WEIGHT);
-      force.y +=
-        HEIGHT_WEIGHT * clamp((swim.height - member.position.y) / HEIGHT_PULL_RANGE, -1, 1);
+      const rise = swim.height - member.position.y;
+      if (swim.steep && Math.abs(rise) < HEIGHT_PULL_RANGE) {
+        const steepest = member.velocity.length() * FEEDING_VERTICAL_RATIO;
+        const wanted = clamp(rise / STEEP_HEIGHT_SECONDS, -steepest, steepest);
+        force.y += (wanted - member.velocity.y) / STEEP_RESPONSE_SECONDS / cruise;
+      } else {
+        force.y += HEIGHT_WEIGHT * clamp(rise / HEIGHT_PULL_RANGE, -1, 1);
+      }
     } else {
       // Entering fish head inwards (away from their side), leaving fish head out.
       const direction = member.state === "entering" ? -member.side : member.side;
@@ -907,14 +970,16 @@ export function createSimulation(options: SimulationOptions): Simulation {
     // Steering keeps fish clear of the rock; this stops the rare one that
     // still dives into it (fast fish, steep faces) from passing through.
     const floor =
-      seabed(member.position.x, member.position.z) + member.length * SEABED_MIN_GAP_BODY_LENGTHS;
+      seabed(member.position.x, member.position.z) +
+      member.length * (closeIn(member) ? CLOSE_IN_SEABED_GAP : SEABED_MIN_GAP_BODY_LENGTHS);
     if (member.position.y < floor) {
       member.position.y = floor;
       member.velocity.y = Math.max(member.velocity.y, 0);
     }
     // Likewise for the rocks: slide it out along the surface. Its velocity is
     // left to the steering, which turns it within what its body can.
-    const gap = member.length * OBSTACLE_GAP_BODY_LENGTHS;
+    const gap =
+      member.length * OBSTACLE_GAP_BODY_LENGTHS * (closeIn(member) ? CLOSE_IN_GAP_SHARE : 1);
     const inside = obstacleField.distance(member.position, surfaceNormal, gap);
     if (inside < gap) member.position.addScaledVector(surfaceNormal, gap - inside);
     member.swimPhase +=
@@ -968,13 +1033,15 @@ export function createSimulation(options: SimulationOptions): Simulation {
         for (const member of group.members) group.alarm = Math.max(group.alarm, member.fear);
       }
       const currentObstacles = obstacles();
-      if (currentObstacles !== knownObstacles) {
+      const obstaclesChanged = currentObstacles !== knownObstacles;
+      if (obstaclesChanged) {
         knownObstacles = currentObstacles;
         obstacleField = createObstacleField(currentObstacles);
       }
       const currentPlaces = places();
-      if (currentPlaces !== knownPlaces) {
+      if (currentPlaces !== knownPlaces || obstaclesChanged) {
         knownPlaces = currentPlaces;
+        openPlaces = currentPlaces.filter(isOpen);
         // The places fish were heading for may be gone: choose again.
         for (const group of groups.values()) {
           for (const member of group.members) {

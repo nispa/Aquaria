@@ -2,6 +2,7 @@ import type { Box3, Vector3 } from "three";
 import type { Rng } from "../core/rng";
 import type { Plant, Prop } from "./layout";
 import { propTop } from "./obstacles";
+import { floorHeight } from "./terrain";
 import type { SeabedHeight } from "./steering";
 
 /**
@@ -15,15 +16,38 @@ export interface Place {
   readonly z: number;
   /** Height of the top above the place's base, m. */
   readonly height: number;
+  /**
+   * Height of its base, m, where its plant or prop is drawn (a rock sits
+   * sunk into the rockwork); the seabed under it when not given.
+   */
+  readonly base?: number;
   readonly tags: readonly string[];
 }
 
 /** The places of a laid-out scenery: every plant and prop with at least one tag. */
 export function placesOf(plants: readonly Plant[], props: readonly Prop[]): Place[] {
+  const baseOf = (x: number, z: number, elevation = 0): number => floorHeight(x, z) + elevation;
   return [
-    ...plants.map(({ x, z, height, tags }) => ({ x, z, height, tags })),
-    ...props.map(({ kind, x, z, size, tags }) => ({ x, z, height: propTop(kind, size), tags })),
+    ...plants.map(({ x, z, height, tags, elevation }) => ({
+      x,
+      z,
+      height,
+      tags,
+      base: baseOf(x, z, elevation),
+    })),
+    ...props.map(({ kind, x, z, size, tags, elevation }) => ({
+      x,
+      z,
+      height: propTop(kind, size),
+      tags,
+      base: baseOf(x, z, elevation),
+    })),
   ].filter((place) => place.tags.length > 0);
+}
+
+/** The height of a place's top, m, on its own base or the seabed under it. */
+export function topOf(place: Place, seabed: SeabedHeight): number {
+  return (place.base ?? seabed(place.x, place.z)) + place.height;
 }
 
 /** Looks up places by tag. */
@@ -68,8 +92,8 @@ function interestIn(place: Place, interests: Readonly<Record<string, number>>): 
 }
 
 /**
- * Finds places among the current ones. The base of a place is the seabed
- * under it, so places on rockwork stand on the rock.
+ * Finds places among the current ones. A place stands on its own base, or
+ * on the seabed under it, so places on rockwork stand on the rock.
  */
 export function createPlaceFinder(
   places: () => readonly Place[],
@@ -88,7 +112,7 @@ export function createPlaceFinder(
         }
       }
       if (best === undefined) return false;
-      top.set(best.x, seabed(best.x, best.z) + best.height, best.z);
+      top.set(best.x, topOf(best, seabed), best.z);
       return true;
     },
     pick(interests, from, radius, within, rng, top) {
@@ -98,7 +122,7 @@ export function createPlaceFinder(
         if (distance > radius) return 0;
         const interest = interestIn(place, interests);
         if (interest === 0) return 0;
-        top.set(place.x, seabed(place.x, place.z) + place.height, place.z);
+        top.set(place.x, topOf(place, seabed), place.z);
         return within.containsPoint(top) ? interest / (1 + distance / radius) : 0;
       };
       const current = places();

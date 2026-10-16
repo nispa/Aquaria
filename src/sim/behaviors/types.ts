@@ -46,10 +46,14 @@ export interface SwimState {
 /** What a style may look at. */
 export interface SwimContext {
   readonly position: Vector3;
+  /** How the fish moves now, m/s. */
+  readonly velocity: Vector3;
   /** The part of the habitat a fish can roam without being pushed back by its walls. */
   readonly room: Box3;
   /** Body length of the individual, m. */
   readonly length: number;
+  /** Cruise speed of its species, m/s: what a `speed` of 1 means. */
+  readonly cruise: number;
   readonly rng: Rng;
   /** The scenery's places, by tag. */
   readonly places: PlaceFinder;

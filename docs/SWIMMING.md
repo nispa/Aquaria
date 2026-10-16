@@ -163,12 +163,12 @@ A style says _how_ a fish swims; an **activity** says _what it is doing_.
 Every fish has one at a time, with a duration; when it ends, the next one
 is drawn. Three exist:
 
-| Activity  | What the fish does                                                                                            |
-| --------- | ------------------------------------------------------------------------------------------------------------- |
-| `wander`  | Swims about in its own style. The default.                                                                    |
-| `inspect` | Swims up to a place, circles it or hovers facing it for a few seconds, then swims off.                        |
-| `peck`    | Dives to a place and picks at it: short darts with the mouth open, backing off in between, then off.          |
-| `rest`    | In its hours of rest: settles beside a shelter, halfway up, or near the bottom of its habitat, barely moving. |
+| Activity  | What the fish does                                                                                                          |
+| --------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `wander`  | Swims about in its own style. The default.                                                                                  |
+| `inspect` | Swims up to a place, circles it or hovers facing it for a few seconds, then swims off.                                      |
+| `peck`    | Comes down a slope onto a place and picks at it: lines up just short of it, darts in with the mouth open, backs off, again. |
+| `rest`    | In its hours of rest: settles beside a shelter, halfway up, or near the bottom of its habitat, barely moving.               |
 
 Declare them in the species' `activities` entry:
 
@@ -334,9 +334,15 @@ Fish swim around the solid scenery and around each other
   across its course, so it swerves without slowing, and the inertia keeps
   the swerve a curve. It keeps a body length off objects beside it, and a
   hard gap of 0.4 body lengths slides out the rare one that still dives
-  in. A fish pecking, resting or hiding at a place comes right up to it.
-  Plants are soft: fish swim through kelp and nestle in anemones. The
-  sand and the rockwork are the seabed, as before.
+  in. Within four body lengths of the place it is pecking, resting or
+  hiding at, a fish stops looking ahead and comes right up to it; on the
+  way there it swims around what is in between. Plants are soft: fish
+  swim through kelp and nestle in anemones.
+- **The rockwork.** The sand and the rockwork are the seabed, as before;
+  besides, a fish looks ahead for the rock rising along its course and
+  climbs in time to clear a rock face.
+- **Places out of reach.** A place whose top lies inside an obstacle (a
+  plant grown under driftwood) is left out: no fish is sent there.
 - **Other fish.** Schools space their own members. Besides, every fish
   has a personal space of half a body length: fish of other species in it
   push it away, the larger pushing harder, so a tetra gives way to an

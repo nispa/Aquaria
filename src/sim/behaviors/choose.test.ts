@@ -14,6 +14,8 @@ function contextAmong(places: readonly Place[], seed = 1): SwimContext {
     position: new Vector3(0, 1, -1),
     room: new Box3(new Vector3(-2, 0, -2), new Vector3(2, 2, 0)),
     length: 0.2,
+    velocity: new Vector3(0.4, 0, 0),
+    cruise: 0.4,
     rng: createRng(seed),
     places: createPlaceFinder(
       () => places,

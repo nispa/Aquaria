@@ -686,6 +686,33 @@ describe("activities", () => {
     expect(closestOpen).toBeLessThan(0.3);
   });
 
+  it("brings the mouth of a pecking fish to the place it pecks at", () => {
+    const simulation = simulateActive({
+      wander: { seconds: [1, 2] },
+      peck: { weight: 3, tags: { algae: 1 } },
+    });
+    const mouth = new Vector3();
+    let gaps = 0;
+    let darts = 0;
+
+    for (let elapsed = 0; elapsed < 90; elapsed += STEP) {
+      simulation.step(STEP);
+      for (const fish of simulation.fish) {
+        if (fish.activity.id !== "peck" || fish.mouth < 0.9) continue;
+        // The mouth leads the body by half its length.
+        mouth
+          .copy(fish.velocity)
+          .setLength(fish.length / 2)
+          .add(fish.position);
+        gaps += mouth.distanceTo(fish.activity.target) / fish.length;
+        darts += 1;
+      }
+    }
+
+    expect(darts).toBeGreaterThan(0);
+    expect(gaps / darts).toBeLessThan(0.4);
+  });
+
   it("lets fish come and look at a place they care about", () => {
     const simulation = simulateActive({
       wander: { seconds: [1, 2] },
@@ -1225,6 +1252,49 @@ describe("obstacles", () => {
     simulation.setObstacles(() => boulders);
 
     expect(observe(simulation, 20, 0).deepest).toBeGreaterThan(0);
+  });
+
+  it("never sends a fish to a place buried in a rock", () => {
+    const input = catalogFixture();
+    const tuned = parseCatalog({
+      species: input.species.map((entry) =>
+        entry.id === "blue-tang"
+          ? {
+              ...entry,
+              activities: { wander: { seconds: [1, 2] }, peck: { weight: 3, tags: { algae: 1 } } },
+            }
+          : entry,
+      ),
+    });
+    const simulation = createSimulation({
+      scene: parseScene({ ...sceneFixture(), fauna: [{ species: "blue-tang", count: 4 }] }, tuned),
+      catalog: tuned,
+      rng: createRng(2),
+    });
+    const buried = { x: 0, z: -2, height: 0.1, tags: ["algae"] };
+    const open = { x: 2, z: -2, height: 0.1, tags: ["algae"] };
+    const places = [buried, open];
+    const boulder: Obstacle[] = [
+      {
+        center: new Vector3(0, 0.2, -2),
+        radii: new Vector3(0.6, 0.6, 0.6),
+        cos: 1,
+        sin: 0,
+        reach: 0.6,
+      },
+    ];
+    simulation.setPlaces(() => places);
+    simulation.setObstacles(() => boulder);
+    const targets = new Set<number>();
+
+    for (let elapsed = 0; elapsed < 60; elapsed += STEP) {
+      simulation.step(STEP);
+      for (const fish of simulation.fish) {
+        if (fish.activity.id === "peck") targets.add(fish.activity.target.x);
+      }
+    }
+
+    expect([...targets]).toEqual([open.x]);
   });
 
   it("steers fish around rocks instead of scraping along them", () => {

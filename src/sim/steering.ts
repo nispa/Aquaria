@@ -143,6 +143,29 @@ export function addSeabedClearance(
   return out;
 }
 
+/**
+ * Looks `lookAhead` m along the fish's course, seen from above: where the
+ * seabed rises there to within `clearance` of the fish's height, it lifts the
+ * fish in time to clear it, instead of meeting a rock face head on. Up to
+ * unit strength, linear in how far short it would fall.
+ */
+export function addSeabedLookAhead(
+  position: Vector3,
+  velocity: Vector3,
+  seabed: SeabedHeight,
+  lookAhead: number,
+  clearance: number,
+  out: Vector3,
+): Vector3 {
+  const speed = Math.hypot(velocity.x, velocity.z);
+  if (speed < NEGLIGIBLE || lookAhead <= 0) return out;
+  const x = position.x + (velocity.x / speed) * lookAhead;
+  const z = position.z + (velocity.z / speed) * lookAhead;
+  const short = seabed(x, z) + clearance - position.y;
+  if (short > 0) out.y += Math.min(short / clearance, 1);
+  return out;
+}
+
 /** Below this, a direction counts as zero length. */
 const NEGLIGIBLE = 1e-9;
 
@@ -191,7 +214,9 @@ const lookout = new Vector3();
  * course: an obstacle there within `clearance` turns it aside, across its
  * velocity (towards the open side, or over a head-on obstacle), so it swerves
  * without slowing. An obstacle already within `clearance` of the fish pushes
- * it straight away. Both grow linearly the closer the surface. Allocation-free.
+ * it away, but only across its velocity while it swims towards it: it turns
+ * along the surface instead of braking against it. Both grow linearly the
+ * closer the surface. Allocation-free.
  */
 export function addObstacleAvoidance(
   position: Vector3,
@@ -201,18 +226,30 @@ export function addObstacleAvoidance(
   clearance: number,
   out: Vector3,
 ): Vector3 {
-  const near = field.distance(position, surfaceNormal, clearance);
-  if (near < clearance) out.addScaledVector(surfaceNormal, (clearance - near) / clearance);
   const speed = velocity.length();
+  const near = field.distance(position, surfaceNormal, clearance);
+  if (near < clearance) {
+    const push = (clearance - near) / clearance;
+    if (speed >= NEGLIGIBLE && surfaceNormal.dot(velocity) < 0) turnAside(velocity, speed);
+    out.addScaledVector(surfaceNormal, push);
+  }
   if (speed < NEGLIGIBLE || lookAhead <= 0) return out;
   lookout.copy(position).addScaledVector(velocity, lookAhead / speed);
   const ahead = field.distance(lookout, surfaceNormal, clearance);
   if (ahead >= clearance) return out;
-  // The surface normal less its part along the course: which way is open.
+  turnAside(velocity, speed);
+  return out.addScaledVector(surfaceNormal, Math.min((clearance - ahead) / clearance, 1));
+}
+
+/**
+ * Turns `surfaceNormal` into the unit direction across `velocity` that
+ * leads away from the surface: the normal less its part along the course, or
+ * the fish's left when the surface is dead ahead.
+ */
+function turnAside(velocity: Vector3, speed: number): void {
   const along = surfaceNormal.dot(velocity) / speed;
   surfaceNormal.addScaledVector(velocity, -along / speed);
   const across = surfaceNormal.length();
   if (across < NEGLIGIBLE) surfaceNormal.set(-velocity.z, 0, velocity.x).normalize();
   else surfaceNormal.divideScalar(across);
-  return out.addScaledVector(surfaceNormal, Math.min((clearance - ahead) / clearance, 1));
 }
