@@ -3,6 +3,8 @@ import { Vector3 } from "three";
 import { createFixedStepClock } from "../core/clock";
 import { createEventBus } from "../core/eventBus";
 import { createFpsMeter } from "../core/fps";
+import { createFrameLimiter } from "../core/frameLimiter";
+import { createResolutionGovernor, type ResolutionGovernor } from "../core/resolutionGovernor";
 import { classifyGpu, shortGpuName } from "../core/gpu";
 import { consoleSink, createLogger } from "../core/logger";
 import { createRng } from "../core/rng";
@@ -31,10 +33,15 @@ import { parseCatalog, parseScene, SceneValidationError } from "../scene/parse";
 import type { Scene, SpeciesCatalog } from "../scene/schema";
 import {
   applyCountOverrides,
+  autoResolutionOf,
   DEFAULT_MSAA_SAMPLES,
+  FRAME_LIMIT_CHOICES,
+  frameLimitOf,
+  MIN_RENDER_HEIGHT,
   MSAA_SAMPLE_CHOICES,
   defaultRenderHeight,
   parseSettings,
+  type FrameLimit,
   type Settings,
 } from "../scene/settings";
 import type { Lights } from "../scene/lights";
@@ -62,6 +69,15 @@ const SIMULATION_STEP_SECONDS = 1 / 60;
 /** Longest frame accepted; after a tab switch the tank resumes instead of jumping. */
 const MAX_FRAME_SECONDS = 0.25;
 const FPS_WINDOW_SECONDS = 1;
+/**
+ * Share of each frame the GPU may spend on the aquarium: the rest stays free
+ * for the desktop and the other windows, or the whole screen can stall.
+ */
+const GPU_FRAME_SHARE = 0.75;
+/** Frames per second the budget is set for when there is no frame limit. */
+const UNLIMITED_BUDGET_FPS = 60;
+/** The automatic resolution moves in steps of this many pixels. */
+const RESOLUTION_STEP = 60;
 const MS_PER_SECOND = 1000;
 const CLOCK_REFRESH_MS = 1000;
 const MINUTES_PER_HOUR = 60;
@@ -372,7 +388,25 @@ async function start(): Promise<void> {
   };
   window.addEventListener("resize", () => {
     view.resize(window.innerWidth, window.innerHeight);
+    governor.setMax(highestHeight());
   });
+
+  // Never draw more pixels than the screen has: the chosen resolution is a ceiling.
+  const highestHeight = (): number => {
+    const screenPixels = window.innerHeight * window.devicePixelRatio;
+    const screen = Math.ceil(screenPixels / RESOLUTION_STEP) * RESOLUTION_STEP;
+    return Math.max(Math.min(settings.renderHeight, screen), MIN_RENDER_HEIGHT);
+  };
+  const createGovernor = (limit: FrameLimit, start: number): ResolutionGovernor =>
+    createResolutionGovernor({
+      min: MIN_RENDER_HEIGHT,
+      max: highestHeight(),
+      step: RESOLUTION_STEP,
+      start,
+      budgetMs: (GPU_FRAME_SHARE * MS_PER_SECOND) / (limit === 0 ? UNLIMITED_BUDGET_FPS : limit),
+    });
+  let governor = createGovernor(frameLimitOf(settings), highestHeight());
+  let limiter = createFrameLimiter(frameLimitOf(settings));
 
   // Slider drags fire many events per frame; rebuild the scenery at most once per frame.
   let sceneryRebuildPending = false;
@@ -422,6 +456,9 @@ async function start(): Promise<void> {
       ),
       drawPortraits,
       renderHeight: settings.renderHeight,
+      frameLimit: frameLimitOf(settings),
+      frameLimitChoices: FRAME_LIMIT_CHOICES,
+      autoResolution: autoResolutionOf(settings),
       showFps: settings.showFps,
       realistic: settings.realistic === true,
       msaaSamples: settings.msaaSamples ?? DEFAULT_MSAA_SAMPLES,
@@ -485,8 +522,18 @@ async function start(): Promise<void> {
         designer.toggle();
       },
       onRenderHeightChange(height) {
-        view.setRenderHeight(height);
         update({ renderHeight: height });
+        governor.setMax(highestHeight());
+      },
+      onFrameLimitChange(limit) {
+        const choice = FRAME_LIMIT_CHOICES.find((candidate) => candidate === limit);
+        if (choice === undefined) return;
+        update({ frameLimit: choice });
+        limiter = createFrameLimiter(choice);
+        governor = createGovernor(choice, governor.height);
+      },
+      onAutoResolutionChange(enabled) {
+        update({ autoResolution: enabled });
       },
       onMsaaChange(samples) {
         const choice = MSAA_SAMPLE_CHOICES.find((candidate) => candidate === samples);
@@ -625,17 +672,36 @@ async function start(): Promise<void> {
   const activityOverlay = createActivityOverlay(document.body);
   const project: ScreenProjection = (point, out) => view.screenPoint(point, out);
   let previous: number | undefined;
+  let previousDrawn: number | undefined;
+  // The view the height was last set on, and the height: a new scene brings a new view.
+  let sizedView: AquariumView | undefined;
+  let drawnHeight = 0;
   const frame = (now: number): void => {
+    window.requestAnimationFrame(frame);
     const delta = previous === undefined ? 0 : (now - previous) / MS_PER_SECOND;
     previous = now;
     const steps = clock.advance(delta);
     for (let step = 0; step < steps; step += 1) simulation.step(clock.stepSeconds);
+    if (!limiter.due(now)) return;
+    const intervalMs = previousDrawn === undefined ? 0 : now - previousDrawn;
+    previousDrawn = now;
+    const automatic = autoResolutionOf(settings);
+    const height = automatic ? governor.height : highestHeight();
+    if (view !== sizedView || height !== drawnHeight) {
+      view.setRenderHeight(height);
+      sizedView = view;
+      drawnHeight = height;
+    }
     view.render();
     activityOverlay.draw(simulation.fish, simulation.gesture, view.obstacles(), project);
-    fps.frame(delta);
-    if (settings.showFps) panel.setFps(fps.fps);
+    if (automatic && intervalMs > 0) {
+      // Without a GPU timer, frames arriving late are the only sign of a busy GPU.
+      const cost = view.gpuMs() ?? intervalMs * GPU_FRAME_SHARE;
+      governor.frame(cost, intervalMs / MS_PER_SECOND);
+    }
+    fps.frame(intervalMs / MS_PER_SECOND);
+    if (settings.showFps) panel.setFps(fps.fps, drawnHeight);
     panel.setHour(view.hour());
-    window.requestAnimationFrame(frame);
   };
   window.requestAnimationFrame(frame);
   document.body.dataset.state = "ready";

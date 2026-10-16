@@ -76,7 +76,9 @@ URL options:
 | `effects` | `?effects=shadows,bloom` | Enables exactly these effects (`none` for all off) |
 | `hour`    | `?hour=21.5`             | Pins the aquarium time (for demos and screenshots) |
 
-Panel settings (populations, fish size, scenery, lights, effects, resolution, fps counter) are saved in the browser.
+Panel settings (populations, fish size, scenery, lights, effects, resolution, frame limit, fps counter) are saved in the browser.
+The resolution follows the GPU by default (_Automatic resolution_ in the Quality section): the
+aquarium never takes the whole GPU, which on some machines stalls the whole screen.
 
 ## Online version
 

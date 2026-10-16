@@ -30,6 +30,7 @@ import type { Scene, SpeciesCatalog } from "../scene/schema";
 import type { Lights } from "../scene/lights";
 import { lookPasses, type Look } from "../scene/look";
 import { layoutFlora, layoutProps } from "../sim/layout";
+import { createGpuTimer } from "./gpuTimer";
 import { obstaclesOf, type Obstacle } from "../sim/obstacles";
 import { placesOf, type Place } from "../sim/places";
 import { createLightMixer, cycleHour, daylight } from "../sim/lightCycle";
@@ -140,6 +141,11 @@ export interface AquariumView {
   aimTorch(point: Vector3 | undefined): void;
   /** The WebGL renderer string: which GPU the browser actually draws with. */
   gpuName(): string;
+  /**
+   * How long the GPU took to draw a recent frame, ms, or undefined when the
+   * browser cannot tell (no timer query) or nothing has come back yet.
+   */
+  gpuMs(): number | undefined;
   /** Hour of the aquarium day shown by the last frame. */
   hour(): number;
   /** How much of a day it is at that hour, 0 (night) .. 1 (full day). */
@@ -170,6 +176,8 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     antialias: false,
     powerPreference: "high-performance",
   });
+  const gl = renderer.getContext();
+  const gpuTimer = gl instanceof WebGL2RenderingContext ? createGpuTimer(gl) : undefined;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = BASE_EXPOSURE;
   renderer.shadowMap.type = PCFShadowMap;
@@ -488,8 +496,11 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       instances.forEach((instance) => {
         instance.update?.();
       });
+      gpuTimer?.begin();
       composer?.render();
+      gpuTimer?.end();
     },
+    gpuMs: () => gpuTimer?.latestMs(),
     resize(width, height) {
       cssWidth = Math.max(width, 1);
       cssHeight = Math.max(height, 1);
@@ -509,6 +520,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       buildScenery();
     },
     dispose() {
+      gpuTimer?.dispose();
       disposePipeline();
       environment.dispose();
       flora?.dispose();

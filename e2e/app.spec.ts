@@ -89,19 +89,46 @@ test("keeps the advanced sections closed until opened, and remembers them", asyn
   await expect(page.getByRole("button", { name: "Full HD" })).toBeVisible();
 });
 
+const bufferHeight = (page: Page) =>
+  page.locator("#aquarium").evaluate((canvas) => (canvas as HTMLCanvasElement).height);
+
 test("changes the resolution from the panel", async ({ page }) => {
   await openLive(page);
   await waitForState(page);
   await page.keyboard.press("h");
   await openSection(page, "quality");
+  await page.getByLabel("Automatic resolution").uncheck();
+
+  await page.locator('input[name="resolution"]').evaluate((input) => {
+    (input as HTMLInputElement).value = "600";
+    input.dispatchEvent(new Event("input"));
+  });
+
+  await expect(page.locator("output").filter({ hasText: "600p" })).toBeVisible();
+  await expect.poll(() => bufferHeight(page)).toBe(600);
+});
+
+test("never draws more pixels than the screen has", async ({ page }) => {
+  await openLive(page);
+  await waitForState(page);
+  await page.keyboard.press("h");
+  await openSection(page, "quality");
+  await page.getByLabel("Automatic resolution").uncheck();
 
   await page.getByRole("button", { name: "Full HD" }).click();
 
   await expect(page.locator("output").filter({ hasText: "1080p" })).toBeVisible();
-  const bufferHeight = await page
-    .locator("#aquarium")
-    .evaluate((canvas) => (canvas as HTMLCanvasElement).height);
-  expect(bufferHeight).toBe(1080);
+  // The test window is 720 pixels tall: Full HD is only the ceiling.
+  await expect.poll(() => bufferHeight(page)).toBe(720);
+});
+
+test("offers a frame limit, 60 by default", async ({ page }) => {
+  await openLive(page);
+  await waitForState(page);
+  await page.keyboard.press("h");
+  await openSection(page, "quality");
+
+  await expect(page.locator('select[name="frame-limit"]')).toHaveValue("60");
 });
 
 test("draws a picture of each fish on its card", async ({ page }) => {

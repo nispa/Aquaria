@@ -9,18 +9,33 @@ import {
 } from "./schema";
 
 /** Lowest render height offered, for weak GPUs (half of Full HD). */
-const MIN_RENDER_HEIGHT = FULL_HD_HEIGHT / 2;
+export const MIN_RENDER_HEIGHT = FULL_HD_HEIGHT / 2;
 
 /** Multisample anti-aliasing: smooth edges at a moderate cost in 4K memory. */
 export const DEFAULT_MSAA_SAMPLES = 2;
 export const MSAA_SAMPLE_CHOICES = [0, 2, 4, 8] as const;
 export type MsaaSamples = (typeof MSAA_SAMPLE_CHOICES)[number];
 
+/**
+ * Frames drawn per second at most: 30, 60, or 0 for as many as the display
+ * shows. A limit leaves the GPU room for the rest of the computer.
+ */
+export const FRAME_LIMIT_CHOICES = [30, 60, 0] as const;
+export type FrameLimit = (typeof FRAME_LIMIT_CHOICES)[number];
+export const DEFAULT_FRAME_LIMIT: FrameLimit = 60;
+
 /** Viewer preferences saved in the browser. */
 export const settingsSchema = z.object({
   /** Height of the drawing buffer in pixels; the canvas always fills the screen. */
   renderHeight: z.number().int().min(MIN_RENDER_HEIGHT).max(UHD_HEIGHT).default(UHD_HEIGHT),
   showFps: z.boolean().default(false),
+  /** Frames per second at most (FRAME_LIMIT_CHOICES); DEFAULT_FRAME_LIMIT when absent. */
+  frameLimit: z.union(FRAME_LIMIT_CHOICES.map((limit) => z.literal(limit))).optional(),
+  /**
+   * Whether the resolution drops when the GPU cannot keep up (and climbs
+   * back, up to `renderHeight`); on when absent.
+   */
+  autoResolution: z.boolean().optional(),
   /**
    * Realistic mode: fish keep the hours of their species (resting at night)
    * and the playful spells (hypnosis, tickling) are off. Absent = off.
@@ -59,6 +74,16 @@ export const settingsSchema = z.object({
 export type Settings = z.output<typeof settingsSchema>;
 
 export const DEFAULT_SETTINGS: Settings = settingsSchema.parse({});
+
+/** The frame limit the settings ask for. */
+export function frameLimitOf(settings: Settings): FrameLimit {
+  return settings.frameLimit ?? DEFAULT_FRAME_LIMIT;
+}
+
+/** Whether the settings let the resolution follow the GPU. */
+export function autoResolutionOf(settings: Settings): boolean {
+  return settings.autoResolution ?? true;
+}
 
 export interface ParsedSettings {
   readonly settings: Settings;

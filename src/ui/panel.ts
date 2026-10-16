@@ -56,6 +56,11 @@ export interface PanelState {
   /** Plants, rocks, corals and shells with their current counts. */
   readonly scenery: readonly SceneryEntry[];
   readonly renderHeight: number;
+  /** Frames per second at most, one of `frameLimitChoices`; 0 = no limit. */
+  readonly frameLimit: number;
+  readonly frameLimitChoices: readonly number[];
+  /** The resolution drops when the GPU cannot keep up, up to `renderHeight`. */
+  readonly autoResolution: boolean;
   readonly showFps: boolean;
   /** Fish keep their hours and the playful spells are off. */
   readonly realistic: boolean;
@@ -83,6 +88,8 @@ export interface PanelCallbacks {
   /** A custom setup, or undefined to go back to the recommended one. */
   onLightsChange(lights: Lights | undefined): void;
   onRenderHeightChange(height: number): void;
+  onFrameLimitChange(limit: number): void;
+  onAutoResolutionChange(enabled: boolean): void;
   onShowFpsChange(show: boolean): void;
   onRealisticChange(realistic: boolean): void;
   onMsaaChange(samples: number): void;
@@ -97,7 +104,8 @@ export interface PanelCallbacks {
 
 export interface Panel {
   toggle(): void;
-  setFps(fps: number | undefined): void;
+  /** Shows the frame rate and, when given, the height drawn at (pixels). */
+  setFps(fps: number | undefined, height?: number): void;
   /** Shows the aquarium's time of day. Cheap to call every frame. */
   setHour(hour: number): void;
   /** Shows whether the torch is on. */
@@ -285,6 +293,23 @@ export function createPanel(
     presets.append(button);
   }
 
+  const automatic = checkbox("Automatic resolution", state.autoResolution, (checked) => {
+    callbacks.onAutoResolutionChange(checked);
+  });
+  automatic.title =
+    "Draws at fewer pixels when the GPU cannot keep up, so the screen never stalls; the resolution above is the most it uses.";
+  const frameLimit = select(
+    "Frame limit",
+    state.frameLimitChoices.map(
+      (limit) => [String(limit), limit === 0 ? "None" : `${String(limit)} fps`] as const,
+    ),
+    String(state.frameLimit),
+  );
+  frameLimit.input.name = "frame-limit";
+  frameLimit.input.addEventListener("change", () => {
+    callbacks.onFrameLimitChange(Number(frameLimit.input.value));
+  });
+
   const fpsRow = checkbox("Show FPS", state.showFps, (checked) => {
     fpsCounter.hidden = !checked;
     callbacks.onShowFpsChange(checked);
@@ -320,7 +345,15 @@ export function createPanel(
   antialias.input.addEventListener("change", () => {
     callbacks.onMsaaChange(Number(antialias.input.value));
   });
-  quality.append(resolutionRow, presets, antialias.row, fpsRow, fullscreen);
+  quality.append(
+    resolutionRow,
+    presets,
+    automatic,
+    frameLimit.row,
+    antialias.row,
+    fpsRow,
+    fullscreen,
+  );
   panel.append(
     fauna,
     time.section,
@@ -401,8 +434,9 @@ export function createPanel(
     setTorch(on) {
       torchButton.setAttribute("aria-pressed", String(on));
     },
-    setFps(fps) {
-      fpsCounter.textContent = fps === undefined ? "– fps" : `${fps} fps`;
+    setFps(fps, height) {
+      const rate = fps === undefined ? "– fps" : `${fps} fps`;
+      fpsCounter.textContent = height === undefined ? rate : `${rate} · ${height}p`;
     },
     dispose() {
       window.clearTimeout(idleTimer);

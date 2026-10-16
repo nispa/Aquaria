@@ -4,8 +4,10 @@ import { parseCatalog, parseScene } from "./parse";
 import {
   applyCountOverrides,
   DEFAULT_MSAA_SAMPLES,
+  autoResolutionOf,
   DEFAULT_SETTINGS,
   defaultRenderHeight,
+  frameLimitOf,
   parseSettings,
 } from "./settings";
 
@@ -63,6 +65,24 @@ describe("parseSettings", () => {
 
   it("rejects render heights outside the supported range", () => {
     expect(parseSettings({ renderHeight: 8000 }).valid).toBe(false);
+  });
+
+  it("limits frames to a safe 60 a second unless told otherwise", () => {
+    expect(frameLimitOf(DEFAULT_SETTINGS)).toBe(60);
+  });
+
+  it("remembers a frame limit of 30, or none", () => {
+    expect(frameLimitOf(parseSettings({ frameLimit: 30 }).settings)).toBe(30);
+    expect(frameLimitOf(parseSettings({ frameLimit: 0 }).settings)).toBe(0);
+  });
+
+  it("rejects a frame limit it does not offer", () => {
+    expect(parseSettings({ frameLimit: 45 }).valid).toBe(false);
+  });
+
+  it("adapts the resolution to the GPU unless told not to", () => {
+    expect(autoResolutionOf(DEFAULT_SETTINGS)).toBe(true);
+    expect(autoResolutionOf(parseSettings({ autoResolution: false }).settings)).toBe(false);
   });
 });
 
