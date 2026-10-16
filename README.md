@@ -58,6 +58,8 @@ Controls:
 | Draw quick circles on a fish | Hypnotize it; it comes round dizzy                              |
 | Scribble right over a fish   | Tickle it: it wriggles belly up and darts off                   |
 | `A`                          | Show what every fish is doing                                   |
+| `T`                          | Torch: the pointer lights the tank, fish react to the beam      |
+| Corner buttons               | Torch, feed, control panel (shown on a mouse move or a touch)   |
 | Move the mouse               | Shows the panel button for a moment                             |
 
 All the ways to play with the fish, and how to add more:

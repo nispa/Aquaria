@@ -18,6 +18,12 @@ altri scappano, e qualche gesto fa cose che nessun pesce vero farebbe.
 | **…poi smetti**                             | Si risveglia **stordito** e per qualche secondo nuota a cavatappi, barcollando.                                                      |
 | **Scarabocchi proprio sopra un pesce**      | Gli fai il **solletico**: si contorce, si gira a pancia in su, poi scappa a zig-zag.                                                 |
 | **Premi `A`**                               | Mostra cosa sta facendo ogni pesce, e una scheda con i dettagli del pesce più vicino al puntatore.                                   |
+| **Premi `T`** (o il pulsante della torcia)  | Il puntatore diventa una **torcia**: i pesci che amano la luce si radunano nel fascio, i timidi scappano. Meglio di notte.           |
+
+Muovendo il mouse o toccando lo schermo compaiono in alto a destra tre
+pulsanti, grandi abbastanza per un dito: la **torcia**, il **cibo** (un
+pizzico di fiocchi) e il **pannello di controllo**. Svaniscono dopo pochi
+secondi, così sullo schermo non resta niente di fisso.
 
 Ipnosi e solletico sono volutamente surreali: sono giochi, non biologia.
 Attiva _Realistic_ nella sezione Fauna del pannello e si spengono, mentre i
@@ -46,6 +52,10 @@ Ogni specie regola le sue reazioni in `public/species.json`, sotto
   rifugi sono piante e oggetti col tag `shelter`: anemoni, coralli
   ramificati e a tavola, kelp, legni, piante fitte. Un pesce pagliaccio si
   nasconde sempre nel suo anemone.
+- `torch`, da -1 a 1: come prende la torcia. Sopra 0 è attirata dal
+  fascio fino a 3 m di distanza e ci gira dentro piano (sardine, tetra, il
+  barramundi); sotto 0 scappa dal fascio e, se si nasconde, si nasconde
+  per quattro secondi (grammi, damigelle, gourami). A 0 non le importa.
 
 Un pesce spaventato allarma anche il suo banco: tutto il banco si stringe,
 e si riallarga man mano che lo spavento passa.
@@ -72,6 +82,17 @@ attraverso il dito. Dopo 0,4 s il pesce ha il solletico per 2,6 s: un
 secondo contorcendosi a pancia in su, poi uno scatto a zig-zag a 2,2 volte
 la sua velocità di crociera, e di nuovo dritto.
 
+### La torcia: `T`
+
+Con la torcia accesa (`T` o il suo pulsante d'angolo, che si illumina
+finché è accesa), il puntatore proietta un fascio dal tuo occhio,
+attraverso il vetro, dentro la vasca: una luce calda che si allarga con la
+profondità. I pesci reagiscono come dice il `torch` della loro specie, in
+pieno di notte e per circa un terzo di giorno, quando una torcia quasi non
+si vede. Finché è accesa il puntatore è una torcia e non un dito: i
+curiosi non vengono a guardare, e cerchi e scarabocchi non fanno
+incantesimi. Tocchi e cibo funzionano come sempre.
+
 ### Vedere cosa succede: `A`
 
 `A` mostra sopra ogni pesce cosa sta facendo (`wander 12s`, `peck ×3`,
@@ -91,7 +112,8 @@ Si valutano in quest'ordine, e la prima che vale impone il ritmo:
 1. **Lo spavento** dopo un tocco: scappa, qualunque cosa stia succedendo.
 2. **Il cibo** vicino, se ha fame.
 3. **Un incantesimo**: ipnotizzato, stordito o col solletico.
-4. **La curiosità** per un dito sul vetro.
+4. **La torcia**, finché è accesa; altrimenti **la curiosità** per un dito
+   sul vetro.
 5. **La sua attività**: ispezionare o becchettare un luogo.
 6. **Il suo stile di nuoto**: come nuota quando nient'altro conta.
 
@@ -167,8 +189,6 @@ Un nuovo modo di giocare segue la stessa strada:
 ### Idee per il futuro
 
 - **Segui il capo**: trascini il dito piano e un banco lo segue.
-- **Torcia**: di notte il puntatore è una torcia; alcune specie si
-  radunano nel fascio, altre si nascondono.
 - **Addestramento**: un doppio tocco seguito sempre dal cibo; dopo un po' i
   pesci accorrono al solo doppio tocco.
 - **Il preferito**: tieni premuto su un pesce e lui segue il puntatore

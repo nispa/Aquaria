@@ -18,6 +18,12 @@ and a few gestures do things no real fish would.
 | **…then stop**                         | It comes round **dizzy**, swimming a wobbly corkscrew for a few seconds.                                                         |
 | **Scribble right over a fish**         | It is **tickled**: it wriggles, flips belly up, then darts off in a zigzag.                                                      |
 | **Press `A`**                          | Shows what every fish is doing, and a card with the details of the fish nearest the pointer.                                     |
+| **Press `T`** (or the torch button)    | The pointer becomes a **torch**: fish that love light gather in its beam, shy ones flee it. Best at night.                       |
+
+Moving the mouse or touching the screen shows three buttons in the top
+right corner, big enough for a finger: the **torch**, **feed** (a pinch of
+food) and the **control panel**. They fade after a few seconds, so nothing
+stays on screen.
 
 Hypnosis and tickling are deliberately surreal: they are toys, not biology.
 Switch _Realistic_ on in the panel's Fauna section and they are off, while
@@ -46,6 +52,11 @@ from 0 to 1:
   Shelters are plants and objects tagged `shelter`: anemones, branch and
   table corals, kelp, driftwood, dense plants. A clownfish always hides in
   its own anemone.
+- `torch`, from -1 to 1: how it takes the torch. Above 0 it is drawn to
+  the beam from up to 3 m away and mills about slowly in it (sardines,
+  tetras, the barramundi); below 0 it flees the beam and, if it hides,
+  hides for four seconds (grammas, damsels, gouramis). At 0 it does not
+  care.
 
 A startled fish also alarms its school: the whole school closes up, and
 loosens again as the fright fades.
@@ -72,6 +83,16 @@ the finger. After 0.4 s of it the fish is tickled for 2.6 s: one second of
 wriggling belly up, then a zigzag dash at 2.2 times its cruise speed, and back
 upright.
 
+### The torch: `T`
+
+With the torch on (`T` or its corner button, which lights up while it is
+on), the pointer shines a beam from your eye through the glass into the
+tank, a warm spot light that widens with depth. Fish react as their
+species' `torch` says, fully at night and about a third as much in
+daylight, when a torch hardly shows. While it is on, the pointer is a
+torch rather than a finger: curious fish do not come to look and circles
+and scribbles cast no spells. Taps and food work as usual.
+
 ### Seeing what goes on: `A`
 
 `A` shows, over every fish, what it is doing (`wander 12s`, `peck ×3`,
@@ -90,7 +111,8 @@ in this order, the first that applies setting the pace:
 1. **Fright** after a tap: it flees, whatever else is going on.
 2. **Food** nearby, if it is hungry.
 3. **A spell**: hypnotized, dizzy or tickled.
-4. **Curiosity** about a finger on the glass.
+4. **The torch**, while it is on; otherwise **curiosity** about a finger
+   on the glass.
 5. **Its activity**: inspecting or pecking at a place.
 6. **Its swimming style**: how it swims when nothing else matters.
 
@@ -165,8 +187,6 @@ A new way to play follows the same path:
 ### Ideas for later
 
 - **Follow the leader**: drag the finger slowly and a school follows it.
-- **Flashlight**: at night the pointer is a torch; some species gather in
-  its beam, others hide from it.
 - **Training**: a double tap always followed by food; after a while the
   fish come to the double tap alone.
 - **A favourite**: press and hold on a fish and it follows the pointer
