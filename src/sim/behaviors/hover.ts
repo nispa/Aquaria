@@ -3,7 +3,7 @@ import { CRUISE_RESPONSE, drawDuration, drawSide, jitterYaw, yawTowards } from "
 import type { SwimStyle } from "./types";
 
 /** Pectoral fins do most of the work; the tail only helps. */
-const HOVER_THRUST = 0.4;
+const HOVER_THRUST = 0.6;
 /** Small corrections between turns, radians per square root of a second. */
 const HOVER_JITTER = 0.15;
 /** Smallest turn on the spot, radians. */

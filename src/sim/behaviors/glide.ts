@@ -3,7 +3,7 @@ import { CRUISE_RESPONSE, drawSide } from "./shared";
 import type { SwimStyle } from "./types";
 
 /** Long fins and a lazy tail. */
-const GLIDE_THRUST = 0.3;
+const GLIDE_THRUST = 0.5;
 /**
  * The turn rate follows a sine pushed into a rounded square wave: steady
  * through each loop, easing into the change of way between loops.

@@ -33,7 +33,7 @@ pnpm test:watch     # unit tests in watch mode
 pnpm test:coverage  # unit tests with coverage thresholds
 pnpm test:e2e       # end-to-end tests (Playwright)
 pnpm test:visual    # screenshot comparison of every scene (on demand)
-pnpm docs:gallery   # captioned scene pictures for the docs (docs/scenes/)
+pnpm docs:gallery   # pictures for the docs (docs/scenes/, swimming styles)
 pnpm lint           # ESLint
 pnpm typecheck      # tsc --noEmit
 pnpm build          # production build

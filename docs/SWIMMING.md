@@ -14,6 +14,13 @@ Styles are pure data from the point of view of a species: you pick one in
 `public/species.json` and tune it there. No code changes are needed to give
 a species a different style, or to tune one.
 
+![Paths of three fish per style seen from above, glass at the top, and the tail effort of one of them over a minute](swimming-styles.png)
+
+<sub>A minute of each style, seen from above (glass at the top). Below each
+tank, the tail effort of the red fish: steady while cruising, spikes and
+stillness in burst-coast, gentle for hover and glide. Redrawn by
+`pnpm docs:gallery` from the simulation itself.</sub>
+
 ## Choosing a style for a species
 
 Add a `swim` entry to the species in `public/species.json`:

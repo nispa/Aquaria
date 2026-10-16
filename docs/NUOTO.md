@@ -14,6 +14,13 @@ Per una specie lo stile è solo un dato: lo si sceglie in
 `public/species.json` e lo si regola lì. Cambiare o regolare lo stile di una
 specie non richiede modifiche al codice.
 
+![Percorsi di tre pesci per stile visti dall'alto, vetro in alto, e lo sforzo della coda di uno di loro in un minuto](swimming-styles.png)
+
+<sub>Un minuto di ogni stile, visto dall'alto (vetro in alto). Sotto ogni
+vasca, lo sforzo della coda del pesce rosso: costante in crociera, picchi e
+quiete in burst-coast, leggero in hover e glide. Ridisegnata da
+`pnpm docs:gallery` a partire dalla simulazione stessa.</sub>
+
 ## Scegliere lo stile di una specie
 
 Aggiungere una voce `swim` alla specie in `public/species.json`:

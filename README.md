@@ -425,7 +425,7 @@ pnpm test           # unit tests (Vitest)
 pnpm test:coverage  # with coverage thresholds
 pnpm test:e2e       # browser tests (Playwright, software WebGL)
 pnpm test:visual    # pixel comparison of every scene, frozen frame (on demand)
-pnpm docs:gallery   # captioned pictures of the bundled scenes in docs/scenes/
+pnpm docs:gallery   # pictures for the docs: bundled scenes, swimming styles
 pnpm lint
 pnpm typecheck
 pnpm build
