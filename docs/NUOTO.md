@@ -356,6 +356,14 @@ I pesci girano attorno agli oggetti solidi e l'uno attorno all'altro
 - **Luoghi irraggiungibili.** Un luogo la cui cima sta dentro un ostacolo
   (una pianta cresciuta sotto un legno) viene escluso: nessun pesce ci
   viene mandato.
+- **I rifugi sono porosi.** Un pesce spaventato che si nasconde si infila
+  nel suo corallo o legno, fra i rami o sotto il piatto, quando è entro
+  quattro lunghezze del corpo dal rifugio o entro la grandezza del rifugio;
+  i pesci di passaggio ci girano comunque attorno.
+- **Vicoli ciechi.** Un pesce che per due secondi tocca le rocce senza
+  allontanarsi di una lunghezza è finito in un vicolo cieco: per due
+  secondi va verso la direzione più libera intorno a sé, qualunque cosa
+  voglia il suo stile.
 - **Gli altri pesci.** I banchi distanziano i propri membri. In più ogni
   pesce ha uno spazio personale di mezza lunghezza del corpo: i pesci di
   altre specie che ci entrano lo spingono via, il più grande più forte,

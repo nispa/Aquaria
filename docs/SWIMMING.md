@@ -343,6 +343,13 @@ Fish swim around the solid scenery and around each other
   climbs in time to clear a rock face.
 - **Places out of reach.** A place whose top lies inside an obstacle (a
   plant grown under driftwood) is left out: no fish is sent there.
+- **Shelters are porous.** A startled fish that hides slips into its
+  coral or driftwood, among the branches or under the plate, once within
+  four body lengths of its refuge or the size of the shelter; fish swimming
+  by still go around.
+- **Pockets.** A fish that spends two seconds touching the rocks without
+  getting a body length further is caught in a dead end: for two seconds
+  it heads for the most open way around it, whatever its style wants.
 - **Other fish.** Schools space their own members. Besides, every fish
   has a personal space of half a body length: fish of other species in it
   push it away, the larger pushing harder, so a tetra gives way to an
