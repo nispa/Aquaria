@@ -990,6 +990,66 @@ describe("shelters", () => {
     expect(meanDistanceToCoral(startled)).toBeLessThan(0.5);
   });
 
+  it("lets them slip into a coral that shelters them, solid as it is to others", () => {
+    const simulation = simulateHiding(1);
+    // The coral's own collision shape, standing on the sand.
+    const shape: Obstacle[] = [
+      {
+        center: new Vector3(coral.x, 0, coral.z),
+        radii: new Vector3(0.3, 0.5, 0.3),
+        cos: 1,
+        sin: 0,
+        reach: 0.5,
+      },
+    ];
+    const field = createObstacleField(shape);
+    const normal = new Vector3();
+    simulation.setObstacles(() => shape);
+    run(simulation, 1);
+    const [hider] = startle(simulation);
+    if (hider === undefined) throw new Error("Nobody was startled.");
+    // Right by the coral, level with its refuge.
+    hider.position.set(coral.x - 0.4, hider.refuge.y, coral.z);
+    let deepest = Infinity;
+
+    for (let elapsed = 0; elapsed < 3; elapsed += STEP) {
+      simulation.step(STEP);
+      deepest = Math.min(deepest, field.distance(hider.position, normal, 1));
+    }
+
+    expect(deepest).toBeLessThan(0);
+  });
+
+  it("lets them slip into a shelter far larger than themselves", () => {
+    const table = { x: 1, z: -2, height: 1.6, tags: ["coral", "shelter"] };
+    const simulation = simulateHiding(1, undefined, [table]);
+    const shape: Obstacle[] = [
+      {
+        center: new Vector3(table.x, 0, table.z),
+        radii: new Vector3(1.2, 1.6, 1.2),
+        cos: 1,
+        sin: 0,
+        reach: 1.6,
+      },
+    ];
+    const field = createObstacleField(shape);
+    const normal = new Vector3();
+    simulation.setObstacles(() => shape);
+    run(simulation, 1);
+    const [hider] = startle(simulation);
+    if (hider === undefined) throw new Error("Nobody was startled.");
+    // Just off the coral's side, level with its refuge, far from the refuge itself.
+    hider.position.set(table.x - 1.3, hider.refuge.y, table.z);
+    let deepest = Infinity;
+
+    for (let elapsed = 0; elapsed < 3; elapsed += STEP) {
+      simulation.step(STEP);
+      deepest = Math.min(deepest, field.distance(hider.position, normal, 1));
+    }
+
+    expect(deepest).toBeLessThan(0);
+  });
+
   it("lets them come out again later", () => {
     const simulation = simulateHiding(1);
     run(simulation, 1);

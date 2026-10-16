@@ -256,6 +256,8 @@ export interface Fish {
   hiding: number;
   /** Where it hides, while `hiding`. */
   readonly refuge: Vector3;
+  /** How large its shelter is, m: within that of `refuge` it is in it. */
+  refugeSize: number;
   /** -1 or 1: which side wall the fish is travelling through when entering or leaving. */
   side: number;
 }
@@ -510,6 +512,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
       turnRate: 0,
       hiding: 0,
       refuge: new Vector3(),
+      refugeSize: 0,
       side,
     };
     if (!entering) startSwimming(group, member, position);
@@ -630,6 +633,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
   const seekRefuge = (group: Group, member: Fish): boolean => {
     if (member.swim.anchored) {
       nestlePoint(member.swim, member.length, member.refuge);
+      member.refugeSize = 0;
       return true;
     }
     if (hashToUnit(member.id + HIDING_SALT) >= group.species.behavior.hiding) return false;
@@ -646,6 +650,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
     if (size < 0) return false;
     // Into the shelter, halfway down.
     member.refuge.y -= size / 2;
+    member.refugeSize = size;
     return true;
   };
 
@@ -783,9 +788,18 @@ export function createSimulation(options: SimulationOptions): Simulation {
   const closeIn = (member: Fish): boolean => {
     const { activity, length, position } = member;
     const reach = length * CLOSE_IN_BODY_LENGTHS;
-    if (member.hiding > 0) return position.distanceTo(member.refuge) < reach;
+    if (member.hiding > 0) {
+      return position.distanceTo(member.refuge) < Math.max(reach, member.refugeSize);
+    }
     return activityOf(activity.id).atPlace && position.distanceTo(activity.target) < reach;
   };
+
+  /**
+   * Whether a hiding fish is close enough to slip into its shelter. Shelters
+   * are porous (branches, roots, the space under a table coral), so a fish
+   * that hides there goes in, though their shapes stop fish passing by.
+   */
+  const slipsIn = (member: Fish): boolean => member.hiding > 0 && closeIn(member);
 
   const steer = (group: Group, member: Fish, deltaSeconds: number): void => {
     const { species, habitat } = group;
@@ -854,8 +868,17 @@ export function createSimulation(options: SimulationOptions): Simulation {
     const keepOff = atPlace
       ? gap * CLOSE_IN_GAPS
       : Math.max(member.length * OBSTACLE_BODY_LENGTHS, OBSTACLE_MIN_CLEARANCE);
-    addObstacleAvoidance(member.position, member.velocity, obstacleField, lookAhead, keepOff, term);
-    force.addScaledVector(term, OBSTACLE_WEIGHT);
+    if (!slipsIn(member)) {
+      addObstacleAvoidance(
+        member.position,
+        member.velocity,
+        obstacleField,
+        lookAhead,
+        keepOff,
+        term,
+      );
+      force.addScaledVector(term, OBSTACLE_WEIGHT);
+    }
     // Rock faces of the rockwork, seen coming like the props.
     term.set(0, 0, 0);
     addSeabedLookAhead(member.position, member.velocity, seabed, lookAhead, clearance, term);
@@ -980,7 +1003,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
     // left to the steering, which turns it within what its body can.
     const gap =
       member.length * OBSTACLE_GAP_BODY_LENGTHS * (closeIn(member) ? CLOSE_IN_GAP_SHARE : 1);
-    const inside = obstacleField.distance(member.position, surfaceNormal, gap);
+    const inside = slipsIn(member)
+      ? Infinity
+      : obstacleField.distance(member.position, surfaceNormal, gap);
     if (inside < gap) member.position.addScaledVector(surfaceNormal, gap - inside);
     member.swimPhase +=
       (member.velocity.length() / member.length) *

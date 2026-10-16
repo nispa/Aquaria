@@ -42,6 +42,7 @@ function fishFixture(): Fish {
     turnRate: 0,
     hiding: 0,
     refuge: new Vector3(),
+    refugeSize: 0,
     side: 1,
   };
 }
