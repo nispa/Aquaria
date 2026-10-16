@@ -2,13 +2,14 @@ import { Vector3 } from "three";
 import type { ActivityId } from "../scene/activities";
 import type { ActivityState } from "../sim/behaviors";
 import { isScribbling, spinOf, type Gesture } from "../sim/gesture";
+import type { Obstacle } from "../sim/obstacles";
 import type { Fish } from "../sim/simulation";
 
 /**
  * What every fish is doing, written over it: its activity, or the spell the
  * viewer has cast on it. The fish nearest the pointer gets a card with its
  * details, and a line at the top says what the finger is drawing. Toggled
- * with A.
+ * with A; C adds the collision shapes of the scenery (sim/obstacles).
  */
 
 const COLORS: Readonly<Record<ActivityId, string>> = {
@@ -31,6 +32,10 @@ const CARD_OFFSET = 18;
 const HEADER_X = 16;
 const HEADER_Y = 24;
 const PERCENT = 100;
+const OBSTACLE_COLOR = "rgba(255, 120, 80, 0.6)";
+/** Each obstacle is outlined by three rings of this many segments. */
+const OUTLINE_SEGMENTS = 24;
+const OUTLINE_RINGS = 3;
 const CENTIMETERS = 100;
 
 export function activityColor(id: ActivityId): string {
@@ -97,11 +102,36 @@ export function gestureLabel(spin: number, scribbling: boolean): string {
 }
 
 /** Where a point in the tank shows on screen, as normalized device coordinates in `out`; false when off screen. */
+/**
+ * A point of an obstacle's outline, written into `out`: ring 0 goes round it
+ * level, rings 1 and 2 over the top, across and along it; `angle` in radians.
+ */
+export function outlinePoint(
+  obstacle: Obstacle,
+  ring: number,
+  angle: number,
+  out: Vector3,
+): Vector3 {
+  const { center, radii, cos, sin } = obstacle;
+  const first = Math.cos(angle);
+  const second = Math.sin(angle);
+  const x = ring === 2 ? 0 : first * radii.x;
+  const y = ring === 0 ? 0 : second * radii.y;
+  const z = ring === 0 ? second * radii.z : ring === 2 ? first * radii.z : 0;
+  // Into the tank's frame, turned like the obstacle (see sim/obstacles).
+  return out.set(center.x + x * cos + z * sin, center.y + y, center.z - x * sin + z * cos);
+}
+
 export type ScreenProjection = (point: Vector3, out: Vector3) => boolean;
 
 export interface ActivityOverlay {
-  /** Redraws the labels, when shown. */
-  draw(fish: readonly Fish[], gesture: Readonly<Gesture>, project: ScreenProjection): void;
+  /** Redraws the labels, and the obstacles when asked for, when shown. */
+  draw(
+    fish: readonly Fish[],
+    gesture: Readonly<Gesture>,
+    obstacles: readonly Obstacle[],
+    project: ScreenProjection,
+  ): void;
   dispose(): void;
 }
 
@@ -111,6 +141,7 @@ export function createActivityOverlay(parent: HTMLElement): ActivityOverlay {
   parent.append(canvas);
   const context = canvas.getContext("2d");
   let shown = false;
+  let shapes = false;
   let pointerX = Number.NaN;
   let pointerY = Number.NaN;
   const at = new Vector3();
@@ -118,6 +149,7 @@ export function createActivityOverlay(parent: HTMLElement): ActivityOverlay {
   const nearestAt = new Vector3();
 
   const onKey = (event: KeyboardEvent): void => {
+    if (event.key === "c" || event.key === "C") shapes = !shapes;
     if (event.key !== "a" && event.key !== "A") return;
     shown = !shown;
     canvas.style.display = shown ? "block" : "none";
@@ -131,6 +163,36 @@ export function createActivityOverlay(parent: HTMLElement): ActivityOverlay {
 
   const toPixels = (point: Vector3, width: number, height: number): void => {
     point.set(((point.x + 1) / 2) * width, ((1 - point.y) / 2) * height, 0);
+  };
+
+  const drawObstacles = (
+    draw: CanvasRenderingContext2D,
+    obstacles: readonly Obstacle[],
+    project: ScreenProjection,
+    width: number,
+    height: number,
+  ): void => {
+    draw.strokeStyle = OBSTACLE_COLOR;
+    for (const obstacle of obstacles) {
+      for (let ring = 0; ring < OUTLINE_RINGS; ring += 1) {
+        draw.beginPath();
+        let drawing = false;
+        // The rings over the top stop at the base: the rest is in the sand.
+        const sweep = ring === 0 ? Math.PI * 2 : Math.PI;
+        for (let segment = 0; segment <= OUTLINE_SEGMENTS; segment += 1) {
+          const angle = (segment / OUTLINE_SEGMENTS) * sweep;
+          if (!project(outlinePoint(obstacle, ring, angle, at), at)) {
+            drawing = false;
+            continue;
+          }
+          toPixels(at, width, height);
+          if (drawing) draw.lineTo(at.x, at.y);
+          else draw.moveTo(at.x, at.y);
+          drawing = true;
+        }
+        draw.stroke();
+      }
+    }
   };
 
   const drawCard = (draw: CanvasRenderingContext2D, fish: Fish, x: number, y: number): void => {
@@ -150,7 +212,7 @@ export function createActivityOverlay(parent: HTMLElement): ActivityOverlay {
   };
 
   return {
-    draw(fish, gesture, project) {
+    draw(fish, gesture, obstacles, project) {
       if (!shown || context === null) return;
       const width = window.innerWidth;
       const height = window.innerHeight;
@@ -159,6 +221,7 @@ export function createActivityOverlay(parent: HTMLElement): ActivityOverlay {
         canvas.height = height;
       }
       context.clearRect(0, 0, width, height);
+      if (shapes) drawObstacles(context, obstacles, project, width, height);
       context.font = FONT;
       context.textAlign = "center";
       let nearest: Fish | undefined;
@@ -187,7 +250,7 @@ export function createActivityOverlay(parent: HTMLElement): ActivityOverlay {
       context.textAlign = "left";
       context.fillStyle = "#ffffff";
       context.fillText(
-        `${gestureLabel(spinOf(gesture), isScribbling(gesture))}   ·   A hides this`,
+        `${gestureLabel(spinOf(gesture), isScribbling(gesture))}   ·   C collision shapes   ·   A hides this`,
         HEADER_X,
         HEADER_Y,
       );

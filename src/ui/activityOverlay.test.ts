@@ -11,7 +11,9 @@ import {
   fishDetails,
   fishLabel,
   gestureLabel,
+  outlinePoint,
 } from "./activityOverlay";
+import { createObstacleField, type Obstacle } from "../sim/obstacles";
 
 const species = parseCatalog(catalogFixture()).species[0];
 
@@ -151,5 +153,26 @@ describe("gestureLabel", () => {
 
   it("says when the finger draws nothing", () => {
     expect(gestureLabel(0, false)).toBe("finger: —");
+  });
+});
+
+describe("outlinePoint", () => {
+  const coral: Obstacle = {
+    center: new Vector3(1, 0.2, -2),
+    radii: new Vector3(0.3, 0.6, 0.1),
+    cos: Math.cos(0.7),
+    sin: Math.sin(0.7),
+    reach: 0.6,
+  };
+  const field = createObstacleField([coral]);
+
+  it.each([0, 1, 2])("draws ring %i of an obstacle on its surface", (ring) => {
+    const point = new Vector3();
+    const normal = new Vector3();
+
+    for (let angle = 0; angle < Math.PI * 2; angle += 0.5) {
+      outlinePoint(coral, ring, angle, point);
+      expect(Math.abs(field.distance(point, normal, 1))).toBeLessThan(1e-6);
+    }
   });
 });

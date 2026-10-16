@@ -631,7 +631,7 @@ async function start(): Promise<void> {
     const steps = clock.advance(delta);
     for (let step = 0; step < steps; step += 1) simulation.step(clock.stepSeconds);
     view.render();
-    activityOverlay.draw(simulation.fish, simulation.gesture, project);
+    activityOverlay.draw(simulation.fish, simulation.gesture, view.obstacles(), project);
     fps.frame(delta);
     if (settings.showFps) panel.setFps(fps.fps);
     panel.setHour(view.hour());
