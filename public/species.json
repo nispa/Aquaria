@@ -28,6 +28,9 @@
         "appetite": 0.8,
         "curiosity": 0.5,
         "shyness": 0.5
+      },
+      "swim": {
+        "style": "cruise"
       }
     },
     {
@@ -58,6 +61,11 @@
         "appetite": 0.7,
         "curiosity": 0.6,
         "shyness": 0.3
+      },
+      "swim": {
+        "style": "hover",
+        "speed": 0.3,
+        "roamBodyLengths": 5
       }
     },
     {
@@ -87,6 +95,11 @@
         "appetite": 0.6,
         "curiosity": 0.0,
         "shyness": 0.9
+      },
+      "swim": {
+        "style": "cruise",
+        "speedVariation": 0.1,
+        "turnJitter": 0.35
       }
     },
     {
@@ -117,6 +130,9 @@
         "appetite": 0.8,
         "curiosity": 0.4,
         "shyness": 0.5
+      },
+      "swim": {
+        "style": "cruise"
       }
     },
     {
@@ -146,6 +162,9 @@
         "appetite": 0.6,
         "curiosity": 0.2,
         "shyness": 0.8
+      },
+      "swim": {
+        "style": "hover"
       }
     },
     {
@@ -177,6 +196,10 @@
         "appetite": 0.5,
         "curiosity": 0.3,
         "shyness": 0.6
+      },
+      "swim": {
+        "style": "patrol",
+        "radiusBodyLengths": 5
       }
     },
     {
@@ -208,6 +231,9 @@
         "appetite": 0.35,
         "curiosity": 0.3,
         "shyness": 0.6
+      },
+      "swim": {
+        "style": "glide"
       }
     },
     {
@@ -238,6 +264,10 @@
         "appetite": 0.7,
         "curiosity": 0.5,
         "shyness": 0.3
+      },
+      "swim": {
+        "style": "glide",
+        "speed": 0.6
       }
     },
     {
@@ -267,6 +297,9 @@
         "appetite": 0.8,
         "curiosity": 0.5,
         "shyness": 0.2
+      },
+      "swim": {
+        "style": "burst-coast"
       }
     },
     {
@@ -296,6 +329,9 @@
         "appetite": 0.8,
         "curiosity": 0.4,
         "shyness": 0.4
+      },
+      "swim": {
+        "style": "cruise"
       }
     },
     {
@@ -326,6 +362,10 @@
         "appetite": 0.7,
         "curiosity": 0.1,
         "shyness": 0.8
+      },
+      "swim": {
+        "style": "cruise",
+        "speedVariation": 0.2
       }
     },
     {
@@ -355,6 +395,10 @@
         "appetite": 0.7,
         "curiosity": 0.1,
         "shyness": 0.7
+      },
+      "swim": {
+        "style": "cruise",
+        "speedVariation": 0.2
       }
     },
     {
@@ -384,6 +428,10 @@
         "appetite": 0.8,
         "curiosity": 0.7,
         "shyness": 0.3
+      },
+      "swim": {
+        "style": "glide",
+        "speed": 0.5
       }
     },
     {
@@ -414,6 +462,10 @@
         "appetite": 0.9,
         "curiosity": 0.6,
         "shyness": 0.3
+      },
+      "swim": {
+        "style": "burst-coast",
+        "burstSpeed": 1.8
       }
     },
     {
@@ -443,6 +495,11 @@
         "appetite": 0.9,
         "curiosity": 0.5,
         "shyness": 0.3
+      },
+      "swim": {
+        "style": "burst-coast",
+        "burstSpeed": 1.6,
+        "coastSpeed": 0.5
       }
     },
     {
@@ -473,6 +530,10 @@
         "appetite": 0.6,
         "curiosity": 0.5,
         "shyness": 0.5
+      },
+      "swim": {
+        "style": "hover",
+        "speed": 0.25
       }
     },
     {
@@ -503,6 +564,11 @@
         "appetite": 0.9,
         "curiosity": 0.3,
         "shyness": 0.4
+      },
+      "swim": {
+        "style": "patrol",
+        "radiusBodyLengths": 4,
+        "speed": 0.7
       }
     },
     {
@@ -533,6 +599,10 @@
         "appetite": 0.8,
         "curiosity": 0.3,
         "shyness": 0.6
+      },
+      "swim": {
+        "style": "cruise",
+        "turnJitter": 0.4
       }
     }
   ]
