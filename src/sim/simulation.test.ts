@@ -991,3 +991,59 @@ describe("shelters", () => {
     expect(inside.length).toBe(startled.length);
   });
 });
+
+describe("schools", () => {
+  function sardines(): Simulation {
+    const input = catalogFixture();
+    const tuned = parseCatalog({
+      species: input.species.map((entry) => ({ ...entry, behavior: { shyness: 1 } })),
+    });
+    return createSimulation({
+      scene: parseScene({ ...sceneFixture(), fauna: [{ species: "sardine", count: 30 }] }, tuned),
+      catalog: tuned,
+      rng: createRng(9),
+    });
+  }
+
+  /** Mean distance from each fish to its nearest neighbour, in body lengths. */
+  const spacing = (simulation: Simulation) =>
+    simulation.fish.reduce((sum, fish) => {
+      const nearest = Math.min(
+        ...simulation.fish
+          .filter((other) => other !== fish)
+          .map((other) => other.position.distanceTo(fish.position)),
+      );
+      return sum + nearest / fish.length;
+    }, 0) / simulation.fish.length;
+
+  it("packs a school tighter when one of them is startled", () => {
+    const calm = sardines();
+    const alarmed = sardines();
+    run(calm, 15);
+    run(alarmed, 15);
+    const nearest = alarmed.fish.reduce((best, fish) =>
+      fish.position.z > best.position.z ? fish : best,
+    );
+
+    alarmed.tap(new Vector3(nearest.position.x, nearest.position.y, 0));
+    run(calm, 2);
+    run(alarmed, 2);
+
+    expect(spacing(alarmed)).toBeLessThan(spacing(calm) * 0.85);
+  });
+
+  it("loosens it again once the fright has passed", () => {
+    const simulation = sardines();
+    run(simulation, 15);
+    const nearest = simulation.fish.reduce((best, fish) =>
+      fish.position.z > best.position.z ? fish : best,
+    );
+    simulation.tap(new Vector3(nearest.position.x, nearest.position.y, 0));
+    run(simulation, 2);
+    const packed = spacing(simulation);
+
+    run(simulation, 15);
+
+    expect(spacing(simulation)).toBeGreaterThan(packed * 1.05);
+  });
+});

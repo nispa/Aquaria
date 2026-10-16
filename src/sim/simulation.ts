@@ -86,6 +86,15 @@ const TRANSIT_PULL = 2;
 
 /** Separation radius in body lengths. */
 const SEPARATION_BODY_LENGTHS = 2.5;
+/**
+ * A school closes up when one of them is frightened, and loosens again as
+ * the fright fades: at full alarm cohesion is ALARMED_COHESION times its
+ * weight, alignment ALARMED_ALIGNMENT times, and neighbours accept
+ * ALARMED_SPACING of the usual separation.
+ */
+const ALARMED_COHESION = 3;
+const ALARMED_ALIGNMENT = 1.6;
+const ALARMED_SPACING = 0.6;
 /** Neighbour radius for schooling, in body lengths. */
 const SCHOOL_BODY_LENGTHS = 12;
 /** Fish never slow below this fraction of cruise speed, so they always have a heading. */
@@ -274,6 +283,8 @@ interface Group {
   readonly positions: Vector3[];
   readonly leaving: Fish[];
   target: number;
+  /** 0 calm .. 1: the fear of its most frightened member, which the whole school feels. */
+  alarm: number;
 }
 
 /** Whether a style keeps a fish at a place of the scenery. */
@@ -325,6 +336,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
       positions: [],
       leaving: [],
       target: 0,
+      alarm: 0,
     });
   }
 
@@ -650,17 +662,20 @@ export function createSimulation(options: SimulationOptions): Simulation {
     force.set(0, 0, 0);
 
     term.set(0, 0, 0);
-    addSeparation(member.position, group.positions, member.length * SEPARATION_BODY_LENGTHS, term);
+    const spacing = member.length * SEPARATION_BODY_LENGTHS * lerp(1, ALARMED_SPACING, group.alarm);
+    addSeparation(member.position, group.positions, spacing, term);
     force.addScaledVector(term, SEPARATION_WEIGHT);
 
     if (species.schooling > 0 && member.state === "swimming") {
       const radius = member.length * SCHOOL_BODY_LENGTHS;
       term.set(0, 0, 0);
       addCohesion(member.position, group.positions, radius, term);
-      force.addScaledVector(term, COHESION_WEIGHT * species.schooling);
+      const cohesion = lerp(1, ALARMED_COHESION, group.alarm);
+      force.addScaledVector(term, COHESION_WEIGHT * species.schooling * cohesion);
       term.set(0, 0, 0);
       addAlignment(member.position, member.velocity, group.members, radius, term);
-      force.addScaledVector(term, (ALIGNMENT_WEIGHT * species.schooling) / cruise);
+      const alignment = lerp(1, ALARMED_ALIGNMENT, group.alarm);
+      force.addScaledVector(term, (ALIGNMENT_WEIGHT * species.schooling * alignment) / cruise);
     }
 
     const margin = marginFor(habitat);
@@ -835,6 +850,10 @@ export function createSimulation(options: SimulationOptions): Simulation {
     gesture,
     step(deltaSeconds) {
       let removed = false;
+      for (const group of groups.values()) {
+        group.alarm = 0;
+        for (const member of group.members) group.alarm = Math.max(group.alarm, member.fear);
+      }
       const currentPlaces = places();
       if (currentPlaces !== knownPlaces) {
         knownPlaces = currentPlaces;
