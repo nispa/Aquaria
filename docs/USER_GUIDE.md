@@ -110,7 +110,7 @@ Aquaria simulates a true marine aquarium lighting rig using four distinct spectr
 Configured via the Quality section and the [`EFFECTS`](file:///F:/progetti/Aquaria/src/render/effects/index.ts#L14) registry:
 
 - **Resolution Slider**: Render at any target height from 540p up to 4K (2160p), independent of display scaling.
-- **Automatic Resolution** (on by default): when the GPU cannot keep up, the aquarium draws fewer pixels, and climbs back when there is room, so it never takes the whole GPU and stalls the screen. The slider sets the most it uses, and it never draws more pixels than the screen has. The FPS counter shows the height drawn at.
+- **Automatic Resolution** (on by default): when the GPU cannot keep up, the aquarium draws fewer pixels, and climbs back when there is room, so it never takes the whole GPU and stalls the screen. The slider sets the most it uses, and it never draws more pixels than the screen has; switched off, the slider's resolution is drawn as it is. The FPS counter shows the height drawn at.
 - **Frame Limit**: 30 or 60 frames a second (60 by default), or none. A limit leaves the GPU free for the rest of the computer and saves battery.
 - **Anti-Aliasing**: Toggle MSAA (Off, 2x, 4x, 8x) and optional SMAA for delicate geometry like grasses and fin edges.
 - **Modular Effects**:

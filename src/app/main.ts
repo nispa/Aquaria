@@ -391,7 +391,8 @@ async function start(): Promise<void> {
     governor.setMax(highestHeight());
   });
 
-  // Never draw more pixels than the screen has: the chosen resolution is a ceiling.
+  // The automatic resolution never draws more pixels than the screen has; the
+  // chosen resolution is its ceiling. Without it, the chosen one is drawn as is.
   const highestHeight = (): number => {
     const screenPixels = window.innerHeight * window.devicePixelRatio;
     const screen = Math.ceil(screenPixels / RESOLUTION_STEP) * RESOLUTION_STEP;
@@ -686,7 +687,7 @@ async function start(): Promise<void> {
     const intervalMs = previousDrawn === undefined ? 0 : now - previousDrawn;
     previousDrawn = now;
     const automatic = autoResolutionOf(settings);
-    const height = automatic ? governor.height : highestHeight();
+    const height = automatic ? governor.height : settings.renderHeight;
     if (view !== sizedView || height !== drawnHeight) {
       view.setRenderHeight(height);
       sizedView = view;
