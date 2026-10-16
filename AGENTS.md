@@ -167,6 +167,9 @@ Shaders:
   `model.json` manifest (orientation, swimming, mouth morph target, credit),
   validated by `src/scene/modelManifest.ts`. The viewer switches models on
   or off per species; both kinds swim together in the same tank.
+- How a species swims is its `swim` entry: a style from `src/sim/behaviors/`
+  (one file each, registered in `SWIM_STYLES`) with parameters declared in
+  `src/scene/swimming.ts`. See `docs/SWIMMING.md`.
 - Adding a new scene or species must not require code changes, only data and
   assets. A new bundled scene also gets a caption in `e2e/gallery.spec.ts`,
   a picture (`pnpm docs:gallery`) and a visual baseline. If it does, the engine is missing an abstraction: fix that first.

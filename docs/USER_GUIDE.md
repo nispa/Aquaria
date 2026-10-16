@@ -249,6 +249,7 @@ graph TD
     5. **Seabed Clearance**: Soft upward repelling force that prevents fish from clipping sand or rocks, with a minimum body-length clearance margin.
     6. **Gaze Saccades**: Eyes lead each turn slightly before the body rotates ([`src/sim/gaze.ts`](file:///F:/progetti/Aquaria/src/sim/gaze.ts)).
     7. **Reactions**, in order of urgency: fear of a tap on the glass, hunger for food flakes ([`src/sim/food.ts`](file:///F:/progetti/Aquaria/src/sim/food.ts)), curiosity about a finger on the glass. Each species tunes them with `behavior.appetite`, `curiosity` and `shyness` in `species.json`.
+    8. **Swimming styles**: when nothing calls for its attention, each species swims its own way (`cruise`, `burst-coast`, `hover`, `glide`, `patrol`), picked and tuned with `swim` in `species.json`. See [Swimming styles](SWIMMING.md).
   - **A procedural rig instead of a skeleton**: the simulation computes a few "joint" values per fish and the shader deforms the body with them ([`src/sim/posture.ts`](file:///F:/progetti/Aquaria/src/sim/posture.ts)): `bend` lays the rear of the body along the arc the fish swims (path curvature times body length, up to a C-shaped escape), `effort` scales the tail sweep with speed and acceleration, `mouth` drops the jaw before a bite. When glTF fish arrive, the same channels will drive their animations.
 
 ---
