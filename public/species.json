@@ -31,6 +31,21 @@
       },
       "swim": {
         "style": "cruise"
+      },
+      "activities": {
+        "peck": {
+          "weight": 0.5,
+          "tags": {
+            "algae": 1
+          }
+        },
+        "inspect": {
+          "weight": 0.2,
+          "tags": {
+            "coral": 0.6,
+            "shelter": 0.4
+          }
+        }
       }
     },
     {
@@ -134,6 +149,14 @@
       },
       "swim": {
         "style": "cruise"
+      },
+      "activities": {
+        "peck": {
+          "weight": 0.8,
+          "tags": {
+            "algae": 1
+          }
+        }
       }
     },
     {
@@ -166,6 +189,15 @@
       },
       "swim": {
         "style": "hover"
+      },
+      "activities": {
+        "inspect": {
+          "weight": 0.6,
+          "tags": {
+            "shelter": 1,
+            "rock": 0.4
+          }
+        }
       }
     },
     {
@@ -201,6 +233,21 @@
       "swim": {
         "style": "patrol",
         "radiusBodyLengths": 5
+      },
+      "activities": {
+        "peck": {
+          "weight": 1,
+          "tags": {
+            "coral": 1
+          }
+        },
+        "inspect": {
+          "weight": 0.3,
+          "tags": {
+            "coral": 1,
+            "anemone": 0.5
+          }
+        }
       }
     },
     {
@@ -235,6 +282,21 @@
       },
       "swim": {
         "style": "glide"
+      },
+      "activities": {
+        "peck": {
+          "weight": 0.4,
+          "tags": {
+            "coral": 0.6,
+            "algae": 0.6
+          }
+        },
+        "inspect": {
+          "weight": 0.3,
+          "tags": {
+            "coral": 1
+          }
+        }
       }
     },
     {
@@ -269,6 +331,23 @@
       "swim": {
         "style": "glide",
         "speed": 0.6
+      },
+      "activities": {
+        "peck": {
+          "weight": 0.6,
+          "tags": {
+            "rock": 0.6,
+            "coral": 0.8,
+            "algae": 0.4
+          }
+        },
+        "inspect": {
+          "weight": 0.3,
+          "tags": {
+            "coral": 0.8,
+            "starfish": 1
+          }
+        }
       }
     },
     {
@@ -301,6 +380,15 @@
       },
       "swim": {
         "style": "burst-coast"
+      },
+      "activities": {
+        "inspect": {
+          "weight": 0.6,
+          "tags": {
+            "shelter": 1,
+            "coral": 0.6
+          }
+        }
       }
     },
     {
@@ -333,6 +421,14 @@
       },
       "swim": {
         "style": "cruise"
+      },
+      "activities": {
+        "peck": {
+          "weight": 0.6,
+          "tags": {
+            "algae": 1
+          }
+        }
       }
     },
     {
@@ -433,6 +529,21 @@
       "swim": {
         "style": "glide",
         "speed": 0.5
+      },
+      "activities": {
+        "inspect": {
+          "weight": 0.3,
+          "tags": {
+            "plant": 0.8,
+            "wood": 1
+          }
+        },
+        "peck": {
+          "weight": 0.2,
+          "tags": {
+            "plant": 1
+          }
+        }
       }
     },
     {
@@ -467,6 +578,15 @@
       "swim": {
         "style": "burst-coast",
         "burstSpeed": 1.8
+      },
+      "activities": {
+        "peck": {
+          "weight": 0.6,
+          "tags": {
+            "plant": 0.6,
+            "algae": 1
+          }
+        }
       }
     },
     {
@@ -501,6 +621,15 @@
         "style": "burst-coast",
         "burstSpeed": 1.6,
         "coastSpeed": 0.5
+      },
+      "activities": {
+        "peck": {
+          "weight": 0.8,
+          "tags": {
+            "algae": 1,
+            "plant": 0.6
+          }
+        }
       }
     },
     {
@@ -535,6 +664,15 @@
       "swim": {
         "style": "hover",
         "speed": 0.25
+      },
+      "activities": {
+        "inspect": {
+          "weight": 0.5,
+          "tags": {
+            "plant": 1,
+            "wood": 0.6
+          }
+        }
       }
     },
     {
@@ -570,6 +708,15 @@
         "style": "patrol",
         "radiusBodyLengths": 4,
         "speed": 0.7
+      },
+      "activities": {
+        "inspect": {
+          "weight": 0.2,
+          "tags": {
+            "rock": 0.6,
+            "wood": 1
+          }
+        }
       }
     },
     {
@@ -604,6 +751,16 @@
       "swim": {
         "style": "cruise",
         "turnJitter": 0.4
+      },
+      "activities": {
+        "peck": {
+          "weight": 0.5,
+          "tags": {
+            "shell": 1,
+            "rock": 0.4,
+            "starfish": 0.3
+          }
+        }
       }
     }
   ]
