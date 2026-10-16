@@ -6,6 +6,7 @@ import { parseCatalog, parseScene } from "../scene/parse";
 import type { SceneInput, Species } from "../scene/schema";
 import { createSimulation, TOTAL_FISH_LIMIT, type Fish, type Simulation } from "./simulation";
 import { FLAKES_PER_PINCH } from "./food";
+import { spinOf } from "./gesture";
 import { MAX_BEND, MAX_EFFORT, MIN_EFFORT } from "./posture";
 import { habitatBox } from "./tank";
 
@@ -766,6 +767,14 @@ describe("playing with the viewer", () => {
     run(simulation, 1);
 
     expect(fish.play.dizzy).toBeGreaterThan(0);
+  });
+
+  it("tells what the finger is drawing", () => {
+    const { simulation, fish } = oneFish();
+
+    draw(simulation, fish, circles(0), 1);
+
+    expect(spinOf(simulation.gesture)).toBe(1);
   });
 
   it("leaves fish alone when the circles are drawn far from them", () => {

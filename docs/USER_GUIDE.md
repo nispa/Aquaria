@@ -44,14 +44,17 @@ This guide covers everything needed to operate, customize, and understand the de
 
 ### Controls & Hotkeys
 
-| Key / Action                     | Function                  | Details                                                                                                        |
-| :------------------------------- | :------------------------ | :------------------------------------------------------------------------------------------------------------- |
-| **`H`**                          | Show / Hide Control Panel | Toggles the sidebar control panel.                                                                             |
-| **`F`**                          | Fullscreen Toggle         | Enters or leaves borderless full-screen view.                                                                  |
-| **`Space`**                      | Feed the Fish             | Drops a pinch of flakes, above the pointer when it is over the tank (also the panel's _Feed the fish_ button). |
-| **Rest the pointer on the tank** | Finger on the Glass       | The curious individuals of each species come to look; the finger counts as gone after 8 s without movement.    |
-| **Click the tank**               | Tap the Glass             | Nearby fish dart away; shy species flee from farther away. They calm down within a few seconds.                |
-| **Mouse Move**                   | Reveal Panel Button       | A discreet corner toggle button appears for 2.5s and fades away to avoid screen burn-in.                       |
+| Key / Action                     | Function                  | Details                                                                                                         |
+| :------------------------------- | :------------------------ | :-------------------------------------------------------------------------------------------------------------- |
+| **`H`**                          | Show / Hide Control Panel | Toggles the sidebar control panel.                                                                              |
+| **`F`**                          | Fullscreen Toggle         | Enters or leaves borderless full-screen view.                                                                   |
+| **`Space`**                      | Feed the Fish             | Drops a pinch of flakes, above the pointer when it is over the tank (also the panel's _Feed the fish_ button).  |
+| **Rest the pointer on the tank** | Finger on the Glass       | The curious individuals of each species come to look; the finger counts as gone after 8 s without movement.     |
+| **Click the tank**               | Tap the Glass             | Nearby fish dart away; shy species flee from farther away. They calm down within a few seconds.                 |
+| **Quick circles near a fish**    | Hypnosis                  | It stops, floats, turns and rolls with your circles; when they stop it swims off dizzy.                         |
+| **Scribble right over a fish**   | Tickling                  | It wriggles belly up, then darts off in a zigzag.                                                               |
+| **`A`**                          | What the Fish Are Doing   | Labels over every fish and a card for the one nearest the pointer. See [Playing with the fish](INTERACTION.md). |
+| **Mouse Move**                   | Reveal Panel Button       | A discreet corner toggle button appears for 2.5s and fades away to avoid screen burn-in.                        |
 
 ---
 

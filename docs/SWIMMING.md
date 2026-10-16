@@ -207,9 +207,9 @@ heads for a place, its soft walls widen around it.
 activity: the fish goes back to wandering. So does a change of scenery,
 since the place may be gone.
 
-**Seeing it.** In a dev build (`pnpm dev`) press **A**: every fish shows
-its activity (`wander 12s`, `peck ×3`, `inspect`), with a line to the
-place it is about.
+**Seeing it.** Press **A**: every fish shows its activity (`wander 12s`,
+`peck ×3`, `inspect`), with a line to the place it is about (see
+[Playing with the fish](INTERACTION.md#seeing-what-goes-on-a)).
 
 Activities live in `src/sim/behaviors/` next to the styles (`wander.ts`,
 `inspect.ts`, `peck.ts`, the chooser in `choose.ts`), registered in

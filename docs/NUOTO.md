@@ -212,9 +212,9 @@ attorno a quel luogo.
 interrompono qualunque attività: il pesce torna a vagare. Lo stesso
 succede se cambia lo scenario, perché il luogo potrebbe non esserci più.
 
-**Vederle.** In una build di sviluppo (`pnpm dev`) premi **A**: ogni pesce
-mostra la sua attività (`wander 12s`, `peck ×3`, `inspect`), con una linea
-verso il luogo di cui si occupa.
+**Vederle.** Premi **A**: ogni pesce mostra la sua attività
+(`wander 12s`, `peck ×3`, `inspect`), con una linea verso il luogo di cui
+si occupa (vedi [Giocare con i pesci](INTERAZIONE.md#vedere-cosa-succede-a)).
 
 Le attività stanno in `src/sim/behaviors/` accanto agli stili
 (`wander.ts`, `inspect.ts`, `peck.ts`, la scelta in `choose.ts`),

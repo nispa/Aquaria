@@ -24,7 +24,7 @@ const SCRIBBLE_STEADINESS = 0.35;
  * no way round (a hair of wobble decides its sign), so it adds to turning
  * but not to spin.
  */
-const REVERSAL = 2;
+const REVERSAL = 2.6;
 
 export interface Gesture {
   /** Smoothed finger speed across the glass, m/s. */

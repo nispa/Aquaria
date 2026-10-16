@@ -60,7 +60,8 @@ by Zod. Swimming styles and activities are one file each in
       declare which tags interest them and how much.
 - [x] Activities: `wander`, `inspect` (approach, circle or hover, leave),
       `peck` (head down, short thrusts, mouth opens).
-- [x] Development overlay showing each fish's activity (dev builds only).
+- [x] Overlay showing each fish's activity, toggled with A (first planned
+      for dev builds only; kept in every build at the viewer's request).
 
 ### B3. Shelter, hosts and night
 

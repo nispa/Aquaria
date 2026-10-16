@@ -16,7 +16,7 @@ import {
   type SwimState,
 } from "./behaviors";
 import { nextGaze, turnIntent } from "./gaze";
-import { createGesture, isScribbling, spinOf, trackFinger } from "./gesture";
+import { createGesture, isScribbling, spinOf, trackFinger, type Gesture } from "./gesture";
 import { createCurrentField, type CurrentField } from "./current";
 import { createFood, type Food } from "./food";
 import { createPlaceFinder, type Place } from "./places";
@@ -192,6 +192,8 @@ export interface Simulation {
   /** Flakes in the water. */
   readonly food: Food;
   readonly timeSeconds: number;
+  /** What the viewer's finger is drawing on the glass; see sim/gesture. */
+  readonly gesture: Readonly<Gesture>;
   /** Advances the simulation by one fixed step. */
   step(deltaSeconds: number): void;
   /**
@@ -731,6 +733,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
     get timeSeconds() {
       return timeSeconds;
     },
+    gesture,
     step(deltaSeconds) {
       let removed = false;
       const currentPlaces = places();

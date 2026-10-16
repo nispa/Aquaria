@@ -70,6 +70,8 @@ Rules:
   (constructor or function parameters); no hidden singletons.
 - Post-MVP input sources emit events on the event bus; behaviors subscribe.
   Adding an input source must not require changes in `sim`.
+- How the viewer plays with the fish (finger, taps, food, gestures, the `A`
+  overlay) and how to add an interaction: `docs/INTERACTION.md`.
 
 ## Test-driven development
 

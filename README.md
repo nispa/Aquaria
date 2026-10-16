@@ -55,7 +55,13 @@ Controls:
 | `Space`                      | Drop a pinch of food (above the pointer if it is over the tank) |
 | Rest the pointer on the tank | A finger on the glass: curious fish come to look                |
 | Click the tank               | Tap the glass: nearby fish dart away                            |
+| Draw quick circles on a fish | Hypnotize it; it comes round dizzy                              |
+| Scribble right over a fish   | Tickle it: it wriggles belly up and darts off                   |
+| `A`                          | Show what every fish is doing                                   |
 | Move the mouse               | Shows the panel button for a moment                             |
+
+All the ways to play with the fish, and how to add more:
+[Playing with the fish](docs/INTERACTION.md).
 
 URL options:
 
@@ -249,8 +255,8 @@ parameters to tune; see [Swimming styles](docs/SWIMMING.md). Clownfish keep
 station over the nearest anemone: plants and objects carry tags (`anemone`,
 `shelter`, `coral`…) that fish look for, and a scene entry may set its own
 `tags`. An optional `activities` entry lets a species do more than swim
-about: `inspect` a place or `peck` at it, choosing places by those tags (in a
-dev build, press A to see what each fish is doing). The catalog
+about: `inspect` a place or `peck` at it, choosing places by those tags (press A to
+see what each fish is doing). The catalog
 includes butterflyfish, moorish idols, emperor angelfish, three-bar damsels and
 purple tangs.
 Files are validated on load; mistakes are reported with the exact field.

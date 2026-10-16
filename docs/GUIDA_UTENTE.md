@@ -44,14 +44,17 @@ Questa guida completa illustra come utilizzare, configurare ed estendere **Aquar
 
 ### Scorciatoie da Tastiera e Controlli
 
-| Tasto / Gesto                   | Azione                 | Descrizione                                                                                                                              |
-| :------------------------------ | :--------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
-| **`H`**                         | Apri / Chiudi Pannello | Mostra o nasconde la barra laterale di controllo.                                                                                        |
-| **`F`**                         | Schermo Intero         | Attiva o disattiva la modalità fullscreen (senza barre del browser).                                                                     |
-| **`Spazio`**                    | Dai da mangiare        | Lascia cadere un pizzico di fiocchi, sopra il puntatore se è sulla vasca (anche col pulsante _Feed the fish_ del pannello).              |
-| **Puntatore fermo sulla vasca** | Dito sul vetro         | Gli individui curiosi di ogni specie vengono a guardare; dopo 8 s senza movimento il dito conta come tolto.                              |
-| **Click sulla vasca**           | Colpo sul vetro        | I pesci vicini scappano di scatto; le specie timide fuggono da più lontano. Si calmano in pochi secondi.                                 |
-| **Movimento Mouse**             | Mostra Icona Menu      | Muovendo il cursore appare un pulsante d'angolo temporaneo che svanisce dopo 2,5 secondi per prevenire il burn-in dei pixel sui display. |
+| Tasto / Gesto                       | Azione                 | Descrizione                                                                                                                              |
+| :---------------------------------- | :--------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| **`H`**                             | Apri / Chiudi Pannello | Mostra o nasconde la barra laterale di controllo.                                                                                        |
+| **`F`**                             | Schermo Intero         | Attiva o disattiva la modalità fullscreen (senza barre del browser).                                                                     |
+| **`Spazio`**                        | Dai da mangiare        | Lascia cadere un pizzico di fiocchi, sopra il puntatore se è sulla vasca (anche col pulsante _Feed the fish_ del pannello).              |
+| **Puntatore fermo sulla vasca**     | Dito sul vetro         | Gli individui curiosi di ogni specie vengono a guardare; dopo 8 s senza movimento il dito conta come tolto.                              |
+| **Click sulla vasca**               | Colpo sul vetro        | I pesci vicini scappano di scatto; le specie timide fuggono da più lontano. Si calmano in pochi secondi.                                 |
+| **Cerchi veloci vicino a un pesce** | Ipnosi                 | Si ferma, galleggia, gira e si avvita coi tuoi cerchi; quando smetti se ne va stordito.                                                  |
+| **Scarabocchio sopra un pesce**     | Solletico              | Si contorce a pancia in su, poi scappa a zig-zag.                                                                                        |
+| **`A`**                             | Cosa fanno i pesci     | Etichette su ogni pesce e una scheda per quello più vicino al puntatore. Vedi [Giocare con i pesci](INTERAZIONE.md).                     |
+| **Movimento Mouse**                 | Mostra Icona Menu      | Muovendo il cursore appare un pulsante d'angolo temporaneo che svanisce dopo 2,5 secondi per prevenire il burn-in dei pixel sui display. |
 
 ---
 

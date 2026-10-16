@@ -602,8 +602,8 @@ async function start(): Promise<void> {
   }
 
   const fps = createFpsMeter(FPS_WINDOW_SECONDS);
-  // Development builds only: what every fish is doing, toggled with A.
-  const activityOverlay = import.meta.env.DEV ? createActivityOverlay(document.body) : undefined;
+  // What every fish is doing, toggled with A.
+  const activityOverlay = createActivityOverlay(document.body);
   const project: ScreenProjection = (point, out) => view.screenPoint(point, out);
   let previous: number | undefined;
   const frame = (now: number): void => {
@@ -612,7 +612,7 @@ async function start(): Promise<void> {
     const steps = clock.advance(delta);
     for (let step = 0; step < steps; step += 1) simulation.step(clock.stepSeconds);
     view.render();
-    activityOverlay?.draw(simulation.fish, project);
+    activityOverlay.draw(simulation.fish, simulation.gesture, project);
     fps.frame(delta);
     if (settings.showFps) panel.setFps(fps.fps);
     panel.setHour(view.hour());
