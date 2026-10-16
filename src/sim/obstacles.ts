@@ -189,3 +189,32 @@ export function createObstacleField(obstacles: readonly Obstacle[]): ObstacleFie
     },
   };
 }
+
+/** Directions tried, evenly round, when looking for the way out. */
+const OPEN_DIRECTIONS = 12;
+const lookout = new Vector3();
+const lookoutNormal = new Vector3();
+
+/**
+ * The heading seen from above (radians, 0 is +x) along which the space
+ * around `position` is most open: the one whose point `distance` m away lies
+ * farthest from any obstacle. The way out of a pocket. Allocation-free.
+ */
+export function openYaw(field: ObstacleField, position: Vector3, distance: number): number {
+  let bestYaw = 0;
+  let bestRoom = -Infinity;
+  for (let index = 0; index < OPEN_DIRECTIONS; index += 1) {
+    const yaw = (index / OPEN_DIRECTIONS) * Math.PI * 2;
+    lookout.set(
+      position.x + Math.cos(yaw) * distance,
+      position.y,
+      position.z + Math.sin(yaw) * distance,
+    );
+    const room = Math.min(field.distance(lookout, lookoutNormal, distance), distance);
+    if (room > bestRoom) {
+      bestRoom = room;
+      bestYaw = yaw;
+    }
+  }
+  return bestYaw;
+}

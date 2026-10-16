@@ -4,7 +4,7 @@ import { catalogFixture } from "../scene/fixtures";
 import { parseCatalog } from "../scene/parse";
 import { createActivityState, createSwimState } from "../sim/behaviors";
 import { createPlay } from "../sim/play";
-import type { Fish } from "../sim/simulation";
+import { createUnstick, type Fish } from "../sim/simulation";
 import {
   activityColor,
   activityLabel,
@@ -43,6 +43,7 @@ function fishFixture(): Fish {
     hiding: 0,
     refuge: new Vector3(),
     refugeSize: 0,
+    unstick: createUnstick(),
     side: 1,
   };
 }

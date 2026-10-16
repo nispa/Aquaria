@@ -14,7 +14,7 @@ import type { ModelManifest } from "../scene/modelManifest";
 import type { Species, SpeciesCatalog } from "../scene/schema";
 import { createActivityState, createSwimState } from "../sim/behaviors";
 import { createPlay } from "../sim/play";
-import type { Fish } from "../sim/simulation";
+import { createUnstick, type Fish } from "../sim/simulation";
 import { createAssetLoaders } from "./assetLoaders";
 import { createFishRenderer } from "./fishRenderer";
 import { portraitFraming } from "./portraitFraming";
@@ -66,6 +66,7 @@ function sitter(species: Species): Fish {
     hiding: 0,
     refuge: new Vector3(),
     refugeSize: 0,
+    unstick: createUnstick(),
     side: 1,
   };
 }

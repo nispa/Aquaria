@@ -1,7 +1,7 @@
 import { Vector3 } from "three";
 import { describe, expect, it } from "vitest";
 import type { Prop } from "./layout";
-import { createObstacleField, obstacleOf, PROP_SHAPES, propTop } from "./obstacles";
+import { createObstacleField, obstacleOf, openYaw, PROP_SHAPES, propTop } from "./obstacles";
 import { floorHeight } from "./terrain";
 
 const prop = (kind: Prop["kind"], x: number, z: number, size: number, rotation = 0): Prop => ({
@@ -107,5 +107,26 @@ describe("an obstacle field", () => {
     const field = createObstacleField([obstacleOf(prop("rock", 0, -2, 0.4))]);
 
     expect(field.distance(new Vector3(3, 0, -2), normal, 1)).toBe(Infinity);
+  });
+});
+
+describe("openYaw", () => {
+  const rock = (x: number, z: number) => ({
+    center: new Vector3(x, 1, z),
+    radii: new Vector3(0.4, 0.4, 0.4),
+    cos: 1,
+    sin: 0,
+    reach: 0.4,
+  });
+
+  it("points out of a pocket, the way that is open", () => {
+    // Closed on +x, -z and +z: open towards -x.
+    const field = createObstacleField([rock(0.6, 0), rock(0, -0.6), rock(0, 0.6)]);
+
+    const yaw = openYaw(field, new Vector3(0, 1, 0), 0.6);
+
+    expect(Math.abs(Math.atan2(Math.sin(yaw - Math.PI), Math.cos(yaw - Math.PI)))).toBeLessThan(
+      0.5,
+    );
   });
 });

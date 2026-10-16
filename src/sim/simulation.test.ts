@@ -1357,6 +1357,57 @@ describe("obstacles", () => {
     expect([...targets]).toEqual([open.x]);
   });
 
+  it.each(["cruise", "burst-coast", "glide", "patrol"])(
+    "gets a fish swimming %s out of a pocket in the rocks it swam into",
+    (style) => {
+      const input = catalogFixture();
+      const tuned = parseCatalog({
+        species: input.species.map((entry) =>
+          entry.id === "blue-tang" ? { ...entry, swim: { style } } : entry,
+        ),
+      });
+      const simulation = createSimulation({
+        scene: parseScene(
+          { ...sceneFixture(), fauna: [{ species: "blue-tang", count: 1 }] },
+          tuned,
+        ),
+        catalog: tuned,
+        rng: createRng(3),
+      });
+      const [fish] = simulation.fish;
+      if (fish === undefined) throw new Error("The scene has no fish.");
+      const pocket = new Vector3(0, 2.4, -2);
+      const rock = (x: number, y: number, z: number): Obstacle => ({
+        center: new Vector3(x, y, z),
+        radii: new Vector3(0.6, 0.6, 0.6),
+        cos: 1,
+        sin: 0,
+        reach: 0.6,
+      });
+      // Overlapping rocks close it on every side but -x: east, back, front, above, below.
+      const walls = [
+        rock(0.75, 2.4, -2),
+        rock(0, 2.4, -2.75),
+        rock(0, 2.4, -1.25),
+        rock(0, 3.15, -2),
+        rock(0, 1.65, -2),
+      ];
+      simulation.setObstacles(() => walls);
+      run(simulation, 1);
+      fish.position.copy(pocket);
+      // Swimming into the closed end.
+      fish.velocity.set(fish.species.speed.cruise, 0, 0);
+
+      let farthest = 0;
+      for (let elapsed = 0; elapsed < 12; elapsed += STEP) {
+        simulation.step(STEP);
+        farthest = Math.max(farthest, fish.position.distanceTo(pocket));
+      }
+
+      expect(farthest).toBeGreaterThan(1);
+    },
+  );
+
   it("steers fish around rocks instead of scraping along them", () => {
     const steering = simulate();
     steering.setObstacles(() => boulders);

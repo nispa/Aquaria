@@ -23,7 +23,7 @@ import { createGesture, isScribbling, spinOf, trackFinger, type Gesture } from "
 import { createCrowd } from "./crowd";
 import { createCurrentField, type CurrentField } from "./current";
 import { createFood, type Food } from "./food";
-import { createObstacleField, type Obstacle } from "./obstacles";
+import { createObstacleField, openYaw, type Obstacle } from "./obstacles";
 import { createPlaceFinder, topOf, type Place } from "./places";
 import { beamOffset, beamRadius, torchStrength } from "./torch";
 import {
@@ -101,6 +101,19 @@ const OBSTACLE_BODY_LENGTHS = 1;
 const OBSTACLE_MIN_CLEARANCE = 0.06;
 const OBSTACLE_GAP_BODY_LENGTHS = 0.4;
 const CLOSE_IN_GAPS = 1.5;
+/**
+ * A fish that spent UNSTICK_TOUCHING of the last UNSTICK_CHECK_SECONDS
+ * touching the rocks and got no more than UNSTICK_BODY_LENGTHS away is caught
+ * in a pocket: for ESCAPE_SECONDS it heads for the most open way, looked for
+ * ESCAPE_BODY_LENGTHS (at least ESCAPE_MIN_DISTANCE) around it, whatever its
+ * style wants.
+ */
+const UNSTICK_CHECK_SECONDS = 2;
+const UNSTICK_TOUCHING = 0.8;
+const UNSTICK_BODY_LENGTHS = 1;
+const ESCAPE_SECONDS = 2;
+const ESCAPE_BODY_LENGTHS = 2;
+const ESCAPE_MIN_DISTANCE = 0.15;
 /** A place is open when this far above its top lies outside every obstacle, m. */
 const OPEN_PROBE = 0.03;
 /** A fish counts as at its place within this many body lengths of it. */
@@ -258,8 +271,28 @@ export interface Fish {
   readonly refuge: Vector3;
   /** How large its shelter is, m: within that of `refuge` it is in it. */
   refugeSize: number;
+  /** Notices a fish caught in a pocket of the rocks and leads it out. */
+  readonly unstick: Unstick;
   /** -1 or 1: which side wall the fish is travelling through when entering or leaving. */
   side: number;
+}
+
+export interface Unstick {
+  /** Where the fish was at the last check. */
+  readonly checkpoint: Vector3;
+  /** Seconds since the last check. */
+  checkSeconds: number;
+  /** Of those, the seconds it spent touching the rocks. */
+  touchSeconds: number;
+  /** Seconds it still heads out along `yaw`, 0 when it is not caught. */
+  escapeSeconds: number;
+  /** The way out, radians seen from above. */
+  yaw: number;
+}
+
+/** A fish that has not been caught yet. */
+export function createUnstick(): Unstick {
+  return { checkpoint: new Vector3(), checkSeconds: 0, touchSeconds: 0, escapeSeconds: 0, yaw: 0 };
 }
 
 export interface SimulationOptions {
@@ -513,6 +546,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
       hiding: 0,
       refuge: new Vector3(),
       refugeSize: 0,
+      unstick: createUnstick(),
       side,
     };
     if (!entering) startSwimming(group, member, position);
@@ -801,6 +835,26 @@ export function createSimulation(options: SimulationOptions): Simulation {
    */
   const slipsIn = (member: Fish): boolean => member.hiding > 0 && closeIn(member);
 
+  /** Checks now and then whether a fish touching the rocks is caught in a pocket. */
+  const watchForPockets = (member: Fish, keepOff: number, deltaSeconds: number): void => {
+    const { unstick, position, length } = member;
+    unstick.checkSeconds += deltaSeconds;
+    if (obstacleField.distance(position, surfaceNormal, keepOff) < keepOff) {
+      unstick.touchSeconds += deltaSeconds;
+    }
+    if (unstick.checkSeconds < UNSTICK_CHECK_SECONDS) return;
+    const stalled = unstick.checkpoint.distanceTo(position) < length * UNSTICK_BODY_LENGTHS;
+    const touching = unstick.touchSeconds > unstick.checkSeconds * UNSTICK_TOUCHING;
+    if (stalled && touching && member.species.swim.style !== "hover") {
+      const around = Math.max(length * ESCAPE_BODY_LENGTHS, ESCAPE_MIN_DISTANCE);
+      unstick.yaw = openYaw(obstacleField, position, around);
+      unstick.escapeSeconds = ESCAPE_SECONDS;
+    }
+    unstick.checkpoint.copy(position);
+    unstick.checkSeconds = 0;
+    unstick.touchSeconds = 0;
+  };
+
   const steer = (group: Group, member: Fish, deltaSeconds: number): void => {
     const { species, habitat } = group;
     const cruise = species.speed.cruise;
@@ -868,7 +922,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
     const keepOff = atPlace
       ? gap * CLOSE_IN_GAPS
       : Math.max(member.length * OBSTACLE_BODY_LENGTHS, OBSTACLE_MIN_CLEARANCE);
-    if (!slipsIn(member)) {
+    // Heading out of a pocket, only the hard gap keeps it off the rocks: their
+    // push would keep turning it back in.
+    if (!slipsIn(member) && member.unstick.escapeSeconds === 0) {
       addObstacleAvoidance(
         member.position,
         member.velocity,
@@ -879,6 +935,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
       );
       force.addScaledVector(term, OBSTACLE_WEIGHT);
     }
+    if (!atPlace) watchForPockets(member, keepOff, deltaSeconds);
     // Rock faces of the rockwork, seen coming like the props.
     term.set(0, 0, 0);
     addSeabedLookAhead(member.position, member.velocity, seabed, lookAhead, clearance, term);
@@ -909,6 +966,11 @@ export function createSimulation(options: SimulationOptions): Simulation {
         }
         const heading = Math.atan2(member.velocity.z, member.velocity.x);
         applyPlay(member.play, swim, heading, member.position.y, member.length);
+      }
+      const { unstick } = member;
+      if (unstick.escapeSeconds > 0) {
+        unstick.escapeSeconds = Math.max(unstick.escapeSeconds - deltaSeconds, 0);
+        swim.yaw = unstick.yaw;
       }
       term.set(0, 0, 0);
       addHeading(member.velocity, swim.yaw, term);
