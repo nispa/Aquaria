@@ -234,6 +234,41 @@ describe("rockwork", () => {
   });
 });
 
+describe("blocks", () => {
+  const catalog = parseCatalog(catalogFixture());
+  /** The fixture's 8 × 4.5 × 5 m tank in 0.5 m blocks: 16 × 9 × 10. */
+  const CELLS = 1440;
+
+  it("accepts blocks whose runs fill the tank's grid", () => {
+    const input = sceneFixture();
+    input.blocks = { size: 0.5, runs: [CELLS - 40, 20, 20], color: "#8a7d70" };
+
+    expect(parseScene(input, catalog).blocks?.runs).toEqual([CELLS - 40, 20, 20]);
+  });
+
+  it("rejects runs that do not fill the grid, saying how many cells it has", () => {
+    const input = sceneFixture();
+    input.blocks = { size: 0.5, runs: [100, 20], color: "#8a7d70" };
+
+    expect(() => parseScene(input, catalog)).toThrow(/blocks\.runs.*120.*1440/);
+  });
+
+  it("rejects blocks smaller than the smallest size", () => {
+    const input = sceneFixture();
+    input.blocks = { size: 0.001, runs: [1], color: "#8a7d70" };
+
+    expect(() => parseScene(input, catalog)).toThrow(/blocks\.size/);
+  });
+
+  it("lets entries grow on blocks, as on a ridge", () => {
+    const input = sceneFixture();
+    input.blocks = { size: 0.5, runs: [CELLS], color: "#8a7d70" };
+    input.props = [{ kind: "brain-coral", count: 2, color: "#b89a5e", on: "rockwork" }];
+
+    expect(() => parseScene(input, catalog)).not.toThrow();
+  });
+});
+
 describe("scene lights", () => {
   const catalog = parseCatalog(catalogFixture());
 

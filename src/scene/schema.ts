@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { activitiesSchema } from "./activities";
+import { blockGrid, cellCount, MAX_BLOCK_SIZE, MIN_BLOCK_SIZE, runsTotal } from "./blocks";
 import { lightsSchema } from "./lights";
 import { swimSchema } from "./swimming";
 import { tagSchema } from "./tags";
@@ -227,6 +228,19 @@ const rockwork = z.object({
   material: surfaceMaterial.optional(),
 });
 
+/**
+ * Rockwork built from blocks (see scene/blocks): cubes of edge `size` over
+ * the whole tank, each solid or empty, written as runs of alternating empty
+ * and solid cells, the first one empty. The scene editor writes them.
+ */
+const blocks = z.object({
+  /** Edge of one block, m. */
+  size: z.number().min(MIN_BLOCK_SIZE).max(MAX_BLOCK_SIZE),
+  runs: z.array(z.number().int().nonnegative()),
+  color: hexColor,
+  material: surfaceMaterial.optional(),
+});
+
 /** Largest count per flora entry; also the top of its panel slider. */
 export const MAX_FLORA_PER_ENTRY = 200;
 /** Largest count per prop entry; also the top of its panel slider. */
@@ -308,12 +322,25 @@ export const sceneSchema = z
     /** LED channels and daily cycle; the recommended reef setup when absent. */
     lights: lightsSchema,
     rockwork: rockwork.optional(),
+    blocks: blocks.optional(),
     flora: z.array(flora).default([]),
     props: z.array(prop).default([]),
     fauna: z.array(fauna),
   })
   .superRefine((scene, context) => {
-    if (scene.rockwork !== undefined) return;
+    if (scene.blocks !== undefined) {
+      const cells = cellCount(blockGrid(scene.tank, scene.blocks.size));
+      const covered = runsTotal(scene.blocks.runs);
+      if (covered !== cells) {
+        context.addIssue({
+          code: "custom",
+          path: ["blocks", "runs"],
+          message: `The runs cover ${String(covered)} cells, but the tank's grid has ${String(cells)}.`,
+        });
+      }
+    }
+    // Blocks are rockwork too: plants and objects may grow on them.
+    if (scene.rockwork !== undefined || scene.blocks !== undefined) return;
     for (const section of ["flora", "props"] as const) {
       scene[section].forEach((entry, index) => {
         if (entry.on === "rockwork") {
@@ -336,3 +363,4 @@ export type FloraSpec = z.output<typeof flora>;
 export type PropSpec = z.output<typeof prop>;
 export type SurfaceMaterialSpec = z.output<typeof surfaceMaterial>;
 export type RockworkSpec = z.output<typeof rockwork>;
+export type BlocksSpec = z.output<typeof blocks>;
