@@ -37,6 +37,8 @@ function fishFixture(): Fish {
     activity: createActivityState(),
     play: createPlay(),
     roll: 0,
+    hiding: 0,
+    refuge: new Vector3(),
     side: 1,
   };
 }
@@ -98,6 +100,13 @@ describe("fishLabel", () => {
     fish.play.dizzy = 2.6;
 
     expect(fishLabel(fish)).toBe("dizzy 3s");
+  });
+
+  it("shows a fish hiding after a fright, and for how long", () => {
+    const fish = fishFixture();
+    fish.hiding = 3.2;
+
+    expect(fishLabel(fish)).toBe("hiding 3s");
   });
 
   it("shows a tickled fish above all", () => {

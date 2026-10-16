@@ -8,6 +8,7 @@ import type { SwimStyle } from "./types";
 
 export { activityOf, doesMoreThanWander, evenRests } from "./activities";
 export { createActivityChooser, restfulness } from "./choose";
+export { nestlePoint } from "./hover";
 export { settleDown } from "./shared";
 export {
   createActivityState,

@@ -60,13 +60,13 @@ describe("hover over a host", () => {
     expect(hovering.state.anchored).toBe(false);
   });
 
-  it("stays just above its host", () => {
+  it("stays close to its host, never deeper in it than half a body length", () => {
     const hosted = startStyle(hoverStyle, { home: "anemone" }, 1, [anemone]);
     const roam = hosted.params.roamBodyLengths * hosted.context.length;
 
     const heights = collect(hosted, 60, (state) => state.height);
 
-    expect(Math.min(...heights)).toBeGreaterThanOrEqual(hosted.state.home.y);
+    expect(Math.min(...heights)).toBeGreaterThanOrEqual(anemone.height - hosted.context.length / 2);
     expect(Math.max(...heights)).toBeLessThanOrEqual(hosted.state.home.y + roam);
   });
 
@@ -121,5 +121,18 @@ describe("station keeping", () => {
     hovering.run(1 / 60);
 
     expect(headingGap(state.yaw, Math.PI)).toBeLessThan(0.1);
+  });
+});
+
+describe("nestling", () => {
+  it("now and then nestles down into its host", () => {
+    const anemone = { x: 0, z: -1, height: 0.2, tags: ["anemone"] };
+    const hosted = startStyle(hoverStyle, { home: "anemone", heightChangeSeconds: 2 }, 1, [
+      anemone,
+    ]);
+
+    const heights = collect(hosted, 60, (state) => state.height);
+
+    expect(Math.min(...heights)).toBeLessThan(anemone.height);
   });
 });

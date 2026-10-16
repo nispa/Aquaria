@@ -85,6 +85,11 @@ const behavior = z.object({
    * the time.
    */
   active: z.enum(["day", "night", "always"]).default("day"),
+  /**
+   * Share of its individuals that run for the nearest shelter when startled,
+   * rather than only darting away (always the same individuals).
+   */
+  hiding: unit.default(0),
 });
 
 export const speciesSchema = z.object({

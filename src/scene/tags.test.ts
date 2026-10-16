@@ -11,6 +11,14 @@ describe("tags of scenery", () => {
     expect(DEFAULT_TAGS.anemone).toEqual(["anemone", "shelter"]);
   });
 
+  it("offers dense plants as shelter, for freshwater fish to hide in", () => {
+    expect([DEFAULT_TAGS.bush, DEFAULT_TAGS.fern, DEFAULT_TAGS.stem]).toEqual([
+      expect.arrayContaining(["shelter"]),
+      expect.arrayContaining(["shelter"]),
+      expect.arrayContaining(["shelter"]),
+    ]);
+  });
+
   it("declares tags for every flora and prop kind", () => {
     const kinds = [...FLORA_KINDS, ...PROP_KINDS];
 

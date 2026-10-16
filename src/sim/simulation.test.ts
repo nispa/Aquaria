@@ -896,3 +896,98 @@ describe("day and night", () => {
     expect(fish?.play.hypnosis).toBe(0);
   });
 });
+
+describe("shelters", () => {
+  const coral = { x: 1, z: -2, height: 0.5, tags: ["coral", "shelter"] };
+
+  function simulateHiding(hiding: number, swim?: unknown, places = [coral]): Simulation {
+    const input = catalogFixture();
+    const tuned = parseCatalog({
+      species: input.species.map((entry) =>
+        entry.id === "blue-tang"
+          ? { ...entry, behavior: { hiding, shyness: 1 }, ...(swim === undefined ? {} : { swim }) }
+          : entry,
+      ),
+    });
+    const simulation = createSimulation({
+      scene: parseScene({ ...sceneFixture(), fauna: [{ species: "blue-tang", count: 4 }] }, tuned),
+      catalog: tuned,
+      rng: createRng(8),
+    });
+    simulation.setPlaces(() => places);
+    return simulation;
+  }
+
+  const meanDistanceToCoral = (fish: readonly Fish[]) =>
+    fish.reduce(
+      (sum, member) => sum + Math.hypot(member.position.x - coral.x, member.position.z - coral.z),
+      0,
+    ) / fish.length;
+
+  /**
+   * Taps the glass in front of every fish and returns those it startled (the
+   * deepest may be out of reach).
+   */
+  function startle(simulation: Simulation): Fish[] {
+    for (const fish of simulation.fish) {
+      simulation.tap(new Vector3(fish.position.x, fish.position.y, 0));
+    }
+    return simulation.fish.filter((fish) => fish.fear > 0);
+  }
+
+  it("sends fish that hide to the nearest shelter when startled", () => {
+    const hiders = simulateHiding(1);
+    const bolters = simulateHiding(0);
+    run(hiders, 1);
+    run(bolters, 1);
+
+    const startledHiders = startle(hiders);
+    const startledBolters = startle(bolters);
+    run(hiders, 4);
+    run(bolters, 4);
+
+    expect(startledHiders.length).toBeGreaterThan(0);
+    expect(meanDistanceToCoral(startledHiders)).toBeLessThan(meanDistanceToCoral(startledBolters));
+    expect(meanDistanceToCoral(startledHiders)).toBeLessThan(0.5);
+  });
+
+  it("keeps them in the shelter a while after the fright", () => {
+    const simulation = simulateHiding(1);
+    run(simulation, 1);
+    const startled = startle(simulation);
+
+    run(simulation, 5);
+
+    expect(startled.every((fish) => fish.fear === 0)).toBe(true);
+    expect(meanDistanceToCoral(startled)).toBeLessThan(0.5);
+  });
+
+  it("lets them come out again later", () => {
+    const simulation = simulateHiding(1);
+    run(simulation, 1);
+    startle(simulation);
+    run(simulation, 5);
+
+    run(simulation, 20);
+
+    expect(simulation.fish.every((fish) => fish.hiding === 0)).toBe(true);
+  });
+
+  it("sends a clownfish into its own anemone", () => {
+    const anemone = { x: -1, z: -2, height: 0.2, tags: ["anemone", "shelter"] };
+    const simulation = simulateHiding(0, { style: "hover", home: "anemone" }, [anemone]);
+    run(simulation, 20);
+
+    const startled = startle(simulation);
+    run(simulation, 3);
+
+    const inside = startled.filter(
+      (fish) =>
+        // Within two body lengths: four large fish crowd one anemone.
+        Math.hypot(fish.position.x - anemone.x, fish.position.z - anemone.z) < 0.5 &&
+        fish.position.y < 0.6,
+    );
+    expect(startled.length).toBeGreaterThan(0);
+    expect(inside.length).toBe(startled.length);
+  });
+});

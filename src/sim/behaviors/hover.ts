@@ -1,3 +1,4 @@
+import type { Vector3 } from "three";
 import { clamp } from "../../core/math";
 import type { SwimParams } from "../../scene/swimming";
 import { CRUISE_RESPONSE, drawDuration, drawSide, jitterYaw, yawTowards } from "./shared";
@@ -13,8 +14,10 @@ const SMALLEST_TURN = 0.4;
 const SPEED_SPREAD: readonly [number, number] = [0.7, 1.3];
 /** The height drifts around the spot by this many roaming distances. */
 const HEIGHT_WANDER = 0.5;
-/** A fish keeps station this many body lengths above the top of its host. */
+/** A fish keeps station this many body lengths above the top of its host… */
 const ABOVE_HOST_BODY_LENGTHS = 1;
+/** …and now and then nestles this many body lengths down into it. */
+export const NESTLE_BODY_LENGTHS = 0.3;
 /**
  * A fish heads home at cruise speed once this many roaming distances away,
  * across or in height: drifting at hovering speed it could hardly climb or sink.
@@ -25,6 +28,13 @@ const COMMUTING = 1;
 
 type Params = SwimParams<"hover">;
 
+/** Where a fish keeping station over a host nestles down into it, written into `out`. */
+export function nestlePoint(state: SwimState, length: number, out: Vector3): Vector3 {
+  return out
+    .copy(state.home)
+    .setY(state.home.y - (ABOVE_HOST_BODY_LENGTHS + NESTLE_BODY_LENGTHS) * length);
+}
+
 /** Settles over the nearest place tagged `home`, or where the fish is. */
 function settle(state: SwimState, params: Params, context: SwimContext): void {
   state.anchored =
@@ -34,10 +44,12 @@ function settle(state: SwimState, params: Params, context: SwimContext): void {
   state.height = state.home.y;
 }
 
-/** A new height near home: above a host, or around the spot within the room. */
+/** A new height near home: over or nestled in a host, or around the spot within the room. */
 function driftAroundHome(state: SwimState, context: SwimContext, roam: number): void {
-  const { room, rng } = context;
-  const low = state.anchored ? state.home.y : room.min.y;
+  const { room, rng, length } = context;
+  const nestled = state.home.y - (ABOVE_HOST_BODY_LENGTHS + NESTLE_BODY_LENGTHS) * length;
+
+  const low = state.anchored ? nestled : room.min.y;
   const high = state.anchored ? state.home.y + roam : room.max.y;
   state.height = clamp(state.home.y + rng.normal(0, roam * HEIGHT_WANDER), low, high);
 }

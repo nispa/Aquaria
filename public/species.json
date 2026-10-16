@@ -27,7 +27,8 @@
       "behavior": {
         "appetite": 0.8,
         "curiosity": 0.5,
-        "shyness": 0.5
+        "shyness": 0.5,
+        "hiding": 0.3
       },
       "swim": {
         "style": "cruise"
@@ -145,7 +146,8 @@
       "behavior": {
         "appetite": 0.8,
         "curiosity": 0.4,
-        "shyness": 0.5
+        "shyness": 0.5,
+        "hiding": 0.3
       },
       "swim": {
         "style": "cruise"
@@ -185,7 +187,8 @@
       "behavior": {
         "appetite": 0.6,
         "curiosity": 0.2,
-        "shyness": 0.8
+        "shyness": 0.8,
+        "hiding": 0.9
       },
       "swim": {
         "style": "hover"
@@ -228,7 +231,8 @@
       "behavior": {
         "appetite": 0.5,
         "curiosity": 0.3,
-        "shyness": 0.6
+        "shyness": 0.6,
+        "hiding": 0.5
       },
       "swim": {
         "style": "patrol",
@@ -278,7 +282,8 @@
       "behavior": {
         "appetite": 0.35,
         "curiosity": 0.3,
-        "shyness": 0.6
+        "shyness": 0.6,
+        "hiding": 0.3
       },
       "swim": {
         "style": "glide"
@@ -326,7 +331,8 @@
       "behavior": {
         "appetite": 0.7,
         "curiosity": 0.5,
-        "shyness": 0.3
+        "shyness": 0.3,
+        "hiding": 0.4
       },
       "swim": {
         "style": "glide",
@@ -376,7 +382,8 @@
       "behavior": {
         "appetite": 0.8,
         "curiosity": 0.5,
-        "shyness": 0.2
+        "shyness": 0.2,
+        "hiding": 0.8
       },
       "swim": {
         "style": "burst-coast"
@@ -417,7 +424,8 @@
       "behavior": {
         "appetite": 0.8,
         "curiosity": 0.4,
-        "shyness": 0.4
+        "shyness": 0.4,
+        "hiding": 0.3
       },
       "swim": {
         "style": "cruise"
@@ -524,7 +532,8 @@
       "behavior": {
         "appetite": 0.8,
         "curiosity": 0.7,
-        "shyness": 0.3
+        "shyness": 0.3,
+        "hiding": 0.4
       },
       "swim": {
         "style": "glide",
@@ -573,7 +582,8 @@
       "behavior": {
         "appetite": 0.9,
         "curiosity": 0.6,
-        "shyness": 0.3
+        "shyness": 0.3,
+        "hiding": 0.5
       },
       "swim": {
         "style": "burst-coast",
@@ -615,7 +625,8 @@
       "behavior": {
         "appetite": 0.9,
         "curiosity": 0.5,
-        "shyness": 0.3
+        "shyness": 0.3,
+        "hiding": 0.5
       },
       "swim": {
         "style": "burst-coast",
@@ -659,7 +670,8 @@
       "behavior": {
         "appetite": 0.6,
         "curiosity": 0.5,
-        "shyness": 0.5
+        "shyness": 0.5,
+        "hiding": 0.7
       },
       "swim": {
         "style": "hover",

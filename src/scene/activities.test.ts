@@ -84,3 +84,9 @@ describe("resting", () => {
     expect(rest?.tags).toEqual({ shelter: 1 });
   });
 });
+
+describe("hiding", () => {
+  it("lets no individual run for shelter unless the species says so", () => {
+    expect(parseCatalog(catalogFixture()).species[0]?.behavior.hiding).toBe(0);
+  });
+});

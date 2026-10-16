@@ -18,6 +18,7 @@ const COLORS: Readonly<Record<ActivityId, string>> = {
   rest: "#9fa8ff",
 };
 const SPELL_COLORS = { hypnotized: "#d58cff", dizzy: "#7dff9b", tickled: "#ff6fb5" } as const;
+const HIDING_COLOR = "#c8c8c8";
 const FONT = "12px system-ui, sans-serif";
 const CARD_FONT = "13px system-ui, sans-serif";
 /** Labels sit this far above the fish, CSS pixels. */
@@ -60,13 +61,15 @@ function spellLabel(fish: Fish, spell: keyof typeof SPELL_COLORS): string {
   return `dizzy ${Math.round(fish.play.dizzy)}s`;
 }
 
-/** The one-line label over a fish: its spell, or else its activity. */
+/** The one-line label over a fish: hiding, its spell, or else its activity. */
 export function fishLabel(fish: Fish): string {
+  if (fish.hiding > 0) return `hiding ${Math.round(fish.hiding)}s`;
   const spell = spellOf(fish);
   return spell === undefined ? activityLabel(fish.activity) : spellLabel(fish, spell);
 }
 
 function labelColor(fish: Fish): string {
+  if (fish.hiding > 0) return HIDING_COLOR;
   const spell = spellOf(fish);
   return spell === undefined ? activityColor(fish.activity.id) : SPELL_COLORS[spell];
 }

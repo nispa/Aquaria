@@ -11,6 +11,7 @@ import {
   restfulness,
   doesMoreThanWander,
   evenRests,
+  nestlePoint,
   settleDown,
   swimStyleOf,
   type ActivityState,
@@ -142,6 +143,18 @@ const MOUTH_CLOSED = 0.01;
 const HYPNOSIS_RADIUS = 0.6;
 const ON_BODY_LENGTHS = 0.7;
 const ON_BODY_MIN_RADIUS = 0.05;
+// Shelters. A startled fish that hides looks for a shelter within
+// HIDE_BODY_LENGTHS (at least HIDE_MIN_RADIUS), and stays hidden for
+// HIDE_SECONDS from the fright; a host fish hides in its anemone.
+const HIDE_BODY_LENGTHS = 15;
+const HIDE_MIN_RADIUS = 1;
+const HIDE_SECONDS = 6;
+/** Hidden fish lurk at this share of cruise speed, and slow down within this many body lengths. */
+const LURK_SPEED = 0.1;
+const HIDE_ARRIVAL_BODY_LENGTHS = 2;
+/** Keeps the hiding draw independent of the curiosity draw for the same fish. */
+const HIDING_SALT = 0x5bd1e995;
+const SHELTER: Readonly<Record<string, number>> = { shelter: 1 };
 
 export type FishState = "entering" | "swimming" | "leaving";
 
@@ -177,6 +190,10 @@ export interface Fish {
   readonly play: PlayState;
   /** Roll about the body's length, radians: 0 upright, ±π belly up. */
   roll: number;
+  /** Seconds it still stays hidden after a fright, 0 when it is not hiding. */
+  hiding: number;
+  /** Where it hides, while `hiding`. */
+  readonly refuge: Vector3;
   /** -1 or 1: which side wall the fish is travelling through when entering or leaving. */
   side: number;
 }
@@ -398,6 +415,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
       activity: createActivityState(),
       play: createPlay(),
       roll: 0,
+      hiding: 0,
+      refuge: new Vector3(),
       side,
     };
     if (!entering) startSwimming(group, member, position);
@@ -467,10 +486,56 @@ export function createSimulation(options: SimulationOptions): Simulation {
 
   /** Darts away from the last tap. Returns the speed the fish wants. */
   const flee = (group: Group, member: Fish): number => {
+    const { cruise, max } = group.species.speed;
+    if (member.hiding > 0) {
+      // Runs for its shelter, slowing down as it gets there.
+      term.subVectors(member.refuge, member.position);
+      const distance = term.length();
+      if (distance > 0) force.addScaledVector(term.normalize(), FLEE_WEIGHT * member.fear);
+      const arrival = member.length * HIDE_ARRIVAL_BODY_LENGTHS;
+      return lerp(cruise, max, member.fear) * clamp(distance / arrival, LURK_SPEED, 1);
+    }
     term.subVectors(member.position, tapPoint);
     term.y *= FLEE_VERTICAL_RATIO;
     if (term.lengthSq() > 0) force.addScaledVector(term.normalize(), FLEE_WEIGHT * member.fear);
-    return lerp(group.species.speed.cruise, group.species.speed.max, member.fear);
+    return lerp(cruise, max, member.fear);
+  };
+
+  /**
+   * On a fright: whether this fish hides, and where. A host fish hides in its
+   * anemone; one of the species' hiding individuals in the nearest shelter.
+   */
+  const seekRefuge = (group: Group, member: Fish): boolean => {
+    if (member.swim.anchored) {
+      nestlePoint(member.swim, member.length, member.refuge);
+      return true;
+    }
+    if (hashToUnit(member.id + HIDING_SALT) >= group.species.behavior.hiding) return false;
+    const radius = Math.max(member.length * HIDE_BODY_LENGTHS, HIDE_MIN_RADIUS);
+    const { position } = member;
+    const size = swimContext.places.pick(
+      SHELTER,
+      position,
+      radius,
+      group.visit,
+      rng,
+      member.refuge,
+    );
+    if (size < 0) return false;
+    // Into the shelter, halfway down.
+    member.refuge.y -= size / 2;
+    return true;
+  };
+
+  /** A hidden fish lurks in its shelter until it feels safe again. */
+  const lurk = (member: Fish, deltaSeconds: number): void => {
+    const { swim, refuge } = member;
+    member.hiding = Math.max(member.hiding - deltaSeconds, 0);
+    const distance = member.position.distanceTo(refuge);
+    swim.yaw = Math.atan2(refuge.z - member.position.z, refuge.x - member.position.x);
+    swim.height = refuge.y;
+    swim.speed = clamp(distance / (member.length * HIDE_ARRIVAL_BODY_LENGTHS), LURK_SPEED, 1);
+    swim.steep = true;
   };
 
   /**
@@ -606,6 +671,10 @@ export function createSimulation(options: SimulationOptions): Simulation {
       walls.expandByPoint(term.copy(member.swim.home).add(reach));
     }
     const { activity } = member;
+    if (member.hiding > 0) {
+      walls.expandByPoint(term.copy(member.refuge).sub(reach));
+      walls.expandByPoint(term.copy(member.refuge).add(reach));
+    }
     if (activityOf(activity.id).atPlace && activity.targetSize >= 0) {
       walls.expandByPoint(term.copy(activity.target).sub(reach));
       walls.expandByPoint(term.copy(activity.target).add(reach));
@@ -632,6 +701,12 @@ export function createSimulation(options: SimulationOptions): Simulation {
       ) {
         const rest = realistic ? restfulness(species.behavior.active, daylight) : 0;
         chooser.choose(activity, swim, species.activities, swimContext, group.visit, rest);
+      }
+      if (member.hiding > 0) {
+        if (activity.id !== "wander") {
+          chooser.wander(activity, swim, species.activities, swimContext);
+        }
+        lurk(member, deltaSeconds);
       }
       playWithViewer(member, deltaSeconds);
       if (isEnchanted(member.play)) {
@@ -816,7 +891,11 @@ export function createSimulation(options: SimulationOptions): Simulation {
       for (const group of groups.values()) {
         const radius = STARTLE_RADIUS * lerp(MIN_STARTLE_SHARE, 1, group.species.behavior.shyness);
         for (const member of group.members) {
-          if (member.position.distanceTo(point) < radius) member.fear = 1;
+          if (member.position.distanceTo(point) >= radius) continue;
+          member.fear = 1;
+          if (member.state === "swimming" && seekRefuge(group, member)) {
+            member.hiding = HIDE_SECONDS;
+          }
         }
       }
     },
