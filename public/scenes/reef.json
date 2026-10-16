@@ -121,31 +121,27 @@
   "fauna": [
     {
       "species": "blue-tang",
-      "count": 5
+      "count": 2
     },
     {
       "species": "yellow-tang",
-      "count": 7
+      "count": 2
+    },
+    {
+      "species": "moorish-idol",
+      "count": 1
+    },
+    {
+      "species": "butterflyfish",
+      "count": 2
     },
     {
       "species": "clownfish",
-      "count": 4
-    },
-    {
-      "species": "royal-gramma",
-      "count": 3
+      "count": 2
     },
     {
       "species": "sardine",
-      "count": 45
-    },
-    {
-      "species": "barramundi",
-      "count": 3
-    },
-    {
-      "species": "gilthead-seabream",
-      "count": 6
+      "count": 30
     }
   ]
 }

@@ -125,24 +125,16 @@
   ],
   "fauna": [
     {
-      "species": "freshwater-angelfish",
-      "count": 3
-    },
-    {
-      "species": "dwarf-gourami",
-      "count": 3
+      "species": "neon-tetra",
+      "count": 25
     },
     {
       "species": "platy",
-      "count": 5
+      "count": 2
     },
     {
       "species": "guppy",
-      "count": 8
-    },
-    {
-      "species": "neon-tetra",
-      "count": 15
+      "count": 2
     }
   ]
 }

@@ -141,15 +141,23 @@
   "fauna": [
     {
       "species": "neon-tetra",
-      "count": 40
-    },
-    {
-      "species": "harlequin-rasbora",
       "count": 20
     },
     {
+      "species": "harlequin-rasbora",
+      "count": 12
+    },
+    {
+      "species": "freshwater-angelfish",
+      "count": 2
+    },
+    {
       "species": "guppy",
-      "count": 6
+      "count": 2
+    },
+    {
+      "species": "dwarf-gourami",
+      "count": 1
     }
   ]
 }
