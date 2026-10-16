@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { lightsSchema } from "./lights";
+import { swimSchema } from "./swimming";
 
 /**
  * Schemas for the two external data files: the species catalog and a scene.
@@ -104,6 +105,8 @@ export const speciesSchema = z.object({
   /** Vertical range as a fraction of the tank height (0 = floor, 1 = surface). */
   heightRange: heightRange,
   behavior: behavior.prefault({}),
+  /** How the species swims when nothing calls for its attention; see scene/swimming. */
+  swim: swimSchema.prefault({ style: "cruise" }),
 });
 
 export const speciesCatalogSchema = z

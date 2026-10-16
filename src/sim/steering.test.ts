@@ -4,6 +4,7 @@ import {
   addAlignment,
   addCohesion,
   addContainment,
+  addHeading,
   addSeabedClearance,
   addSeparation,
 } from "./steering";
@@ -142,5 +143,39 @@ describe("addSeabedClearance", () => {
     const out = addSeabedClearance(new Vector3(1, 1.05, 0), slope, 0.2, new Vector3());
 
     expect(out.x).toBeLessThan(0);
+  });
+});
+
+describe("addHeading", () => {
+  it("turns without speeding up: the force is across the velocity", () => {
+    const out = addHeading(new Vector3(1, 0, 0), Math.PI / 4, new Vector3());
+
+    expect(out.x).toBeCloseTo(0);
+    expect(out.z).toBeGreaterThan(0);
+  });
+
+  it("adds nothing when the fish already heads the wanted way", () => {
+    const out = addHeading(new Vector3(0, 0, 2), Math.PI / 2, new Vector3());
+
+    expect(out.length()).toBeCloseTo(0);
+  });
+
+  it("turns at full strength towards a heading behind the fish", () => {
+    const out = addHeading(new Vector3(1, 0, 0), Math.PI * 0.9, new Vector3());
+
+    expect(out.length()).toBeCloseTo(1);
+    expect(out.z).toBeGreaterThan(0);
+  });
+
+  it("still turns when the wanted heading is exactly behind", () => {
+    const out = addHeading(new Vector3(1, 0, 0), Math.PI, new Vector3());
+
+    expect(out.length()).toBeCloseTo(1);
+  });
+
+  it("pulls straight along the heading for a fish that is not moving", () => {
+    const out = addHeading(new Vector3(), 0, new Vector3());
+
+    expect(out.toArray()).toEqual([1, 0, 0]);
   });
 });

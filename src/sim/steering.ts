@@ -141,3 +141,43 @@ export function addSeabedClearance(
   out.z += (-slopeZ / length) * push;
   return out;
 }
+
+/** Below this, a direction counts as zero length. */
+const NEGLIGIBLE = 1e-9;
+
+/**
+ * Turns a fish towards the heading `yaw` (radians seen from above: 0 is +x,
+ * π/2 is +z) with a force of unit strength at most. The force is across the
+ * velocity, so it turns the fish without speeding it up; speed is the
+ * caller's to set. A heading behind the fish turns it at full strength. A
+ * fish that is not moving is pulled straight along the heading.
+ */
+export function addHeading(velocity: Vector3, yaw: number, out: Vector3): Vector3 {
+  const wantedX = Math.cos(yaw);
+  const wantedZ = Math.sin(yaw);
+  const speed = Math.hypot(velocity.x, velocity.z);
+  if (speed < NEGLIGIBLE) {
+    out.x += wantedX;
+    out.z += wantedZ;
+    return out;
+  }
+  const forwardX = velocity.x / speed;
+  const forwardZ = velocity.z / speed;
+  const along = wantedX * forwardX + wantedZ * forwardZ;
+  let acrossX = wantedX - along * forwardX;
+  let acrossZ = wantedZ - along * forwardZ;
+  if (along < 0) {
+    const across = Math.hypot(acrossX, acrossZ);
+    if (across < NEGLIGIBLE) {
+      // Exactly behind: either way round will do.
+      acrossX = -forwardZ;
+      acrossZ = forwardX;
+    } else {
+      acrossX /= across;
+      acrossZ /= across;
+    }
+  }
+  out.x += acrossX;
+  out.z += acrossZ;
+  return out;
+}

@@ -63,6 +63,16 @@ describe("tailEffort", () => {
   it("is limited during an escape burst", () => {
     expect(tailEffort(new Vector3(), new Vector3(3, 0, 0), STEP, 0.2)).toBe(MAX_EFFORT);
   });
+
+  it("follows the thrust a swimming style puts in", () => {
+    const full = tailEffort(new Vector3(0.2, 0, 0), new Vector3(0.2, 0, 0), STEP, 0.2, 1);
+    const half = tailEffort(new Vector3(0.2, 0, 0), new Vector3(0.2, 0, 0), STEP, 0.2, 0.5);
+    expect(half).toBeCloseTo(full / 2);
+  });
+
+  it("holds the tail still while gliding without thrust", () => {
+    expect(tailEffort(new Vector3(0.2, 0, 0), new Vector3(0.1, 0, 0), STEP, 0.2, 0)).toBe(0);
+  });
 });
 
 describe("easeToward", () => {

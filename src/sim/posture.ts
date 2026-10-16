@@ -9,7 +9,7 @@ import { clamp } from "../core/math";
 
 /** Tightest bend, as curvature times body length: a C-start escape. */
 export const MAX_BEND = 2.5;
-/** The tail never stops completely: fish keep station with small beats. */
+/** A swimming fish never stops its tail completely: it keeps station with small beats. */
 export const MIN_EFFORT = 0.5;
 /** Strongest tail sweep, relative to cruising, during an escape burst. */
 export const MAX_EFFORT = 2.2;
@@ -38,18 +38,21 @@ export function turnBend(
 
 /**
  * Tail-beat amplitude relative to cruising: grows with speed and with
- * acceleration (a burst), shrinks while slowing to a hover.
+ * acceleration (a burst), shrinks while slowing to a hover. `thrust` is how
+ * much the swimming style works the tail (0 gliding .. 1 swimming), so a
+ * coasting fish can hold its tail still.
  */
 export function tailEffort(
   previous: Vector3,
   next: Vector3,
   deltaSeconds: number,
   cruiseSpeed: number,
+  thrust = 1,
 ): number {
   const speed = next.length();
   const acceleration = deltaSeconds === 0 ? 0 : (speed - previous.length()) / deltaSeconds;
   const effort = (speed + acceleration * ACCELERATION_EFFORT_SECONDS) / cruiseSpeed;
-  return clamp(effort, MIN_EFFORT, MAX_EFFORT);
+  return clamp(effort, MIN_EFFORT, MAX_EFFORT) * thrust;
 }
 
 /**

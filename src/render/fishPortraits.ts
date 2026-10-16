@@ -12,6 +12,7 @@ import {
 import type { Logger } from "../core/logger";
 import type { ModelManifest } from "../scene/modelManifest";
 import type { Species, SpeciesCatalog } from "../scene/schema";
+import { createSwimState } from "../sim/behaviors";
 import type { Fish } from "../sim/simulation";
 import { createAssetLoaders } from "./assetLoaders";
 import { createFishRenderer } from "./fishRenderer";
@@ -56,7 +57,7 @@ function sitter(species: Species): Fish {
     mouth: 0,
     fear: 0,
     state: "swimming",
-    wanderAngle: 0,
+    swim: createSwimState(),
     side: 1,
   };
 }

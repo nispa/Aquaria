@@ -1,8 +1,8 @@
-import type { Box3 } from "three";
-import { Vector3 } from "three";
+import { Box3, Vector3 } from "three";
 import { clamp, lerp, smoothstep } from "../core/math";
 import { hashToUnit, type Rng } from "../core/rng";
 import type { Scene, Species, SpeciesCatalog } from "../scene/schema";
+import { createSwimState, swimStyleOf, type SwimContext, type SwimState } from "./behaviors";
 import { nextGaze, turnIntent } from "./gaze";
 import { createCurrentField, type CurrentField } from "./current";
 import { createFood, type Food } from "./food";
@@ -11,6 +11,7 @@ import {
   addAlignment,
   addCohesion,
   addContainment,
+  addHeading,
   addSeabedClearance,
   addSeparation,
   type SeabedHeight,
@@ -41,7 +42,12 @@ const SEABED_BODY_LENGTHS = 1.5;
 const SEABED_MIN_CLEARANCE = 0.08;
 /** Hard limit: a fish's centre never gets closer to the seabed than this, in body lengths. */
 const SEABED_MIN_GAP_BODY_LENGTHS = 0.5;
-const WANDER_WEIGHT = 0.6;
+/** Pull towards the heading the swimming style wants; it only turns the fish. */
+const HEADING_WEIGHT = 0.8;
+/** Pull towards the height the swimming style wants, at full strength this far away, m. */
+const HEIGHT_WEIGHT = 0.5;
+const HEIGHT_PULL_RANGE = 0.3;
+/** Speed response when food, a finger or a fright sets the pace, 1/s. */
 const SPEED_RESPONSE = 1.5;
 const TRANSIT_PULL = 2;
 
@@ -50,13 +56,11 @@ const SEPARATION_BODY_LENGTHS = 2.5;
 /** Neighbour radius for schooling, in body lengths. */
 const SCHOOL_BODY_LENGTHS = 12;
 /** Fish never slow below this fraction of cruise speed, so they always have a heading. */
-const MIN_SPEED_RATIO = 0.35;
+const MIN_SPEED_RATIO = 0.1;
 /** Fish swim mostly horizontally: vertical velocity is capped to this fraction of speed. */
 const MAX_VERTICAL_RATIO = 0.35;
-/** Wander yaw jitter, radians per sqrt(second). */
-const WANDER_JITTER = 0.9;
-/** Depth component of the wander direction, relative to x (fish prefer crossing the view). */
-const WANDER_DEPTH_RATIO = 0.5;
+/** Fleeing fish dart away mostly level: their vertical escape is scaled by this. */
+const FLEE_VERTICAL_RATIO = 0.5;
 /** Tail beats per body length travelled, a rough real-world ratio. */
 const SWIM_BEATS_PER_BODY_LENGTH = 0.9;
 /** How far the wanted gaze must drift before the eyes jump to it. */
@@ -128,8 +132,8 @@ export interface Fish {
   /** 1 right after a tap on the glass nearby, fading to 0 as the fish calms down. */
   fear: number;
   state: FishState;
-  /** Wander heading (yaw) in radians. */
-  wanderAngle: number;
+  /** What the species' swimming style wants right now; see sim/behaviors. */
+  readonly swim: SwimState;
   /** -1 or 1: which side wall the fish is travelling through when entering or leaving. */
   side: number;
 }
@@ -172,6 +176,8 @@ export interface Simulation {
 interface Group {
   readonly species: Species;
   readonly habitat: Box3;
+  /** The habitat less its soft walls: where the swimming style roams. */
+  readonly room: Box3;
   /** The habitat widened by FORAGE_MARGIN: where this species goes for food. */
   readonly forage: Box3;
   /** Entering and swimming fish. */
@@ -201,10 +207,15 @@ export function createSimulation(options: SimulationOptions): Simulation {
   // dropped, so a tank nobody feeds plays exactly as before.
   const food = createFood({ tank: scene.tank, rng });
 
+  const marginFor = (box: Box3): number =>
+    Math.min(CONTAINMENT_MARGIN, (box.max.y - box.min.y) / 3, (box.max.z - box.min.z) / 3);
+
   for (const species of catalog.species) {
+    const habitat = habitatBox(scene.tank, species);
     groups.set(species.id, {
       species,
-      habitat: habitatBox(scene.tank, species),
+      habitat,
+      room: habitat.clone().expandByScalar(-marginFor(habitat)),
       forage: habitatBox(scene.tank, species).expandByScalar(FORAGE_MARGIN),
       members: [],
       positions: [],
@@ -227,8 +238,22 @@ export function createSimulation(options: SimulationOptions): Simulation {
       species.length.mean * MIN_LENGTH_RATIO,
     );
 
-  const marginFor = (box: Box3): number =>
-    Math.min(CONTAINMENT_MARGIN, (box.max.y - box.min.y) / 3, (box.max.z - box.min.z) / 3);
+  // What swimming styles see; refilled for each fish, so it is never reallocated.
+  const swimContext: { -readonly [Key in keyof SwimContext]: SwimContext[Key] } = {
+    position: new Vector3(),
+    room: new Box3(),
+    length: 0,
+    rng,
+  };
+  const arrival = new Vector3();
+
+  /** Starts the species' swimming style for a fish now free in the tank. */
+  const startSwimming = (group: Group, member: Fish, at: Vector3): void => {
+    swimContext.position = at;
+    swimContext.room = group.room;
+    swimContext.length = member.length;
+    swimStyleOf(group.species.swim).start(member.swim, group.species.swim, swimContext);
+  };
 
   const createFish = (group: Group, entering: boolean): Fish => {
     const { species, habitat } = group;
@@ -243,10 +268,10 @@ export function createSimulation(options: SimulationOptions): Simulation {
       rng.range(habitat.min.z + margin, habitat.max.z - margin),
     );
     const angle = entering ? (side > 0 ? Math.PI : 0) : rng.range(0, Math.PI * 2);
-    const velocity = new Vector3(Math.cos(angle), 0, Math.sin(angle) * WANDER_DEPTH_RATIO)
-      .normalize()
-      .multiplyScalar(species.speed.cruise);
-    return {
+    const velocity = new Vector3(Math.cos(angle), 0, Math.sin(angle)).multiplyScalar(
+      species.speed.cruise,
+    );
+    const member: Fish = {
       id: nextId++,
       species,
       position,
@@ -261,9 +286,11 @@ export function createSimulation(options: SimulationOptions): Simulation {
       mouth: 0,
       fear: 0,
       state: entering ? "entering" : "swimming",
-      wanderAngle: angle,
+      swim: createSwimState(angle),
       side,
     };
+    if (!entering) startSwimming(group, member, position);
+    return member;
   };
 
   const addMember = (group: Group, member: Fish): void => {
@@ -320,7 +347,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
   /** Darts away from the last tap. Returns the speed the fish wants. */
   const flee = (group: Group, member: Fish): number => {
     term.subVectors(member.position, tapPoint);
-    term.y *= WANDER_DEPTH_RATIO;
+    term.y *= FLEE_VERTICAL_RATIO;
     if (term.lengthSq() > 0) force.addScaledVector(term.normalize(), FLEE_WEIGHT * member.fear);
     return lerp(group.species.speed.cruise, group.species.speed.max, member.fear);
   };
@@ -328,9 +355,10 @@ export function createSimulation(options: SimulationOptions): Simulation {
   /**
    * Comes to look at the finger on the glass if this individual is one of the
    * curious ones and the finger is close enough. Returns the speed the fish
-   * wants: slower as it arrives, so it lingers.
+   * wants, slower as it arrives so it lingers, or undefined when it does not
+   * come.
    */
-  const inspect = (group: Group, member: Fish): number => {
+  const inspect = (group: Group, member: Fish): number | undefined => {
     const { species, forage: reach } = group;
     const cruise = species.speed.cruise;
     if (
@@ -339,7 +367,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
       hashToUnit(member.id) >= species.behavior.curiosity ||
       member.position.distanceTo(finger) > CURIOSITY_RADIUS
     ) {
-      return cruise;
+      return undefined;
     }
     inspectSpot.copy(finger);
     inspectSpot.z -= member.length * INSPECT_BODY_LENGTHS;
@@ -353,9 +381,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
   /**
    * Steers a hungry fish towards the nearest flake it can reach, opens its
    * mouth on the way and eats the flake on contact. Returns the speed the fish
-   * wants (faster when hungry), or its cruise speed when it is not feeding.
+   * wants (faster when hungry), or undefined when it is not feeding.
    */
-  const forage = (group: Group, member: Fish, deltaSeconds: number): number => {
+  const forage = (group: Group, member: Fish, deltaSeconds: number): number | undefined => {
     const { species } = group;
     const cruise = species.speed.cruise;
     member.satiety = Math.max(member.satiety - deltaSeconds / SATIETY_DECAY_SECONDS, 0);
@@ -365,7 +393,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
         ? food.nearest(member.position, FOOD_SENSE_RADIUS, group.forage)
         : undefined;
     let mouthTarget = 0;
-    let speed = cruise;
+    let speed: number | undefined;
     if (flake !== undefined && hunger > 0) {
       mouthPosition
         .copy(member.velocity)
@@ -425,29 +453,40 @@ export function createSimulation(options: SimulationOptions): Simulation {
     addSeabedClearance(member.position, seabed, clearance, term);
     force.addScaledVector(term, SEABED_WEIGHT);
 
+    const { swim } = member;
     if (member.state === "swimming") {
-      member.wanderAngle += rng.normal(0, WANDER_JITTER * Math.sqrt(deltaSeconds));
-      force.x += Math.cos(member.wanderAngle) * WANDER_WEIGHT;
-      force.z += Math.sin(member.wanderAngle) * WANDER_WEIGHT * WANDER_DEPTH_RATIO;
+      swimContext.position = member.position;
+      swimContext.room = group.room;
+      swimContext.length = member.length;
+      swimStyleOf(species.swim).step(swim, species.swim, swimContext, deltaSeconds);
+      term.set(0, 0, 0);
+      addHeading(member.velocity, swim.yaw, term);
+      force.addScaledVector(term, HEADING_WEIGHT);
+      force.y +=
+        HEIGHT_WEIGHT * clamp((swim.height - member.position.y) / HEIGHT_PULL_RANGE, -1, 1);
     } else {
       // Entering fish head inwards (away from their side), leaving fish head out.
       const direction = member.state === "entering" ? -member.side : member.side;
       force.x += direction * TRANSIT_PULL;
     }
 
-    // Reactions in order of urgency: fear, then food, then curiosity.
+    // Reactions in order of urgency: fear, then food, then curiosity. They
+    // set the pace instead of the swimming style while they last.
     member.fear = Math.max(member.fear - deltaSeconds / FEAR_SECONDS, 0);
     const feedingSpeed = forage(group, member, deltaSeconds);
-    let wantedSpeed = feedingSpeed;
-    if (member.fear > 0) wantedSpeed = flee(group, member);
-    else if (feedingSpeed === cruise) wantedSpeed = inspect(group, member);
+    const reactionSpeed =
+      member.fear > 0 ? flee(group, member) : (feedingSpeed ?? inspect(group, member));
     // Fleeing and feeding fish climb and dive steeply.
-    const feeding = member.fear > 0 || feedingSpeed > cruise;
+    const feeding = member.fear > 0 || feedingSpeed !== undefined;
+    const styled = reactionSpeed === undefined && member.state === "swimming";
+    const wantedSpeed = reactionSpeed ?? Math.min(cruise * swim.speed, species.speed.max);
+    const response = styled ? swim.response : SPEED_RESPONSE;
+    const thrust = styled ? swim.thrust : 1;
 
     member.gaze = nextGaze(member.gaze, turnIntent(member.velocity, force), GAZE_SACCADE_THRESHOLD);
 
     const speed = member.velocity.length();
-    term.copy(member.velocity).multiplyScalar(((wantedSpeed - speed) / speed) * SPEED_RESPONSE);
+    term.copy(member.velocity).multiplyScalar(((wantedSpeed - speed) / speed) * response);
     force.multiplyScalar(cruise).add(term);
 
     previousVelocity.copy(member.velocity);
@@ -466,7 +505,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
     );
     member.effort = easeToward(
       member.effort,
-      tailEffort(previousVelocity, member.velocity, deltaSeconds, cruise),
+      tailEffort(previousVelocity, member.velocity, deltaSeconds, cruise, thrust),
       EFFORT_RESPONSE_SECONDS,
       deltaSeconds,
     );
@@ -501,7 +540,16 @@ export function createSimulation(options: SimulationOptions): Simulation {
       if (beyond < -marginFor(group.habitat)) {
         member.state = "swimming";
         member.opacity = 1;
-        member.wanderAngle = Math.atan2(member.velocity.z, member.velocity.x);
+        member.swim.yaw = Math.atan2(member.velocity.z, member.velocity.x);
+        // Settles somewhere in its habitat rather than right by the wall it
+        // came through, or every newcomer would keep station at the sides.
+        const { room } = group;
+        arrival.set(
+          rng.range(room.min.x, room.max.x),
+          rng.range(room.min.y, room.max.y),
+          rng.range(room.min.z, room.max.z),
+        );
+        startSwimming(group, member, arrival);
       }
       return false;
     }

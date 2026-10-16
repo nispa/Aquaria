@@ -4,7 +4,7 @@ import { createRng } from "../core/rng";
 import { catalogFixture, sceneFixture } from "../scene/fixtures";
 import { parseCatalog, parseScene } from "../scene/parse";
 import type { SceneInput, Species } from "../scene/schema";
-import { createSimulation, TOTAL_FISH_LIMIT, type Simulation } from "./simulation";
+import { createSimulation, TOTAL_FISH_LIMIT, type Fish, type Simulation } from "./simulation";
 import { FLAKES_PER_PINCH } from "./food";
 import { MAX_BEND, MAX_EFFORT, MIN_EFFORT } from "./posture";
 import { habitatBox } from "./tank";
@@ -439,7 +439,7 @@ describe("viewer at the glass", () => {
   });
 
   it("makes fish near a tap on the glass dart away", () => {
-    const simulation = simulateWithBehavior({ shyness: 0.5 });
+    const simulation = simulateWithBehavior({ shyness: 1 });
     run(simulation, 1);
     const target = nearestToGlass(simulation);
     const tap = new Vector3(target.position.x, target.position.y, 0);
@@ -472,5 +472,97 @@ describe("viewer at the glass", () => {
     const frightened = (simulation: Simulation) =>
       simulation.fish.filter((fish) => fish.fear > 0).length;
     expect(frightened(shy)).toBeGreaterThan(frightened(bold));
+  });
+});
+
+describe("swimming styles", () => {
+  function simulateSwimming(swim: unknown, species = "blue-tang", count = 6): Simulation {
+    const input = catalogFixture();
+    const tuned = parseCatalog({
+      species: input.species.map((entry) => (entry.id === species ? { ...entry, swim } : entry)),
+    });
+    return createSimulation({
+      scene: parseScene({ ...sceneFixture(), fauna: [{ species, count }] }, tuned),
+      catalog: tuned,
+      rng: createRng(3),
+    });
+  }
+
+  /** Calls `sample` with every fish after each step for `seconds`. */
+  function watch(simulation: Simulation, seconds: number, sample: (fish: Fish) => void): void {
+    for (let elapsed = 0; elapsed < seconds; elapsed += STEP) {
+      simulation.step(STEP);
+      simulation.fish.forEach(sample);
+    }
+  }
+
+  it("lets cruising fish swim towards and away from the glass, not only sideways", () => {
+    const simulation = simulateSwimming({ style: "cruise" });
+    let across = 0;
+    let deep = 0;
+
+    watch(simulation, 60, (fish) => {
+      across += Math.abs(fish.velocity.x);
+      deep += Math.abs(fish.velocity.z);
+    });
+
+    expect(deep / across).toBeGreaterThan(0.5);
+  });
+
+  it("makes fish use the height of their habitat", () => {
+    const simulation = simulateSwimming({ style: "cruise" });
+    const tank = sceneFixture().tank;
+    const lowest = new Map<number, number>();
+    const highest = new Map<number, number>();
+
+    watch(simulation, 90, (fish) => {
+      lowest.set(fish.id, Math.min(lowest.get(fish.id) ?? Infinity, fish.position.y));
+      highest.set(fish.id, Math.max(highest.get(fish.id) ?? -Infinity, fish.position.y));
+    });
+
+    const box = habitatBox(tank, { bands: [1, 3], heightRange: [0.3, 0.8] });
+    const spans = [...highest].map(([id, top]) => top - (lowest.get(id) ?? top));
+    const meanSpan = spans.reduce((sum, span) => sum + span, 0) / spans.length;
+    expect(meanSpan).toBeGreaterThan((box.max.y - box.min.y) * 0.3);
+  });
+
+  it("keeps hovering fish slow", () => {
+    const simulation = simulateSwimming({ style: "hover" });
+    let total = 0;
+    let samples = 0;
+
+    watch(simulation, 30, (fish) => {
+      total += fish.velocity.length() / fish.species.speed.cruise;
+      samples += 1;
+    });
+
+    expect(total / samples).toBeLessThan(0.5);
+  });
+
+  it("stills the tail while coasting and beats it hard in a burst", () => {
+    const simulation = simulateSwimming({ style: "burst-coast" });
+    const efforts: number[] = [];
+
+    watch(simulation, 20, (fish) => efforts.push(fish.effort));
+
+    expect(Math.min(...efforts)).toBeLessThan(MIN_EFFORT / 2);
+    expect(Math.max(...efforts)).toBeGreaterThan(1.5);
+  });
+
+  it("keeps patrolling fish close to their home spot", () => {
+    const simulation = simulateSwimming({ style: "patrol", radiusBodyLengths: 4 });
+    const cruising = simulateSwimming({ style: "cruise" });
+    const starts = new Map(simulation.fish.map((fish) => [fish.id, fish.position.clone()]));
+    const cruisingStarts = new Map(cruising.fish.map((fish) => [fish.id, fish.position.clone()]));
+
+    run(simulation, 60);
+    run(cruising, 60);
+
+    const meanDrift = (sim: Simulation, from: Map<number, Vector3>) =>
+      sim.fish.reduce(
+        (sum, fish) => sum + fish.position.distanceTo(from.get(fish.id) ?? fish.position),
+        0,
+      ) / sim.fish.length;
+    expect(meanDrift(simulation, starts)).toBeLessThan(meanDrift(cruising, cruisingStarts));
   });
 });
