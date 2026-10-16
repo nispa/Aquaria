@@ -39,13 +39,13 @@ by Zod. Swimming styles and activities are one file each in
 
 ### B1. Swimming styles (how a fish moves)
 
-- [ ] Speed varies over time instead of staying at cruise speed.
-- [ ] Wander in 3D with the species' preferred height, not mostly along x.
-- [ ] Styles with parameters: `cruise` (long smooth laps), `burst-coast`
+- [x] Speed varies over time instead of staying at cruise speed.
+- [x] Wander in 3D with the species' preferred height, not mostly along x.
+- [x] Styles with parameters: `cruise` (long smooth laps), `burst-coast`
       (dart, glide, slow down), `hover` (station keeping, small corrections,
       turns on the spot), `glide` (slow, height changes, figure eights),
       `patrol` (loop around a home spot).
-- [ ] Tail effort and posture follow the thrust (strong in a burst, still
+- [x] Tail effort and posture follow the thrust (strong in a burst, still
       while coasting).
 
 ### B2. Activities (what a fish is doing)
@@ -74,6 +74,8 @@ by Zod. Swimming styles and activities are one file each in
 ### B4. Tuning
 
 - [ ] Styles and activities assigned to all 18 species; visual review.
+      Styles are assigned (see `docs/SWIMMING.md`); activities and the
+      visual review in the tank are still to do.
 
 ## C. Scene editor
 
