@@ -1,8 +1,17 @@
 import { Box3, Vector3 } from "three";
 import { createRng } from "../../core/rng";
 import { swimSchema, type SwimParams, type SwimStyleId } from "../../scene/swimming";
+import { activitiesSchema, type ActivityId, type ActivityParams } from "../../scene/activities";
 import { createPlaceFinder, type Place } from "../places";
-import { createSwimState, type SwimContext, type SwimState, type SwimStyle } from "./types";
+import {
+  createActivityState,
+  createSwimState,
+  type Activity,
+  type ActivityState,
+  type SwimContext,
+  type SwimState,
+  type SwimStyle,
+} from "./types";
 
 /** Test support: drives one style for a fish that stays where the test puts it. */
 
@@ -68,4 +77,62 @@ export function collect<Id extends SwimStyleId>(
 /** Angle between two headings, folded into 0..π. */
 export function headingGap(first: number, second: number): number {
   return Math.abs(Math.atan2(Math.sin(first - second), Math.cos(first - second)));
+}
+
+export interface ActivityRun<Id extends ActivityId> {
+  readonly state: ActivityState;
+  readonly wishes: SwimState;
+  readonly context: SwimContext & { readonly position: Vector3 };
+  readonly params: ActivityParams<Id>;
+  /**
+   * Steps for up to `seconds`, calling `sample` after every step. Returns the
+   * time at which the activity ended, or undefined if it went on.
+   */
+  run(seconds: number, sample?: (wishes: SwimState) => void): number | undefined;
+}
+
+/**
+ * Starts `activity` with its default parameters plus `overrides`, about a
+ * place whose top is `target` and whose height is `size`, for a fish of body
+ * length 0.2 m at (0, 1, -1).
+ */
+export function startActivity<Id extends ActivityId>(
+  activity: Activity<Id>,
+  overrides: Partial<ActivityParams<Id>> = {},
+  target = new Vector3(1, 0.3, -1),
+  size = 0.3,
+  seed = 1,
+): ActivityRun<Id> {
+  const params = activitiesSchema.parse({ [activity.id]: overrides })[
+    activity.id
+  ] as ActivityParams<Id>;
+  const context = {
+    position: new Vector3(0, 1, -1),
+    room: new Box3(new Vector3(-2, 0, -2), new Vector3(2, 2, 0)),
+    length: BODY_LENGTH,
+    rng: createRng(seed),
+    places: createPlaceFinder(
+      () => [],
+      () => 0,
+    ),
+  };
+  const state = createActivityState();
+  state.target.copy(target);
+  state.targetSize = size;
+  const wishes = createSwimState();
+  activity.start(state, params, context);
+  return {
+    state,
+    wishes,
+    context,
+    params,
+    run(seconds, sample) {
+      for (let elapsed = 0; elapsed < seconds; elapsed += HARNESS_STEP) {
+        const going = activity.step(state, wishes, params, context, HARNESS_STEP);
+        sample?.(wishes);
+        if (!going) return elapsed + HARNESS_STEP;
+      }
+      return undefined;
+    },
+  };
 }

@@ -3,7 +3,18 @@ import { clamp, lerp, smoothstep } from "../core/math";
 import { hashToUnit, type Rng } from "../core/rng";
 import type { Scene, Species, SpeciesCatalog } from "../scene/schema";
 import type { SwimSpec } from "../scene/swimming";
-import { createSwimState, swimStyleOf, type SwimContext, type SwimState } from "./behaviors";
+import {
+  activityOf,
+  createActivityChooser,
+  createActivityState,
+  createSwimState,
+  doesMoreThanWander,
+  settleDown,
+  swimStyleOf,
+  type ActivityState,
+  type SwimContext,
+  type SwimState,
+} from "./behaviors";
 import { nextGaze, turnIntent } from "./gaze";
 import { createCurrentField, type CurrentField } from "./current";
 import { createFood, type Food } from "./food";
@@ -142,6 +153,8 @@ export interface Fish {
   state: FishState;
   /** What the species' swimming style wants right now; see sim/behaviors. */
   readonly swim: SwimState;
+  /** What the fish is doing (wandering, pecking…); see sim/behaviors. */
+  readonly activity: ActivityState;
   /** -1 or 1: which side wall the fish is travelling through when entering or leaving. */
   side: number;
 }
@@ -194,6 +207,13 @@ interface Group {
   readonly room: Box3;
   /** The habitat widened by FORAGE_MARGIN: where this species goes for food. */
   readonly forage: Box3;
+  /**
+   * Where this species goes for places that interest it: its depth bands
+   * (widened like `forage`), all the way down to the floor.
+   */
+  readonly visit: Box3;
+  /** Whether the species ever does anything but wander. */
+  readonly restless: boolean;
   /** Entering and swimming fish. */
   readonly members: Fish[];
   /** Positions of `members`, kept in sync so steering needs no per-frame arrays. */
@@ -233,11 +253,16 @@ export function createSimulation(options: SimulationOptions): Simulation {
 
   for (const species of catalog.species) {
     const habitat = habitatBox(scene.tank, species);
+    const forage = habitat.clone().expandByScalar(FORAGE_MARGIN);
+    const visit = forage.clone();
+    visit.min.y = Math.min(visit.min.y, 0);
     groups.set(species.id, {
       species,
       habitat,
       room: habitat.clone().expandByScalar(-marginFor(habitat)),
-      forage: habitatBox(scene.tank, species).expandByScalar(FORAGE_MARGIN),
+      forage,
+      visit,
+      restless: doesMoreThanWander(species.activities),
       members: [],
       positions: [],
       leaving: [],
@@ -271,13 +296,24 @@ export function createSimulation(options: SimulationOptions): Simulation {
     ),
   };
   const arrival = new Vector3();
+  const chooser = createActivityChooser();
 
-  /** Starts the species' swimming style for a fish now free in the tank. */
-  const startSwimming = (group: Group, member: Fish, at: Vector3): void => {
+  /** What styles and activities see for this fish, standing at `at`. */
+  const contextFor = (group: Group, member: Fish, at: Vector3 = member.position): SwimContext => {
     swimContext.position = at;
     swimContext.room = group.room;
     swimContext.length = member.length;
+    return swimContext;
+  };
+
+  /** Starts the species' swimming style for a fish now free in the tank, wandering. */
+  const startSwimming = (group: Group, member: Fish, at: Vector3): void => {
+    contextFor(group, member, at);
     swimStyleOf(group.species.swim).start(member.swim, group.species.swim, swimContext);
+    if (!group.restless) return;
+    chooser.wander(member.activity, member.swim, group.species.activities, swimContext);
+    // Partway through, so fish that start together do not all choose at once.
+    member.activity.timer *= rng.next();
   };
 
   const createFish = (group: Group, entering: boolean): Fish => {
@@ -312,6 +348,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
       fear: 0,
       state: entering ? "entering" : "swimming",
       swim: createSwimState(angle),
+      activity: createActivityState(),
       side,
     };
     if (!entering) startSwimming(group, member, position);
@@ -341,6 +378,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
       group.positions.pop();
       if (surplus === undefined) break;
       surplus.state = "leaving";
+      // It drops whatever it was doing on its way out.
+      surplus.activity.id = "wander";
+      settleDown(surplus.swim);
       surplus.side = surplus.position.x >= 0 ? 1 : -1;
       group.leaving.push(surplus);
     }
@@ -385,7 +425,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
    * wants, slower as it arrives so it lingers, or undefined when it does not
    * come.
    */
-  const inspect = (group: Group, member: Fish): number | undefined => {
+  const inspectFinger = (group: Group, member: Fish): number | undefined => {
     const { species, forage: reach } = group;
     const cruise = species.speed.cruise;
     if (
@@ -443,6 +483,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
         member.mouth = 0;
       }
     }
+    // An activity may want the mouth open too (pecking).
+    mouthTarget = Math.max(mouthTarget, member.swim.mouth);
     member.mouth =
       mouthTarget === 0 && member.mouth < MOUTH_CLOSED
         ? 0
@@ -471,10 +513,15 @@ export function createSimulation(options: SimulationOptions): Simulation {
 
     const margin = marginFor(habitat);
     walls.copy(habitat);
+    reach.setScalar(member.length * ANCHOR_REACH_BODY_LENGTHS + margin);
     if (member.swim.anchored) {
-      reach.setScalar(member.length * ANCHOR_REACH_BODY_LENGTHS + margin);
       walls.expandByPoint(term.copy(member.swim.home).sub(reach));
       walls.expandByPoint(term.copy(member.swim.home).add(reach));
+    }
+    const { activity } = member;
+    if (activityOf(activity.id).atPlace) {
+      walls.expandByPoint(term.copy(activity.target).sub(reach));
+      walls.expandByPoint(term.copy(activity.target).add(reach));
     }
     term.set(0, 0, 0);
     addContainment(member.position, walls, margin, term, {
@@ -489,10 +536,15 @@ export function createSimulation(options: SimulationOptions): Simulation {
 
     const { swim } = member;
     if (member.state === "swimming") {
-      swimContext.position = member.position;
-      swimContext.room = group.room;
-      swimContext.length = member.length;
+      contextFor(group, member);
       swimStyleOf(species.swim).step(swim, species.swim, swimContext, deltaSeconds);
+      const params = species.activities[activity.id];
+      if (
+        group.restless &&
+        !activityOf(activity.id).step(activity, swim, params, swimContext, deltaSeconds)
+      ) {
+        chooser.choose(activity, swim, species.activities, swimContext, group.visit);
+      }
       term.set(0, 0, 0);
       addHeading(member.velocity, swim.yaw, term);
       force.addScaledVector(term, HEADING_WEIGHT);
@@ -509,9 +561,13 @@ export function createSimulation(options: SimulationOptions): Simulation {
     member.fear = Math.max(member.fear - deltaSeconds / FEAR_SECONDS, 0);
     const feedingSpeed = forage(group, member, deltaSeconds);
     const reactionSpeed =
-      member.fear > 0 ? flee(group, member) : (feedingSpeed ?? inspect(group, member));
-    // Fleeing and feeding fish climb and dive steeply.
-    const feeding = member.fear > 0 || feedingSpeed !== undefined;
+      member.fear > 0 ? flee(group, member) : (feedingSpeed ?? inspectFinger(group, member));
+    // Fright, food or a finger on the glass call off what the fish was doing.
+    if (reactionSpeed !== undefined && activity.id !== "wander") {
+      chooser.wander(activity, swim, species.activities, swimContext);
+    }
+    // Fleeing, feeding and pecking fish climb and dive steeply.
+    const steep = member.fear > 0 || feedingSpeed !== undefined || swim.steep;
     const styled = reactionSpeed === undefined && member.state === "swimming";
     const wantedSpeed = reactionSpeed ?? Math.min(cruise * swim.speed, species.speed.max);
     const response = styled ? swim.response : SPEED_RESPONSE;
@@ -526,7 +582,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
     previousVelocity.copy(member.velocity);
     member.velocity.addScaledVector(force, deltaSeconds);
     const maxVertical =
-      member.velocity.length() * (feeding ? FEEDING_VERTICAL_RATIO : MAX_VERTICAL_RATIO);
+      member.velocity.length() * (steep ? FEEDING_VERTICAL_RATIO : MAX_VERTICAL_RATIO);
     member.velocity.y = clamp(member.velocity.y, -maxVertical, maxVertical);
     const clamped = clamp(member.velocity.length(), cruise * MIN_SPEED_RATIO, species.speed.max);
     member.velocity.setLength(clamped);
@@ -606,10 +662,15 @@ export function createSimulation(options: SimulationOptions): Simulation {
       const currentPlaces = places();
       if (currentPlaces !== knownPlaces) {
         knownPlaces = currentPlaces;
+        // The places fish were heading for may be gone: choose again.
         for (const group of groups.values()) {
-          if (!keepsToPlaces(group.species.swim)) continue;
           for (const member of group.members) {
-            if (member.state === "swimming") startSwimming(group, member, member.position);
+            if (member.state !== "swimming") continue;
+            if (keepsToPlaces(group.species.swim)) startSwimming(group, member, member.position);
+            else if (activityOf(member.activity.id).atPlace) {
+              const context = contextFor(group, member);
+              chooser.wander(member.activity, member.swim, group.species.activities, context);
+            }
           }
         }
       }

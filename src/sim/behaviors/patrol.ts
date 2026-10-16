@@ -1,12 +1,7 @@
 import { clamp } from "../../core/math";
-import { CRUISE_RESPONSE, drawSide } from "./shared";
+import { CRUISE_RESPONSE, drawSide, lapYaw } from "./shared";
 import type { SwimParams } from "../../scene/swimming";
 import type { SwimContext, SwimStyle } from "./types";
-
-/** How hard a fish off its lap steers back onto it, relative to following it. */
-const RADIAL_GAIN = 1;
-/** Below this distance from home, m, the lap has no direction: keep the heading. */
-const AT_HOME = 1e-6;
 
 /** The lap's radius, m: shrunk to fit habitats narrower than the lap. */
 export function lapRadius(params: SwimParams<"patrol">, context: SwimContext): number {
@@ -37,21 +32,13 @@ export const patrolStyle: SwimStyle<"patrol"> = {
     state.timer = rng.range(params.reverseSeconds[0], params.reverseSeconds[1]);
   },
   step(state, params, context, deltaSeconds) {
-    const { position, rng } = context;
+    const { rng } = context;
     state.timer -= deltaSeconds;
     if (state.timer <= 0) {
       state.turn = -state.turn;
       state.timer = rng.range(params.reverseSeconds[0], params.reverseSeconds[1]);
     }
-    const awayX = position.x - state.home.x;
-    const awayZ = position.z - state.home.z;
-    const distance = Math.hypot(awayX, awayZ);
-    if (distance < AT_HOME) return;
-    const radius = lapRadius(params, context);
-    // Along the circle (the tangent), plus back onto it (the radial term).
-    const inward = (RADIAL_GAIN * (radius - distance)) / radius / distance;
-    const x = (-state.turn * awayZ) / distance + inward * awayX;
-    const z = (state.turn * awayX) / distance + inward * awayZ;
-    state.yaw = Math.atan2(z, x);
+    const { home } = state;
+    state.yaw = lapYaw(context, home.x, home.z, lapRadius(params, context), state.turn, state.yaw);
   },
 };

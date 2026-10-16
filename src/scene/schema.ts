@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { activitiesSchema } from "./activities";
 import { lightsSchema } from "./lights";
 import { swimSchema } from "./swimming";
 import { tagSchema } from "./tags";
@@ -108,6 +109,8 @@ export const speciesSchema = z.object({
   behavior: behavior.prefault({}),
   /** How the species swims when nothing calls for its attention; see scene/swimming. */
   swim: swimSchema.prefault({ style: "cruise" }),
+  /** What the species does besides swimming about; see scene/activities. */
+  activities: activitiesSchema.prefault({}),
 });
 
 export const speciesCatalogSchema = z

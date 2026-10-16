@@ -595,7 +595,8 @@ describe("hosts", () => {
 
   it("brings fish to the nearest anemone and keeps them there, below their habitat", () => {
     const simulation = simulateHosted();
-    simulation.setPlaces(() => [anemone]);
+    const places = [anemone];
+    simulation.setPlaces(() => places);
 
     run(simulation, 40);
 
@@ -616,5 +617,104 @@ describe("hosts", () => {
       (fish) => Math.abs(fish.position.x - anemone.x) < Math.abs(fish.position.x + 2),
     );
     expect(closerToTheOld).toEqual([]);
+  });
+});
+
+describe("activities", () => {
+  const rock = { x: 1, z: -2, height: 0.3, tags: ["rock", "algae"] };
+
+  function simulateActive(activities: unknown): Simulation {
+    const input = catalogFixture();
+    const tuned = parseCatalog({
+      species: input.species.map((entry) =>
+        entry.id === "blue-tang" ? { ...entry, activities } : entry,
+      ),
+    });
+    const simulation = createSimulation({
+      scene: parseScene({ ...sceneFixture(), fauna: [{ species: "blue-tang", count: 4 }] }, tuned),
+      catalog: tuned,
+      rng: createRng(2),
+    });
+    // The same list on every step, as the view gives it: a new one means the scenery changed.
+    const places = [rock];
+    simulation.setPlaces(() => places);
+    return simulation;
+  }
+
+  /** Every activity seen and the closest any fish came to the rock with its mouth open. */
+  function observe(simulation: Simulation, seconds: number) {
+    const seen = new Set<string>();
+    let closestOpen = Infinity;
+    for (let elapsed = 0; elapsed < seconds; elapsed += STEP) {
+      simulation.step(STEP);
+      for (const fish of simulation.fish) {
+        seen.add(fish.activity.id);
+        if (fish.mouth > 0.5) {
+          const distance = Math.hypot(fish.position.x - rock.x, fish.position.z - rock.z);
+          closestOpen = Math.min(closestOpen, distance);
+        }
+      }
+    }
+    return { seen, closestOpen };
+  }
+
+  it("leaves the activity of species that can only wander untouched", () => {
+    const simulation = simulateActive({});
+
+    run(simulation, 10);
+
+    expect(simulation.fish.every((fish) => fish.activity.timer === 0)).toBe(true);
+  });
+
+  it("keeps species that declare no activities wandering", () => {
+    const { seen } = observe(simulateActive({}), 30);
+
+    expect(seen).toEqual(new Set(["wander"]));
+  });
+
+  it("lets fish go down to peck at an interesting place, mouth open", () => {
+    const simulation = simulateActive({
+      wander: { seconds: [1, 2] },
+      peck: { weight: 3, tags: { algae: 1 } },
+    });
+
+    const { seen, closestOpen } = observe(simulation, 60);
+
+    expect(seen).toContain("peck");
+    expect(closestOpen).toBeLessThan(0.3);
+  });
+
+  it("lets fish come and look at a place they care about", () => {
+    const simulation = simulateActive({
+      wander: { seconds: [1, 2] },
+      inspect: { weight: 3, tags: { rock: 1 } },
+    });
+    let closest = Infinity;
+
+    for (let elapsed = 0; elapsed < 40; elapsed += STEP) {
+      simulation.step(STEP);
+      for (const fish of simulation.fish) {
+        if (fish.activity.id !== "inspect") continue;
+        closest = Math.min(closest, Math.hypot(fish.position.x - rock.x, fish.position.z - rock.z));
+      }
+    }
+
+    expect(closest).toBeLessThan(1);
+  });
+
+  it("calls an activity off when the fish is startled", () => {
+    const simulation = simulateActive({
+      wander: { weight: 0 },
+      peck: { weight: 1, tags: { algae: 1 } },
+    });
+    // Long enough for every fish to finish its first, randomly cut wander.
+    run(simulation, 32);
+    const busy = simulation.fish.find((fish) => fish.activity.id === "peck");
+
+    simulation.tap(busy?.position ?? new Vector3());
+    simulation.step(STEP);
+
+    expect(busy?.activity.id).toBe("wander");
+    expect(busy?.swim.mouth).toBe(0);
   });
 });

@@ -6,7 +6,16 @@ import { hoverStyle } from "./hover";
 import { patrolStyle } from "./patrol";
 import type { SwimStyle } from "./types";
 
-export { createSwimState, type SwimContext, type SwimState } from "./types";
+export { activityOf, doesMoreThanWander } from "./activities";
+export { createActivityChooser } from "./choose";
+export { settleDown } from "./shared";
+export {
+  createActivityState,
+  createSwimState,
+  type ActivityState,
+  type SwimContext,
+  type SwimState,
+} from "./types";
 
 /**
  * Every swimming style, by id. To add a style, declare its parameters in
