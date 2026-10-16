@@ -190,6 +190,25 @@ export function createObstacleField(obstacles: readonly Obstacle[]): ObstacleFie
   };
 }
 
+const otherNormal = new Vector3();
+
+/** One field over several: the nearest surface of any of them. Allocation-free. */
+export function combineFields(...fields: readonly ObstacleField[]): ObstacleField {
+  return {
+    distance(point, normal, within) {
+      let best = Infinity;
+      for (const field of fields) {
+        const distance = field.distance(point, otherNormal, Math.min(within, best));
+        if (distance < best) {
+          best = distance;
+          normal.copy(otherNormal);
+        }
+      }
+      return best;
+    },
+  };
+}
+
 /** Directions tried, evenly round, when looking for the way out. */
 const OPEN_DIRECTIONS = 12;
 const lookout = new Vector3();

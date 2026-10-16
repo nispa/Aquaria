@@ -1,7 +1,14 @@
 import { Vector3 } from "three";
 import { describe, expect, it } from "vitest";
 import type { Prop } from "./layout";
-import { createObstacleField, obstacleOf, openYaw, PROP_SHAPES, propTop } from "./obstacles";
+import {
+  combineFields,
+  createObstacleField,
+  obstacleOf,
+  openYaw,
+  PROP_SHAPES,
+  propTop,
+} from "./obstacles";
 import { floorHeight } from "./terrain";
 
 const prop = (kind: Prop["kind"], x: number, z: number, size: number, rotation = 0): Prop => ({
@@ -128,5 +135,19 @@ describe("openYaw", () => {
     expect(Math.abs(Math.atan2(Math.sin(yaw - Math.PI), Math.cos(yaw - Math.PI)))).toBeLessThan(
       0.5,
     );
+  });
+});
+
+describe("combineFields", () => {
+  it("measures to the nearest obstacle of either field", () => {
+    const near = createObstacleField([obstacleOf(prop("rock", 0, -2, 0.4))]);
+    const far = createObstacleField([obstacleOf(prop("rock", 2, -2, 0.4))]);
+    const normal = new Vector3();
+    const point = new Vector3(0.5, 0.1, -2);
+
+    const both = combineFields(far, near).distance(point, normal, 3);
+
+    expect(both).toBeCloseTo(near.distance(point, new Vector3(), 3));
+    expect(normal.x).toBeGreaterThan(0);
   });
 });
