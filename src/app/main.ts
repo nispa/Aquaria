@@ -382,7 +382,13 @@ async function start(): Promise<void> {
   // The pointer is a finger on the glass: curious fish come to look, a tap
   // startles them, and food falls where it points.
   const input = createEventBus<PointerEvents>();
-  createPointerInput(canvas, input);
+  const pointer = createPointerInput(canvas, input);
+  /** Pointing: the viewer's switch for a touch that points instead of tapping. */
+  let pointingOn = false;
+  /** The torch and the magnifier need pointing; on a touch screen it is the only way to aim them. */
+  const updateTapping = (): void => {
+    pointer.setTapping(!(pointingOn || torchOn || lensOn));
+  };
   const finger = new Vector3();
   const sight = new Vector3();
   const tapPoint = new Vector3();
@@ -612,11 +618,17 @@ async function start(): Promise<void> {
         update({ look: { ...settings.look, [featureId]: enabled } });
       },
       onFeed: feed,
+      onPointingToggle() {
+        pointingOn = !pointingOn;
+        panel.setPointing(pointingOn);
+        updateTapping();
+      },
       onLensToggle() {
         lensOn = !lensOn;
         sounds.play(lensOn ? "lens-on" : "lens-off");
         view.aimLens(lensOn ? pointerAt : undefined);
         panel.setLens(lensOn);
+        updateTapping();
       },
       onSoundChange(enabled) {
         // A key press may come before any click: it unlocks the sound too.
@@ -634,6 +646,7 @@ async function start(): Promise<void> {
         simulation.setTorch(torchOn);
         view.aimTorch(torchOn && fingerOnGlass ? finger : undefined);
         panel.setTorch(torchOn);
+        updateTapping();
       },
       onSectionToggle(sectionId, open) {
         update({ panelSections: { ...settings.panelSections, [sectionId]: open } });

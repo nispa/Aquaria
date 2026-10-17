@@ -24,6 +24,12 @@ const POINTER_IDLE_MS = 8000;
 const PRIMARY_BUTTON = 0;
 
 export interface PointerInput {
+  /**
+   * With taps off, pressing points instead of tapping: on a touch screen a
+   * finger has no other way to point, e.g. to aim the torch or the
+   * magnifier, and the spot stays where the finger is lifted.
+   */
+  setTapping(enabled: boolean): void;
   dispose(): void;
 }
 
@@ -33,6 +39,7 @@ export function createPointerInput(
   bus: EventBus<PointerEvents>,
 ): PointerInput {
   let idleTimer = 0;
+  let tapping = true;
 
   const spotOf = (event: PointerEvent): ViewSpot => {
     const bounds = target.getBoundingClientRect();
@@ -52,19 +59,29 @@ export function createPointerInput(
   };
   const onDown = (event: PointerEvent): void => {
     if (event.button !== PRIMARY_BUTTON) return;
-    bus.emit("tap", spotOf(event));
+    if (tapping) bus.emit("tap", spotOf(event));
+    // A finger has no hover: pressing is how it points.
+    else onMove(event);
+  };
+  /** A lifted finger leaves the view; while it points, its spot stays. */
+  const onLeave = (event: PointerEvent): void => {
+    if (!tapping && event.pointerType !== "mouse") return;
+    leave();
   };
 
   target.addEventListener("pointermove", onMove);
   target.addEventListener("pointerdown", onDown);
-  target.addEventListener("pointerleave", leave);
+  target.addEventListener("pointerleave", onLeave);
 
   return {
+    setTapping(enabled) {
+      tapping = enabled;
+    },
     dispose() {
       window.clearTimeout(idleTimer);
       target.removeEventListener("pointermove", onMove);
       target.removeEventListener("pointerdown", onDown);
-      target.removeEventListener("pointerleave", leave);
+      target.removeEventListener("pointerleave", onLeave);
     },
   };
 }

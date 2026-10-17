@@ -123,6 +123,8 @@ export interface PanelCallbacks {
   onTorchToggle(): void;
   /** Switches the magnifier on or off. */
   onLensToggle(): void;
+  /** Switches pointing on or off: a touch points instead of tapping the glass. */
+  onPointingToggle(): void;
   onSoundChange(enabled: boolean): void;
   onVolumeChange(volume: number): void;
   onSectionToggle(sectionId: string, open: boolean): void;
@@ -138,6 +140,8 @@ export interface Panel {
   setTorch(on: boolean): void;
   /** Shows whether the magnifier is on. */
   setLens(on: boolean): void;
+  /** Shows whether a touch points instead of tapping. */
+  setPointing(on: boolean): void;
   /** Shows whether the sound is on (it may be switched with M). */
   setSound(on: boolean): void;
   /** While editing, the panel and the corner buttons hide and keys do nothing. */
@@ -205,6 +209,14 @@ const LENS_ICON =
   '<circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L20 20"/></svg>';
 
 /** A hand torch with its beam: the torch button's icon. */
+/** A hand pointing up: the pointing switch's icon. */
+const POINTING_ICON =
+  '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" ' +
+  'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="M9 11V4.5a1.5 1.5 0 0 1 3 0V11"/>' +
+  '<path d="M12 10.5V9a1.5 1.5 0 0 1 3 0v2"/><path d="M15 10.5a1.5 1.5 0 0 1 3 0V15' +
+  'a6 6 0 0 1-6 6h-1a6 6 0 0 1-4.6-2.2L4 16a1.5 1.5 0 0 1 2.3-1.9L9 16.5"/></svg>';
+
 const TORCH_ICON =
   '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor">' +
   '<path d="M3 10h7l3-3v10l-3-3H3z"/>' +
@@ -438,7 +450,7 @@ export function createPanel(
     element(
       "p",
       "panel__hint",
-      "H: show/hide · F: full screen · T: torch · Z: magnifier · M: sound · A: what fish do",
+      "H: show/hide · F: full screen · T: torch · Z: magnifier · P: point · M: sound · A: what fish do · E: edit rock",
     ),
   );
 
@@ -473,11 +485,20 @@ export function createPanel(
   lensButton.addEventListener("click", () => {
     callbacks.onLensToggle();
   });
+  const pointingButton = element("button", "corner__button");
+  pointingButton.type = "button";
+  pointingButton.innerHTML = POINTING_ICON;
+  pointingButton.setAttribute("aria-label", "Point");
+  pointingButton.setAttribute("aria-pressed", "false");
+  pointingButton.title = "Point (P): a touch points at the tank instead of tapping the glass";
+  pointingButton.addEventListener("click", () => {
+    callbacks.onPointingToggle();
+  });
   const opener = element("button", "corner__button", "☰");
   opener.type = "button";
   opener.setAttribute("aria-label", "Open controls");
   opener.title = "Controls (H)";
-  corner.append(torchButton, lensButton, cornerFeed, opener);
+  corner.append(pointingButton, torchButton, lensButton, cornerFeed, opener);
 
   let idleTimer: number | undefined;
   let suspended = false;
@@ -504,6 +525,7 @@ export function createPanel(
     if (event.key === "f" || event.key === "F") callbacks.onFullscreen();
     if (event.key === "t" || event.key === "T") callbacks.onTorchToggle();
     if (event.key === "z" || event.key === "Z") callbacks.onLensToggle();
+    if (event.key === "p" || event.key === "P") callbacks.onPointingToggle();
     if (event.key === "m" || event.key === "M") {
       const next = soundInput?.checked !== true;
       if (soundInput !== null) soundInput.checked = next;
@@ -532,6 +554,9 @@ export function createPanel(
     },
     setLens(on) {
       lensButton.setAttribute("aria-pressed", String(on));
+    },
+    setPointing(on) {
+      pointingButton.setAttribute("aria-pressed", String(on));
     },
     setSuspended(next) {
       suspended = next;

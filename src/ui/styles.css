@@ -25,10 +25,12 @@ body {
   color: var(--text);
 }
 
+/* Fingers on the tank are the viewer's, not the browser's: no scrolling or zooming. */
 #aquarium {
   display: block;
   width: 100vw;
   height: 100vh;
+  touch-action: none;
 }
 
 /* Below the corner buttons, which stay on top while the pointer moves. */
@@ -699,8 +701,4 @@ optgroup {
   min-width: 0;
   color: #ffb3a7;
   text-align: right;
-}
-
-#aquarium.editing {
-  touch-action: none;
 }

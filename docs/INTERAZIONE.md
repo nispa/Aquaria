@@ -22,10 +22,18 @@ altri scappano, e qualche gesto fa cose che nessun pesce vero farebbe.
 | **Premi `Z`** (o il pulsante della lente)   | Una **lente** rotonda sopra il puntatore mostra la vasca tre volte più grande: per guardare un pesce da vicino.                      |
 | **Premi `M`**                               | Suoni sì o no: l'acqua ribolle piano, un tocco fa un tonfo sul vetro, il cibo crepita, la torcia scatta e la lente tintinna.         |
 
-Muovendo il mouse o toccando lo schermo compaiono in alto a destra tre
-pulsanti, grandi abbastanza per un dito: la **torcia**, il **cibo** (un
-pizzico di fiocchi) e il **pannello di controllo**. Svaniscono dopo pochi
-secondi, così sullo schermo non resta niente di fisso.
+Muovendo il mouse o toccando lo schermo compaiono in alto a destra dei
+pulsanti, grandi abbastanza per un dito: **indica**, la **torcia**, la
+**lente**, il **cibo** (un pizzico di fiocchi) e il **pannello di
+controllo**. Svaniscono dopo pochi secondi, così sullo schermo non resta
+niente di fisso.
+
+Su uno schermo touch (tablet, telefono, LIM) il dito non può "stare sopra"
+senza toccare: ogni tocco è un colpetto sul vetro. Con **Indica** acceso
+(`P`) il tocco indica invece, come il mouse appoggiato: i pesci curiosi
+vengono a guardare, cerchi e scarabocchi funzionano senza spaventare
+nessuno, e il punto resta dove si alza il dito. Torcia e lente indicano da
+sole finché sono accese, così il dito le punta.
 
 Ipnosi e solletico sono volutamente surreali: sono giochi, non biologia.
 Attiva _Realistic_ nella sezione Fauna del pannello e si spengono, mentre i

@@ -44,23 +44,24 @@ This guide covers everything needed to operate, customize, and understand the de
 
 ### Controls & Hotkeys
 
-| Key / Action                     | Function                  | Details                                                                                                                            |
-| :------------------------------- | :------------------------ | :--------------------------------------------------------------------------------------------------------------------------------- |
-| **`H`**                          | Show / Hide Control Panel | Toggles the sidebar control panel.                                                                                                 |
-| **`F`**                          | Fullscreen Toggle         | Enters or leaves borderless full-screen view.                                                                                      |
-| **`Space`**                      | Feed the Fish             | Drops a pinch of flakes, above the pointer when it is over the tank (also the feed corner button).                                 |
-| **Rest the pointer on the tank** | Finger on the Glass       | The curious individuals of each species come to look; the finger counts as gone after 8 s without movement.                        |
-| **Click the tank**               | Tap the Glass             | Nearby fish dart away; shy species flee from farther away. They calm down within a few seconds.                                    |
-| **Quick circles near a fish**    | Hypnosis                  | It stops, floats, turns and rolls with your circles; when they stop it swims off dizzy.                                            |
-| **Scribble right over a fish**   | Tickling                  | It wriggles belly up, then darts off in a zigzag.                                                                                  |
-| **`A`**                          | What the Fish Are Doing   | Labels over every fish and a card for the one nearest the pointer. See [Playing with the fish](INTERACTION.md).                    |
-| **`C`** (with `A` on)            | Collision Shapes          | Outlines the shapes fish swim around: rocks, corals, wood.                                                                         |
-| **`T`**                          | Torch                     | The pointer shines a beam into the tank; some species gather in it, shy ones flee. Best at night.                                  |
-| **`Z`**                          | Magnifier                 | A round lens over the pointer shows the tank three times larger: look at the fish up close.                                        |
-| **`M`**                          | Sound                     | Switches the sounds on or off: the soft bubbling, a thud for taps, food, torch and magnifier. Volume in the panel's Sound section. |
-| **`E`**                          | Scene Editor              | Builds rock from blocks in an isometric view: add, remove, brush size, layers, smooth preview, save. `Esc` leaves without saving.  |
-| **Corner buttons**               | Torch, Feed, Panel        | Appear on a mouse move or a touch, big enough for a finger, and fade again.                                                        |
-| **Mouse Move**                   | Reveal Panel Button       | A discreet corner toggle button appears for 2.5s and fades away to avoid screen burn-in.                                           |
+| Key / Action                     | Function                  | Details                                                                                                                                           |
+| :------------------------------- | :------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`H`**                          | Show / Hide Control Panel | Toggles the sidebar control panel.                                                                                                                |
+| **`F`**                          | Fullscreen Toggle         | Enters or leaves borderless full-screen view.                                                                                                     |
+| **`Space`**                      | Feed the Fish             | Drops a pinch of flakes, above the pointer when it is over the tank (also the feed corner button).                                                |
+| **Rest the pointer on the tank** | Finger on the Glass       | The curious individuals of each species come to look; the finger counts as gone after 8 s without movement.                                       |
+| **Click the tank**               | Tap the Glass             | Nearby fish dart away; shy species flee from farther away. They calm down within a few seconds.                                                   |
+| **Quick circles near a fish**    | Hypnosis                  | It stops, floats, turns and rolls with your circles; when they stop it swims off dizzy.                                                           |
+| **Scribble right over a fish**   | Tickling                  | It wriggles belly up, then darts off in a zigzag.                                                                                                 |
+| **`A`**                          | What the Fish Are Doing   | Labels over every fish and a card for the one nearest the pointer. See [Playing with the fish](INTERACTION.md).                                   |
+| **`C`** (with `A` on)            | Collision Shapes          | Outlines the shapes fish swim around: rocks, corals, wood.                                                                                        |
+| **`T`**                          | Torch                     | The pointer shines a beam into the tank; some species gather in it, shy ones flee. Best at night.                                                 |
+| **`Z`**                          | Magnifier                 | A round lens over the pointer shows the tank three times larger: look at the fish up close.                                                       |
+| **`M`**                          | Sound                     | Switches the sounds on or off: the soft bubbling, a thud for taps, food, torch and magnifier. Volume in the panel's Sound section.                |
+| **`P`**                          | Point                     | On a touch screen a finger taps the glass; with Point on (or the torch or magnifier on) it points instead, and the spot stays where it is lifted. |
+| **`E`**                          | Scene Editor              | Builds rock from blocks in an isometric view: add, remove, brush size, layers, smooth preview, save. `Esc` leaves without saving.                 |
+| **Corner buttons**               | Torch, Feed, Panel        | Appear on a mouse move or a touch, big enough for a finger, and fade again.                                                                       |
+| **Mouse Move**                   | Reveal Panel Button       | A discreet corner toggle button appears for 2.5s and fades away to avoid screen burn-in.                                                          |
 
 ---
 

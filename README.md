@@ -82,8 +82,9 @@ Controls:
 | `T`                          | Torch: the pointer lights the tank, fish react to the beam      |
 | `Z`                          | Magnifier: a lens over the pointer shows the fish up close      |
 | `M`                          | Sound on or off (bubbling, taps, food, torch and magnifier)     |
+| `P`                          | Point: a touch points at the tank instead of tapping the glass  |
 | `E`                          | Scene editor: build rock from blocks (also a card in Scenes)    |
-| Corner buttons               | Torch, feed, control panel (shown on a mouse move or a touch)   |
+| Corner buttons               | Point, torch, magnifier, feed, panel (on a mouse move or touch) |
 | Move the mouse               | Shows the panel button for a moment                             |
 
 In the scene editor the tank is seen from above at an angle. Click or drag

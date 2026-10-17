@@ -22,10 +22,17 @@ and a few gestures do things no real fish would.
 | **Press `Z`** (or the magnifier button) | A round **lens** over the pointer shows the tank three times larger: look at a fish up close.                                    |
 | **Press `M`**                           | Sound on or off: the water bubbles softly, a tap thuds on the glass, food patters, the torch clicks and the lens chimes.         |
 
-Moving the mouse or touching the screen shows three buttons in the top
-right corner, big enough for a finger: the **torch**, **feed** (a pinch of
-food) and the **control panel**. They fade after a few seconds, so nothing
-stays on screen.
+Moving the mouse or touching the screen shows buttons in the top right
+corner, big enough for a finger: **point**, the **torch**, the
+**magnifier**, **feed** (a pinch of food) and the **control panel**. They
+fade after a few seconds, so nothing stays on screen.
+
+On a touch screen (a tablet, a phone, an interactive whiteboard) a finger
+has no hover: every touch taps the glass. With **Point** on (`P`) a touch
+points instead, like resting the mouse: the curious fish come to look and
+the circles and scribbles work without startling anyone, and the spot stays
+where the finger is lifted. The torch and the magnifier point by
+themselves while they are on, so a finger aims them.
 
 Hypnosis and tickling are deliberately surreal: they are toys, not biology.
 Switch _Realistic_ on in the panel's Fauna section and they are off, while

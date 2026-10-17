@@ -293,6 +293,22 @@ test("switches the magnifier on and off with Z and with its corner button", asyn
   expect(errors).toEqual([]);
 });
 
+test("switches pointing on and off with P and with its corner button", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await openLive(page);
+  await waitForState(page);
+  await page.mouse.move(640, 360);
+  const point = page.getByRole("button", { name: "Point" });
+
+  await page.keyboard.press("p");
+  await expect(point).toHaveAttribute("aria-pressed", "true");
+  await point.click();
+
+  await expect(point).toHaveAttribute("aria-pressed", "false");
+  expect(errors).toEqual([]);
+});
+
 test("switches to realistic mode from the panel and remembers it", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
