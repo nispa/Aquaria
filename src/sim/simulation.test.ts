@@ -1660,6 +1660,19 @@ describe("walkers", () => {
     expect(simulation.fish.every((fish) => fish.hiding === 0)).toBe(true);
   });
 
+  it("lets a walker that cannot swim eat the flakes that reach the bottom", () => {
+    const simulation = simulateWalkers({ style: "crawl", swims: false }, { appetite: 1 });
+    run(simulation, 5);
+
+    for (const fish of simulation.fish) simulation.dropFood(fish.position.x, fish.position.z);
+    run(simulation, 60);
+
+    expect(simulation.fish.some((fish) => fish.satiety > 0)).toBe(true);
+    expect(Math.max(...simulation.fish.map((fish) => fish.position.y / fish.length))).toBeLessThan(
+      0.5,
+    );
+  });
+
   it("walks a crab to the nearest shelter when tapped", () => {
     const simulation = simulateWalkers(
       { style: "crawl", swims: false, sideways: true },

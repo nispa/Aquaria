@@ -469,6 +469,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
   for (const species of catalog.species) {
     const habitat = habitatBox(scene.tank, species);
     const forage = habitat.clone().expandByScalar(FORAGE_MARGIN);
+    // A walker feeds on the ground, whatever height its habitat says.
+    if (species.swim.style === "crawl") forage.min.y = Math.min(forage.min.y, 0);
     const visit = forage.clone();
     visit.min.y = Math.min(visit.min.y, 0);
     groups.set(species.id, {
@@ -791,10 +793,13 @@ export function createSimulation(options: SimulationOptions): Simulation {
     let mouthTarget = 0;
     let speed: number | undefined;
     if (flake !== undefined && hunger > 0) {
-      mouthPosition
-        .copy(member.velocity)
-        .setLength(member.length / 2)
-        .add(member.position);
+      // The mouth leads the body: where it swims, or where a walker faces.
+      if (member.walking) {
+        mouthPosition.set(Math.cos(member.facing), 0, Math.sin(member.facing));
+      } else {
+        mouthPosition.copy(member.velocity);
+      }
+      mouthPosition.setLength(member.length / 2).add(member.position);
       const reach = mouthPosition.distanceTo(flake.position);
       term.subVectors(flake.position, mouthPosition).normalize();
       force.addScaledVector(term, FEED_WEIGHT * hunger);
