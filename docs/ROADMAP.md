@@ -207,6 +207,39 @@ still loads unchanged.
       `object.json`; with a model and a recipe, Aquaria draws the recipe's
       variants and the model is the fallback.
 
+## F. Shaders and effects as files
+
+Effects become folders of data, like objects and species: a viewer or an
+artist adds one without touching the code or rebuilding. GLSL only runs on
+the GPU, so a shader file is safe to load; plugins with JavaScript come
+later, from trusted sources only.
+
+### F1. The contract
+
+- [ ] `public/effects/<id>/effect.json`, validated with Zod: name, stage
+      (`hdr` or `display`), on by default or not, parameters with a type,
+      a range and a default (they become the panel's sliders), credit.
+- [ ] A fragment shader in the folder (`.glsl`), given the frame, depth,
+      time and its parameters as uniforms; a broken shader logs a warning
+      and its switch is left out.
+- [ ] Loaded at startup next to the built-in `EFFECTS`, which stay as
+      they are; each one is a switch in the panel.
+
+### F2. Waves seen from below
+
+- [ ] The underside of the water as moving waves: total reflection at a
+      slant, the bright window of the sky overhead (Snell's window), the
+      glare of the sun through the waves, as in the hero image.
+- [ ] Light shafts and caustics start from the same waves and move with
+      them.
+- [ ] Scene data drives it (wave height, speed, sun glare); state the
+      measured cost.
+
+### F3. Writing an effect
+
+- [ ] `docs/EFFECTS.md` (+ Italian version): the contract, the uniforms,
+      a worked example, how to try a shader in the tank.
+
 ## Ideas to discuss
 
 Raised by the user, not planned yet.
