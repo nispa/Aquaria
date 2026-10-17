@@ -4,8 +4,8 @@ A species may have a 3D model next to its procedural body: a folder in
 `public/assets/species/<id>/` with a `model.glb` and a `model.json` (the
 fields are in the README, "3D fish models"). This guide tells how to make
 one in Blender so that Aquaria can swim it, open its mouth and turn its
-eyes. `scripts/blender/angelfish.py` and `scripts/blender/guppy.py` build
-the freshwater angelfish and the guppy this way, from code, with the shared
+eyes. `scripts/blender/angelfish.py`, `scripts/blender/guppy.py` and `scripts/blender/platy.py` build
+the freshwater angelfish, the guppy and the platy this way, from code, with the shared
 pieces in `scripts/blender/fishkit.py`; read them as worked examples.
 
 ## What Aquaria does with the model

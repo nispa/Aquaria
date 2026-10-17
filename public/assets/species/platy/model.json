@@ -1,0 +1,25 @@
+{
+  "name": "Platy",
+  "file": "model.glb",
+  "forward": "+x",
+  "up": "+y",
+  "swimAmplitude": 0.08,
+  "mouth": {
+    "morphTarget": "MouthOpen"
+  },
+  "eyes": {
+    "bones": ["Eye.L", "Eye.R"],
+    "turn": 22
+  },
+  "gills": {
+    "edge": 0.3,
+    "top": 0.07,
+    "bottom": -0.08,
+    "curve": 4
+  },
+  "credit": {
+    "author": "Aquaria (scripts/blender/platy.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/platy.py",
+    "license": "CC0-1.0"
+  }
+}

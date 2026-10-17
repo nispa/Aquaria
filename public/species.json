@@ -621,12 +621,13 @@
       "body": {
         "type": "procedural",
         "shape": "round",
-        "pattern": "belly",
+        "pattern": "tail",
         "colors": {
-          "base": "#ff7a1a",
-          "accent": "#ffc07a"
+          "base": "#ff4f14",
+          "accent": "#141414"
         }
       },
+      "model": "platy",
       "length": {
         "mean": 0.05,
         "standardDeviation": 0.005
