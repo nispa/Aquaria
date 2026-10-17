@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { bundledObjects } from "./objectFixtures";
 import type { FloraSpec, PropSpec } from "./schema";
+import { createRng } from "../core/rng";
 import {
   moveItem,
+  paintItems,
+  recolorEntry,
   pickItem,
   placeItem,
   removeItem,
@@ -42,6 +45,24 @@ describe("placeItem", () => {
     const { scenery, ref } = placeItem(first, "kelp", kelpObject, { x: 0.3, z: -0.4 });
 
     expect([scenery.flora.length, scenery.flora[0]?.count, ref.item]).toEqual([1, 2, 1]);
+  });
+
+  it("starts a new entry when the one it made is full", () => {
+    const full: Scenery = {
+      flora: [],
+      props: [
+        {
+          kind: "rock",
+          count: 50,
+          color: "#888888",
+          at: Array.from({ length: 50 }, (_, index) => ({ x: index / 100, z: -0.5 })),
+        },
+      ],
+    };
+
+    const { scenery } = placeItem(full, "rock", rockObject, { x: 0, z: -0.4 });
+
+    expect(scenery.props.map((entry) => entry.count)).toEqual([50, 1]);
   });
 
   it("keeps positions to the millimeter, so scene files stay tidy", () => {
@@ -132,6 +153,77 @@ describe("settleItems", () => {
     const scenery: Scenery = { flora: [], props: [randomRocks] };
 
     expect(settleItems(scenery, () => 0)).toEqual(scenery);
+  });
+});
+
+describe("paintItems", () => {
+  const carpet = objects.get("carpet");
+  if (carpet === undefined) throw new Error("Missing objects.");
+  const brush = { x: 0, z: -0.5, radius: 0.1, spacing: 0.03 };
+  const ground = () => ({});
+
+  it("sets down items within the brush", () => {
+    const { flora } = paintItems(empty, "carpet", carpet, brush, ground, createRng(1));
+
+    const outside = (flora[0]?.at ?? []).filter(
+      (spot) => Math.hypot(spot.x - brush.x, spot.z - brush.z) > brush.radius + 1e-9,
+    );
+    expect([(flora[0]?.at?.length ?? 0) > 3, outside]).toEqual([true, []]);
+  });
+
+  it("keeps the items of a stroke apart by the spacing", () => {
+    const once = paintItems(empty, "carpet", carpet, brush, ground, createRng(1));
+    const twice = paintItems(once, "carpet", carpet, brush, ground, createRng(2));
+    const spots = twice.flora[0]?.at ?? [];
+
+    const tooClose = spots.filter((spot, index) =>
+      spots.some(
+        (other, otherIndex) =>
+          otherIndex !== index &&
+          Math.hypot(spot.x - other.x, spot.z - other.z) < brush.spacing - 0.001,
+      ),
+    );
+    expect(tooClose).toEqual([]);
+  });
+
+  it("stands each item on what is under it", () => {
+    const { flora } = paintItems(empty, "carpet", carpet, brush, () => ({ y: 0.2 }), createRng(1));
+
+    expect(flora[0]?.at?.every((spot) => spot.y === 0.2)).toBe(true);
+  });
+
+  it("leaves out spots where nothing can stand", () => {
+    const { flora } = paintItems(empty, "carpet", carpet, brush, () => undefined, createRng(1));
+
+    expect(flora).toEqual([]);
+  });
+
+  it("starts another entry when one is full", () => {
+    const full: Scenery = {
+      flora: [
+        {
+          kind: "carpet",
+          count: 200,
+          bands: [0, 4],
+          height: [0.02, 0.05],
+          color: "#6fc23a",
+          at: Array.from({ length: 200 }, (_, index) => ({ x: index, z: -10 })),
+        },
+      ],
+      props: [],
+    };
+
+    const { flora } = paintItems(full, "carpet", carpet, brush, ground, createRng(1));
+
+    expect([flora.length, flora[0]?.count]).toEqual([2, 200]);
+  });
+});
+
+describe("recolorEntry", () => {
+  it("gives the item's whole entry one color", () => {
+    const { scenery, ref } = placeItem(empty, "rock", rockObject, { x: 0, z: -0.4 });
+
+    expect(recolorEntry(scenery, ref, "#123456").props[0]?.color).toBe("#123456");
   });
 });
 

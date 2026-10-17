@@ -4,7 +4,7 @@ import { element } from "./controls";
  * The scenes as cards in the control panel: a square picture of each tank
  * and its name, one after another in the order of the scene index (the
  * viewer's own last), the open one highlighted, and a last card that opens
- * the scene designer. Scenes without a picture (the viewer's own) show
+ * the scene editor. Scenes without a picture (the viewer's own) show
  * their initial on water.
  */
 
@@ -49,14 +49,6 @@ export function sceneInitial(name: string): string {
   return letter === undefined ? "~" : letter.toUpperCase();
 }
 
-/** A pencil over a frame: the scene designer card's icon. */
-const DESIGNER_ICON =
-  '<svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true" fill="none" ' +
-  'stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">' +
-  '<rect x="3" y="5" width="14" height="14" rx="2"/>' +
-  '<path d="M3 15l4-4 3 3 3-4 4 5"/>' +
-  '<path d="M15 13l6-6 2 2-6 6-3 1z" fill="currentColor" stroke="none"/></svg>';
-
 /** Stacked cubes: the scene editor card's icon. */
 const EDITOR_ICON =
   '<svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true" fill="none" ' +
@@ -73,7 +65,7 @@ function actionCard(
   title: string,
   onClick: () => void,
 ): HTMLButtonElement {
-  const card = element("button", "scene-card scene-card--designer");
+  const card = element("button", "scene-card scene-card--tool");
   card.type = "button";
   card.dataset.action = action;
   const icon = element("span", "scene-card__picture scene-card__icon");
@@ -90,7 +82,6 @@ export interface SceneCardsOptions {
   readonly selected: string;
   readonly pictureOf: (id: string) => string | undefined;
   onSelect(sceneId: string): void;
-  onOpenDesigner(): void;
   onOpenEditor(): void;
 }
 
@@ -124,21 +115,11 @@ export function createSceneCards(options: SceneCardsOptions): HTMLElement {
   }
   grid.append(
     actionCard(
-      "designer",
-      DESIGNER_ICON,
-      "Designer",
-      "Scene designer",
-      "Scene designer: build and edit scenes",
-      () => {
-        options.onOpenDesigner();
-      },
-    ),
-    actionCard(
       "editor",
       EDITOR_ICON,
-      "Rock",
+      "Editor",
       "Scene editor",
-      "Scene editor: build rock from blocks (E)",
+      "Scene editor: rock, plants, objects and the scene's water and light (E)",
       () => {
         options.onOpenEditor();
       },

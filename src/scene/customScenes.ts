@@ -2,7 +2,7 @@ import { parseScene, SceneValidationError } from "./parse";
 import type { Scene, SpeciesCatalog } from "./schema";
 
 /**
- * Scenes made in the scene designer: stored in the browser, exported to and
+ * Scenes made in the scene editor: stored in the browser, exported to and
  * imported from JSON files. Custom ids start with "my-" so they never clash
  * with bundled scenes; exported files drop the prefix, ready for
  * public/scenes/ and the scene index.
@@ -27,9 +27,10 @@ export function isCustomSceneId(id: string): boolean {
   return id.startsWith(CUSTOM_PREFIX);
 }
 
-/** A free custom id for a scene name: "my-<slug>", numbered if taken. */
+/** A free custom id for a scene name: "my-<slug>" ("My Lake" is "my-lake"), numbered if taken. */
 export function customSceneId(name: string, taken: readonly string[]): string {
-  const base = `${CUSTOM_PREFIX}${slugify(name)}`;
+  const slug = slugify(name);
+  const base = slug.startsWith(CUSTOM_PREFIX) ? slug : `${CUSTOM_PREFIX}${slug}`;
   if (!taken.includes(base)) return base;
   let number = 2;
   while (taken.includes(`${base}-${number}`)) number += 1;

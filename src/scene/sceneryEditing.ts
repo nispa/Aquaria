@@ -1,6 +1,7 @@
+import type { Rng } from "../core/rng";
 import { floraEntryFor, propEntryFor } from "./objectEntries";
 import type { ObjectManifest } from "./objectManifest";
-import type { FloraSpec, PropSpec } from "./schema";
+import { MAX_FLORA_PER_ENTRY, MAX_PROPS_PER_ENTRY, type FloraSpec, type PropSpec } from "./schema";
 
 /**
  * Editing a scene's plants and objects, as the scene editor does: placing
@@ -131,17 +132,24 @@ function onTheGround(spot: Spot): Spot {
 
 /**
  * Adds an item of an object at a spot: to the entry of chosen spots the
- * scene already has for it, or to a new entry with the object's defaults.
+ * scene already has for it, or to a new entry with the object's defaults
+ * (always, with `newEntry`).
  */
 export function placeItem(
   scenery: Scenery,
   id: string,
   object: ObjectManifest,
   spot: Spot,
+  newEntry = false,
 ): { readonly scenery: Scenery; readonly ref: ItemRef } {
   const section = object.category === "plant" ? "flora" : "props";
   const entries: readonly Entry[] = scenery[section];
-  const existing = entries.findLastIndex((entry) => entry.kind === id && entry.at !== undefined);
+  const limit = section === "flora" ? MAX_FLORA_PER_ENTRY : MAX_PROPS_PER_ENTRY;
+  const existing = newEntry
+    ? -1
+    : entries.findLastIndex(
+        (entry) => entry.kind === id && entry.at !== undefined && entry.at.length < limit,
+      );
   const entry = existing >= 0 ? existing : entries.length;
   const grown: Scenery =
     existing >= 0
@@ -155,6 +163,76 @@ export function placeItem(
     scenery: withSpots(grown, { section, entry }, spots),
     ref: { section, entry, item: spots.length - 1 },
   };
+}
+
+/** A brush stroke's dab: its middle on the floor, its radius and how far apart its items stay, m. */
+export interface Brush {
+  readonly x: number;
+  readonly z: number;
+  readonly radius: number;
+  readonly spacing: number;
+}
+
+/** Tries per dab, for each item the dab could hold at its spacing. */
+const TRIES_PER_ITEM = 1.5;
+/** Most tries per dab, so a fine spacing in a big brush stays quick. */
+const MAX_TRIES = 120;
+
+/**
+ * Paints items of an object within a brush dab, at random spots no closer
+ * to each other (or to the object's items already there) than the spacing:
+ * a carpet, a clump of plants, a scatter of pebbles. `groundAt` gives the
+ * rest of an item's spot at (x, z) (its height above the sand on rock, and
+ * any size or height of its own), or undefined where nothing can stand. Items go in the object's entry of chosen spots,
+ * a new one when it is full.
+ */
+export function paintItems(
+  scenery: Scenery,
+  id: string,
+  object: ObjectManifest,
+  brush: Brush,
+  groundAt: (x: number, z: number) => Omit<Spot, "x" | "z"> | undefined,
+  rng: Rng,
+): Scenery {
+  const section = object.category === "plant" ? "flora" : "props";
+  const limit = section === "flora" ? MAX_FLORA_PER_ENTRY : MAX_PROPS_PER_ENTRY;
+  const taken: { x: number; z: number }[] = (scenery[section] as readonly Entry[])
+    .filter((entry) => entry.kind === id)
+    .flatMap((entry) => entry.at?.slice(0, entry.count) ?? []);
+  const fits = Math.ceil((brush.radius / brush.spacing) ** 2);
+  const tries = Math.min(Math.ceil(fits * TRIES_PER_ITEM), MAX_TRIES);
+  let painted = scenery;
+  for (let attempt = 0; attempt < tries; attempt += 1) {
+    const distance = brush.radius * Math.sqrt(rng.next());
+    const angle = rng.range(0, Math.PI * 2);
+    const x = brush.x + Math.cos(angle) * distance;
+    const z = brush.z + Math.sin(angle) * distance;
+    const crowded = taken.some((other) => Math.hypot(other.x - x, other.z - z) < brush.spacing);
+    const ground = crowded ? undefined : groundAt(x, z);
+    if (ground === undefined) continue;
+    const entries: readonly Entry[] = painted[section];
+    const open = entries.findLastIndex(
+      (entry) => entry.kind === id && entry.at !== undefined && entry.at.length < limit,
+    );
+    if (open < 0) {
+      painted = placeItem(painted, id, object, { x, z, ...ground }, true).scenery;
+    } else {
+      const entry = entries[open];
+      const spots = [...(entry?.at?.slice(0, entry.count) ?? []), { x, z, ...ground }];
+      painted = withSpots(painted, { section, entry: open }, spots);
+    }
+    taken.push({ x, z });
+  }
+  return painted;
+}
+
+/** Gives the whole entry of an item one color. */
+export function recolorEntry(scenery: Scenery, ref: ItemRef, color: string): Scenery {
+  const recolor = <T extends Entry>(entries: readonly T[]): T[] =>
+    entries.map((entry, index) => (index === ref.entry ? { ...entry, color } : entry));
+  return ref.section === "flora"
+    ? { ...scenery, flora: recolor(scenery.flora) }
+    : { ...scenery, props: recolor(scenery.props) };
 }
 
 /** Moves an item to a spot (x, z and its height above the sand). */

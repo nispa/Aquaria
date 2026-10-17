@@ -127,10 +127,11 @@ Comes after block E: the palette lists the object folders.
 
 ### C4. Finishing
 
-- [ ] Brush for carpets and plant groups (painted areas with a density).
-- [ ] Environment tab: water, floor, backdrop, murkiness.
-- [ ] "Convert to blocks" for scenes with a procedural ridge.
-- [ ] Remove the old form-based designer; update README and user guides.
+- [x] Brush for carpets and plant groups (painted areas with a density).
+- [x] Environment tab: water, floor, backdrop, murkiness (the Scene tab,
+      with biomes: the environment of any bundled scene).
+- [x] "Convert to blocks" for scenes with a procedural ridge.
+- [x] Remove the old form-based designer; update README and user guides.
 
 ## D. Beyond the fish
 

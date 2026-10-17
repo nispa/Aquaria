@@ -86,6 +86,12 @@ export interface EditorView {
   pan(dx: number, dy: number): void;
   /** The ray through a spot on the view (normalized device coordinates), in tank coordinates. */
   ray(x: number, y: number, origin: Vector3, direction: Vector3): void;
+  /** Recolors the floor, the background and the rock, as the scene's settings change. */
+  setColors(colors: {
+    readonly floor: string;
+    readonly background: string;
+    readonly rock: string;
+  }): void;
   /** Shows these plants and objects, as they will stand in the tank. */
   setScenery(plants: readonly Plant[], props: readonly Prop[]): void;
   /** Outlines the selected plant or object; none when undefined. */
@@ -272,6 +278,11 @@ export function createEditorView(options: EditorViewOptions): EditorView {
 
   return {
     refresh,
+    setColors(colors) {
+      floorMaterial.color.set(colors.floor);
+      rockMaterial.color.set(colors.rock);
+      if (world.background instanceof Color) world.background.set(colors.background);
+    },
     setScenery(plants, items) {
       flora?.dispose();
       props?.dispose();

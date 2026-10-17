@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 
 /**
@@ -439,67 +440,28 @@ test("switches the light fixture to LED spots", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test.describe("scene designer", () => {
-  async function openDesigner(page: Page): Promise<void> {
-    await page.addInitScript(() => {
-      // The designer tests start from the tropical reef, whatever the default scene.
-      if (localStorage.getItem("aquaria.settings") === null) {
-        localStorage.setItem(
-          "aquaria.settings",
-          JSON.stringify({ renderHeight: 540, scene: "reef" }),
-        );
-      }
-    });
-    await page.goto("/?effects=none");
+test.describe("scene editor's Scene tab", () => {
+  async function openSceneTab(page: Page, scene = "reef"): Promise<void> {
+    await page.goto(`/?scene=${scene}&effects=none`);
     await waitForState(page);
-    await page.keyboard.press("h");
-    await page.getByRole("button", { name: "Scene designer" }).click();
+    await page.keyboard.press("e");
+    await page.getByRole("tab", { name: "Scene" }).click();
   }
 
-  const designer = (page: Page) => page.getByRole("complementary", { name: "Scene designer" });
-  const nameField = (page: Page) =>
-    designer(page).locator("label", { hasText: "Name" }).first().locator("input");
+  const sceneTab = (page: Page) => page.getByRole("tabpanel", { name: "Scene" });
+  const nameField = (page: Page) => page.getByRole("textbox", { name: "Scene name" });
 
-  test("previews an edit without saving it, and highlights what changed", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (error) => errors.push(error.message));
-    page.on("console", (message) => {
-      if (message.type() === "error") errors.push(message.text());
-    });
-    await openDesigner(page);
-
-    await nameField(page).fill("Draft reef");
-    await designer(page).getByRole("button", { name: "Add plant" }).click();
-    await designer(page).getByRole("button", { name: "Preview" }).click();
-
-    await expect(designer(page).locator(".designer__status")).toContainText("Unsaved changes");
-    await expect(designer(page).locator(".designer__changed").first()).toBeVisible();
-    const stored = await page.evaluate(() => localStorage.getItem("aquaria.customScenes"));
-    expect(stored).toBeNull();
-    expect(errors).toEqual([]);
-  });
-
-  test("reverts every change back to the scene it started from", async ({ page }) => {
-    await openDesigner(page);
-    await nameField(page).fill("Draft reef");
-
-    await designer(page).getByRole("button", { name: "Revert" }).click();
-
-    await expect(nameField(page)).toHaveValue("Tropical reef");
-    await expect(designer(page).locator(".designer__status")).toHaveText("");
-  });
-
-  test("saves a new scene and lists it under My scenes", async ({ page }) => {
-    await openDesigner(page);
+  test("names a new scene, saves it and lists it under My scenes", async ({ page }) => {
+    await openSceneTab(page);
     await nameField(page).fill("Night reef");
 
     await Promise.all([
       page.waitForEvent("load"),
-      designer(page).getByRole("button", { name: "Save as my scene" }).click(),
+      page.getByRole("button", { name: "Save as a new scene" }).click(),
     ]);
     await waitForState(page);
 
-    await expect(designer(page)).toBeVisible();
+    await page.keyboard.press("h");
     await expect(page.locator('.scene-card[data-scene="my-night-reef"]')).toHaveAttribute(
       "aria-pressed",
       "true",
@@ -509,31 +471,48 @@ test.describe("scene designer", () => {
     );
   });
 
+  test("gives a saved scene a picture of its tank on its card", async ({ page }) => {
+    await openSceneTab(page);
+    await nameField(page).fill("Picture reef");
+    await Promise.all([
+      page.waitForEvent("load"),
+      page.getByRole("button", { name: "Save as a new scene" }).click(),
+    ]);
+    await waitForState(page);
+
+    await page.keyboard.press("h");
+    const image = page.locator('.scene-card[data-scene="my-picture-reef"] img');
+
+    await expect(image).toHaveAttribute("src", /^data:image\/jpeg;base64,/);
+  });
+
   test("exports the scene as a JSON file ready for public/scenes", async ({ page }) => {
-    await openDesigner(page);
+    await openSceneTab(page);
 
     const [file] = await Promise.all([
       page.waitForEvent("download"),
-      designer(page).getByRole("button", { name: "Export JSON" }).click(),
+      sceneTab(page).getByRole("button", { name: "Export JSON" }).click(),
     ]);
 
-    expect(file.suggestedFilename()).toBe("tropical-reef.json");
+    // A bundled scene edited is the viewer's own: "My Tropical reef".
+    expect(file.suggestedFilename()).toBe("my-tropical-reef.json");
   });
 
   test("imports a scene file and opens it", async ({ page }) => {
-    await openDesigner(page);
+    await openSceneTab(page);
     const [file] = await Promise.all([
       page.waitForEvent("download"),
-      designer(page).getByRole("button", { name: "Export JSON" }).click(),
+      sceneTab(page).getByRole("button", { name: "Export JSON" }).click(),
     ]);
     const path = await file.path();
 
     await Promise.all([
       page.waitForEvent("load"),
-      designer(page).locator('input[type="file"]').setInputFiles(path),
+      sceneTab(page).locator('input[type="file"]').setInputFiles(path),
     ]);
     await waitForState(page);
 
+    await page.keyboard.press("h");
     await expect(page.locator('.scene-card[data-scene="my-reef"]')).toHaveAttribute(
       "aria-pressed",
       "true",
@@ -541,9 +520,9 @@ test.describe("scene designer", () => {
   });
 
   test("explains why an imported file is not a valid scene", async ({ page }) => {
-    await openDesigner(page);
+    await openSceneTab(page);
 
-    await designer(page)
+    await sceneTab(page)
       .locator('input[type="file"]')
       .setInputFiles({
         name: "broken.json",
@@ -551,7 +530,72 @@ test.describe("scene designer", () => {
         buffer: Buffer.from('{"id":"x"}'),
       });
 
-    await expect(designer(page).locator(".panel__warning")).toContainText("Invalid scene");
+    await expect(
+      page.getByRole("toolbar", { name: "Scene editor" }).getByRole("status"),
+    ).toContainText("Invalid scene");
+  });
+
+  test("resizes the tank, keeping the work", async ({ page }) => {
+    await openSceneTab(page);
+    const width = sceneTab(page).locator("label", { hasText: "Width" }).locator("input");
+
+    await width.fill("3");
+    await sceneTab(page).getByRole("button", { name: "Resize the tank" }).click();
+
+    await page.getByRole("tab", { name: "Scene" }).click();
+    await expect(
+      sceneTab(page).locator("label", { hasText: "Width" }).locator("output"),
+    ).toHaveText("3");
+  });
+
+  test("takes the water and light of another biome", async ({ page }) => {
+    const planted = JSON.parse(readFileSync("public/scenes/planted-tank.json", "utf8")) as {
+      water: { color: string };
+    };
+    await openSceneTab(page);
+
+    await sceneTab(page).getByRole("combobox", { name: "Biome" }).selectOption("planted-tank");
+    await sceneTab(page).getByRole("button", { name: "Use this environment" }).click();
+
+    await page.getByRole("tab", { name: "Scene" }).click();
+    await expect(
+      sceneTab(page)
+        .locator("label", { hasText: /^Water$/ })
+        .locator("input"),
+    ).toHaveValue(planted.water.color);
+  });
+
+  test("builds rock of the material chosen in the Rocks tab", async ({ page }) => {
+    await openSceneTab(page);
+    const box = await page.locator("#aquarium").boundingBox();
+    if (box === null) throw new Error("No canvas.");
+
+    await page.getByRole("tab", { name: "Rocks" }).click();
+    await page.getByRole("button", { name: "Basalt" }).click();
+    await page.mouse.click(box.x + box.width * 0.4, box.y + box.height * 0.75);
+    await page.getByRole("button", { name: "Save as a new scene" }).click();
+
+    await waitForState(page);
+    const stored = await page.evaluate(() => localStorage.getItem("aquaria.customScenes"));
+    const scenes = Object.values(
+      JSON.parse(stored ?? "{}") as Record<string, { blocks?: { material?: { id: string } } }>,
+    );
+    expect(scenes.map((scene) => scene.blocks?.material?.id)).toEqual(["basalt"]);
+  });
+
+  test("turns the reef ridge into blocks", async ({ page }) => {
+    // The home reef is the bundled scene with a procedural ridge.
+    await openSceneTab(page, "home-reef");
+
+    await sceneTab(page).getByRole("button", { name: "Convert the ridge to blocks" }).click();
+    await page.getByRole("button", { name: "Save as a new scene" }).click();
+
+    await waitForState(page);
+    const stored = await page.evaluate(() => localStorage.getItem("aquaria.customScenes"));
+    const scenes = Object.values(JSON.parse(stored ?? "{}") as Record<string, object>);
+    expect(scenes.map((scene) => ["blocks" in scene, "rockwork" in scene])).toEqual([
+      [true, false],
+    ]);
   });
 });
 
@@ -588,6 +632,7 @@ test.describe("scene editor", () => {
     if (box === null) throw new Error("No canvas.");
     const floor = { x: box.x + box.width * 0.4, y: box.y + box.height * 0.75 };
 
+    await page.getByRole("tab", { name: "Objects" }).click();
     await page
       .getByRole("complementary", { name: "Palette" })
       .getByRole("button", { name: "Rocks" })
@@ -608,6 +653,7 @@ test.describe("scene editor", () => {
     const box = await page.locator("#aquarium").boundingBox();
     if (box === null) throw new Error("No canvas.");
 
+    await page.getByRole("tab", { name: "Objects" }).click();
     await page
       .getByRole("complementary", { name: "Palette" })
       .getByRole("button", { name: "Starfish" })
@@ -626,6 +672,36 @@ test.describe("scene editor", () => {
       .flatMap((scene) => scene.props)
       .filter((entry) => entry.kind === "starfish" && entry.at !== undefined);
     expect(starfish.map((entry) => entry.at?.length)).toEqual([1]);
+  });
+
+  test("paints a carpet with the brush", async ({ page }) => {
+    await page.goto("/?scene=iwagumi&effects=none");
+    await waitForState(page);
+    await page.keyboard.press("e");
+    const box = await page.locator("#aquarium").boundingBox();
+    if (box === null) throw new Error("No canvas.");
+    await page.getByRole("button", { name: "Paint the palette's choice with the brush" }).click();
+    await page
+      .getByRole("complementary", { name: "Palette" })
+      .getByRole("button", { name: "Carpet plants" })
+      .click();
+
+    await page.mouse.move(box.x + box.width * 0.35, box.y + box.height * 0.75);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.45, box.y + box.height * 0.78, { steps: 8 });
+    await page.mouse.up();
+    await page.getByRole("button", { name: "Save as a new scene" }).click();
+
+    await waitForState(page);
+    const stored = await page.evaluate(() => localStorage.getItem("aquaria.customScenes"));
+    const scenes = JSON.parse(stored ?? "{}") as Record<
+      string,
+      { flora: { kind: string; at?: unknown[] }[] }
+    >;
+    const painted = Object.values(scenes)
+      .flatMap((scene) => scene.flora)
+      .filter((entry) => entry.kind === "carpet" && entry.at !== undefined);
+    expect(painted.reduce((sum, entry) => sum + (entry.at?.length ?? 0), 0)).toBeGreaterThan(5);
   });
 
   test("undoes and redoes a change with Ctrl+Z and Ctrl+Y", async ({ page }) => {

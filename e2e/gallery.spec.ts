@@ -57,7 +57,7 @@ for (const [id, kind] of Object.entries(KINDS)) {
         lines: [
           kind,
           `Tank ${width} × ${height} × ${depth} m`,
-          `Editable: Scene designer (H) or public/scenes/${id}.json`,
+          `Editable: scene editor (E) or public/scenes/${id}.json`,
         ],
       },
     );

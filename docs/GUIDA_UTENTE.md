@@ -12,7 +12,7 @@ Questa guida completa illustra come utilizzare, configurare ed estendere **Aquar
    - [Il Pannello di Controllo (`H`)](#il-pannello-di-controllo-h)
    - [Illuminazione Spettrale e Ciclo Giorno/Notte](#illuminazione-spettrale-e-ciclo-giornonotte)
    - [Qualità Grafica, Risoluzione ed Effetti Post-Processing](#qualità-grafica-risoluzione-ed-effetti-post-processing)
-   - [Lo Scene Designer (Editor Visuale Integrato)](#lo-scene-designer-editor-visuale-integrato)
+   - [L'editor della scena](#leditor-della-scena)
    - [Parametri URL per Automazione e Schermi Pubblici](#parametri-url-per-automazione-e-schermi-pubblici)
    - [Installazione su Pareti LED e Schermi 4K (Modalità Kiosk)](#installazione-su-pareti-led-e-schermi-4k-modalità-kiosk)
 2. [Parte 2: Guida all'Apprendimento — "Ho fatto questo per questo motivo"](#parte-2-guida-allapprendimento--ho-fatto-questo-per-questo-motivo)
@@ -69,7 +69,7 @@ Il pannello, gestito da [`createPanel`](file:///F:/progetti/Aquaria/src/ui/panel
 
 1. **Scene**:
    - Una scheda quadrata con l'immagine di ogni ambientazione (_Aquaria_, _Tropical reef_, _Home reef_, _Planted tank_, _Iwagumi_), seguite da quelle salvate dall'utente; quella aperta è evidenziata.
-   - L'ultima scheda, **Designer**, apre l'editor visuale.
+   - L'ultima scheda, **Editor**, apre l'editor della scena (anche con `E`).
    - In cima al pannello, l'icona ⓘ mostra versione, autore, licenza e il link al codice.
 
 2. **Popolazione della Fauna**:
@@ -81,7 +81,7 @@ Il pannello, gestito da [`createPanel`](file:///F:/progetti/Aquaria/src/ui/panel
 
 #### Le scene incluse
 
-Le quattro scene incluse sono esempi di ciò che si può costruire: ognuna è modificabile con lo Scene Designer o direttamente nel suo file JSON.
+Le quattro scene incluse sono esempi di ciò che si può costruire: ognuna è modificabile con l'editor della scena o direttamente nel suo file JSON.
 
 | Scena         | Tipo di acquario                                            |
 | ------------- | ----------------------------------------------------------- |
@@ -134,19 +134,26 @@ Nel menu _Quality_, integrato con la lista modulare [`EFFECTS`](file:///F:/proge
 
 ---
 
-### Lo Scene Designer (Editor Visuale Integrato)
+### L'editor della scena
 
-Accessibile cliccando su **Scene Designer** nel pannello ([`createDesigner`](file:///F:/progetti/Aquaria/src/ui/designer.ts#L327)):
+`E` (o la scheda **Editor**) trasforma la finestra in una vista isometrica
+della vasca, senza acqua, pesci ed effetti:
 
-1. **Dimensioni Vasca (Tank)**: Regola larghezza, altezza e profondità (in metri).
-2. **Proprietà dell'Acqua**: Colore, densità della nebbia subacquea (_fogDensity_), increspatura della superficie e bolle d'aria.
-3. **Corrente Acquatica**: Vettore di direzione e turbolenza che flettono gli steli delle piante e trasportano la "neve marina".
-4. **Fondale e Barriera Rocciosa (Rockwork)**: Scelta del materiale fotorealistico del fondale ([`public/assets/materials/`](file:///F:/progetti/Aquaria/public/assets/materials/)) e generazione opzionale di un reef roccioso ondulato.
-5. **Composizione Flora & Props**: Inserisci specie floreali o rocce/coralli, impostando fasce di profondità (bande da 0 a 4), altezza, palette colori e supporto di crescita (sabbia o barriera rocciosa).
-6. **Anteprima e Salvataggio**:
-   - _Auto preview_: Ricarica la scena a video 500 ms dopo ogni regolazione.
-   - _Save as my scene_: Salva la scena nel LocalStorage del browser.
-   - _Export / Import JSON_: Scarica il file `.json` generato da inserire in [`public/scenes/`](file:///F:/progetti/Aquaria/public/scenes/) o ricarica file salvati in precedenza.
+1. **Roccia a blocchi**: aggiungi (`＋`) o togli (`－`) blocchi con un
+   pennello di dimensione regolabile, taglia gli strati alti per lavorare
+   dentro le grotte, guarda l'anteprima della roccia lisciata; la scheda
+   **Rocks** della palette sceglie il materiale della roccia.
+2. **Piante e oggetti**: scegline uno nella palette e tocca la sabbia o un
+   blocco per appoggiarlo, oppure dipingilo col pennello (🖌) con la
+   densità che vuoi; selezionane uno (☝) per spostarlo, ruotarlo,
+   ridimensionarlo, ricolorarlo o eliminarlo.
+3. **Scheda Scene**: prendi l'ambiente di un bioma (una qualsiasi scena
+   inclusa), poi regola seme, dimensioni della vasca, acqua, torbidità,
+   fondo, sfondo, roccia, luce e corrente; converti in blocchi una vecchia
+   cresta procedurale; esporta, importa o elimina la scena.
+4. **Annulla / ripeti** (`Ctrl+Z`, `Ctrl+Y`), il nome della scena nella
+   barra, **Save** / **Save as new** (salvata nel browser sotto _My scenes_,
+   con un'immagine della vasca sulla sua scheda) ed **Exit** (`Esc`).
 
 ---
 
@@ -202,7 +209,7 @@ Quando si deve realizzare un'applicazione grafica 3D fotorealistica per grandi d
    - Con Vite e TypeScript, modificare uno shader o una formula di nuoto aggiorna il visualizzatore in pochi millisecondi. Non si attendono lunghi tempi di compilazione C++ o bake di scene.
 
 4. **Dati Aperti e Ispezionabili (JSON Umano)**:
-   - Le scene non sono blob binari proprietari (`.unity`, `.umap`), ma file JSON trasparenti versionabili con Git e modificabili con qualsiasi editor o con lo Scene Designer integrato.
+   - Le scene non sono blob binari proprietari (`.unity`, `.umap`), ma file JSON trasparenti versionabili con Git e modificabili con qualsiasi editor o con l'editor della scena integrato.
 
 ---
 
@@ -215,7 +222,7 @@ src/core     → Utilità pure: RNG con seed, clock fisso, matematica, event bus
 src/scene    → Descrittori JSON, catalogo specie, schemi Zod, validazione.
 src/sim      → Simulazione boids, steering, habitat, corrente marina.
 src/render   → Adattatori Three.js, geometrie procedurali, materiali, shader GLSL.
-src/ui       → Pannello di controllo, Scene Designer, controlli DOM.
+src/ui       → Pannello di controllo, barra e palette dell'editor, controlli DOM.
 src/app      → Composition root che istanzia i moduli e guida il loop principale.
 ```
 
@@ -277,7 +284,7 @@ src/app      → Composition root che istanzia i moduli e guida il loop principa
 - **Il Motivo**: I file di configurazione scritti a mano o importati dall'utente spesso contengono errori (es. colori esadecimali errati, numeri negativi, nomi mancanti) che in runtime causano crash silenziosi o shader neri senza spiegazione.
 - **Cosa è stato fatto**:
   - Ogni elemento è validato tramite schemi [Zod](https://zod.dev) al momento del caricamento ([`src/scene/schema.ts`](file:///F:/progetti/Aquaria/src/scene/schema.ts)).
-  - Se un parametro non è valido, l'applicazione non crasha: segnala con estrema precisione il campo, il valore atteso e il motivo dell'errore (sia nella console che nell'interfaccia dello Scene Designer).
+  - Se un parametro non è valido, l'applicazione non crasha: segnala con estrema precisione il campo, il valore atteso e il motivo dell'errore (sia nella console che nella barra dell'editor della scena).
 
 ---
 

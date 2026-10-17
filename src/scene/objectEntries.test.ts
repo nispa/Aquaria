@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { catalogFixture, sceneFixture } from "./fixtures";
 import { checkSceneObjects } from "./objectCatalog";
-import { floraEntryFor, paletteScene, propEntryFor } from "./objectEntries";
+import {
+  floraEntryFor,
+  paletteScene,
+  propEntryFor,
+  rockMaterialScene,
+  withEnvironment,
+} from "./objectEntries";
 import { bundledObjects } from "./objectFixtures";
 import { parseCatalog, parseScene } from "./parse";
 import { sceneryEntries } from "./scenery";
@@ -39,6 +45,31 @@ describe("propEntryFor", () => {
 
   it("leaves out the material of an object that has none", () => {
     expect(propEntryFor("shell", manifest("shell")).material).toBeUndefined();
+  });
+});
+
+describe("withEnvironment", () => {
+  it("takes the water, floor and light of a biome, keeping the rest", () => {
+    const reef = parseScene(
+      { ...sceneFixture(), water: { color: "#0a4a6a", fogDensity: 0.3 } },
+      species,
+    );
+
+    const changed = withEnvironment(scene, reef);
+
+    expect([changed.water.color, changed.tank, changed.fauna]).toEqual([
+      "#0a4a6a",
+      scene.tank,
+      scene.fauna,
+    ]);
+  });
+});
+
+describe("rockMaterialScene", () => {
+  it("holds one rock of each material, in order", () => {
+    const rocks = rockMaterialScene(scene, ["basalt", "limestone"]);
+
+    expect(rocks.props.map((entry) => entry.material?.id)).toEqual(["basalt", "limestone"]);
   });
 });
 

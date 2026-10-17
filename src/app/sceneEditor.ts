@@ -13,14 +13,21 @@ import {
   type BlockCell,
   type BlockPick,
 } from "../scene/blockEditing";
-import { blockGrid, cellCount, decodeRuns, encodeRuns } from "../scene/blocks";
+import { blockGrid, cellCount, decodeRuns, encodeRuns, regrid } from "../scene/blocks";
 import type { ObjectCatalog } from "../scene/objectCatalog";
 import type { ObjectManifest } from "../scene/objectManifest";
-import { paletteScene } from "../scene/objectEntries";
+import {
+  MATERIAL_ITEM_PREFIX,
+  paletteScene,
+  rockMaterialScene,
+  withEnvironment,
+} from "../scene/objectEntries";
 import {
   moveItem,
+  paintItems,
   pickItem,
   placeItem,
+  recolorEntry,
   removeItem,
   resizeItem,
   settleItems,
@@ -30,18 +37,29 @@ import {
   type Scenery,
 } from "../scene/sceneryEditing";
 import type { BlocksSpec, Scene } from "../scene/schema";
-import { layoutFlora, layoutProps, type Plant, type Prop, type RockSurface } from "../sim/layout";
+import {
+  layoutFlora,
+  layoutProps,
+  propTraitsOf,
+  type Plant,
+  type Prop,
+  type RockSurface,
+} from "../sim/layout";
 import { propTop } from "../sim/obstacles";
+import { looseRocksEntries, ridgeCells } from "../sim/ridgeBlocks";
+import { createRockwork, LOOSE_ROCK } from "../sim/rockwork";
 import { floorHeight } from "../sim/terrain";
-import { createEditorBar, type EditorTool } from "../ui/editorBar";
+import { createEditorBar, DEFAULT_DENSITY, type EditorTool } from "../ui/editorBar";
 import { createPalette } from "../ui/palette";
 import type { SceneryPortraitRequest } from "../ui/sceneryCards";
+import { createSceneSettings, type RockLook } from "../ui/sceneSettings";
 
 /**
  * Editing mode: the window shows the scene editor instead of the tank. The
  * viewer builds rock from blocks and sets down, moves, turns, resizes and
- * removes plants and objects from the palette, then saves (the tank is
- * rebuilt with the saved scene) or leaves without saving.
+ * removes plants and objects from the palette, sets the scene's water,
+ * floor, light and tank in the Scene tab, then saves (the tank is rebuilt
+ * with the saved scene) or leaves without saving.
  */
 
 export interface SceneEditorOptions {
@@ -51,17 +69,29 @@ export interface SceneEditorOptions {
   readonly scene: Scene;
   readonly objects: ObjectCatalog;
   readonly logger: Logger;
-  /** Whether the scene is the viewer's own and may be overwritten. */
+  /** Whether the scene is the viewer's own and may be overwritten or deleted. */
   readonly canSave: boolean;
+  /** Surface material ids for the floor and the rock. */
+  readonly materials: readonly string[];
+  /** The bundled scenes whose environment the scene can take, and how to load one. */
+  readonly environments: readonly { readonly id: string; readonly name: string }[];
+  loadEnvironment(sceneId: string): Promise<Scene>;
   /** Draws pictures of a scene's scenery entries, like the panel's cards. */
   drawPortraits(scene: Scene, requests: readonly SceneryPortraitRequest[]): void;
   /** Saves the edited scene; returns why it could not, or undefined. */
   onSave(scene: Scene, asNew: boolean): string | undefined;
+  /** Starts the editor again on this scene, e.g. after the tank was resized. */
+  onReopen(scene: Scene): void;
+  onExport(scene: Scene): void;
+  onImport(file: File): void;
+  onDelete(): void;
   onExit(): void;
 }
 
 export interface SceneEditor {
   resize(cssWidth: number, cssHeight: number): void;
+  /** Shows a message in the tool bar, e.g. why an import failed; empty clears it. */
+  showStatus(message: string): void;
   /** Draws a frame, rebuilding the rock and the scenery first if they changed. */
   render(): void;
   dispose(): void;
@@ -82,20 +112,34 @@ const PLANT_SPREAD = 0.25;
 const MAX_PLANT_SHARE = 0.8;
 /** An object set down is at most this share of the tank's height across: a reef boulder would fill a small one. */
 const MAX_OBJECT_SHARE = 0.4;
+/** The brush paints plants and objects within this many blocks per step of its size. */
+const PAINT_REACH = 2;
+/** Size of an object whose placement sets none, m, for the brush's spacing. */
+const TYPICAL_SIZE = 0.3;
+/** A plant's width as a share of its height, for the brush's spacing. */
+const PLANT_WIDTH = 0.4;
+const MIN_SPACING = 0.015;
+const PAINT_SEED_OFFSET = 103;
 /** How far inside a block a tap on its side counts, m. */
 const SIDE_INSET = 0.001;
+/** Starts the name offered for a bundled scene saved as the viewer's own. */
+const OWN_PREFIX = "My ";
+/** A rock material picked in the palette is laid on blocks like this, m. */
+const ROCK_TILE = 0.5;
+const ROCK_RELIEF = 0.02;
 /** Changes undo can go back over. */
 const UNDO_LIMIT = 100;
 /** Seeds of the editor's layout of entries drawn at random, after the scene's seed. */
 const FLORA_SEED_OFFSET = 101;
 const PROPS_SEED_OFFSET = 102;
+/** Seed of a ridge turned into blocks, after the scene's seed. */
+const RIDGE_SEED_OFFSET = 104;
 
 /** The scene with the edited blocks; without any solid block, none at all. */
-function withBlocks(scene: Scene, size: number, cells: Uint8Array): Scene {
+function withBlocks(scene: Scene, size: number, cells: Uint8Array, look: RockLook): Scene {
   const rest: Scene = { ...scene };
   delete rest.blocks;
   if (!cells.includes(1)) return rest;
-  const look = scene.blocks ?? DEFAULT_BLOCKS;
   return { ...rest, blocks: { ...look, size, runs: encodeRuns(cells) } };
 }
 
@@ -117,6 +161,18 @@ function fitToTank(object: ObjectManifest, tankHeight: number): { height?: numbe
   if (range === undefined || range[1] <= limit) return {};
   const fitted = (((range[0] + range[1]) / 2) * limit) / range[1];
   return plant ? { height: fitted } : { size: fitted };
+}
+
+/** How wide one item of an object is, roughly, m: what the brush keeps them apart by. */
+function itemWidth(object: ObjectManifest, tankHeight: number): number {
+  const middle = (range: readonly [number, number] | undefined): number | undefined =>
+    range === undefined ? undefined : (range[0] + range[1]) / 2;
+  const fitted = fitToTank(object, tankHeight);
+  if (object.category === "plant") {
+    const height = fitted.height ?? middle(object.traits.placement?.height) ?? TYPICAL_SIZE;
+    return height * PLANT_WIDTH;
+  }
+  return fitted.size ?? middle(object.traits.placement?.size) ?? TYPICAL_SIZE;
 }
 
 export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
@@ -143,6 +199,10 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
   /** The palette's choice, set down by the "place" tool. */
   let chosen: string | undefined;
   let radius = 0;
+  let density = DEFAULT_DENSITY;
+  const paintRng = createRng(scene.seed + PAINT_SEED_OFFSET);
+  /** Where the brush last painted in this stroke, so a slow drag does not pile items up. */
+  let lastDab: { x: number; z: number } | undefined;
   let topLayer = grid.layers - 1;
   /** The blocks as they were when the stroke began: a stroke paints one surface, never its own. */
   let strokeStart: Uint8Array | undefined;
@@ -243,9 +303,14 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
     scenery = next;
     sceneryChanged = true;
   };
+  /** The color an item's entry shows: its own, or the first of its palette. */
+  const colorOf = (ref: ItemRef): string | undefined => {
+    const color = scenery[ref.section][ref.entry]?.color;
+    return typeof color === "string" ? color : color?.[0];
+  };
   const select = (ref: ItemRef | undefined): void => {
     selected = ref;
-    bar.setSelected(ref !== undefined);
+    bar.setSelected(ref !== undefined, ref === undefined ? undefined : colorOf(ref));
   };
 
   const pickAt = (spot: ViewSpot, against: Uint8Array = cells): BlockPick | undefined => {
@@ -302,6 +367,11 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
       hover(spot);
       return;
     }
+    if (tool === "paint") {
+      lastDab = undefined;
+      dab(spot);
+      return;
+    }
     if (tool === "place") {
       const object = chosen === undefined ? undefined : objects.get(chosen);
       const ground = groundAt(spot);
@@ -324,7 +394,41 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
     select(ref);
     dragging = ref !== undefined;
   };
+  /** One dab of the brush: the palette's choice painted round the spot. */
+  const dab = (spot: ViewSpot): void => {
+    const object = chosen === undefined ? undefined : objects.get(chosen);
+    const ground = groundAt(spot);
+    if (chosen === undefined || object === undefined || ground === undefined) return;
+    const reach = (radius + 1) * PAINT_REACH * size;
+    if (
+      lastDab !== undefined &&
+      Math.hypot(lastDab.x - ground.x, lastDab.z - ground.z) < reach / 2
+    ) {
+      return;
+    }
+    lastDab = { x: ground.x, z: ground.z };
+    const spacing = Math.max((itemWidth(object, tank.height) * 2) / density, MIN_SPACING);
+    const fit = fitToTank(object, tank.height);
+    const painted = paintItems(
+      scenery,
+      chosen,
+      object,
+      { x: ground.x, z: ground.z, radius: reach, spacing },
+      (x, z) => {
+        const elevation = elevationAt(x, z);
+        return elevation > 0 ? { y: elevation, ...fit } : fit;
+      },
+      paintRng,
+    );
+    if (painted === scenery) return;
+    editScenery(painted);
+    strokeEdited = true;
+  };
   const drag = (spot: ViewSpot): void => {
+    if (tool === "paint") {
+      dab(spot);
+      return;
+    }
     if (tool === "add" || tool === "remove") {
       const cell = blockTarget(spot);
       if (cell !== undefined) paint(cell);
@@ -403,22 +507,72 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
     select(undefined);
   };
 
-  const save = (asNew: boolean): void => {
-    const edited: Scene = {
-      ...withBlocks(scene, size, cells),
-      flora: [...scenery.flora],
-      props: [...scenery.props],
-    };
-    bar.showStatus(options.onSave(edited, asNew) ?? "");
+  // The Scene tab's settings and the rock's look, kept apart from the blocks and the scenery.
+  // A bundled scene is saved as the viewer's own: offer a name that tells them apart.
+  let settings: Scene =
+    options.canSave || scene.name.startsWith(OWN_PREFIX)
+      ? scene
+      : { ...scene, name: `${OWN_PREFIX}${scene.name}` };
+  let rockLook: RockLook = scene.blocks ?? DEFAULT_BLOCKS;
+  const recolorView = (): void => {
+    view.setColors({
+      floor: settings.floor.color,
+      background: settings.water.color,
+      rock: rockLook.color,
+    });
   };
+  /** The scene as edited so far. */
+  const edited = (): Scene => ({
+    ...withBlocks(settings, size, cells, rockLook),
+    flora: [...scenery.flora],
+    props: [...scenery.props],
+  });
+  const save = (asNew: boolean): void => {
+    bar.showStatus(options.onSave(edited(), asNew) ?? "");
+  };
+  /** The procedural ridge, as blocks and loose rocks the editor can reshape. */
+  const convertRidge = (): void => {
+    const spec = settings.rockwork;
+    if (spec === undefined) return;
+    const ridge = createRockwork(
+      tank,
+      spec,
+      createRng(settings.seed + RIDGE_SEED_OFFSET),
+      () => tank.width / 2,
+      propTraitsOf(objects.get(LOOSE_ROCK)),
+    );
+    ridgeCells(tank, grid, ridge).forEach((cell, index) => {
+      if (cell === 1) cells[index] = 1;
+    });
+    if (scene.blocks === undefined) {
+      rockLook = {
+        color: spec.color,
+        ...(spec.material === undefined ? {} : { material: spec.material }),
+      };
+      recolorView();
+    }
+    const rest: Scene = { ...settings };
+    delete rest.rockwork;
+    settings = rest;
+    editScenery({ ...scenery, props: [...scenery.props, ...looseRocksEntries(ridge, spec)] });
+    blocksChanged = true;
+    remember();
+  };
+  // The bar and the palette share one column, so the palette always starts under the bar.
+  const overlay = document.createElement("div");
+  overlay.className = "editor-ui";
+  options.root.append(overlay);
   const bar = createEditorBar(
-    options.root,
-    { layers: grid.layers, canSave: options.canSave },
+    overlay,
+    { layers: grid.layers, canSave: options.canSave, name: settings.name },
     {
       onTool(next) {
         tool = next;
-        chosen = undefined;
-        palette.setChosen(undefined);
+        // The brush paints the palette's choice: keep it.
+        if (next !== "paint") {
+          chosen = undefined;
+          palette.setChosen(undefined);
+        }
         if (next !== "select") select(undefined);
       },
       onTurnItem(degrees) {
@@ -428,10 +582,18 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
         editSelected((ref, laidOut) => resizeItem(scenery, ref, laidOut, factor));
       },
       onDeleteItem: deleteSelected,
+      onColorItem(color) {
+        if (selected === undefined) return;
+        editScenery(recolorEntry(scenery, selected, color));
+        remember();
+      },
       onUndo: undo,
       onRedo: redo,
       onBrush(next) {
         radius = next;
+      },
+      onDensity(next) {
+        density = next;
       },
       onSlice(next) {
         topLayer = next;
@@ -446,6 +608,9 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
       onZoom(factor) {
         view.zoom(factor);
       },
+      onRename(name) {
+        settings = { ...settings, name };
+      },
       onSave() {
         save(false);
       },
@@ -459,15 +624,104 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
   );
   const paletteItems = (category: "plant" | "object") =>
     objects.ids(category).map((id) => ({ id, name: objects.get(id)?.name ?? id }));
-  const palette = createPalette(options.root, {
-    plants: paletteItems("plant"),
-    objects: paletteItems("object"),
+  const settingsTab = createSceneSettings(
+    {
+      scene,
+      materials: options.materials,
+      canDelete: options.canSave,
+      environments: options.environments,
+    },
+    {
+      onChange(next) {
+        // Only the tab's own settings: the ridge, blocks and scenery are the editor's.
+        const { seed, water, floor, backdrop, light, current } = next;
+        settings = { ...settings, seed, water, floor, backdrop, light, current };
+        recolorView();
+      },
+      onResizeTank(next) {
+        const resized = blockGrid(next, size);
+        const kept = regrid(grid, cells, resized);
+        options.onReopen({
+          ...withBlocks({ ...settings, tank: next }, size, kept, rockLook),
+          flora: [...scenery.flora],
+          props: [...scenery.props],
+        });
+      },
+      onRockLook(look) {
+        rockLook = look;
+        recolorView();
+      },
+      onEnvironment(sceneId) {
+        options
+          .loadEnvironment(sceneId)
+          .then((from) => {
+            settings = withEnvironment(settings, from);
+            // Start again, so every setting of the tab shows the biome's values.
+            options.onReopen(edited());
+          })
+          .catch((error: unknown) => {
+            bar.showStatus(error instanceof Error ? error.message : String(error));
+          });
+      },
+      onConvertRidge: convertRidge,
+      onExport() {
+        options.onExport(edited());
+      },
+      onImport(file) {
+        options.onImport(file);
+      },
+      onDelete() {
+        options.onDelete();
+      },
+    },
+  );
+  /** "dark-slate" reads "Dark slate". */
+  const materialName = (id: string): string =>
+    id.charAt(0).toUpperCase() + id.slice(1).replaceAll("-", " ");
+  const palette = createPalette(overlay, {
+    groups: [
+      { title: "Plants", items: paletteItems("plant") },
+      { title: "Objects", items: paletteItems("object") },
+      {
+        title: "Rocks",
+        items: options.materials.map((id) => ({
+          id: `${MATERIAL_ITEM_PREFIX}${id}`,
+          name: materialName(id),
+        })),
+      },
+    ],
+    settings: settingsTab,
     drawPortraits: (requests) => {
-      options.drawPortraits(paletteScene(scene, objects), requests);
+      const rocks = requests.filter((request) => request.key.startsWith(MATERIAL_ITEM_PREFIX));
+      options.drawPortraits(
+        paletteScene(scene, objects),
+        requests.filter((request) => !rocks.includes(request)),
+      );
+      // One rock per material, keyed as the panel keys repeated kinds: rock, rock-2…
+      options.drawPortraits(
+        rockMaterialScene(scene, options.materials),
+        rocks.map((request, index) => ({
+          ...request,
+          key: index === 0 ? "rock" : `rock-${String(index + 1)}`,
+        })),
+      );
     },
     onChoose(id) {
+      if (id?.startsWith(MATERIAL_ITEM_PREFIX) === true) {
+        // A rock card: build blocks of that rock.
+        const material = id.slice(MATERIAL_ITEM_PREFIX.length);
+        rockLook = {
+          ...rockLook,
+          material: { id: material, tileSize: ROCK_TILE, displacement: ROCK_RELIEF },
+        };
+        chosen = undefined;
+        tool = "add";
+        bar.setTool(tool);
+        return;
+      }
       chosen = id;
-      tool = id === undefined ? "select" : "place";
+      if (id === undefined) tool = "select";
+      else if (tool !== "paint") tool = "place";
       bar.setTool(tool);
       view.setCursor(undefined, "add", radius);
     },
@@ -495,6 +749,9 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
     resize(cssWidth, cssHeight) {
       view.resize(cssWidth, cssHeight);
     },
+    showStatus(message) {
+      bar.showStatus(message);
+    },
     render() {
       if (blocksChanged) {
         blocksChanged = false;
@@ -515,6 +772,7 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
       input.dispose();
       bar.dispose();
       palette.dispose();
+      overlay.remove();
       view.dispose();
     },
   };

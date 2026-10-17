@@ -94,6 +94,23 @@ export function encodeRuns(cells: Uint8Array): number[] {
   return runs;
 }
 
+/**
+ * The cells of `from` copied into the grid `to` (the same block size, a
+ * resized tank): each block keeps its place counted from the floor, the left
+ * wall and the back wall; blocks outside the new grid are dropped.
+ */
+export function regrid(from: BlockGrid, cells: Uint8Array, to: BlockGrid): Uint8Array {
+  const moved = new Uint8Array(cellCount(to));
+  for (let layer = 0; layer < Math.min(from.layers, to.layers); layer += 1) {
+    for (let row = 0; row < Math.min(from.rows, to.rows); row += 1) {
+      for (let column = 0; column < Math.min(from.columns, to.columns); column += 1) {
+        moved[cellIndex(to, column, layer, row)] = cells[cellIndex(from, column, layer, row)] ?? 0;
+      }
+    }
+  }
+  return moved;
+}
+
 /** How many cells runs cover. */
 export function runsTotal(runs: readonly number[]): number {
   return runs.reduce((sum, run) => sum + run, 0);

@@ -27,6 +27,7 @@ import { pixelRatioForHeight } from "../core/resolution";
 import { createRng, type Rng } from "../core/rng";
 import type { ModelManifest } from "../scene/modelManifest";
 import type { ObjectCatalog } from "../scene/objectCatalog";
+import { centerSquare } from "../scene/scenePictures";
 import type { Scene, SpeciesCatalog } from "../scene/schema";
 import type { Lights } from "../scene/lights";
 import { lookPasses, type Look } from "../scene/look";
@@ -72,6 +73,8 @@ const SHADOW_MAP_SIZE = 2048;
 const SEED_MAX = 2 ** 31 - 1;
 /** Derives the ridge seed from the props seed, keeping earlier seeds unchanged. */
 const ROCKWORK_SEED_OFFSET = 1;
+/** JPEG quality of scene card pictures, as the bundled ones. */
+const SNAPSHOT_QUALITY = 0.8;
 const BLOCKWORK_SEED_OFFSET = 2;
 /** Relative aspect change that makes the scenery spread again across the view. */
 const RELAYOUT_ASPECT_CHANGE = 0.02;
@@ -161,6 +164,11 @@ export interface AquariumView {
    * browser cannot tell (no timer query) or nothing has come back yet.
    */
   gpuMs(): number | undefined;
+  /**
+   * Draws a frame and returns the middle square of it, `size` pixels a side,
+   * as a JPEG data URL: the card picture of a scene.
+   */
+  snapshot(size: number): string;
   /** Hour of the aquarium day shown by the last frame. */
   hour(): number;
   /** How much of a day it is at that hour, 0 (night) .. 1 (full day). */
@@ -527,6 +535,18 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     places: () => places,
     obstacles: () => obstacles,
     rockField: () => blockwork?.field,
+    snapshot(size) {
+      // Read in the same task as the frame is drawn, before the browser clears it.
+      this.render();
+      const square = centerSquare(canvas.width, canvas.height);
+      const picture = document.createElement("canvas");
+      picture.width = size;
+      picture.height = size;
+      picture
+        .getContext("2d")
+        ?.drawImage(canvas, square.x, square.y, square.size, square.size, 0, 0, size, size);
+      return picture.toDataURL("image/jpeg", SNAPSHOT_QUALITY);
+    },
     render() {
       cycleInput.clockHour = options.clockHour();
       cycleInput.elapsedSeconds = simulation.timeSeconds;

@@ -12,7 +12,7 @@ This guide covers everything needed to operate, customize, and understand the de
    - [Control Panel Overview (`H`)](#control-panel-overview-h)
    - [Lighting & Circadian Day/Night Cycle](#lighting--circadian-daynight-cycle)
    - [Quality, Resolution & Post-Processing](#quality-resolution--post-processing)
-   - [The In-Browser Scene Designer](#the-in-browser-scene-designer)
+   - [The Scene Editor](#the-scene-editor)
    - [URL Launch Parameters](#url-launch-parameters)
    - [Setup for 4K LED Walls & Kiosk Mode](#setup-for-4k-led-walls--kiosk-mode)
 2. [Part 2: Architectural Learning Guide ("Why It Was Built This Way")](#part-2-architectural-learning-guide-why-it-was-built-this-way)
@@ -69,14 +69,14 @@ This guide covers everything needed to operate, customize, and understand the de
 
 Pressing **`H`** opens the control panel powered by [`createPanel`](file:///F:/progetti/Aquaria/src/ui/panel.ts#L102):
 
-- **Scenes**: A square card with a picture of each bundled scene (_Aquaria_, _Tropical reef_, _Home reef_, _Planted tank_, _Iwagumi_), then your saved scenes; the open one is highlighted. The last card, **Designer**, opens the scene designer.
+- **Scenes**: A square card with a picture of each bundled scene (_Aquaria_, _Tropical reef_, _Home reef_, _Planted tank_, _Iwagumi_), then your saved scenes; the open one is highlighted. The last card, **Editor**, opens the scene editor (also `E`).
 - **About (ⓘ)**: Next to the scene's name at the top: version, author, license and a link to the code.
 - **Fauna Population**: A card per species, with a live picture of the fish and a count slider; species in the tank come first. Real-time sliders for each species defined in [`species.json`](file:///F:/progetti/Aquaria/public/species.json). Increasing or decreasing numbers causes fish to swim realistically into or out of the side boundaries rather than popping into existence.
 - **Scenery Elements**: One card per element, with its picture and a slider: adjust the count of corals, kelp, sea anemones, driftwood, rocks, and shells. Adding items never displaces already positioned flora or props.
 
 #### Bundled scenes
 
-The five bundled scenes are examples of what can be built; every one is editable in the Scene designer or in its JSON file.
+The five bundled scenes are examples of what can be built; every one is editable in the scene editor or in its JSON file.
 
 | Scene         | Kind of aquarium                                         |
 | ------------- | -------------------------------------------------------- |
@@ -129,19 +129,24 @@ Configured via the Quality section and the [`EFFECTS`](file:///F:/progetti/Aquar
 
 ---
 
-### The In-Browser Scene Designer
+### The Scene Editor
 
-Clicking **Scene Designer** in the panel activates [`createDesigner`](file:///F:/progetti/Aquaria/src/ui/designer.ts#L327):
+`E` (or the **Editor** card) turns the window into an isometric editing view
+of the tank, without water, fish or effects:
 
-1. **Tank Dimensions**: Adjust width, height, and depth in meters.
-2. **Water Optics**: Configure water base color, fog density, surface ripple strength, and rising bubble streams.
-3. **Current & Turbulence**: Set drift vector and turbulence strength that bend plants and guide marine snow particles.
-4. **Floor & Rockwork Ridge**: Choose seabed photographic materials ([`assets/materials/`](file:///F:/progetti/Aquaria/public/assets/materials/)) and shape an optional winding live-rock reef mound.
-5. **Flora & Props Placements**: Place species across 5 depth bands (band 0 = near front glass, band 4 = back wall), set height ranges, colors, and surface binding.
-6. **Live Preview & Persistence**:
-   - _Auto Preview_: Updates the 3D scene 500 ms after the last slider adjustment.
-   - _Save as my scene_: Persists the scene to browser LocalStorage.
-   - _Export JSON / Import JSON_: Export ready-to-commit `.json` scene files or load external definitions.
+1. **Rock from blocks**: add (`＋`) or remove (`－`) blocks with a brush of
+   chosen size, slice off the top layers to work inside caves, preview the
+   smoothed rock; the palette's **Rocks** tab picks the rock's material.
+2. **Plants and objects**: pick one in the palette and tap the sand or a
+   block to set it down, or paint it with the brush (🖌) at a chosen density;
+   select one (☝) to move, turn, resize, recolor or delete it.
+3. **Scene tab**: take the environment of a biome (any bundled scene), then
+   tune the seed, tank size, water, murkiness, floor, backdrop, rock, light
+   and current; convert an old procedural reef ridge to blocks; export,
+   import or delete the scene.
+4. **Undo / redo** (`Ctrl+Z`, `Ctrl+Y`), the scene's name in the bar,
+   **Save** / **Save as new** (stored in this browser under _My scenes_, with
+   a picture of the tank on its card) and **Exit** (`Esc`).
 
 ---
 

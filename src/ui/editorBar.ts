@@ -1,4 +1,5 @@
 import { element, slider } from "./controls";
+import { longHex } from "./formRows";
 
 /**
  * The scene editor's tool bar, along the top of the window: add or remove
@@ -13,10 +14,15 @@ export interface EditorBarState {
   readonly layers: number;
   /** Whether the open scene is the viewer's own and may be overwritten. */
   readonly canSave: boolean;
+  /** The name the scene is saved under, editable. */
+  readonly name: string;
 }
 
-/** What a tap on the tank does: blocks in or out, pick an item, or set down the palette's choice. */
-export type EditorTool = "add" | "remove" | "select" | "place";
+/**
+ * What a tap on the tank does: blocks in or out, pick an item, set down the
+ * palette's choice, or paint it with the brush.
+ */
+export type EditorTool = "add" | "remove" | "select" | "place" | "paint";
 
 export interface EditorBarCallbacks {
   onTool(tool: EditorTool): void;
@@ -25,16 +31,21 @@ export interface EditorBarCallbacks {
   /** Scales the selected item. */
   onResizeItem(factor: number): void;
   onDeleteItem(): void;
+  /** Gives the selected item's whole entry this color. */
+  onColorItem(color: string): void;
   onUndo(): void;
   onRedo(): void;
   /** Brush radius in blocks: 0 is a single block. */
   onBrush(radius: number): void;
+  /** How close together the brush paints plants and objects, 1 (sparse) to MAX_DENSITY. */
+  onDensity(density: number): void;
   /** The highest layer shown and edited, from 0. */
   onSlice(topLayer: number): void;
   onSmooth(smooth: boolean): void;
   /** Turns the view by quarter turns. */
   onTurn(quarters: number): void;
   onZoom(factor: number): void;
+  onRename(name: string): void;
   onSave(): void;
   onSaveAsNew(): void;
   onExit(): void;
@@ -43,8 +54,8 @@ export interface EditorBarCallbacks {
 export interface EditorBar {
   /** Shows the tool in use; "place" when the palette took over. */
   setTool(tool: EditorTool): void;
-  /** Enables the buttons for the selected item, when there is one. */
-  setSelected(selected: boolean): void;
+  /** Enables the buttons for the selected item, showing its color, when there is one. */
+  setSelected(selected: boolean, color?: string): void;
   /** Enables undo and redo when there is something to undo or redo. */
   setHistory(canUndo: boolean, canRedo: boolean): void;
   /** Shows a message, e.g. why saving failed; empty clears it. */
@@ -53,6 +64,8 @@ export interface EditorBar {
 }
 
 const MAX_BRUSH = 3;
+export const MAX_DENSITY = 4;
+export const DEFAULT_DENSITY = 2;
 const ZOOM_STEP = 1.25;
 /** One press of a turn button, degrees. */
 const TURN_STEP = 15;
@@ -92,10 +105,14 @@ export function createEditorBar(
   const select = button("☝", "Select and move plants and objects", () => {
     choose("select");
   });
+  const paint = button("🖌", "Paint the palette's choice with the brush", () => {
+    choose("paint");
+  });
   const tools = [
     ["add", add],
     ["remove", remove],
     ["select", select],
+    ["paint", paint],
   ] as const;
   const show = (tool: EditorTool): void => {
     for (const [id, node] of tools) node.setAttribute("aria-pressed", String(id === tool));
@@ -122,8 +139,17 @@ export function createEditorBar(
       callbacks.onDeleteItem();
     }),
   ];
-  const setSelected = (selected: boolean): void => {
+  const color = element("input", "editor-bar__color");
+  color.type = "color";
+  color.title = "Color of the selected item and the others like it";
+  color.setAttribute("aria-label", "Color of the selected item");
+  color.addEventListener("input", () => {
+    callbacks.onColorItem(color.value);
+  });
+  const setSelected = (selected: boolean, shown?: string): void => {
     for (const node of itemButtons) node.disabled = !selected;
+    color.disabled = !selected;
+    if (shown !== undefined) color.value = longHex(shown);
   };
   setSelected(false);
   const undo = button("↶", "Undo (Ctrl+Z)", () => {
@@ -143,6 +169,11 @@ export function createEditorBar(
   brush.addEventListener("input", () => {
     callbacks.onBrush(Number(brush.value));
   });
+  const density = slider(1, MAX_DENSITY, 1, DEFAULT_DENSITY);
+  density.name = "density";
+  density.addEventListener("input", () => {
+    callbacks.onDensity(Number(density.value));
+  });
   const slice = slider(1, state.layers, 1, state.layers);
   slice.name = "layers";
   slice.addEventListener("input", () => {
@@ -155,6 +186,14 @@ export function createEditorBar(
     callbacks.onSmooth(smoothInput.checked);
   });
 
+  const name = element("input", "editor-bar__name");
+  name.type = "text";
+  name.value = state.name;
+  name.setAttribute("aria-label", "Scene name");
+  name.title = "The name the scene is saved under";
+  name.addEventListener("input", () => {
+    callbacks.onRename(name.value);
+  });
   const status = element("span", "editor-bar__status");
   status.setAttribute("role", "status");
   const save = button("Save", "Save the scene", () => {
@@ -170,8 +209,11 @@ export function createEditorBar(
     add,
     remove,
     select,
+    paint,
     ...itemButtons,
+    color,
     labelled("Brush", brush),
+    labelled("Density", density),
     labelled("Layers", slice),
     labelled("Smooth", smoothInput),
     button("⟲", "Turn left", () => {
@@ -187,6 +229,7 @@ export function createEditorBar(
       callbacks.onZoom(ZOOM_STEP);
     }),
     status,
+    name,
     save,
     button("Save as new", "Save as a new scene", () => {
       callbacks.onSaveAsNew();

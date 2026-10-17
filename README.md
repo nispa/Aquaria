@@ -87,17 +87,7 @@ Controls:
 | Corner buttons               | Point, torch, magnifier, feed, panel (on a mouse move or touch) |
 | Move the mouse               | Shows the panel button for a moment                             |
 
-In the scene editor the tank is seen from above at an angle. Click or drag
-with one finger to add blocks (`＋`) or remove them (`－`); the brush sets how
-many at once and Layers slices off the top ones to reach inside. Drag with
-the right button or two fingers to move the view, use the wheel or pinch to
-zoom, ⟲ ⟳ to turn it. Smooth shows the rock as it will look. Choose a plant or
-an object in the palette on the right and tap the sand or a block's top to
-set it down; with ☝ tap one to select it, drag it elsewhere, turn it (↺ ↻),
-resize it (▫ ▢) or delete it (🗑 or `Delete`). What stood on blocks you
-remove comes down to the next support. ↶ ↷ (`Ctrl+Z`, `Ctrl+Y`) undo and redo. Save keeps a
-scene of your own (bundled scenes are saved as new ones); Exit or `Esc`
-leaves without saving.
+`E` opens the [scene editor](#scene-editor).
 
 All the ways to play with the fish, and how to add more:
 [Playing with the fish](docs/INTERACTION.md).
@@ -182,7 +172,7 @@ named groups ("Open sea", "Aquariums"); the first scene is the default.
 Four ready-made environments show what the engine can build. They are
 examples, not fixed content: each one is a plain JSON file in
 `public/scenes/`, and every value (tank, water, light, plants, rocks, fish)
-can be changed in the **Scene designer** or in the file itself.
+can be changed in the **scene editor** or in the file itself.
 
 | Scene                                                         | Kind of aquarium                                                                | Tank (w × h × d) |
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------- | ---------------- |
@@ -201,25 +191,39 @@ can be changed in the **Scene designer** or in the file itself.
 <sub>Default settings, noon, 8 seconds in. Regenerate the pictures with
 `pnpm docs:gallery` after changing a scene.</sub>
 
-## Scene designer
+## Scene editor
 
-**Scene designer** (in the panel, `H`) edits the scene on screen: tank,
-water, floor and its material, light and current, the rockwork, every plant
-and object entry (add, remove, kind, count, colors or palette, size, depth
-band, material, sand or rockwork) and the fish. The LED setup of the Lights
-section is saved with the scene.
+`E` (or the **Editor** card in the panel's Scenes section) turns the window
+into the scene editor: the tank seen from above at an angle, without water,
+fish or effects. Everything works with a mouse or a finger.
 
-- **Preview** shows the draft without saving it; with **Auto preview** it
-  follows every edit after half a second. Changed values are highlighted and
-  **Revert** goes back to the scene you started from. (Each preview restarts
-  the fish.)
-- **Save as my scene** stores it in this browser, under **My scenes** in the
-  scene list; editing one of your scenes offers **Save**, **Save as new** and
-  **Delete**.
-- **Export JSON** downloads the scene file. To ship it with the project, copy
-  it to `public/scenes/` (the file name is its id) and add the id to a group
-  in `public/scenes/index.json`. **Import JSON** loads such a file back;
-  invalid files are explained field by field.
+- **The view**: drag with the right button or two fingers to move it, use
+  the wheel or pinch to zoom, ⟲ ⟳ to turn it a quarter round.
+- **Rock**: `＋` adds blocks on the face you point at (or on the floor), `－`
+  removes them; Brush sets how many at once and Layers slices off the top
+  ones to reach inside caves. Smooth shows the rock as it will look. The
+  palette's **Rocks** tab picks the rock it is made of.
+- **Plants and objects**: choose one in the palette's **Plants** or
+  **Objects** tab and tap the sand or a block to set it down; 🖌 paints it
+  with the brush instead (carpets, clumps, scattered pebbles; Density sets
+  how close). ☝ selects an item to drag elsewhere, turn (↺ ↻), resize (▫ ▢),
+  recolor (with the others of its entry) or delete (🗑 or `Delete`). What
+  stood on blocks you remove comes down to the next support.
+- **Scene** tab: start from the environment of a biome (the water, floor,
+  light and current of any bundled scene), then the seed, the tank's size,
+  water, murkiness, floor, backdrop, rock, light and current. A scene with
+  the old procedural reef ridge can **convert it to blocks** to reshape it.
+  **Export JSON** downloads the scene file (to ship it, copy it to
+  `public/scenes/` and add its id to `public/scenes/index.json`), **Import
+  JSON** loads one back (an invalid file is explained field by field), and
+  your own scenes can be deleted.
+- ↶ ↷ (`Ctrl+Z`, `Ctrl+Y`) undo and redo. Type the scene's name in the bar;
+  **Save** keeps your own scene, **Save as new** makes one (always for a
+  bundled scene), and the tank is rebuilt with it, with the fish counts and
+  LED setup of the panel. **Exit** or `Esc` leaves without saving.
+
+Your scenes are listed under **My scenes**; the first time one shows, its
+card gets a picture of the tank.
 
 ## Writing scenes
 

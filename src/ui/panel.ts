@@ -98,7 +98,6 @@ export interface About {
 
 export interface PanelCallbacks {
   onSceneChange(sceneId: string): void;
-  onOpenDesigner(): void;
   /** Opens the scene editor (building rock from blocks) in place of the tank. */
   onOpenEditor(): void;
   onCountChange(speciesId: string, count: number): void;
@@ -144,6 +143,8 @@ export interface Panel {
   setPointing(on: boolean): void;
   /** Shows whether the sound is on (it may be switched with M). */
   setSound(on: boolean): void;
+  /** Shows a scene's new card picture (a data URL or a link). */
+  setScenePicture(sceneId: string, picture: string): void;
   /** While editing, the panel and the corner buttons hide and keys do nothing. */
   setSuspended(suspended: boolean): void;
   dispose(): void;
@@ -267,9 +268,6 @@ export function createPanel(
       pictureOf: (id) => state.scenePicture(id),
       onSelect: (id) => {
         callbacks.onSceneChange(id);
-      },
-      onOpenDesigner: () => {
-        callbacks.onOpenDesigner();
       },
       onOpenEditor: () => {
         callbacks.onOpenEditor();
@@ -557,6 +555,16 @@ export function createPanel(
     },
     setPointing(on) {
       pointingButton.setAttribute("aria-pressed", String(on));
+    },
+    setScenePicture(sceneId, picture) {
+      const holder = panel.querySelector(
+        `.scene-card[data-scene="${CSS.escape(sceneId)}"] .scene-card__picture`,
+      );
+      if (holder === null) return;
+      const image = element("img", "scene-card__image");
+      image.src = picture;
+      image.alt = "";
+      holder.replaceChildren(image);
     },
     setSuspended(next) {
       suspended = next;

@@ -29,6 +29,10 @@ describe("slugify", () => {
 });
 
 describe("customSceneId", () => {
+  it("does not repeat the prefix of a name that starts with My", () => {
+    expect(customSceneId("My Iwagumi", [])).toBe("my-iwagumi");
+  });
+
   it("prefixes custom scenes so they never clash with bundled ones", () => {
     expect(customSceneId("Reef", [])).toBe("my-reef");
   });

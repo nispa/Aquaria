@@ -71,7 +71,7 @@ import {
   withGroup,
   type SceneIndex,
 } from "../scene/sceneIndex";
-import { createDesigner, type Designer } from "../ui/designer";
+import { readScenePictures, writeScenePicture } from "../scene/scenePictures";
 import type { SceneChoice, SceneChoiceGroup } from "../ui/panel";
 import { createSimulation, type Simulation } from "../sim/simulation";
 import { createPanel } from "../ui/panel";
@@ -83,6 +83,11 @@ import { createActivityOverlay, type ScreenProjection } from "../ui/activityOver
 
 const SETTINGS_KEY = "aquaria.settings";
 const CUSTOM_SCENES_KEY = "aquaria.customScenes";
+const SCENE_PICTURES_KEY = "aquaria.scenePictures";
+/** Side of a scene card picture, px: the bundled ones' size. */
+const SCENE_PICTURE_SIZE = 360;
+/** A saved scene's picture is taken this long after it shows: the fish have spread out. */
+const SCENE_PICTURE_DELAY_MS = 6000;
 const MY_SCENES_GROUP = "My scenes";
 const SIMULATION_STEP_SECONDS = 1 / 60;
 /** Longest frame accepted; after a tab switch the tank resumes instead of jumping. */
@@ -190,18 +195,13 @@ async function loadSceneChoices(
   );
 }
 
-/**
- * Opens another scene: saved as the choice, and replacing any ?scene= in the
- * URL. `designer` reopens the scene designer after the reload.
- */
-function openScene(id: string | undefined, designer = false): void {
+/** Opens another scene: saved as the choice, and replacing any ?scene= in the URL. */
+function openScene(id: string | undefined): void {
   const url = new URL(window.location.href);
   if (url.searchParams.has("scene")) {
     if (id === undefined) url.searchParams.delete("scene");
     else url.searchParams.set("scene", id);
   }
-  if (designer) url.searchParams.set("designer", "1");
-  else url.searchParams.delete("designer");
   window.location.assign(url);
 }
 
@@ -224,6 +224,27 @@ function storeCustomScenes(change: (stored: string | null) => string): void {
   }
 }
 
+/** The card pictures of the viewer's own scenes, by id. */
+function loadScenePictures(): Record<string, string> {
+  try {
+    return readScenePictures(window.localStorage.getItem(SCENE_PICTURES_KEY));
+  } catch {
+    return {};
+  }
+}
+
+/** Keeps a scene's card picture, or forgets it so a fresh one is taken. */
+function storeScenePicture(id: string, picture?: string): void {
+  try {
+    window.localStorage.setItem(
+      SCENE_PICTURES_KEY,
+      writeScenePicture(window.localStorage.getItem(SCENE_PICTURES_KEY), id, picture),
+    );
+  } catch {
+    logger.warn("A scene picture could not be saved in this browser.");
+  }
+}
+
 /** Hands the viewer a file to save. */
 function download(fileName: string, content: string): void {
   const url = URL.createObjectURL(new Blob([content], { type: "application/json" }));
@@ -234,7 +255,7 @@ function download(fileName: string, content: string): void {
   URL.revokeObjectURL(url);
 }
 
-/** Material ids for the designer; none if the index is missing. */
+/** Material ids for the scene editor; none if the index is missing. */
 async function loadMaterialIds(): Promise<string[]> {
   try {
     const data = (await fetchJson("assets/materials/index.json")) as { materials?: unknown };
@@ -316,6 +337,7 @@ async function start(): Promise<void> {
   const catalog = parseCatalog(catalogData);
   const modelManifests = await loadModelManifests(catalog);
   const customScenes = loadCustomScenes(catalog);
+  const scenePictures = loadScenePictures();
   const sceneIndex = withGroup(
     parseSceneIndex(indexData),
     MY_SCENES_GROUP,
@@ -356,11 +378,6 @@ async function start(): Promise<void> {
       : { ...chosen, cycle: { ...chosen.cycle, mode: "fixed", hour: options.hour } };
   };
 
-  /**
-   * Builds the simulation and the view for a scene. The scene designer's
-   * preview calls it again with a draft: the old view is disposed and the
-   * new one draws on the same canvas, with the current settings.
-   */
   // Sounds: the bubbling all along, and a sound for taps, food and the tools.
   const sounds = createSoundBoard(createRng((options.seed ?? scene.seed) + SOUND_SEED_OFFSET));
   sounds.setVolume(volumeOf(settings));
@@ -372,6 +389,11 @@ async function start(): Promise<void> {
   window.addEventListener("pointerdown", unlockSound);
   window.addEventListener("keydown", unlockSound);
 
+  /**
+   * Builds the simulation and the view for a scene; called again after the
+   * scene editor or a size change: the old view is disposed and the new one
+   * draws on the same canvas, with the current settings.
+   */
   const mountScene = (shown: Scene): { simulation: Simulation; view: AquariumView } => {
     sounds.setBubbling(shown.water.bubbles);
     const rng = createRng(options.seed ?? shown.seed);
@@ -620,11 +642,8 @@ async function start(): Promise<void> {
         update({ scene: id });
         openScene(id);
       },
-      onOpenDesigner() {
-        designer.toggle();
-      },
       onOpenEditor() {
-        openEditor();
+        if (editor === undefined) openEditor();
       },
       onRenderHeightChange(height) {
         update({ renderHeight: height });
@@ -712,11 +731,8 @@ async function start(): Promise<void> {
     maxDeltaSeconds: MAX_FRAME_SECONDS,
   });
 
-  /**
-   * Validates and stores a scene, then opens it (with the designer when
-   * `reopenDesigner`). Returns why it could not be saved, or undefined.
-   */
-  const saveScene = (draft: Scene, id: string, reopenDesigner = true): string | undefined => {
+  /** Validates and stores a scene, then opens it. Returns why it could not be saved, or undefined. */
+  const saveScene = (draft: Scene, id: string): string | undefined => {
     let valid: Scene;
     try {
       valid = { ...parseWithObjects({ ...draft, id }), id };
@@ -724,6 +740,8 @@ async function start(): Promise<void> {
       return error instanceof SceneValidationError ? error.message : String(error);
     }
     storeCustomScenes((stored) => writeCustomScene(stored, valid));
+    // The scene changed: its picture is taken again when it shows.
+    storeScenePicture(id);
     // The saved scene holds its own counts: panel overrides would hide them.
     const otherScenes = <T>(record: Readonly<Record<string, T>>): Record<string, T> =>
       Object.fromEntries(Object.entries(record).filter(([key]) => key !== id));
@@ -732,68 +750,9 @@ async function start(): Promise<void> {
       counts: otherScenes(settings.counts),
       scenery: otherScenes(settings.scenery ?? {}),
     });
-    openScene(id, reopenDesigner);
+    openScene(id);
     return undefined;
   };
-  const showSaveError = (message: string | undefined): void => {
-    if (message !== undefined) designer.showError(message);
-  };
-  const designer: Designer = createDesigner(
-    document.body,
-    {
-      // Start from what is on screen, with the current LED setup.
-      scene: { ...scene, id: sceneId, lights: settings.lights ?? scene.lights },
-      catalog,
-      isCustom: isCustomSceneId(sceneId),
-      materials: materialIds,
-      kinds: { plants: objects.ids("plant"), objects: objects.ids("object") },
-    },
-    {
-      onPreview(draft) {
-        let shown: Scene;
-        try {
-          shown = parseWithObjects(draft);
-        } catch (error) {
-          designer.showError(error instanceof SceneValidationError ? error.message : String(error));
-          return;
-        }
-        designer.showError("");
-        view.dispose();
-        ({ simulation, view } = mountScene(shown));
-      },
-      onSave(draft, asNew) {
-        const taken = Object.keys(customScenes);
-        showSaveError(saveScene(draft, asNew ? customSceneId(draft.name, taken) : sceneId));
-      },
-      onExport(draft) {
-        try {
-          parseWithObjects(draft);
-        } catch (error) {
-          designer.showError(error instanceof SceneValidationError ? error.message : String(error));
-          return;
-        }
-        download(`${slugify(draft.name)}.json`, exportScene(draft));
-      },
-      onImport(file) {
-        file
-          .text()
-          .then((json) => {
-            const imported = importScene(json, catalog, Object.keys(customScenes));
-            showSaveError(saveScene(imported.scene, imported.id));
-          })
-          .catch((error: unknown) => {
-            designer.showError(error instanceof Error ? error.message : String(error));
-          });
-      },
-      onDelete() {
-        storeCustomScenes((stored) => writeCustomScene(stored, sceneId, "delete"));
-        update({ scene: undefined });
-        openScene(undefined);
-      },
-    },
-  );
-  if (options.designer === true) designer.open();
-
   /** Rebuilds the tank on the canvas, keeping the fish counts and the viewer's scenery. */
   const remount = (): void => {
     const counts = catalog.species.map(
@@ -801,17 +760,31 @@ async function start(): Promise<void> {
     );
     ({ simulation, view } = mountScene(shownScene));
     for (const [id, count] of counts) simulation.setCount(id, count);
-    // A designer preview shows its own scenery; the scene shows the viewer's.
-    if (shownScene === scene) scheduleSceneryRebuild();
+    scheduleSceneryRebuild();
   };
 
-  /** Editing mode: the tank gives way to the scene editor until saved or left. */
-  const openEditor = (): void => {
-    if (editor !== undefined) return;
-    designer.close();
-    panel.setSuspended(true);
-    view.dispose();
-    editor = openSceneEditor({
+  /** The scene as the viewer sees it, with the current LED setup: what the editor starts from. */
+  const sceneOnScreen = (): Scene => ({
+    ...scene,
+    id: sceneId,
+    lights: settings.lights ?? scene.lights,
+  });
+  const errorMessage = (error: unknown): string =>
+    error instanceof Error ? error.message : String(error);
+
+  /**
+   * Editing mode: the tank gives way to the scene editor until saved or left.
+   * `start` is the scene to edit, the one on screen unless the editor starts
+   * again on its own work (a resized tank).
+   */
+  const openEditor = (start: Scene = sceneOnScreen()): void => {
+    if (editor === undefined) {
+      panel.setSuspended(true);
+      view.dispose();
+    } else {
+      editor.dispose();
+    }
+    const opened = openSceneEditor({
       canvas,
       root: document.body,
       objects,
@@ -823,11 +796,48 @@ async function start(): Promise<void> {
             logger.warn("Palette pictures could not be drawn", { error: String(error) });
           });
       },
-      scene: { ...scene, id: sceneId, lights: settings.lights ?? scene.lights },
+      scene: start,
       canSave: isCustomSceneId(sceneId),
+      materials: materialIds,
+      // Every bundled scene is a biome the scene can take its water and light from.
+      environments: sceneChoices
+        .filter((group) => group.name !== MY_SCENES_GROUP)
+        .flatMap((group) => group.scenes),
+      loadEnvironment: async (id) => parseWithObjects(await fetchJson(`scenes/${id}.json`)),
       onSave(draft, asNew) {
         const id = asNew ? customSceneId(draft.name, Object.keys(customScenes)) : sceneId;
-        return saveScene(draft, id, false);
+        return saveScene(draft, id);
+      },
+      onReopen(next) {
+        openEditor(next);
+      },
+      onExport(draft) {
+        try {
+          parseWithObjects(draft);
+        } catch (error) {
+          opened.showStatus(errorMessage(error));
+          return;
+        }
+        download(`${slugify(draft.name)}.json`, exportScene(draft));
+      },
+      onImport(file) {
+        file
+          .text()
+          .then((json) => {
+            const imported = importScene(json, catalog, Object.keys(customScenes));
+            checkSceneObjects(imported.scene, objects);
+            const problem = saveScene(imported.scene, imported.id);
+            if (problem !== undefined) opened.showStatus(problem);
+          })
+          .catch((error: unknown) => {
+            opened.showStatus(errorMessage(error));
+          });
+      },
+      onDelete() {
+        storeCustomScenes((stored) => writeCustomScene(stored, sceneId, "delete"));
+        storeScenePicture(sceneId);
+        update({ scene: undefined });
+        openScene(undefined);
       },
       onExit() {
         editor?.dispose();
@@ -836,8 +846,19 @@ async function start(): Promise<void> {
         remount();
       },
     });
-    editor.resize(window.innerWidth, window.innerHeight);
+    editor = opened;
+    opened.resize(window.innerWidth, window.innerHeight);
   };
+
+  // A saved scene without a card picture gets a frame of its tank, once the fish have spread out.
+  if (isCustomSceneId(sceneId) && scenePictures[sceneId] === undefined) {
+    window.setTimeout(() => {
+      if (editor !== undefined) return;
+      const picture = view.snapshot(SCENE_PICTURE_SIZE);
+      storeScenePicture(sceneId, picture);
+      panel.setScenePicture(sceneId, picture);
+    }, SCENE_PICTURE_DELAY_MS);
+  }
 
   if (options.frozenSeconds !== undefined) {
     // Deterministic still frame for visual tests: no animation loop.
