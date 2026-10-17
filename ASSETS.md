@@ -64,7 +64,8 @@ All were optimized with glTF Transform (meshopt geometry, KTX2 textures at
 a MouthOpen shape key, and Blender converted its specular-glossiness
 material. The barramundi, with no bones, had its protrusible mouth
 shaped by `scripts/blender/barramundi.py` (jaw swinging down, upper jaw
-sliding forward, a dark throat). The crabs, a few
+sliding forward, a dark throat). The hermit crab's walk and the pose it hides in
+come from `scripts/blender/hermit_crab.py`, in place of its idle clip. The crabs, a few
 pixels tall on the bottom, have 512 px textures, and the freshwater crab
 scan, drawn unlit, is lit like the other bodies. Skeletons and swim
 animations are not used: the rest pose is baked and the engine swims the

@@ -118,6 +118,12 @@ describe("parseModelManifest", () => {
     });
   });
 
+  it("names the pose an animal hides in", () => {
+    const input = { name: "Hermit crab", credit, animations: { walk: "Walk", hide: "Hide" } };
+
+    expect(parseModelManifest(input, "hermit-crab").animations?.hide).toBe("Hide");
+  });
+
   it("refuses a mouth that is neither a shape key nor a jaw", () => {
     const input = { name: "Barramundi", credit, mouth: {} };
 

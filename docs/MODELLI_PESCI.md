@@ -25,7 +25,8 @@ L'eccezione è un animale che cammina (un granchio, un paguro): se il suo
 `model.json` nomina una clip, `"animations": { "walk": "<clip>", "speed": 0.6 }`,
 ogni individuo è una copia del modello con scheletro che riproduce quella
 clip, al suo ritmo quando l'animale va a `speed` lunghezze di corpo al
-secondo, più veloce o più lenta secondo il passo, ferma quando sta fermo.
+secondo, più veloce o più lenta secondo il passo, ferma quando sta fermo. Una clip `"hide"` è la posa in cui si nasconde quando ha paura (un
+paguro rientrato nel guscio).
 Ne entrano pochi (il `maxCount` della specie), quindi tieni queste specie in
 numero ridotto.
 

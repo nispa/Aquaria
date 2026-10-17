@@ -925,8 +925,8 @@
       },
       "model": "hermit-crab",
       "length": {
-        "mean": 0.05,
-        "standardDeviation": 0.008
+        "mean": 0.08,
+        "standardDeviation": 0.01
       },
       "speed": {
         "cruise": 0.03,
@@ -938,7 +938,7 @@
       "heightRange": [0, 0.1],
       "behavior": {
         "appetite": 1,
-        "curiosity": 0.3,
+        "curiosity": 0,
         "shyness": 0.8,
         "hiding": 0,
         "torch": 0

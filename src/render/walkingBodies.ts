@@ -32,6 +32,22 @@ interface Body {
   /** Placed where the animal is, turned the way it faces. */
   readonly carrier: Group;
   readonly mixer: AnimationMixer;
+  readonly walk: AnimationAction | undefined;
+  readonly hide: AnimationAction | undefined;
+  /** 0 out, 1 all the way into its shell. */
+  withdrawn: number;
+}
+
+/** Seconds a body takes to pull into its shell, or to come out of it. */
+const WITHDRAW_SECONDS = 0.4;
+
+/**
+ * How far into its shell a body is after `seconds`, from `current` (0 out ..
+ * 1 in): it pulls in while `hiding`, and comes out again after.
+ */
+export function withdrawal(current: number, hiding: boolean, seconds: number): number {
+  const step = seconds / WITHDRAW_SECONDS;
+  return hiding ? Math.min(current + step, 1) : Math.max(current - step, 0);
 }
 
 const materialsOf = (material: Material | Material[]): Material[] =>
@@ -72,6 +88,8 @@ export function createWalkingBodies(
       ? found
       : pinRootMotion(found, root, frame.length);
   const pace = manifest.animations?.speed ?? 1;
+  const hideName = manifest.animations?.hide;
+  const hideClip = clips.find((candidate) => candidate.name === hideName);
   const group = new Group();
   group.name = name;
   const bodies: Body[] = [];
@@ -94,14 +112,15 @@ export function createWalkingBodies(
     carrier.add(placed);
     group.add(carrier);
     const mixer = new AnimationMixer(body);
-    const action: AnimationAction | undefined =
-      clip === undefined ? undefined : mixer.clipAction(clip);
+    const walk = clip === undefined ? undefined : mixer.clipAction(clip);
+    const hide = hideClip === undefined ? undefined : mixer.clipAction(hideClip);
+    hide?.setEffectiveWeight(0).play();
     // Each starts somewhere in its stride, so a group does not step in time.
-    if (action !== undefined && clip !== undefined) {
-      action.play();
+    if (walk !== undefined && clip !== undefined) {
+      walk.play();
       mixer.setTime((clip.duration * index) / Math.max(count, 1));
     }
-    bodies.push({ carrier, mixer });
+    bodies.push({ carrier, mixer, walk, hide, withdrawn: 0 });
   }
   const turn = new Euler(0, 0, 0, "YZX");
 
@@ -119,6 +138,12 @@ export function createWalkingBodies(
         body.carrier.rotation.copy(turn);
         body.carrier.scale.setScalar(individual.length);
         const speed = individual.still ? 0 : individual.velocity.length();
+        if (body.hide !== undefined) {
+          const hiding = individual.swim.withdraws && individual.hiding > 0;
+          body.withdrawn = withdrawal(body.withdrawn, hiding, seconds);
+          body.hide.setEffectiveWeight(body.withdrawn);
+          body.walk?.setEffectiveWeight(1 - body.withdrawn);
+        }
         body.mixer.update(clipSeconds(seconds, speed, individual.length, pace));
       }
     },

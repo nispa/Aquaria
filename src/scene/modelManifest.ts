@@ -146,7 +146,7 @@ export const modelManifestSchema = z
     /**
      * The skeletal clips of an animated model (not a fish: a turtle, a
      * crab), played as it moves: `swim`, `walk` and `idle` name glTF
-     * animations; `speed` is how fast it goes, in body lengths a second,
+     * animations, and `hide` the pose it hides in; `speed` is how fast it goes, in body lengths a second,
      * when a clip plays at its own pace (faster or slower, the clip follows);
      * `inPlace` pins bones a clip carries away, since Aquaria moves the
      * animal itself.
@@ -156,6 +156,8 @@ export const modelManifestSchema = z
         swim: z.string().min(1).optional(),
         walk: z.string().min(1).optional(),
         idle: z.string().min(1).optional(),
+        /** A pose to hide in when frightened: a hermit crab pulled into its shell. */
+        hide: z.string().min(1).optional(),
         speed: z.number().positive().max(10).default(DEFAULT_ANIMATION_SPEED),
         inPlace: z.boolean().default(true),
       })

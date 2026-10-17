@@ -24,7 +24,8 @@ The exception is an animal that walks (a crab, a hermit crab): if its
 `model.json` names a clip, `"animations": { "walk": "<clip>", "speed": 0.6 }`,
 every individual is a skinned copy of the model playing that clip, at its
 own pace when the animal goes `speed` body lengths a second, faster or
-slower as it goes, held while it stands. Only a few of them fit (the
+slower as it goes, held while it stands. A `"hide"` clip names the pose it
+hides in when frightened (a hermit crab pulled into its shell). Only a few of them fit (the
 species' `maxCount`), so keep such species small in number.
 
 An armature is welcome, for the eyes and for other programs, but no

@@ -5,8 +5,9 @@
   "up": "+y",
   "swimAmplitude": 0,
   "animations": {
-    "walk": "Animation",
-    "speed": 0.3
+    "walk": "Walk",
+    "hide": "Hide",
+    "speed": 0.4
   },
   "credit": {
     "author": "kenchoo",
