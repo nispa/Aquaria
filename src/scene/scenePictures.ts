@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isCustomSceneId } from "./customScenes";
 
 /**
  * Card pictures of the viewer's own scenes: a frame of the tank, taken the
@@ -41,4 +42,17 @@ export function centerSquare(
 ): { readonly x: number; readonly y: number; readonly size: number } {
   const size = Math.min(width, height);
   return { x: Math.floor((width - size) / 2), y: Math.floor((height - size) / 2), size };
+}
+
+/**
+ * The card picture of a scene: a bundled scene's thumbnail under `base`,
+ * or, for the viewer's own, the picture kept in the browser (none yet:
+ * undefined, and one is taken when the scene shows).
+ */
+export function scenePictureUrl(
+  id: string,
+  stored: Readonly<Record<string, string>>,
+  base: string,
+): string | undefined {
+  return isCustomSceneId(id) ? stored[id] : `${base}scenes/thumbnails/${id}.jpg`;
 }

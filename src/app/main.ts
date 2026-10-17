@@ -90,7 +90,7 @@ import {
   withGroup,
   type SceneIndex,
 } from "../scene/sceneIndex";
-import { readScenePictures, writeScenePicture } from "../scene/scenePictures";
+import { readScenePictures, scenePictureUrl, writeScenePicture } from "../scene/scenePictures";
 import type { SceneChoice, SceneChoiceGroup } from "../ui/panel";
 import { createSimulation, type Simulation } from "../sim/simulation";
 import { createPanel } from "../ui/panel";
@@ -686,11 +686,7 @@ async function start(): Promise<void> {
       version: versionLabel(import.meta.env.APP_VERSION, import.meta.env.APP_COMMIT),
       about: ABOUT,
       logo: `${import.meta.env.BASE_URL}title.webp`,
-      // Bundled scenes have a card picture; the viewer's own do not.
-      scenePicture: (id) =>
-        sceneIndex.scenes.includes(id)
-          ? `${import.meta.env.BASE_URL}scenes/thumbnails/${id}.jpg`
-          : undefined,
+      scenePicture: (id) => scenePictureUrl(id, scenePictures, import.meta.env.BASE_URL),
       scenery: sceneryEntries(scene, objects),
       drawSceneryPortraits: drawSceneryPictures,
       lights: {

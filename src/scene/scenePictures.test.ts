@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { centerSquare, readScenePictures, writeScenePicture } from "./scenePictures";
+import {
+  centerSquare,
+  readScenePictures,
+  scenePictureUrl,
+  writeScenePicture,
+} from "./scenePictures";
 
 const picture = "data:image/jpeg;base64,AAAA";
 
@@ -34,5 +39,21 @@ describe("centerSquare", () => {
 
   it("takes the middle of a tall frame", () => {
     expect(centerSquare(900, 1600)).toEqual({ x: 0, y: 350, size: 900 });
+  });
+});
+
+describe("scenePictureUrl", () => {
+  const stored = { "my-reef": "data:image/jpeg;base64,AAAA" };
+
+  it("shows a bundled scene's thumbnail", () => {
+    expect(scenePictureUrl("reef", stored, "/")).toBe("/scenes/thumbnails/reef.jpg");
+  });
+
+  it("shows the picture kept in the browser for the viewer's own scene", () => {
+    expect(scenePictureUrl("my-reef", stored, "/")).toBe("data:image/jpeg;base64,AAAA");
+  });
+
+  it("shows no picture for an own scene that has none yet", () => {
+    expect(scenePictureUrl("my-lagoon", stored, "/")).toBeUndefined();
   });
 });
