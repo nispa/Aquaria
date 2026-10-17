@@ -25,6 +25,8 @@ export interface EditorBarCallbacks {
   /** Scales the selected item. */
   onResizeItem(factor: number): void;
   onDeleteItem(): void;
+  onUndo(): void;
+  onRedo(): void;
   /** Brush radius in blocks: 0 is a single block. */
   onBrush(radius: number): void;
   /** The highest layer shown and edited, from 0. */
@@ -43,6 +45,8 @@ export interface EditorBar {
   setTool(tool: EditorTool): void;
   /** Enables the buttons for the selected item, when there is one. */
   setSelected(selected: boolean): void;
+  /** Enables undo and redo when there is something to undo or redo. */
+  setHistory(canUndo: boolean, canRedo: boolean): void;
   /** Shows a message, e.g. why saving failed; empty clears it. */
   showStatus(message: string): void;
   dispose(): void;
@@ -122,6 +126,17 @@ export function createEditorBar(
     for (const node of itemButtons) node.disabled = !selected;
   };
   setSelected(false);
+  const undo = button("↶", "Undo (Ctrl+Z)", () => {
+    callbacks.onUndo();
+  });
+  const redo = button("↷", "Redo (Ctrl+Y)", () => {
+    callbacks.onRedo();
+  });
+  const setHistory = (canUndo: boolean, canRedo: boolean): void => {
+    undo.disabled = !canUndo;
+    redo.disabled = !canRedo;
+  };
+  setHistory(false, false);
 
   const brush = slider(0, MAX_BRUSH, 1, 0);
   brush.name = "brush";
@@ -150,6 +165,8 @@ export function createEditorBar(
 
   bar.append(
     element("span", "editor-bar__title", "Editing"),
+    undo,
+    redo,
     add,
     remove,
     select,
@@ -183,6 +200,7 @@ export function createEditorBar(
   return {
     setTool: show,
     setSelected,
+    setHistory,
     showStatus(message) {
       status.textContent = message;
     },

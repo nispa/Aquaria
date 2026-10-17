@@ -123,7 +123,7 @@ Comes after block E: the palette lists the object folders.
 - [x] Palette of cards for every flora and prop kind (data-driven).
 - [x] Drop on sand or on rock tops, move, rotate, scale, delete; items fall
       to the next support when the block under them is removed.
-- [ ] Undo / redo.
+- [x] Undo / redo.
 
 ### C4. Finishing
 

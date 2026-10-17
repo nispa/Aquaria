@@ -628,6 +628,27 @@ test.describe("scene editor", () => {
     expect(starfish.map((entry) => entry.at?.length)).toEqual([1]);
   });
 
+  test("undoes and redoes a change with Ctrl+Z and Ctrl+Y", async ({ page }) => {
+    await page.goto("/?scene=iwagumi&effects=none");
+    await waitForState(page);
+    await page.keyboard.press("e");
+    const box = await page.locator("#aquarium").boundingBox();
+    if (box === null) throw new Error("No canvas.");
+    const undo = page.getByRole("button", { name: "Undo (Ctrl+Z)" });
+    const redo = page.getByRole("button", { name: "Redo (Ctrl+Y)" });
+    await expect(undo).toBeDisabled();
+
+    await page.mouse.click(box.x + box.width * 0.4, box.y + box.height * 0.75);
+    await expect(undo).toBeEnabled();
+    await page.keyboard.press("Control+z");
+    await expect(undo).toBeDisabled();
+    await expect(redo).toBeEnabled();
+    await page.keyboard.press("Control+y");
+
+    await expect(undo).toBeEnabled();
+    await expect(redo).toBeDisabled();
+  });
+
   test("leaves without saving and brings the tank back", async ({ page }) => {
     await page.goto("/?scene=iwagumi&effects=none");
     await waitForState(page);

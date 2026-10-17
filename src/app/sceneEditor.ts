@@ -1,5 +1,6 @@
 import { Vector3 } from "three";
 import { createEventBus } from "../core/eventBus";
+import { createHistory } from "../core/history";
 import type { Logger } from "../core/logger";
 import { createRng, type Rng } from "../core/rng";
 import { createEditorPointerInput, type EditorPointerEvents } from "../input/editorPointer";
@@ -78,6 +79,8 @@ const MIN_PICK_RADIUS = 0.03;
 const PLANT_SPREAD = 0.25;
 /** A plant set down grows at most this share of the tank's height: reef kelp would not fit a tank. */
 const MAX_PLANT_SHARE = 0.8;
+/** Changes undo can go back over. */
+const UNDO_LIMIT = 100;
 /** Seeds of the editor's layout of entries drawn at random, after the scene's seed. */
 const FLORA_SEED_OFFSET = 101;
 const PROPS_SEED_OFFSET = 102;
@@ -126,6 +129,8 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
   let strokeStart: Uint8Array | undefined;
   let lastPainted: BlockCell | undefined;
   let blocksChanged = false;
+  /** Whether the stroke going on changed anything, for undo and for items to settle. */
+  let strokeEdited = false;
   let scenery: Scenery = { flora: scene.flora, props: scene.props };
   let sceneryChanged = true;
   let selected: ItemRef | undefined;
@@ -246,6 +251,7 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
     lastPainted = cell;
     if (paintBlocks(grid, cells, cell, radius, tool === "add" ? 1 : 0, topLayer)) {
       blocksChanged = true;
+      strokeEdited = true;
     }
   };
   const hover = (spot: ViewSpot): void => {
@@ -280,6 +286,7 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
       const placed = placeItem(scenery, chosen, object, where);
       editScenery(placed.scenery);
       select(placed.ref);
+      remember();
       return;
     }
     view.ray(spot.x, spot.y, origin, direction);
@@ -304,13 +311,16 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
     const ground = groundAt(spot);
     if (ground === undefined) return;
     editScenery(moveItem(scenery, selected, laidOutOf(selected), ground));
+    strokeEdited = true;
   };
   const release = (): void => {
-    if (strokeStart !== undefined && blocksChanged) {
+    if (strokeStart !== undefined && strokeEdited) {
       // What stood on blocks that went comes down to the next support.
       editScenery(settleItems(scenery, (x, z, y) => elevationAt(x, z, y)));
     }
+    if (strokeEdited) remember();
     strokeStart = undefined;
+    strokeEdited = false;
     lastPainted = undefined;
     dragging = false;
   };
@@ -335,6 +345,34 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
   const editSelected = (edit: (ref: ItemRef, laidOut: LaidOutItem[]) => Scenery): void => {
     if (selected === undefined) return;
     editScenery(edit(selected, laidOutOf(selected)));
+    remember();
+  };
+
+  // Undo and redo: the blocks and the scenery after every finished change.
+  const snapshot = (): { cells: Uint8Array; scenery: Scenery } => ({
+    cells: cells.slice(),
+    scenery,
+  });
+  const history = createHistory(snapshot(), UNDO_LIMIT);
+  /** Records the editor's state after a change. */
+  function remember(): void {
+    history.record(snapshot());
+    bar.setHistory(history.canUndo(), history.canRedo());
+  }
+  const restore = (state: { cells: Uint8Array; scenery: Scenery } | undefined): void => {
+    if (state === undefined) return;
+    cells.set(state.cells);
+    scenery = state.scenery;
+    blocksChanged = true;
+    sceneryChanged = true;
+    select(undefined);
+    bar.setHistory(history.canUndo(), history.canRedo());
+  };
+  const undo = (): void => {
+    restore(history.undo());
+  };
+  const redo = (): void => {
+    restore(history.redo());
   };
   const deleteSelected = (): void => {
     editSelected((ref, laidOut) => removeItem(scenery, ref, laidOut));
@@ -366,6 +404,8 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
         editSelected((ref, laidOut) => resizeItem(scenery, ref, laidOut, factor));
       },
       onDeleteItem: deleteSelected,
+      onUndo: undo,
+      onRedo: redo,
       onBrush(next) {
         radius = next;
       },
@@ -411,6 +451,16 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
 
   const onKey = (event: KeyboardEvent): void => {
     if (event.key === "Escape") options.onExit();
+    const command = event.ctrlKey || event.metaKey;
+    if (command && event.key.toLowerCase() === "z") {
+      event.preventDefault();
+      if (event.shiftKey) redo();
+      else undo();
+    }
+    if (command && event.key.toLowerCase() === "y") {
+      event.preventDefault();
+      redo();
+    }
     if ((event.key === "Delete" || event.key === "Backspace") && selected !== undefined) {
       deleteSelected();
     }
