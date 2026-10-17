@@ -54,6 +54,7 @@ listed here).
 | Sea turtle               | `public/assets/animals/sea-turtle/`               | https://sketchfab.com/3d-models/sea-turtle-23dcb315dea44f5082b020b04710bd31                                  | Eloi          | CC-BY 4.0 |
 | Freshwater angelfish     | `public/assets/species/freshwater-angelfish/`     | https://github.com/nispa/Aquaria/blob/main/scripts/blender/angelfish.py                                      | Aquaria       | CC0       |
 | Platy                    | `public/assets/species/platy/`                    | https://github.com/nispa/Aquaria/blob/main/scripts/blender/platy.py                                          | Aquaria       | CC0       |
+| Red cherry shrimp        | `public/assets/species/red-cherry-shrimp/`        | https://github.com/nispa/Aquaria/blob/main/scripts/blender/shrimp.py                                         | Aquaria       | CC0       |
 
 All were optimized with glTF Transform (meshopt geometry, KTX2 textures at
 1024 px; see README, "3D fish models"); the seabream's specular-glossiness

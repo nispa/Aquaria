@@ -1,0 +1,12 @@
+{
+  "name": "Red cherry shrimp",
+  "file": "model.glb",
+  "forward": "+x",
+  "up": "+y",
+  "swimAmplitude": 0.02,
+  "credit": {
+    "author": "Aquaria (scripts/blender/shrimp.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/shrimp.py",
+    "license": "CC0-1.0"
+  }
+}

@@ -811,6 +811,7 @@
           "detail": "#ffffff"
         }
       },
+      "model": "red-cherry-shrimp",
       "length": {
         "mean": 0.035,
         "standardDeviation": 0.005
