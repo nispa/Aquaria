@@ -866,8 +866,8 @@
       },
       "model": "freshwater-crab",
       "length": {
-        "mean": 0.04,
-        "standardDeviation": 0.005
+        "mean": 0.07,
+        "standardDeviation": 0.018
       },
       "speed": {
         "cruise": 0.05,
@@ -925,8 +925,8 @@
       },
       "model": "hermit-crab",
       "length": {
-        "mean": 0.08,
-        "standardDeviation": 0.01
+        "mean": 0.12,
+        "standardDeviation": 0.03
       },
       "speed": {
         "cruise": 0.03,
