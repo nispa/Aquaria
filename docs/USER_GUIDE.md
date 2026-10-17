@@ -117,6 +117,7 @@ Configured via the Quality section and the [`EFFECTS`](file:///F:/progetti/Aquar
 - **Resolution Slider**: Render at any target height from 540p up to 4K (2160p), independent of display scaling.
 - **Automatic Resolution** (on by default): when the GPU cannot keep up, the aquarium draws fewer pixels, and climbs back when there is room, so it never takes the whole GPU and stalls the screen. The slider sets the most it uses, and it never draws more pixels than the screen has; switched off, the slider's resolution is drawn as it is. The FPS counter shows the height drawn at.
 - **Frame Limit**: 30 or 60 frames a second (30 by default), or none. A limit leaves the GPU free for the rest of the computer and saves battery.
+- **Fit effects to this screen**: at startup the aquarium starts from a light look and adds shadows, reflections, bubbles, volumetric light, bloom and the vignette one at a time while the GPU keeps up with the frame limit; the line below the button says what it added. Switches you turn yourself are kept. The button forgets them and fits the look again, e.g. after changing the frame limit.
 - **Anti-Aliasing**: Toggle MSAA (Off, 2x, 4x, 8x) and optional SMAA for delicate geometry like grasses and fin edges.
 - **Modular Effects**:
   - _Caustics_: Dynamic animated sunlight webbing across the seabed, rockwork, and swimming fish.

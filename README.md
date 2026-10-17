@@ -447,25 +447,34 @@ fields (all optional), for example sunlight for an open-sea scene:
 Every effect has its own switch in the control panel (press `H`), so you
 choose what the GPU spends its time on.
 
-| Switch              | What it does                                         | Default |
-| ------------------- | ---------------------------------------------------- | ------- |
-| Caustics            | Moving web of light on sand, rocks, plants and fish  | on      |
-| Shadows             | Sun shadows of fish, rocks and plants                | on      |
-| Water reflections   | Image-based light from the water around the tank     | on      |
-| Refractive bubbles  | Glass-like bubbles instead of sprites                | on      |
-| Light shaft planes  | Cheap shafts; redundant with volumetric light        | off     |
-| Coral fluorescence  | Corals and anemones glow under blue and violet LEDs  | on      |
-| Ambient occlusion   | Darkens creases and contact areas                    | off     |
-| Volumetric light    | Shafts through the water, occluded by fish and kelp  | on      |
-| Depth of field      | Blurs what is nearer or further than the focus plane | off     |
-| Bloom               | Soft glow around the brightest pixels                | on      |
-| SMAA anti-aliasing  | Smooths thin edges (grass, fins) that MSAA misses    | off     |
-| Vignette and dither | Darker corners; dither against banding on LED walls  | on      |
+| Switch              | What it does                                         | At startup |
+| ------------------- | ---------------------------------------------------- | ---------- |
+| Caustics            | Moving web of light on sand, rocks, plants and fish  | on         |
+| Shadows             | Sun shadows of fish, rocks and plants                | if it fits |
+| Water reflections   | Image-based light from the water around the tank     | if it fits |
+| Refractive bubbles  | Glass-like bubbles instead of sprites                | if it fits |
+| Light shaft planes  | Cheap shafts; redundant with volumetric light        | off        |
+| Coral fluorescence  | Corals and anemones glow under blue and violet LEDs  | on         |
+| Ambient occlusion   | Darkens creases and contact areas                    | off        |
+| Volumetric light    | Shafts through the water, occluded by fish and kelp  | if it fits |
+| Depth of field      | Blurs what is nearer or further than the focus plane | off        |
+| Bloom               | Soft glow around the brightest pixels                | if it fits |
+| SMAA anti-aliasing  | Smooths thin edges (grass, fins) that MSAA misses    | off        |
+| Vignette and dither | Darker corners; dither against banding on LED walls  | if it fits |
+
+The look fits itself to the machine. At startup the aquarium draws the
+light base look, times the GPU on every frame, and switches on the
+features marked "if it fits" one at a time, lighting first: each one stays
+if frames still leave room within the frame limit (30 fps by default), and
+is taken away otherwise. It takes about fifteen seconds; then only the
+resolution adapts. A switch you turn yourself is kept and never touched;
+_Fit effects to this screen_ in the Quality section forgets your switches
+and fits the look again. Browsers that cannot time the GPU get every "if it
+fits" feature on, and the automatic resolution keeps the frame rate.
 
 Ambient occlusion is by far the most expensive (about 18 ms per frame at
 1080p on a mid-range GPU) and depth of field looks like blur on a wall seen
-with the naked eye, so both start off. Watch the fps counter while you
-switch: on the wall, keep the set that stays at 60 fps.
+with the naked eye, so both stay off until you turn them on.
 
 Each effect's parameters and ranges are documented, with their tuned
 defaults, in `src/render/effects/`. To add a new effect: create a file there

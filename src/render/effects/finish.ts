@@ -9,7 +9,7 @@ export const finishEffect = defineEffect({
   name: "Vignette and dither",
   stage: "display",
   // The dither prevents banding in dark gradients on LED walls.
-  enabledByDefault: true,
+  startup: "added",
   params: z.object({
     vignette: z.number().min(0).max(1).default(0.4),
     /** Dither amplitude in 1/255 steps; keep ≥ 1 on LED walls. */

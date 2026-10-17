@@ -152,10 +152,16 @@ Shaders:
   post-processing effects are registered in `EFFECTS`.
 - An effect is one file in `src/render/effects/` built with `defineEffect`
   and listed in `EFFECTS`. It declares its id, panel name, stage (`hdr`
-  before tone mapping, `display` after), whether it is on by default, a Zod
+  before tone mapping, `display` after), how it joins the look at startup
+  (`startup`: `base`, always on; `added`, switched on by the startup
+  calibration while the GPU has room; `manual`, left to the viewer), a Zod
   schema with a default for every parameter (the tuned look), and a `create`
   function returning a Three.js pass with `dispose()`.
-- Heavy effects start off. State the measured cost when adding one.
+- Heavy effects are `manual`. State the measured cost when adding one.
+- At startup the look is fitted to the GPU (`core/featureCalibration.ts`):
+  from the `base` features it adds the `added` ones one at a time, lighting
+  first, keeping those that leave room under the frame budget. The viewer's
+  own switches, `?effects=` and `?frozen=` skip it.
 - Passes that re-render the scene with override materials (depth, normals)
   must hide `context.shaderAnimated` objects they cannot represent and
   `context.overlays`, or they show up as ghosts.

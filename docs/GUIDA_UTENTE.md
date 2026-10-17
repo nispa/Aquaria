@@ -122,6 +122,7 @@ Nel menu _Quality_, integrato con la lista modulare [`EFFECTS`](file:///F:/proge
 - **Slider di Risoluzione**: Permette di impostare la risoluzione interna di rendering da 540p fino a 4K effettivo (2160p), svincolata dal fattore di scala del sistema operativo.
 - **Risoluzione automatica** (attiva di default): quando la GPU non tiene il passo, l'acquario disegna meno pixel e risale quando c'è margine, così non occupa mai tutta la GPU e non blocca lo schermo. Lo slider fissa il massimo, e non si disegnano mai più pixel di quelli dello schermo; spenta, si disegna esattamente la risoluzione dello slider. Il contatore FPS mostra l'altezza effettiva.
 - **Limite di fotogrammi**: 30 o 60 al secondo (30 di default), oppure nessuno. Un limite lascia la GPU libera per il resto del computer e risparmia batteria.
+- **Adatta gli effetti a questo schermo** (_Fit effects to this screen_): all'avvio l'acquario parte da un aspetto leggero e aggiunge ombre, riflessi, bolle, luce volumetrica, bloom e vignetta uno alla volta finché la GPU sta dentro il limite di fotogrammi; la riga sotto il pulsante dice cosa ha aggiunto. Gli interruttori che cambi tu restano come li hai messi. Il pulsante li dimentica e rifà l'adattamento, per esempio dopo aver cambiato il limite di fotogrammi.
 - **Anti-Aliasing**: Supporto per MSAA nativo (Disattivo, 2x, 4x, 8x) e filtro aggiuntivo SMAA per rifinire dettagli sottilissimi come pinne e fili d'erba.
 - **Interruttori Effetti**:
   - _Caustics_: Rete dinamica di onde di luce rifratte sul fondo, rocce e pesci.

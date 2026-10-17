@@ -212,19 +212,19 @@ still loads unchanged.
 Comes before block F. The aquarium starts on any screen, from a laptop to a
 4K LED wall, and finds by itself how much it can show.
 
-- [ ] 30 frames a second by default; 60 and no limit stay in the panel.
-- [ ] At startup it begins with a light base look, measures the GPU time
+- [x] 30 frames a second by default; 60 and no limit stay in the panel.
+- [x] At startup it begins with a light base look, measures the GPU time
       of each frame and adds one feature at a time while there is room:
       lighting first, then post-processing effects (shaders of block F
       at the end). A feature that runs over the budget is taken away and
-      the calibration stops; afterwards only the resolution adapts.
-- [ ] Each feature declares in its own data whether it is part of the base
+      the next one is tried; afterwards only the resolution adapts.
+- [x] Each feature declares in its own data whether it is part of the base
       look, added when the machine allows it, or left to the viewer
       (ambient occlusion, depth of field, SMAA).
-- [ ] The viewer's own switches always win; `?effects=` and frozen
+- [x] The viewer's own switches always win; `?effects=` and frozen
       frames skip the calibration. Without a GPU timer the defaults are
       kept.
-- [ ] The panel tells which features the calibration chose, and can run
+- [x] The panel tells which features the calibration chose, and can run
       it again.
 
 ## F. Shaders and effects as files

@@ -164,6 +164,8 @@ export interface AquariumView {
    * browser cannot tell (no timer query) or nothing has come back yet.
    */
   gpuMs(): number | undefined;
+  /** Whether the browser can time the GPU, so `gpuMs` ever returns a number. */
+  readonly timesGpu: boolean;
   /**
    * Draws a frame and returns the middle square of it, `size` pixels a side,
    * as a JPEG data URL: the card picture of a scene.
@@ -577,6 +579,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       gpuTimer?.end();
     },
     gpuMs: () => gpuTimer?.latestMs(),
+    timesGpu: gpuTimer?.supported === true,
     resize(width, height) {
       cssWidth = Math.max(width, 1);
       cssHeight = Math.max(height, 1);

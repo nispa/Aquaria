@@ -9,7 +9,7 @@ export const volumetricLightEffect = defineEffect({
   id: "volumetric-light",
   name: "Volumetric light",
   stage: "hdr",
-  enabledByDefault: true,
+  startup: "added",
   params: z.object({
     density: z.number().min(0).max(1.5).default(0.9),
     decay: z.number().min(0.9).max(1).default(0.965),

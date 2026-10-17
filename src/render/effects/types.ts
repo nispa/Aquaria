@@ -1,7 +1,7 @@
 import type { Object3D, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 import type { Pass } from "three/examples/jsm/postprocessing/Pass.js";
 import type { z } from "zod";
-import type { EffectDescriptor, EffectStage } from "../../scene/look";
+import type { EffectDescriptor, EffectStage, FeatureStartup } from "../../scene/look";
 import type { TankSize } from "../../sim/tank";
 import type { WaterUniforms } from "../uniforms";
 
@@ -76,7 +76,7 @@ export function defineEffect<Schema extends z.ZodType>(definition: {
   readonly id: string;
   readonly name: string;
   readonly stage: EffectStage;
-  readonly enabledByDefault: boolean;
+  readonly startup: FeatureStartup;
   readonly params: Schema;
   readonly create: (context: EffectContext, params: z.output<Schema>) => EffectInstance;
 }): EffectDefinition {
@@ -84,7 +84,7 @@ export function defineEffect<Schema extends z.ZodType>(definition: {
     id: definition.id,
     name: definition.name,
     stage: definition.stage,
-    enabledByDefault: definition.enabledByDefault,
+    startup: definition.startup,
     params: definition.params,
     create: (context, params) => definition.create(context, definition.params.parse(params)),
   };

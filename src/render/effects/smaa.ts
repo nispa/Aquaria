@@ -12,7 +12,7 @@ export const smaaEffect = defineEffect({
   name: "SMAA anti-aliasing",
   stage: "display",
   // Costs a few milliseconds at 4K; multisampling already smooths most edges.
-  enabledByDefault: false,
+  startup: "manual",
   params: z.object({}),
   create: () => {
     const pass = new SMAAPass();

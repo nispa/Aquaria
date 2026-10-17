@@ -12,7 +12,7 @@ export const ambientOcclusionEffect = defineEffect({
   stage: "hdr",
   // It re-renders the whole scene for normals: about 18 ms per frame at 1080p
   // on a mid-range GPU, for little visible gain in foggy water.
-  enabledByDefault: false,
+  startup: "manual",
   params: z.object({
     /** World-space sampling radius, m. */
     radius: z.number().positive().max(2).default(0.35),

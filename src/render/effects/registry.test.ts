@@ -19,9 +19,11 @@ describe("effect registry", () => {
     expect(() => lookFeatures(EFFECTS)).not.toThrow();
   });
 
-  it("keeps the heavy ambient occlusion and the blurring depth of field off by default", () => {
-    const enabled = EFFECTS.filter((effect) => effect.enabledByDefault).map((effect) => effect.id);
+  it("leaves the heavy ambient occlusion, depth of field and SMAA to the viewer", () => {
+    const manual = EFFECTS.filter((effect) => effect.startup === "manual").map(
+      (effect) => effect.id,
+    );
 
-    expect(enabled).toEqual(["volumetric-light", "bloom", "finish"]);
+    expect(manual).toEqual(["ambient-occlusion", "depth-of-field", "smaa"]);
   });
 });

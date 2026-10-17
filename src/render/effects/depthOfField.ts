@@ -12,7 +12,7 @@ export const depthOfFieldEffect = defineEffect({
   name: "Depth of field",
   stage: "hdr",
   // Seen with the naked eye on a wall, a camera's focus falloff reads as blur.
-  enabledByDefault: false,
+  startup: "manual",
   params: z.object({
     /** Distance of the sharp plane behind the glass, m. */
     focus: z.number().min(0).default(1.8),

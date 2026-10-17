@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { describe, expect, it } from "vitest";
 import {
+  calibrationPlan,
   LIGHTING_FEATURES,
   lookFeatures,
   lookPasses,
@@ -13,17 +14,17 @@ const effects: readonly EffectDescriptor[] = [
     id: "grain",
     name: "Grain",
     stage: "display",
-    enabledByDefault: true,
+    startup: "base",
     params: z.object({ amount: z.number().default(0.5) }),
   },
   {
     id: "blur",
     name: "Blur",
     stage: "hdr",
-    enabledByDefault: false,
+    startup: "manual",
     params: z.object({ radius: z.number().default(1) }),
   },
-  { id: "glow", name: "Glow", stage: "hdr", enabledByDefault: true, params: z.object({}) },
+  { id: "glow", name: "Glow", stage: "hdr", startup: "added", params: z.object({}) },
 ];
 
 describe("lookFeatures", () => {
@@ -41,7 +42,7 @@ describe("lookFeatures", () => {
   it("marks registered effects as post-processing features", () => {
     const blur = lookFeatures(effects).find((feature) => feature.id === "blur");
 
-    expect(blur).toEqual({ id: "blur", name: "Blur", kind: "effect", enabledByDefault: false });
+    expect(blur).toEqual({ id: "blur", name: "Blur", kind: "effect", startup: "manual" });
   });
 
   it("rejects an effect whose id clashes with a lighting feature", () => {
@@ -83,6 +84,34 @@ describe("resolveLook", () => {
     const look = resolveLook(features, {}, ["blur", "raytracing"]);
 
     expect([...look]).toEqual(["blur"]);
+  });
+});
+
+describe("calibrationPlan", () => {
+  const features = lookFeatures(effects);
+  const lighting = (startup: string): string[] =>
+    LIGHTING_FEATURES.filter((feature) => feature.startup === startup).map((feature) => feature.id);
+
+  it("starts from the base features alone", () => {
+    const { start } = calibrationPlan(features, {});
+
+    expect([...start].sort()).toEqual([...lighting("base"), "grain"].sort());
+  });
+
+  it("offers the features added when the machine allows, lighting first", () => {
+    const { candidates } = calibrationPlan(features, {});
+
+    expect(candidates).toEqual([...lighting("added"), "glow"]);
+  });
+
+  it("keeps the viewer's own switches and never offers them", () => {
+    const plan = calibrationPlan(features, { grain: false, glow: false, blur: true });
+
+    expect([
+      plan.start.has("grain"),
+      plan.start.has("blur"),
+      plan.candidates.includes("glow"),
+    ]).toEqual([false, true, false]);
   });
 });
 

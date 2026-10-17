@@ -76,6 +76,8 @@ export interface PanelState {
   /** Switchable lighting features and effects, and which ones are on. */
   readonly features: readonly LookFeature[];
   readonly look: Look;
+  /** Whether the effects can be fitted to the screen (the browser times the GPU). */
+  readonly canFitLook: boolean;
   /** Release and build, e.g. "v1.0.1 · 9b2d5f7". */
   readonly version: string;
   /** URL of the Aquaria title picture at the top of the panel. */
@@ -115,6 +117,8 @@ export interface PanelCallbacks {
   onRealisticChange(realistic: boolean): void;
   onMsaaChange(samples: number): void;
   onFeatureChange(featureId: string, enabled: boolean): void;
+  /** Forgets the viewer's own effect switches and fits the effects to the screen again. */
+  onFitLook(): void;
   onFullscreen(): void;
   /** Drops a pinch of food into the tank. */
   onFeed(): void;
@@ -147,6 +151,10 @@ export interface Panel {
   setScenePicture(sceneId: string, picture: string): void;
   /** While editing, the panel and the corner buttons hide and keys do nothing. */
   setSuspended(suspended: boolean): void;
+  /** Shows which features are on, when something else than the viewer changed them. */
+  setLook(look: Look): void;
+  /** Shows whether the effects are being fitted to the screen, and which ones it added. */
+  setLookFitting(running: boolean, chosen: readonly string[]): void;
   dispose(): void;
 }
 
@@ -157,12 +165,13 @@ const FEATURE_HEADINGS: Readonly<Record<LookFeatureKind, string>> = {
 
 type SectionFactory = (id: string, title: string) => HTMLDetailsElement;
 
-/** One section per feature kind, one switch per feature. */
+/** One section per feature kind, one switch per feature; `inputs` gets each switch by feature id. */
 function featureSections(
   features: readonly LookFeature[],
   look: Look,
   section: SectionFactory,
   onChange: (featureId: string, enabled: boolean) => void,
+  inputs: Map<string, HTMLInputElement>,
 ): HTMLElement[] {
   return (Object.keys(FEATURE_HEADINGS) as LookFeatureKind[]).map((kind) => {
     const box = section(kind, FEATURE_HEADINGS[kind]);
@@ -171,6 +180,8 @@ function featureSections(
         onChange(feature.id, checked);
       });
       row.dataset.feature = feature.id;
+      const input = row.querySelector("input");
+      if (input !== null) inputs.set(feature.id, input);
       box.append(row);
     }
     return box;
@@ -237,6 +248,7 @@ export function createPanel(
   const panel = element("aside", "panel");
   panel.setAttribute("aria-label", "Aquarium controls");
   panel.hidden = true;
+  const featureInputs = new Map<string, HTMLInputElement>();
 
   const sectionWithSummary = (id: string, title: string) =>
     collapsible(id, title, state.openSections[id] ?? OPEN_BY_DEFAULT.has(id), (open) => {
@@ -390,6 +402,20 @@ export function createPanel(
     callbacks.onFrameLimitChange(Number(frameLimit.input.value));
   });
 
+  const fitStatus = element("p", "panel__gpu panel__fit-status");
+  const fit = element("button", "panel__button panel__button--wide", "Fit effects to this screen");
+  fit.type = "button";
+  fit.name = "fit-look";
+  fit.title =
+    "Starts from a light look and adds lighting and effects one at a time while the GPU keeps up; your own switches are forgotten.";
+  fit.hidden = !state.canFitLook;
+  fitStatus.hidden = !state.canFitLook;
+  fit.addEventListener("click", () => {
+    callbacks.onFitLook();
+  });
+  const featureName = (id: string): string =>
+    state.features.find((feature) => feature.id === id)?.name ?? id;
+
   const fpsRow = checkbox("Show FPS", state.showFps, (checked) => {
     fpsCounter.hidden = !checked;
     callbacks.onShowFpsChange(checked);
@@ -430,6 +456,8 @@ export function createPanel(
     presets,
     automatic,
     frameLimit.row,
+    fit,
+    fitStatus,
     antialias.row,
     fpsRow,
     fullscreen,
@@ -440,9 +468,15 @@ export function createPanel(
     time.section,
     lights,
     scenery,
-    ...featureSections(state.features, state.look, section, (featureId, enabled) => {
-      callbacks.onFeatureChange(featureId, enabled);
-    }),
+    ...featureSections(
+      state.features,
+      state.look,
+      section,
+      (featureId, enabled) => {
+        callbacks.onFeatureChange(featureId, enabled);
+      },
+      featureInputs,
+    ),
     sound,
     quality,
     element(
@@ -575,6 +609,15 @@ export function createPanel(
     },
     setSound(on) {
       if (soundInput !== null) soundInput.checked = on;
+    },
+    setLook(look) {
+      for (const [id, input] of featureInputs) input.checked = look.has(id);
+    },
+    setLookFitting(running, chosen) {
+      fit.disabled = running;
+      fitStatus.textContent = running
+        ? "Fitting effects to this screen…"
+        : `Added for this screen: ${chosen.length === 0 ? "none" : chosen.map(featureName).join(", ")}`;
     },
     setFps(fps, height) {
       const rate = fps === undefined ? "– fps" : `${fps} fps`;

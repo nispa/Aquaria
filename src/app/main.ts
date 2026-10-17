@@ -3,6 +3,7 @@ import { Vector2, Vector3 } from "three";
 import { createFixedStepClock } from "../core/clock";
 import { createEventBus } from "../core/eventBus";
 import { createFpsMeter } from "../core/fps";
+import { createFeatureCalibration, type FeatureCalibration } from "../core/featureCalibration";
 import { createFrameLimiter } from "../core/frameLimiter";
 import { createResolutionGovernor, type ResolutionGovernor } from "../core/resolutionGovernor";
 import { classifyGpu, shortGpuName } from "../core/gpu";
@@ -62,7 +63,7 @@ import {
   type Settings,
 } from "../scene/settings";
 import type { Lights } from "../scene/lights";
-import { lookFeatures, resolveLook, type Look } from "../scene/look";
+import { calibrationPlan, lookFeatures, resolveLook, type Look } from "../scene/look";
 import { applySceneryOverrides, sceneryEntries } from "../scene/scenery";
 import {
   parseSceneIndex,
@@ -348,7 +349,11 @@ async function start(): Promise<void> {
     loadSceneChoices(sceneIndex, customScenes),
   ]);
   const features = lookFeatures(EFFECTS);
-  let look: Look = resolveLook(features, settings.look ?? {}, options.effects);
+  // The look is fitted to the GPU on live frames; a requested list or a still frame is used as is.
+  const fitsLook = options.effects === undefined && options.frozenSeconds === undefined;
+  let look: Look = fitsLook
+    ? calibrationPlan(features, settings.look ?? {}).start
+    : resolveLook(features, settings.look ?? {}, options.effects);
   /** A scene validated, down to the plants and objects it names. */
   const parseWithObjects = (input: unknown): Scene => {
     const parsed = parseScene(input, catalog);
@@ -439,6 +444,12 @@ async function start(): Promise<void> {
   const pointerAt = new Vector2();
   let shownScene = scene;
   let { simulation, view } = mountScene(scene);
+  // Without a GPU timer nothing can be measured: the default look is drawn as is.
+  const canFitLook = fitsLook && view.timesGpu;
+  if (fitsLook && !canFitLook) {
+    look = resolveLook(features, settings.look ?? {});
+    view.setLook(look);
+  }
   /** The scene editor while editing: it draws instead of the tank, and the simulation stops. */
   let editor: SceneEditor | undefined;
   const feedRng = createRng((options.seed ?? scene.seed) + FEED_SEED_OFFSET);
@@ -506,13 +517,16 @@ async function start(): Promise<void> {
     const screen = Math.ceil(screenPixels / RESOLUTION_STEP) * RESOLUTION_STEP;
     return Math.max(Math.min(settings.renderHeight, screen), MIN_RENDER_HEIGHT);
   };
+  /** What a frame may cost on the GPU, ms. */
+  const frameBudgetMs = (limit: FrameLimit): number =>
+    (GPU_FRAME_SHARE * MS_PER_SECOND) / (limit === 0 ? UNLIMITED_BUDGET_FPS : limit);
   const createGovernor = (limit: FrameLimit, start: number): ResolutionGovernor =>
     createResolutionGovernor({
       min: MIN_RENDER_HEIGHT,
       max: highestHeight(),
       step: RESOLUTION_STEP,
       start,
-      budgetMs: (GPU_FRAME_SHARE * MS_PER_SECOND) / (limit === 0 ? UNLIMITED_BUDGET_FPS : limit),
+      budgetMs: frameBudgetMs(limit),
     });
   let governor = createGovernor(frameLimitOf(settings), highestHeight());
   let limiter = createFrameLimiter(frameLimitOf(settings));
@@ -584,6 +598,7 @@ async function start(): Promise<void> {
       msaaChoices: MSAA_SAMPLE_CHOICES,
       features,
       look,
+      canFitLook,
       openSections: settings.panelSections ?? {},
       version: versionLabel(import.meta.env.APP_VERSION, import.meta.env.APP_COMMIT),
       about: ABOUT,
@@ -670,12 +685,17 @@ async function start(): Promise<void> {
         update({ realistic });
       },
       onFeatureChange(featureId, enabled) {
+        if (fitting !== undefined) stopFitting();
         const next = new Set(look);
         if (enabled) next.add(featureId);
         else next.delete(featureId);
         look = next;
         view.setLook(look);
         update({ look: { ...settings.look, [featureId]: enabled } });
+      },
+      onFitLook() {
+        update({ look: {} });
+        startFitting();
       },
       onFeed: feed,
       onPointingToggle() {
@@ -857,6 +877,44 @@ async function start(): Promise<void> {
     }, SCENE_PICTURE_DELAY_MS);
   }
 
+  // Fitting the look to the GPU: features are added one at a time while the
+  // resolution stays at its highest, then the automatic resolution takes over.
+  let fitting: FeatureCalibration | undefined;
+  /** Features the fitting added, in the order it added them. */
+  let fitted: string[] = [];
+  const startFitting = (): void => {
+    const plan = calibrationPlan(features, settings.look ?? {});
+    look = plan.start;
+    view.setLook(look);
+    panel.setLook(look);
+    fitted = [];
+    fitting = createFeatureCalibration(plan.candidates, frameBudgetMs(frameLimitOf(settings)));
+    panel.setLookFitting(true, fitted);
+  };
+  const stopFitting = (): void => {
+    fitting = undefined;
+    panel.setLookFitting(false, fitted);
+    governor = createGovernor(frameLimitOf(settings), highestHeight());
+    logger.info("Look fitted to the GPU", { added: fitted.join(", ") });
+  };
+  const fitLook = (gpuMs: number, seconds: number): void => {
+    if (fitting === undefined) return;
+    const changes = fitting.frame(gpuMs, seconds);
+    if (changes.length > 0) {
+      const next = new Set(look);
+      for (const { id, enabled } of changes) {
+        if (enabled) next.add(id);
+        else next.delete(id);
+        fitted = enabled ? [...fitted, id] : fitted.filter((other) => other !== id);
+      }
+      look = next;
+      view.setLook(look);
+      panel.setLook(look);
+    }
+    if (fitting.done) stopFitting();
+  };
+  if (canFitLook) startFitting();
+
   if (options.frozenSeconds !== undefined) {
     // Deterministic still frame for visual tests: no animation loop.
     const steps = Math.round(options.frozenSeconds / SIMULATION_STEP_SECONDS);
@@ -891,7 +949,11 @@ async function start(): Promise<void> {
     const intervalMs = previousDrawn === undefined ? 0 : now - previousDrawn;
     previousDrawn = now;
     const automatic = autoResolutionOf(settings);
-    const height = automatic ? governor.height : settings.renderHeight;
+    const height = !automatic
+      ? settings.renderHeight
+      : fitting === undefined
+        ? governor.height
+        : highestHeight();
     if (view !== sizedView || height !== drawnHeight) {
       view.setRenderHeight(height);
       sizedView = view;
@@ -899,9 +961,12 @@ async function start(): Promise<void> {
     }
     view.render();
     activityOverlay.draw(simulation.fish, simulation.gesture, view.obstacles(), project);
-    if (automatic && intervalMs > 0) {
+    const gpuMs = view.gpuMs();
+    if (fitting !== undefined) {
+      if (gpuMs !== undefined && intervalMs > 0) fitLook(gpuMs, intervalMs / MS_PER_SECOND);
+    } else if (automatic && intervalMs > 0) {
       // Without a GPU timer, frames arriving late are the only sign of a busy GPU.
-      const cost = view.gpuMs() ?? intervalMs * GPU_FRAME_SHARE;
+      const cost = gpuMs ?? intervalMs * GPU_FRAME_SHARE;
       governor.frame(cost, intervalMs / MS_PER_SECOND);
     }
     fps.frame(intervalMs / MS_PER_SECOND);

@@ -8,7 +8,7 @@ export const bloomEffect = defineEffect({
   id: "bloom",
   name: "Bloom",
   stage: "hdr",
-  enabledByDefault: true,
+  startup: "added",
   params: z.object({
     strength: z.number().min(0).max(3).default(0.32),
     radius: z.number().min(0).max(1).default(0.55),
