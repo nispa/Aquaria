@@ -135,27 +135,62 @@ Comes after block E: the palette lists the object folders.
 
 ## D. Beyond the fish
 
-Animals that are not fish, after the editor (crabs walk on the rockwork C1
-builds). Models in `downloads/` (licenses checked): a sea turtle
-(CC-BY-4.0), a hermit crab (CC-BY-4.0), a freshwater crab (CC0).
+Animals that are not fish, after the editor (crabs and shrimps walk on the
+rockwork C1 builds). The sea turtle (CC-BY-4.0) is in
+`public/assets/animals/`. Models in `downloads/` (licenses checked): a hermit
+crab (CC-BY-4.0), a freshwater crab (CC0). A shrimp, to download: "shrimp"
+by out work (CC-BY-4.0,
+https://sketchfab.com/3d-models/shrimp-f9749f8e0c5a48919abfd1f7a79ca043),
+hand-modeled, no textures, parts split by material (11), about 813k faces
+to decimate; one shape colored per species (block H).
 
 ### D1. Skeletal animation
 
-- [ ] `model.json` names the clips (swim, walk, idle) and how their speed
+- [x] `model.json` names the clips (swim, walk, idle) and how their speed
       follows the animal's; skinned models play them, few instances each,
       while fish keep their instanced, shader-swum bodies.
 
 ### D2. Distant turtles
 
-- [ ] Scenery fauna: turtles swim slowly far behind the tank, in the haze
+- [x] Scenery fauna: turtles swim slowly far behind the tank, in the haze
       of the backdrop, now and then; not a fauna card, not selectable, no
       reactions. Data-driven per scene.
 
-### D3. Crabs and hermit crabs
+### D3. Shrimps
 
-- [ ] A `crawl` style: walking on the seabed (sand and rockwork), crabs
-      sideways, around obstacles, stopping to pick at the sand, eating
-      flakes that reach the bottom.
+Comes before the crabs: shrimps bring walking on the bottom, the crabs
+reuse it. The procedural body first, the model after.
+
+No skeletons here: the model has no bones, and on the bottom these animals
+are a few pixels tall, where how they glide, the antennae and the tail flick
+show, single steps do not.
+
+- [ ] Limbs moved in the shader: the body moves as one piece, driven by the
+      simulation; legs, antennae and tail move in the shader, instanced
+      like the fish. Which part is which comes from a per-vertex limb
+      attribute (painted in Blender like `_SWAY`, or taken from the
+      model's materials; written by procedural bodies);
+      `docs/FISH_MODELS.md` tells how to paint it.
+- [ ] A procedural shrimp body: segmented curved body, fan tail, long
+      antennae, thin legs, with the limb attribute; colors per species.
+- [ ] A `crawl` style: walking forward on the seabed (sand, rockwork,
+      plants), around obstacles, stopping to pick at the surface with the
+      small claws, eating flakes that reach the bottom.
+- [ ] Short swims: now and then a shrimp lifts off and swims a little way
+      with its legs, then settles again; antennae always moving.
+- [ ] Tapped, it flicks its tail and darts backwards, then walks again when
+      calm.
+- [ ] Species entries and fauna cards (red freshwater shrimp for planted
+      tanks, marbled shrimp for reefs), small groups; docs.
+- [ ] Then the out work model: decimated to a few thousand triangles, the
+      limb attribute from its materials, one shape with a coloring per
+      species (block H); `ASSETS.md`.
+
+### D4. Crabs and hermit crabs
+
+- [ ] Crabs on the `crawl` style and shader limbs of D3: sideways, around
+      obstacles, stopping to pick at the sand, eating flakes that reach the
+      bottom.
 - [ ] Tapped, they scuttle away or hide: a crab under the nearest shelter,
       a hermit crab into its shell (it stops and sinks down), coming out
       again when calm.
@@ -272,6 +307,27 @@ under LED spots and in sunlight.
 - [x] `docs/EFFECTS.md` (+ Italian version): the contract, the uniforms,
       a worked example, how to try a shader in the tank.
 
+## H. One model, many colorings
+
+Fish of the same shape differ in their colors: one model can dress several
+species (the tangs, the shrimps of D3) and several strains of one species
+(guppies, platies, red and blue shrimps). Comes before the D3 model. A
+species with no coloring looks as today.
+
+- [ ] `model.json` lists colorings by id: textures (base color, optional
+      pattern mask) or plain colors per material, credit when they come
+      from elsewhere; validated with Zod, a missing texture logs a warning
+      and falls back to the model's own.
+- [ ] A species names its model and coloring (`model`, `coloring`); several
+      species share one folder, so the shape is downloaded and kept on the
+      GPU once.
+- [ ] Strains: a species may list several colorings with weights; each
+      fish draws one from the seeded RNG and keeps it, so a school mixes
+      them. Instanced like today (a per-instance index into a texture
+      array or atlas), not one draw per coloring.
+- [ ] Fauna cards show the species' first coloring; docs in
+      `docs/FISH_MODELS.md`: how to paint a coloring in Blender.
+
 ## Ideas to discuss
 
 Raised by the user, not planned yet.
@@ -279,6 +335,9 @@ Raised by the user, not planned yet.
 - Tank sizes: preset sizes (nano to large); each species gets a smallest
   tank from aquarium practice, so big fish cannot go in small tanks and
   small fish are advised against in very large ones.
+- A catfish (model in `downloads/catfish-3d-model.zip`, license to check),
+  with a swimming style of its own: a bottom dweller that rests on the
+  sand, glides along it whiskers first and sifts it for food.
 - Predators: a big, hungry fish chases a much smaller one and may eat it;
   limits (hunger, size ratio, short chase, escape to a shelter), whether
   the prey is really removed, and a panel switch.
