@@ -35,6 +35,9 @@ export const crawlStyle: SwimStyle<"crawl"> = {
   id: "crawl",
   start(state, params, context) {
     state.grounded = true;
+    state.sideways = params.sideways;
+    state.landbound = !params.swims;
+    state.withdraws = params.fright === "shell";
     // Every walker starts somewhere in a stop, so a group does not set off in step.
     stop(state, params, context);
     state.timer *= context.rng.next();

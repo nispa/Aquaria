@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clamp, inverseLerp, lerp, smoothstep } from "./math";
+import { clamp, inverseLerp, lerp, smoothstep, turnBetween } from "./math";
 
 describe("clamp", () => {
   it("keeps values inside the range unchanged", () => {
@@ -36,5 +36,15 @@ describe("smoothstep", () => {
 
   it("is 0.5 halfway between the edges", () => {
     expect(smoothstep(0, 1, 0.5)).toBe(0.5);
+  });
+});
+
+describe("turnBetween", () => {
+  it("takes the short way round", () => {
+    expect(turnBetween(3, -3)).toBeCloseTo(2 * Math.PI - 6);
+  });
+
+  it("is negative turning clockwise", () => {
+    expect(turnBetween(1, 0.5)).toBeCloseTo(-0.5);
   });
 });

@@ -67,6 +67,8 @@ export function posedFish(species: Species, heading: Vector3 = HEADING): Fish {
     roll: 0,
     turnRate: 0,
     walking: false,
+    still: false,
+    facing: Math.atan2(heading.z, heading.x),
     hiding: 0,
     refuge: new Vector3(),
     refugeSize: 0,

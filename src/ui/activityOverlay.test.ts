@@ -41,6 +41,8 @@ function fishFixture(): Fish {
     roll: 0,
     turnRate: 0,
     walking: false,
+    still: false,
+    facing: 0,
     hiding: 0,
     refuge: new Vector3(),
     refugeSize: 0,

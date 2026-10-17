@@ -165,6 +165,18 @@ foot. Off the ground, it sinks back once it is free to walk again.
 | `stopSeconds` | [1, 4]  | How long it stands still, picking at the ground |
 | `turnAngle`   | 1.2     | Spread of the change of heading after a stop    |
 | `turnJitter`  | 0.3     | Heading jitter while walking                    |
+| `sideways`    | false   | Walks sideways, its body across its way (crabs) |
+| `swims`       | true    | false: never leaves the ground (crabs)          |
+| `fright`      | "flee"  | "shell": withdraws into its shell (hermit crab) |
+
+A crab (`"sideways": true, "swims": false`) does everything on foot: it
+runs from a tap along the floor, walks to the nearest shelter if it is one
+of the species' hiding individuals, and waits under falling food rather
+than swimming up to it. Its legs step any way at once, so it reverses
+without turning round; its body turns slowly to keep across its way. A
+hermit crab (`"fright": "shell"` too) does not run: tapped, it withdraws
+into its shell where it stands and stays perfectly still until it feels
+safe again. Every walker stands perfectly still while it stops.
 
 ## What the bundled species do
 

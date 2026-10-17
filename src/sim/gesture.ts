@@ -1,4 +1,5 @@
 import type { Vector3 } from "three";
+import { turnBetween } from "../core/math";
 
 /**
  * What a finger (or mouse) on the glass is drawing: circles or quick
@@ -59,11 +60,6 @@ export function createGesture(): Gesture {
 
 function smooth(current: number, target: number, deltaSeconds: number): number {
   return current + (target - current) * (1 - Math.exp(-deltaSeconds / SMOOTHING_SECONDS));
-}
-
-/** Angle from `from` to `to`, folded into -π..π. */
-function turnBetween(from: number, to: number): number {
-  return Math.atan2(Math.sin(to - from), Math.cos(to - from));
 }
 
 /** Follows the finger for one step; `point` is undefined when nobody touches the glass. */

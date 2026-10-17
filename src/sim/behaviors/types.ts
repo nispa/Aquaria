@@ -29,6 +29,12 @@ export interface SwimState {
    * the seabed and keeps it there, ignoring `height`.
    */
   grounded: boolean;
+  /** Walks with its body across the way it goes, like a crab. */
+  sideways: boolean;
+  /** Never leaves the ground, not even to flee, feed or hide. */
+  landbound: boolean;
+  /** Withdraws into its shell when frightened, rather than running. */
+  withdraws: boolean;
   /** Seconds left in the style's current phase. */
   timer: number;
   /** Seconds left before a new height is picked. */
@@ -87,6 +93,9 @@ export function createSwimState(yaw = 0): SwimState {
     mouth: 0,
     steep: false,
     grounded: false,
+    sideways: false,
+    landbound: false,
+    withdraws: false,
     timer: 0,
     heightTimer: 0,
     clock: 0,

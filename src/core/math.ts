@@ -16,3 +16,8 @@ export function smoothstep(edge0: number, edge1: number, value: number): number 
   const t = clamp(inverseLerp(edge0, edge1, value), 0, 1);
   return t * t * (3 - 2 * t);
 }
+
+/** The turn from heading `from` to heading `to`, radians, folded into -π..π: the short way round. */
+export function turnBetween(from: number, to: number): number {
+  return Math.atan2(Math.sin(to - from), Math.cos(to - from));
+}

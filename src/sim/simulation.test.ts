@@ -1514,3 +1514,169 @@ describe("the crowd", () => {
     expect(closestStrangers(simulation, 20)).toBeGreaterThan(0.25);
   });
 });
+
+describe("walkers", () => {
+  /** Blue tangs made into walkers with `swim`, bold enough to hide when told so. */
+  function simulateWalkers(swim: unknown, behavior: unknown = {}): Simulation {
+    const input = catalogFixture();
+    const tuned = parseCatalog({
+      species: input.species.map((entry) =>
+        entry.id === "blue-tang" ? { ...entry, swim, behavior } : entry,
+      ),
+    });
+    return createSimulation({
+      scene: parseScene({ ...sceneFixture(), fauna: [{ species: "blue-tang", count: 6 }] }, tuned),
+      catalog: tuned,
+      rng: createRng(4),
+    });
+  }
+
+  /** The angle between two headings, folded into 0..π. */
+  const gap = (first: number, second: number): number =>
+    Math.abs(Math.atan2(Math.sin(first - second), Math.cos(first - second)));
+
+  it("turns a sideways walker's body across the way it walks", () => {
+    const simulation = simulateWalkers({ style: "crawl", sideways: true });
+    const gaps: number[] = [];
+
+    run(simulation, 10);
+    for (let elapsed = 0; elapsed < 20; elapsed += STEP) {
+      simulation.step(STEP);
+      for (const fish of simulation.fish) {
+        if (fish.velocity.length() < fish.species.speed.cruise * 0.3) continue;
+        gaps.push(gap(fish.facing, Math.atan2(fish.velocity.z, fish.velocity.x)));
+      }
+    }
+
+    const mean = gaps.reduce((sum, value) => sum + value, 0) / gaps.length;
+    expect(gaps.length).toBeGreaterThan(0);
+    expect(Math.abs(mean - Math.PI / 2)).toBeLessThan(0.3);
+  });
+
+  it("keeps a forward walker's body along the way it walks", () => {
+    const simulation = simulateWalkers({ style: "crawl" });
+    const gaps: number[] = [];
+
+    run(simulation, 10);
+    for (let elapsed = 0; elapsed < 20; elapsed += STEP) {
+      simulation.step(STEP);
+      for (const fish of simulation.fish) {
+        if (fish.velocity.length() < fish.species.speed.cruise * 0.3) continue;
+        gaps.push(gap(fish.facing, Math.atan2(fish.velocity.z, fish.velocity.x)));
+      }
+    }
+
+    expect(Math.max(...gaps)).toBeLessThan(0.5);
+  });
+
+  it("stands still while a walker stops", () => {
+    const simulation = simulateWalkers({ style: "crawl", stopSeconds: [2, 3] });
+    const before = new Vector3();
+    let stoppedSteps = 0;
+    let largestStep = 0;
+
+    run(simulation, 10);
+    for (let elapsed = 0; elapsed < 20; elapsed += STEP) {
+      const fish = simulation.fish[0];
+      if (fish === undefined) break;
+      before.copy(fish.position);
+      simulation.step(STEP);
+      if (fish.swim.speed !== 0 || !fish.walking) continue;
+      stoppedSteps += 1;
+      largestStep = Math.max(largestStep, fish.position.distanceTo(before));
+    }
+
+    expect(stoppedSteps).toBeGreaterThan(0);
+    expect(largestStep).toBe(0);
+  });
+
+  it("keeps a walker that cannot swim on the floor, even running from a tap", () => {
+    const simulation = simulateWalkers({ style: "crawl", swims: false }, { shyness: 1 });
+    let highest = 0;
+
+    run(simulation, 10);
+    simulation.tap(new Vector3(0, 0.5, -2.5));
+    watchAll(simulation, 5, (fish) => {
+      highest = Math.max(highest, fish.position.y / fish.length);
+    });
+
+    expect(highest).toBeLessThan(0.5);
+  });
+
+  it("lets a walker that cannot swim run from a tap", () => {
+    const simulation = simulateWalkers({ style: "crawl", swims: false }, { shyness: 1 });
+    run(simulation, 10);
+    const tap = new Vector3(0, 0.2, -2.5);
+    const before = simulation.fish.map((fish) => fish.position.distanceTo(tap));
+
+    simulation.tap(tap);
+    run(simulation, 1.5);
+
+    const after = simulation.fish.map((fish) => fish.position.distanceTo(tap));
+    const fartherAway = after.filter((distance, index) => distance > (before[index] ?? 0));
+    expect(fartherAway.length).toBeGreaterThan(after.length / 2);
+  });
+
+  it("pulls a walker with a shell into it when tapped: it stops where it is", () => {
+    const simulation = simulateWalkers(
+      { style: "crawl", swims: false, fright: "shell" },
+      { shyness: 1 },
+    );
+    run(simulation, 10);
+
+    simulation.tap(new Vector3(0, 0.2, -2.5));
+    run(simulation, 0.2);
+    const withdrawn = simulation.fish.filter((fish) => fish.hiding > 0);
+    const starts = withdrawn.map((fish) => fish.position.clone());
+    run(simulation, 3);
+
+    const moved = withdrawn.map((fish, index) =>
+      fish.position.distanceTo(starts[index] ?? fish.position),
+    );
+    expect(withdrawn.length).toBeGreaterThan(0);
+    expect(Math.max(...moved)).toBe(0);
+  });
+
+  it("lets a walker with a shell come out again once calm", () => {
+    const simulation = simulateWalkers(
+      { style: "crawl", swims: false, fright: "shell" },
+      { shyness: 1 },
+    );
+    run(simulation, 10);
+
+    simulation.tap(new Vector3(0, 0.2, -2.5));
+    run(simulation, 20);
+
+    expect(simulation.fish.every((fish) => fish.hiding === 0)).toBe(true);
+  });
+
+  it("walks a crab to the nearest shelter when tapped", () => {
+    const simulation = simulateWalkers(
+      { style: "crawl", swims: false, sideways: true },
+      { shyness: 1, hiding: 1 },
+    );
+    const shelter = { x: 0, z: -2.5, height: 0.3, tags: ["shelter"] };
+    simulation.setPlaces(() => [shelter]);
+    run(simulation, 10);
+    const distance = (fish: Fish): number =>
+      Math.hypot(fish.position.x - shelter.x, fish.position.z - shelter.z);
+    const before = simulation.fish.map(distance);
+
+    simulation.tap(new Vector3(0, 0.2, -2.5));
+    run(simulation, 4);
+
+    const after = simulation.fish.map(distance);
+    const closer = after.filter((value, index) => value < (before[index] ?? 0));
+    expect(closer.length).toBeGreaterThan(after.length / 2);
+    expect(Math.max(...simulation.fish.map((fish) => fish.position.y / fish.length))).toBeLessThan(
+      0.5,
+    );
+  });
+});
+
+function watchAll(simulation: Simulation, seconds: number, sample: (fish: Fish) => void): void {
+  for (let elapsed = 0; elapsed < seconds; elapsed += STEP) {
+    simulation.step(STEP);
+    simulation.fish.forEach(sample);
+  }
+}

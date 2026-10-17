@@ -90,7 +90,8 @@ const patrol = z.strictObject({
 
 /**
  * Walks on the floor, following its rise and fall: stops to pick at the
- * ground, then sets off in a new direction. Shrimps, crabs.
+ * ground, then sets off in a new direction. Shrimps; with `sideways` and
+ * `swims: false`, crabs; with `fright: "shell"` too, hermit crabs.
  */
 const crawl = z.strictObject({
   style: z.literal("crawl"),
@@ -103,6 +104,19 @@ const crawl = z.strictObject({
   turnAngle: share.max(Math.PI).default(1.2),
   /** Heading jitter while walking, radians per square root of a second. */
   turnJitter: share.default(0.3),
+  /** Walks sideways, its body across the way it goes, like a crab. */
+  sideways: z.boolean().default(false),
+  /**
+   * Whether it may swim off the ground (a shrimp to a plant top, away from
+   * a fright). A crab cannot: it runs, feeds and hides on foot.
+   */
+  swims: z.boolean().default(true),
+  /**
+   * What it does when frightened: `flee` runs off (or to a shelter, for the
+   * species' hiding individuals); `shell` withdraws into its shell where it
+   * stands and stays still until calm, like a hermit crab.
+   */
+  fright: z.enum(["flee", "shell"]).default("flee"),
 });
 
 export const swimSchema = z.discriminatedUnion("style", [

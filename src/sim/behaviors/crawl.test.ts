@@ -34,3 +34,20 @@ describe("crawl", () => {
     expect(Math.max(...jumps)).toBeGreaterThan(0.3);
   });
 });
+
+describe("crawl, for crabs", () => {
+  it("walks forward unless told to walk sideways", () => {
+    expect(startStyle(crawlStyle).state.sideways).toBe(false);
+    expect(startStyle(crawlStyle, { sideways: true }).state.sideways).toBe(true);
+  });
+
+  it("may swim off unless told it cannot", () => {
+    expect(startStyle(crawlStyle).state.landbound).toBe(false);
+    expect(startStyle(crawlStyle, { swims: false }).state.landbound).toBe(true);
+  });
+
+  it("runs from a fright unless it has a shell to withdraw into", () => {
+    expect(startStyle(crawlStyle).state.withdraws).toBe(false);
+    expect(startStyle(crawlStyle, { fright: "shell" }).state.withdraws).toBe(true);
+  });
+});

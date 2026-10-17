@@ -1,5 +1,5 @@
 import { Box3, Vector3 } from "three";
-import { clamp, lerp, smoothstep } from "../core/math";
+import { clamp, lerp, smoothstep, turnBetween } from "../core/math";
 import { createRng, hashToUnit, type Rng } from "../core/rng";
 import type { Scene, Species, SpeciesCatalog } from "../scene/schema";
 import type { SwimSpec } from "../scene/swimming";
@@ -90,6 +90,8 @@ const SEABED_MIN_CLEARANCE = 0.08;
 const SEABED_MIN_GAP_BODY_LENGTHS = 0.5;
 /** A walker's body rides this many body lengths above the ground, on its legs. */
 const WALKING_GAP_BODY_LENGTHS = 0.12;
+/** How fast a sideways walker turns its body, rad/s. */
+const WALKER_TURN_RATE = 3;
 /** A walker reaches places this many body lengths high without leaving the ground. */
 const GROUND_REACH_BODY_LENGTHS = 1;
 /** A walker off the ground (after a fright) sinks back this many body lengths a second. */
@@ -280,6 +282,14 @@ export interface Fish {
   turnRate: number;
   /** Walks on the seabed this step, rather than swimming (see the `crawl` style). */
   walking: boolean;
+  /** A walker standing still this step: it does not move at all. */
+  still: boolean;
+  /**
+   * Which way the body points seen from above, radians, like `swim.yaw`.
+   * A swimmer points where it goes; a walker turns its body gradually, and
+   * a sideways walker (a crab) holds it across the way it goes.
+   */
+  facing: number;
   /** Seconds it still stays hidden after a fright, 0 when it is not hiding. */
   hiding: number;
   /** Where it hides, while `hiding`. */
@@ -572,6 +582,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
       roll: 0,
       turnRate: 0,
       walking: false,
+      still: false,
+      facing: angle,
       hiding: 0,
       refuge: new Vector3(),
       refugeSize: 0,
@@ -694,6 +706,12 @@ export function createSimulation(options: SimulationOptions): Simulation {
    * anemone; one of the species' hiding individuals in the nearest shelter.
    */
   const seekRefuge = (group: Group, member: Fish): boolean => {
+    if (member.swim.withdraws) {
+      // Its shell is its shelter: it hides where it stands.
+      member.refuge.copy(member.position);
+      member.refugeSize = 0;
+      return true;
+    }
     if (member.swim.anchored) {
       nestlePoint(member.swim, member.length, member.refuge);
       member.refugeSize = 0;
@@ -721,6 +739,10 @@ export function createSimulation(options: SimulationOptions): Simulation {
   const lurk = (member: Fish, deltaSeconds: number): void => {
     const { swim, refuge } = member;
     member.hiding = Math.max(member.hiding - deltaSeconds, 0);
+    if (swim.withdraws) {
+      swim.speed = 0;
+      return;
+    }
     const distance = member.position.distanceTo(refuge);
     swim.yaw = Math.atan2(refuge.z - member.position.z, refuge.x - member.position.x);
     swim.height = refuge.y;
@@ -1029,7 +1051,12 @@ export function createSimulation(options: SimulationOptions): Simulation {
       : isEnchanted(member.play)
         ? undefined
         : inspectFinger(group, member);
-    const reactionSpeed = member.fear > 0 ? flee(group, member) : (feedingSpeed ?? curiousSpeed);
+    const withdrawn = swim.withdraws && member.hiding > 0;
+    const reactionSpeed = withdrawn
+      ? 0
+      : member.fear > 0
+        ? flee(group, member)
+        : (feedingSpeed ?? curiousSpeed);
     // Fright, food or a finger on the glass call off what the fish was doing.
     if (reactionSpeed !== undefined && activity.id !== "wander") {
       chooser.wander(activity, swim, species.activities, swimContext);
@@ -1038,14 +1065,17 @@ export function createSimulation(options: SimulationOptions): Simulation {
     const steep = member.fear > 0 || feedingSpeed !== undefined || swim.steep;
     const styled = reactionSpeed === undefined && member.state === "swimming";
     // Walkers swim off only when called away: by a reaction, to a place up
-    // off the ground, to hide.
+    // off the ground, to hide. One that cannot swim does all that on foot.
     member.walking =
-      styled &&
+      member.state === "swimming" &&
       swim.grounded &&
-      member.hiding === 0 &&
-      !isEnchanted(member.play) &&
-      (!activityOf(activity.id).atPlace || withinReachOfGround(member));
+      (swim.landbound ||
+        (styled &&
+          member.hiding === 0 &&
+          !isEnchanted(member.play) &&
+          (!activityOf(activity.id).atPlace || withinReachOfGround(member))));
     const wantedSpeed = reactionSpeed ?? Math.min(cruise * swim.speed, species.speed.max);
+    member.still = member.walking && wantedSpeed === 0;
     const response = styled ? swim.response : SPEED_RESPONSE;
     const thrust = styled ? swim.thrust : 1;
 
@@ -1066,11 +1096,15 @@ export function createSimulation(options: SimulationOptions): Simulation {
     // A tickled fish twists like a frightened one.
     const urgency = member.play.tickled > 0 ? 1 : member.fear;
     const agility = cruise / member.length;
-    turnWithInertia(previousVelocity, member.velocity, member, agility, urgency, deltaSeconds);
+    // A crab's legs step any way at once; a body going head first has to turn.
+    const crabWise = member.walking && swim.sideways;
+    if (crabWise) member.turnRate = 0;
+    else turnWithInertia(previousVelocity, member.velocity, member, agility, urgency, deltaSeconds);
+    turnBody(member, deltaSeconds);
 
     member.bend = easeToward(
       member.bend,
-      turnBend(previousVelocity, member.velocity, deltaSeconds, member.length),
+      crabWise ? 0 : turnBend(previousVelocity, member.velocity, deltaSeconds, member.length),
       BEND_RESPONSE_SECONDS,
       deltaSeconds,
     );
@@ -1082,6 +1116,27 @@ export function createSimulation(options: SimulationOptions): Simulation {
     );
     member.bend = wriggleBend(member.play) ?? member.bend;
     member.roll = nextRoll(member.play, member.roll, deltaSeconds);
+  };
+
+  /**
+   * Points the body where the fish goes; a sideways walker instead turns it
+   * gradually towards whichever side of its way is nearer, so a crab that
+   * reverses does not turn round. A still walker keeps it.
+   */
+  const turnBody = (member: Fish, deltaSeconds: number): void => {
+    if (member.still) return;
+    const heading = Math.atan2(member.velocity.z, member.velocity.x);
+    if (!member.walking || !member.swim.sideways) {
+      member.facing = heading;
+      return;
+    }
+    const left = heading + Math.PI / 2;
+    const right = heading - Math.PI / 2;
+    const nearer =
+      Math.abs(turnBetween(member.facing, left)) < Math.abs(turnBetween(member.facing, right));
+    const turn = turnBetween(member.facing, nearer ? left : right);
+    const most = WALKER_TURN_RATE * deltaSeconds;
+    member.facing = turnBetween(0, member.facing + clamp(turn, -most, most));
   };
 
   /** Whether the place a fish's activity is about can be reached standing on the ground. */
@@ -1099,7 +1154,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
   /** Moves a walker along the seabed, sinking back onto it when above. */
   const walk = (member: Fish, deltaSeconds: number): void => {
     const { position, length } = member;
-    position.addScaledVector(member.velocity, deltaSeconds);
+    if (!member.still) position.addScaledVector(member.velocity, deltaSeconds);
     const ground = seabed(position.x, position.z) + length * WALKING_GAP_BODY_LENGTHS;
     position.y = Math.max(
       position.y - length * SINK_BODY_LENGTHS_PER_SECOND * deltaSeconds,
