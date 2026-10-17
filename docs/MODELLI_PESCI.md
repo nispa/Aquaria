@@ -35,13 +35,17 @@ dorsale in alto (+y), in lunghezze di corpo. Si leggono sul visore dei
 modelli: lancia `pnpm dev` e apri
 
 ```
-http://localhost:5173/model-viewer.html?id=<cartella del modello>
+http://localhost:5173/model-viewer.html?id=<specie o cartella del modello>
 ```
 
-Disegna il modello dal lato destro, come lo prepara Aquaria, con sopra la
-griglia del riferimento del pesce. Nell'URL si possono mettere anche `gaze`
-(-1..1), `mouth` (0..1), `breath` (0..1) e `zoom=x,y,mezzaLarghezza`, per
-guardare da vicino occhi, bocca e branchie nelle posizioni estreme.
+(oppure sceglilo da `/debug.html`, la pagina di tutti gli strumenti di
+debug). Disegna il pesce dal lato destro, come lo disegna l'acquario, corpo
+procedurale o modello 3D, con sopra la griglia del riferimento del pesce.
+Gli slider a destra muovono sguardo, bocca, opercoli, piega di una virata,
+sforzo della coda e nuoto; spunta **auto** e lo slider oscilla da un capo
+all'altro da solo, per guardare un movimento a mani libere. L'URL può dire
+da dove partono: `gaze` (-1..1), `mouth` (0..1), `breath` (0..1), `model=0`
+per il corpo procedurale e `zoom=x,y,mezzaLarghezza` per guardare da vicino.
 
 ## 1. Forma e dimensioni
 

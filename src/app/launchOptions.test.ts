@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseLaunchOptions } from "./launchOptions";
+import { launchQuery, parseLaunchOptions } from "./launchOptions";
 
 describe("parseLaunchOptions", () => {
   it("names no scene and runs live by default, so the saved or default scene opens", () => {
@@ -53,5 +53,38 @@ describe("hour option", () => {
 
   it("ignores hours outside the day", () => {
     expect(parseLaunchOptions("?hour=25").hour).toBeUndefined();
+  });
+});
+
+describe("debug option", () => {
+  it("reads the debug tools to switch on", () => {
+    expect(parseLaunchOptions("?debug=overlay,shapes").debug).toEqual(["overlay", "shapes"]);
+  });
+
+  it("drops unknown debug tools", () => {
+    expect(parseLaunchOptions("?debug=overlay,wireframe").debug).toEqual(["overlay"]);
+  });
+
+  it("switches no debug tool on by default", () => {
+    expect(parseLaunchOptions("?scene=reef").debug).toBeUndefined();
+  });
+});
+
+describe("launchQuery", () => {
+  it("writes the options as a query the aquarium reads back", () => {
+    const options = {
+      scene: "reef",
+      seed: 3,
+      hour: 21,
+      frozenSeconds: 8,
+      effects: ["bloom"],
+      debug: ["overlay", "shapes"] as const,
+    };
+
+    expect(parseLaunchOptions(launchQuery(options))).toEqual(options);
+  });
+
+  it("writes nothing for no options", () => {
+    expect(launchQuery({})).toBe("");
   });
 });

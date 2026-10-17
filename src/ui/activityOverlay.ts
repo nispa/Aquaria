@@ -135,13 +135,22 @@ export interface ActivityOverlay {
   dispose(): void;
 }
 
-export function createActivityOverlay(parent: HTMLElement): ActivityOverlay {
+/** Whether the overlay and its collision shapes show from the start (?debug=overlay,shapes). */
+export interface ActivityOverlayStart {
+  readonly shown?: boolean;
+  readonly shapes?: boolean;
+}
+
+export function createActivityOverlay(
+  parent: HTMLElement,
+  start: ActivityOverlayStart = {},
+): ActivityOverlay {
   const canvas = document.createElement("canvas");
-  canvas.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:5;display:none";
+  let shown = start.shown ?? false;
+  let shapes = start.shapes ?? false;
+  canvas.style.cssText = `position:fixed;inset:0;pointer-events:none;z-index:5;display:${shown ? "block" : "none"}`;
   parent.append(canvas);
   const context = canvas.getContext("2d");
-  let shown = false;
-  let shapes = false;
   let pointerX = Number.NaN;
   let pointerY = Number.NaN;
   const at = new Vector3();

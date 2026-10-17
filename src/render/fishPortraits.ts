@@ -41,13 +41,16 @@ export interface FishPortraitRequest {
   readonly canvas: HTMLCanvasElement;
 }
 
-/** A still individual facing the camera at three-quarters. */
-function sitter(species: Species): Fish {
+/**
+ * A still individual of body length 1 at the origin, heading along
+ * `heading`: by default facing the camera at three-quarters.
+ */
+export function posedFish(species: Species, heading: Vector3 = HEADING): Fish {
   return {
     id: 0,
     species,
     position: new Vector3(),
-    velocity: HEADING.clone(),
+    velocity: heading.clone(),
     length: 1,
     swimPhase: SWIM_PHASE,
     opacity: 1,
@@ -92,7 +95,7 @@ export async function drawFishPortraits(
   const sitters = new Map(
     catalog.species
       .filter((species) => wanted.has(species.id))
-      .map((species) => [species.id, sitter(species)]),
+      .map((species) => [species.id, posedFish(species)]),
   );
 
   const renderer = new WebGLRenderer({ antialias: true, alpha: true });

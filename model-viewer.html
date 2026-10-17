@@ -13,9 +13,8 @@
           sans-serif;
       }
       #stage {
-        position: relative;
-        width: 100vw;
-        height: 100vh;
+        position: fixed;
+        inset: 0 300px 0 0;
       }
       canvas {
         position: absolute;
@@ -23,11 +22,51 @@
         width: 100%;
         height: 100%;
       }
+      #controls {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 300px;
+        box-sizing: border-box;
+        padding: 12px;
+        overflow-y: auto;
+        background: #0f2333;
+        border-left: 1px solid #1f3d52;
+      }
+      #controls h1 {
+        margin: 0 0 8px;
+        font-size: 15px;
+      }
+      #controls a {
+        color: #8cc8f0;
+      }
+      #controls select {
+        width: 100%;
+        margin-bottom: 6px;
+      }
+      .debug-slider {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 2px 8px;
+        margin: 10px 0;
+      }
+      .debug-slider__label {
+        grid-column: 1;
+      }
+      .debug-slider__value {
+        grid-column: 2;
+        font-variant-numeric: tabular-nums;
+      }
+      .debug-slider__range {
+        grid-column: 1;
+        width: 100%;
+      }
+      .debug-slider__auto {
+        grid-column: 2;
+      }
       #help {
-        position: absolute;
-        left: 8px;
-        bottom: 8px;
-        opacity: 0.8;
+        opacity: 0.75;
       }
     </style>
   </head>
@@ -35,8 +74,16 @@
     <div id="stage">
       <canvas id="model"></canvas>
       <canvas id="grid"></canvas>
-      <p id="help"></p>
     </div>
+    <aside id="controls">
+      <h1>Fish on the grid</h1>
+      <p id="help">
+        The fish's right side, snout to the right, as the aquarium draws it. x and y are in body
+        lengths. <a href="/debug.html">All debug tools</a>
+      </p>
+      <select id="species" aria-label="Species"></select>
+      <label><input id="use-model" type="checkbox" /> 3D model (when the species has one)</label>
+    </aside>
     <script type="module" src="/src/app/modelViewer.ts"></script>
   </body>
 </html>

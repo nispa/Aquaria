@@ -34,13 +34,17 @@ along x, from the tail at -0.5 to the snout at +0.5, the dorsal fin up
 open
 
 ```
-http://localhost:5173/model-viewer.html?id=<model folder>
+http://localhost:5173/model-viewer.html?id=<species or model folder>
 ```
 
-It draws the model from its right side, as Aquaria prepares it, with the
-fish frame's grid over it. Its URL can also hold `gaze` (-1..1), `mouth`
-(0..1), `breath` (0..1) and `zoom=x,y,halfWidth`, to look at the eyes,
-the mouth and the gills at their extremes, up close.
+(or pick it from `/debug.html`, the page of every debug tool). It draws the
+fish from its right side, as the aquarium draws it, procedural body or 3D
+model, with the fish frame's grid over it. Sliders on the right move the
+gaze, the mouth, the gill covers, the bend of a turn, the tail's effort and
+the swimming; tick **auto** and a slider swings from one end to the other
+by itself, to watch a motion hands free. The URL can set where they start:
+`gaze` (-1..1), `mouth` (0..1), `breath` (0..1), `model=0` for the
+procedural body and `zoom=x,y,halfWidth` to look up close.
 
 ## 1. Shape and size
 

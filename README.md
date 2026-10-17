@@ -396,7 +396,7 @@ texture files next to it. The species points to the folder:
   are only painted on gets `eyes.painted` instead.
 - `gills` (optional) makes the gill covers breathe.
 - `mouth.jaw`, `eyes.painted` and `gills` take places on the fish, read off
-  the model viewer (`pnpm dev`, then `/model-viewer.html?id=<folder>`); see
+  the model viewer (`pnpm dev`, then `/model-viewer.html?id=<species>`); see
   docs/FISH_MODELS.md, "A model from elsewhere".
 - `credit.license` must be one of `CC0-1.0`, `CC-BY-3.0`, `CC-BY-4.0`, `MIT`,
   `Apache-2.0`, `BSD-2-Clause`, `BSD-3-Clause`, `0BSD`, `Unlicense`. List the
@@ -533,6 +533,13 @@ pnpm lint
 pnpm typecheck
 pnpm build
 ```
+
+With `pnpm dev`, **`/debug.html`** gathers every debug tool: it opens the
+aquarium with any scene, seed, hour and effects and with the activity
+overlay (key A) or the collision shapes (key C) already on
+(`?debug=overlay,shapes`), and the fish on the grid (`/model-viewer.html`):
+one species from its side, with sliders for gaze, mouth, gills, turn bend,
+tail and swimming that can also swing by themselves.
 
 The code is layered (`core` → `scene` → `sim` → `render`/`ui` → `app`), and
 simulation logic runs without a browser so it can be developed test-first.

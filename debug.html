@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Aquaria debug tools</title>
+    <style>
+      body {
+        margin: 0 auto;
+        max-width: 860px;
+        padding: 16px;
+        background: #0b1a26;
+        color: #cfe3f0;
+        font:
+          14px system-ui,
+          sans-serif;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      h2 {
+        margin-top: 28px;
+        font-size: 16px;
+        border-bottom: 1px solid #1f3d52;
+        padding-bottom: 4px;
+      }
+      a {
+        color: #8cc8f0;
+        word-break: break-all;
+      }
+      form {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 8px 12px;
+        align-items: center;
+      }
+      input[type="text"],
+      input[type="number"],
+      select {
+        max-width: 320px;
+      }
+      .open {
+        display: inline-block;
+        margin-top: 12px;
+        font-weight: 600;
+      }
+      table {
+        border-collapse: collapse;
+      }
+      td {
+        padding: 3px 12px 3px 0;
+        vertical-align: top;
+      }
+      kbd,
+      code {
+        background: #16324a;
+        border-radius: 3px;
+        padding: 1px 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Aquaria debug tools</h1>
+    <p>Every debug tool in one place. They run with <code>pnpm dev</code>.</p>
+
+    <h2>The aquarium</h2>
+    <form id="tank">
+      <label for="scene">Scene</label>
+      <select id="scene">
+        <option value="">saved or default</option>
+      </select>
+      <label for="seed">Seed</label>
+      <input id="seed" type="number" min="0" step="1" placeholder="the scene's" />
+      <label for="hour">Hour (0–24)</label>
+      <input id="hour" type="number" min="0" max="24" step="0.5" placeholder="light cycle" />
+      <label for="frozen">Frozen after (s)</label>
+      <input id="frozen" type="number" min="0" step="1" placeholder="runs live" />
+      <label for="effects">Effects</label>
+      <input id="effects" type="text" placeholder="e.g. shadows,bloom or none" />
+      <span>Switched on</span>
+      <span>
+        <label><input id="debug-overlay" type="checkbox" checked /> activity overlay</label>
+        &nbsp;
+        <label><input id="debug-shapes" type="checkbox" /> collision shapes</label>
+      </span>
+    </form>
+    <a id="open-tank" class="open" href="/">Open the aquarium</a>
+
+    <h2>Fish on the grid</h2>
+    <p>
+      One species from its side, procedural body or 3D model, over the fish frame's grid. Sliders
+      move gaze, mouth, gills, turn bend, tail effort and swimming; tick <em>auto</em> to let a
+      slider swing between its ends by itself.
+    </p>
+    <select id="viewer-species" aria-label="Species"></select>
+    <br />
+    <a id="open-viewer" class="open" href="/model-viewer.html">Open the fish on the grid</a>
+
+    <h2>Keys in the aquarium</h2>
+    <table>
+      <tr>
+        <td><kbd>A</kbd></td>
+        <td>Activity overlay: what every fish is doing, its spells, the finger</td>
+      </tr>
+      <tr>
+        <td><kbd>C</kbd></td>
+        <td>Collision shapes of the scenery (with the overlay on)</td>
+      </tr>
+      <tr>
+        <td><kbd>H</kbd></td>
+        <td>Control panel: effects, fish, scenery, fps</td>
+      </tr>
+      <tr>
+        <td><kbd>E</kbd></td>
+        <td>Scene editor</td>
+      </tr>
+      <tr>
+        <td><kbd>T</kbd> <kbd>Z</kbd> <kbd>P</kbd></td>
+        <td>Torch, lens, pointing</td>
+      </tr>
+      <tr>
+        <td><kbd>Space</kbd> <kbd>M</kbd> <kbd>F</kbd></td>
+        <td>Feed, sound, full screen</td>
+      </tr>
+    </table>
+
+    <h2>Commands</h2>
+    <table>
+      <tr>
+        <td><code>pnpm test:visual</code></td>
+        <td>Screenshot comparison of every scene</td>
+      </tr>
+      <tr>
+        <td><code>pnpm docs:gallery</code></td>
+        <td>Pictures of the scenes and the swimming styles for the docs</td>
+      </tr>
+      <tr>
+        <td><code>pnpm export:objects</code></td>
+        <td>Bake object recipes and block rock into .glb models</td>
+      </tr>
+    </table>
+    <script type="module" src="/src/app/debugHub.ts"></script>
+  </body>
+</html>

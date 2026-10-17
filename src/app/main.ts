@@ -1010,7 +1010,10 @@ async function start(): Promise<void> {
 
   const fps = createFpsMeter(FPS_WINDOW_SECONDS);
   // What every fish is doing, toggled with A.
-  const activityOverlay = createActivityOverlay(document.body);
+  const activityOverlay = createActivityOverlay(document.body, {
+    shown: options.debug?.includes("overlay") ?? false,
+    shapes: options.debug?.includes("shapes") ?? false,
+  });
   const project: ScreenProjection = (point, out) => view.screenPoint(point, out);
   let previous: number | undefined;
   let previousDrawn: number | undefined;
