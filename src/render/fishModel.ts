@@ -3,6 +3,8 @@ import {
   BufferAttribute,
   Matrix3,
   Matrix4,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
   PropertyBinding,
   Vector3,
   Vector4,
@@ -262,6 +264,29 @@ function normalizeToBodyLength(geometries: readonly BufferGeometry[]): Matrix4 {
   return matrix;
 }
 
+/** A scan's painted-in light is no light at all in the tank: matte, it is lit like the rest. */
+const SCAN_ROUGHNESS = 1;
+
+/**
+ * The material a part is drawn with. One drawn unlit (scans often are, their
+ * light painted into the texture) becomes a lit one with the same colors,
+ * so the tank's lights, fog and caustics reach it like every other body.
+ */
+function litMaterial(material: Material): Material {
+  if (!(material instanceof MeshBasicMaterial)) return material;
+  return new MeshStandardMaterial({
+    name: material.name,
+    color: material.color,
+    map: material.map,
+    alphaMap: material.alphaMap,
+    transparent: material.transparent,
+    opacity: material.opacity,
+    side: material.side,
+    roughness: SCAN_ROUGHNESS,
+    metalness: 0,
+  });
+}
+
 /**
  * Turns a loaded glTF scene into fish parts that swim like the procedural
  * bodies: oriented by the manifest, one body length long, snout at x = +0.5.
@@ -284,7 +309,9 @@ export function prepareFishModel(root: Object3D, manifest: ModelManifest): FishM
     if (eyeBones !== undefined) eyeAttributes(mesh, geometry, eyeBones, frame);
     return {
       geometry,
-      material: mesh.material,
+      material: Array.isArray(mesh.material)
+        ? mesh.material.map(litMaterial)
+        : litMaterial(mesh.material),
       mouthMorphIndex:
         morphTarget === undefined ? undefined : mesh.morphTargetDictionary?.[morphTarget],
     };

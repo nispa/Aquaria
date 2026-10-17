@@ -5,9 +5,11 @@ import {
   Float32BufferAttribute,
   Group,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   Skeleton,
   SkinnedMesh,
+  Texture,
   Uint16BufferAttribute,
   Vector3,
 } from "three";
@@ -235,5 +237,18 @@ describe("prepareFishModel with eyes", () => {
     const [body] = prepareFishModel(fishWithEyeBone(), manifest());
 
     expect(body?.geometry.hasAttribute("aEyeWeight")).toBe(false);
+  });
+});
+
+describe("unlit models", () => {
+  it("gives a model drawn unlit (a scan, its light painted in) a lit material", () => {
+    const root = new Group();
+    const texture = new Texture();
+    root.add(new Mesh(new BoxGeometry(1, 0.2, 0.2), new MeshBasicMaterial({ map: texture })));
+
+    const [part] = prepareFishModel(root, manifest());
+
+    expect(part?.material).toBeInstanceOf(MeshStandardMaterial);
+    expect((part?.material as MeshStandardMaterial).map).toBe(texture);
   });
 });

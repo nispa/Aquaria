@@ -88,8 +88,6 @@ const SEABED_BODY_LENGTHS = 1.5;
 const SEABED_MIN_CLEARANCE = 0.08;
 /** Hard limit: a fish's centre never gets closer to the seabed than this, in body lengths. */
 const SEABED_MIN_GAP_BODY_LENGTHS = 0.5;
-/** A walker's body rides this many body lengths above the ground, on its legs. */
-const WALKING_GAP_BODY_LENGTHS = 0.12;
 /** How fast a sideways walker turns its body, rad/s. */
 const WALKER_TURN_RATE = 3;
 /** A walker reaches places this many body lengths high without leaving the ground. */
@@ -1147,7 +1145,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
 
   /** How close to the seabed a fish may come, in body lengths. */
   const seabedGap = (member: Fish): number => {
-    if (member.walking) return WALKING_GAP_BODY_LENGTHS;
+    if (member.walking) return member.swim.rideHeight;
     return closeIn(member) ? CLOSE_IN_SEABED_GAP : SEABED_MIN_GAP_BODY_LENGTHS;
   };
 
@@ -1155,7 +1153,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
   const walk = (member: Fish, deltaSeconds: number): void => {
     const { position, length } = member;
     if (!member.still) position.addScaledVector(member.velocity, deltaSeconds);
-    const ground = seabed(position.x, position.z) + length * WALKING_GAP_BODY_LENGTHS;
+    const ground = seabed(position.x, position.z) + length * member.swim.rideHeight;
     position.y = Math.max(
       position.y - length * SINK_BODY_LENGTHS_PER_SECOND * deltaSeconds,
       ground,

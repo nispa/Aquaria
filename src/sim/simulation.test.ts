@@ -1535,6 +1535,16 @@ describe("walkers", () => {
   const gap = (first: number, second: number): number =>
     Math.abs(Math.atan2(Math.sin(first - second), Math.cos(first - second)));
 
+  it("carries a walker's body at its ride height above the ground", () => {
+    const simulation = simulateWalkers({ style: "crawl", rideHeight: 0.3 });
+
+    run(simulation, 15);
+
+    const heights = simulation.fish.map((fish) => fish.position.y / fish.length);
+    expect(Math.min(...heights)).toBeCloseTo(0.3);
+    expect(Math.max(...heights)).toBeCloseTo(0.3);
+  });
+
   it("turns a sideways walker's body across the way it walks", () => {
     const simulation = simulateWalkers({ style: "crawl", sideways: true });
     const gaps: number[] = [];

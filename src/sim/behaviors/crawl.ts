@@ -35,6 +35,7 @@ export const crawlStyle: SwimStyle<"crawl"> = {
   id: "crawl",
   start(state, params, context) {
     state.grounded = true;
+    state.rideHeight = params.rideHeight;
     state.sideways = params.sideways;
     state.landbound = !params.swims;
     state.withdraws = params.fright === "shell";

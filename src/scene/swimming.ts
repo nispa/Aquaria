@@ -104,6 +104,11 @@ const crawl = z.strictObject({
   turnAngle: share.max(Math.PI).default(1.2),
   /** Heading jitter while walking, radians per square root of a second. */
   turnJitter: share.default(0.3),
+  /**
+   * How high its body rides above the ground on its legs, in body lengths:
+   * from the middle of the body (the model's centre) down to its feet.
+   */
+  rideHeight: share.max(1).default(0.12),
   /** Walks sideways, its body across the way it goes, like a crab. */
   sideways: z.boolean().default(false),
   /**
