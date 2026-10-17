@@ -570,6 +570,20 @@ describe("swimming styles", () => {
     expect(Math.max(...efforts)).toBeGreaterThan(1.5);
   });
 
+  it("keeps crawling fish on the floor, wherever their habitat is", () => {
+    const simulation = simulateSwimming({ style: "crawl" });
+    simulation.setSeabed((x) => 0.2 + 0.05 * x);
+    let highest = 0;
+
+    run(simulation, 10);
+    watch(simulation, 20, (fish) => {
+      const seabed = 0.2 + 0.05 * fish.position.x;
+      highest = Math.max(highest, (fish.position.y - seabed) / fish.length);
+    });
+
+    expect(highest).toBeLessThan(0.5);
+  });
+
   it("keeps patrolling fish close to their home spot", () => {
     const simulation = simulateSwimming({ style: "patrol", radiusBodyLengths: 4 });
     const cruising = simulateSwimming({ style: "cruise" });
@@ -644,11 +658,11 @@ describe("hosts", () => {
 describe("activities", () => {
   const rock = { x: 1, z: -2, height: 0.3, tags: ["rock", "algae"] };
 
-  function simulateActive(activities: unknown): Simulation {
+  function simulateActive(activities: unknown, swim?: unknown): Simulation {
     const input = catalogFixture();
     const tuned = parseCatalog({
       species: input.species.map((entry) =>
-        entry.id === "blue-tang" ? { ...entry, activities } : entry,
+        entry.id === "blue-tang" ? { ...entry, activities, ...(swim ? { swim } : {}) } : entry,
       ),
     });
     const simulation = createSimulation({
@@ -703,6 +717,28 @@ describe("activities", () => {
 
     expect(seen).toContain("peck");
     expect(closestOpen).toBeLessThan(0.3);
+  });
+
+  it("lets walkers peck at a low place on foot, without leaving the floor", () => {
+    const simulation = simulateActive(
+      { wander: { seconds: [1, 2] }, peck: { weight: 3, tags: { shell: 1 } } },
+      { style: "crawl" },
+    );
+    simulation.setPlaces(() => [{ x: 1, z: -2, height: 0.02, tags: ["shell"] }]);
+    let pecking = 0;
+    let highest = 0;
+
+    for (let elapsed = 0; elapsed < 120; elapsed += STEP) {
+      simulation.step(STEP);
+      for (const fish of simulation.fish) {
+        if (fish.activity.id !== "peck" || elapsed < 20) continue;
+        pecking += 1;
+        highest = Math.max(highest, fish.position.y / fish.length);
+      }
+    }
+
+    expect(pecking).toBeGreaterThan(0);
+    expect(highest).toBeLessThan(0.5);
   });
 
   it("brings the mouth of a pecking fish to the place it pecks at", () => {

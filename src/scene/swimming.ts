@@ -88,7 +88,31 @@ const patrol = z.strictObject({
   reverseSeconds: seconds(15, 40),
 });
 
-export const swimSchema = z.discriminatedUnion("style", [cruise, burstCoast, hover, glide, patrol]);
+/**
+ * Walks on the floor, following its rise and fall: stops to pick at the
+ * ground, then sets off in a new direction. Shrimps, crabs.
+ */
+const crawl = z.strictObject({
+  style: z.literal("crawl"),
+  /** Walking speed, as a share of cruise speed. */
+  speed: share.default(0.5),
+  walkSeconds: seconds(2, 6),
+  /** Stops to pick at the ground, standing still. */
+  stopSeconds: seconds(1, 4),
+  /** Spread of the change of heading after a stop, radians. */
+  turnAngle: share.max(Math.PI).default(1.2),
+  /** Heading jitter while walking, radians per square root of a second. */
+  turnJitter: share.default(0.3),
+});
+
+export const swimSchema = z.discriminatedUnion("style", [
+  cruise,
+  burstCoast,
+  hover,
+  glide,
+  patrol,
+  crawl,
+]);
 
 export type SwimSpec = z.output<typeof swimSchema>;
 export type SwimStyleId = SwimSpec["style"];

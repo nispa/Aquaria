@@ -795,6 +795,57 @@
           }
         }
       }
+    },
+    {
+      "id": "red-cherry-shrimp",
+      "name": "Red cherry shrimp",
+      "body": {
+        "type": "procedural",
+        "category": "crustacean",
+        "shape": "shrimp",
+        "pattern": "solid",
+        "colors": {
+          "base": "#c81e28",
+          "accent": "#f06068",
+          "detail": "#ffffff"
+        }
+      },
+      "length": {
+        "mean": 0.035,
+        "standardDeviation": 0.005
+      },
+      "speed": {
+        "cruise": 0.06,
+        "max": 0.25
+      },
+      "schooling": 0.15,
+      "bands": [0, 3],
+      "heightRange": [0, 0.18],
+      "behavior": {
+        "appetite": 0.9,
+        "curiosity": 0.2,
+        "shyness": 0.7,
+        "hiding": 0.6,
+        "torch": -0.3
+      },
+      "swim": {
+        "style": "crawl"
+      },
+      "activities": {
+        "peck": {
+          "weight": 0.9,
+          "tags": {
+            "shell": 1,
+            "moss": 0.7,
+            "rock": 0.5,
+            "wood": 0.3,
+            "plant": 0.2
+          }
+        },
+        "rest": {
+          "weight": 0.6
+        }
+      }
     }
   ]
 }

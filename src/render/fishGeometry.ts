@@ -1,8 +1,8 @@
 import { BufferGeometry, Float32BufferAttribute, SphereGeometry } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import type { Species } from "../scene/schema";
+import type { ProceduralFishBody } from "../scene/schema";
 
-type Shape = Extract<Species["body"], { type: "procedural" }>["shape"];
+type Shape = ProceduralFishBody["shape"];
 
 export interface BodyProportions {
   /** Body height in body lengths. */

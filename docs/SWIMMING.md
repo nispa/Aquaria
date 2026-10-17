@@ -32,7 +32,7 @@ Add a `swim` entry to the species in `public/species.json`:
 }
 ```
 
-- `style` is required and picks one of the five styles below.
+- `style` is required and picks one of the six styles below.
 - Every other field is optional; a missing one takes the default listed in
   the tables below, the look the style was tuned for.
 - A species with no `swim` entry cruises (`{ "style": "cruise" }`).
@@ -55,7 +55,7 @@ barramundi alike:
 A fish never goes faster than its species' `speed.max`, whatever a style
 asks for.
 
-## The five styles
+## The six styles
 
 ### `cruise`: long, smooth laps
 
@@ -147,6 +147,25 @@ round. It swims at the height of its home.
 | `radiusBodyLengths` | 6        | Radius of the lap; shrunk to fit a narrow habitat |
 | `reverseSeconds`    | [15, 40] | Time between changes of direction                 |
 
+### `crawl`: walking on the floor
+
+Shrimps, crabs. The animal walks on the seabed instead of swimming: it
+stops to pick at the ground, then walks off in a new direction. Its height
+range does not matter while it walks; the simulation keeps it on the floor,
+following its rise and fall (rockwork included), and holds it there against
+the current. It leaves the ground only when called away: a fright, food, a
+finger on the glass, hiding, or an activity at a place higher than its body
+length (a plant top). A place lower than that, like a shell, it pecks on
+foot. Off the ground, it sinks back once it is free to walk again.
+
+| Parameter     | Default | Meaning                                         |
+| ------------- | ------- | ----------------------------------------------- |
+| `speed`       | 0.5     | Walking speed                                   |
+| `walkSeconds` | [2, 6]  | How long it walks between stops                 |
+| `stopSeconds` | [1, 4]  | How long it stands still, picking at the ground |
+| `turnAngle`   | 1.2     | Spread of the change of heading after a stop    |
+| `turnJitter`  | 0.3     | Heading jitter while walking                    |
+
 ## What the bundled species do
 
 | Style         | Species                                                                               |
@@ -156,6 +175,7 @@ round. It swims at the height of its home.
 | `hover`       | clownfish, royal gramma, dwarf gourami                                                |
 | `glide`       | moorish idol, emperor angelfish, freshwater angelfish                                 |
 | `patrol`      | butterflyfish, barramundi                                                             |
+| `crawl`       | red cherry shrimp                                                                     |
 
 ## Activities: what a fish is doing
 

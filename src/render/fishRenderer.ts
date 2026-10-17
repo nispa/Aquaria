@@ -22,6 +22,7 @@ import { modelFileUrl, type ModelManifest } from "../scene/modelManifest";
 import { MAX_INDIVIDUALS_PER_SPECIES, type Species, type SpeciesCatalog } from "../scene/schema";
 import type { Fish } from "../sim/simulation";
 import { BODY_PROPORTIONS, createFishGeometry } from "./fishGeometry";
+import { createCrustaceanGeometry } from "./crustaceanGeometry";
 import { prepareFishModel, type FishModelPart } from "./fishModel";
 import { causticsPatch } from "./shaders/causticsPatch";
 import { fishMotionPatch } from "./shaders/fishMotionPatch";
@@ -144,6 +145,20 @@ function createInstancedMesh(
 }
 
 function proceduralMaterial(body: Species["body"], water: WaterUniforms): MeshPhysicalMaterial {
+  if (body.category === "crustacean") {
+    // Crustaceans have an exoskeleton with chitin sheen
+    return patchMaterial(
+      new MeshPhysicalMaterial({
+        color: new Color(body.colors.base),
+        roughness: 0.45,
+        metalness: 0.05,
+        side: DoubleSide,
+        transparent: true,
+      }),
+      [causticsPatch(water)],
+    );
+  }
+
   const { shape, pattern, colors } = body;
   return patchMaterial(
     // Physical material for iridescence: the rainbow sheen of guanine in fish skin.
@@ -371,7 +386,10 @@ export function createFishRenderer(
   for (const entry of catalog.species) {
     const instances = createInstances(entry, modelEnabled(entry.id));
     species.set(entry.id, instances);
-    const geometry = createFishGeometry(entry.body.shape);
+    const geometry =
+      entry.body.category === "crustacean"
+        ? createCrustaceanGeometry(entry.body.shape)
+        : createFishGeometry(entry.body.shape);
     const material = proceduralMaterial(entry.body, water);
     geometries.push(geometry);
     materials.push(material);

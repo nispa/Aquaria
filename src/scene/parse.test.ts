@@ -61,6 +61,27 @@ describe("parseCatalog", () => {
 
     expect(() => parseCatalog(input)).toThrow(/model/);
   });
+
+  it("accepts a crustacean procedural body (e.g. shrimp)", () => {
+    const input = catalogFixture();
+    input.species[0]!.body = {
+      type: "procedural",
+      category: "crustacean",
+      shape: "shrimp",
+      colors: { base: "#e03030", accent: "#ffffff" },
+    };
+
+    const catalog = parseCatalog(input);
+    const body = catalog.species[0]?.body;
+
+    expect(body).toMatchObject({
+      type: "procedural",
+      category: "crustacean",
+      shape: "shrimp",
+      pattern: "solid",
+      colors: { base: "#e03030", accent: "#ffffff", detail: "#ffffff" },
+    });
+  });
 });
 
 describe("parseScene", () => {

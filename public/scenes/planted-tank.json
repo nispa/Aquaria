@@ -133,6 +133,11 @@
       "size": [0.12, 0.3]
     },
     {
+      "kind": "shell",
+      "count": 4,
+      "color": ["#f3e6d4", "#e8d2b8"]
+    },
+    {
       "kind": "pebble",
       "count": 20,
       "color": ["#6a6660", "#8a857c", "#4e4b47"]
@@ -158,6 +163,10 @@
     {
       "species": "dwarf-gourami",
       "count": 1
+    },
+    {
+      "species": "red-cherry-shrimp",
+      "count": 8
     }
   ]
 }

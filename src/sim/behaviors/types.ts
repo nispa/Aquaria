@@ -24,6 +24,11 @@ export interface SwimState {
   mouth: number;
   /** May climb and dive steeply, head down or up (pecking). */
   steep: boolean;
+  /**
+   * Walks on the floor instead of swimming: the simulation lets it sink onto
+   * the seabed and keeps it there, ignoring `height`.
+   */
+  grounded: boolean;
   /** Seconds left in the style's current phase. */
   timer: number;
   /** Seconds left before a new height is picked. */
@@ -81,6 +86,7 @@ export function createSwimState(yaw = 0): SwimState {
     thrust: 1,
     mouth: 0,
     steep: false,
+    grounded: false,
     timer: 0,
     heightTimer: 0,
     clock: 0,

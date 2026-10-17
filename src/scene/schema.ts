@@ -36,8 +36,18 @@ export const orderedPair = (item: z.ZodNumber, label: string) =>
 export const bandRange = orderedPair(band, "bands");
 const heightRange = orderedPair(unit, "heightRange");
 
-const proceduralBody = z.object({
+const bodyColors = z
+  .object({
+    base: hexColor,
+    accent: hexColor,
+    /** Third color for richer patterns; defaults to the accent. */
+    detail: hexColor.optional(),
+  })
+  .transform((colors) => ({ ...colors, detail: colors.detail ?? colors.accent }));
+
+const proceduralFishBody = z.object({
   type: z.literal("procedural"),
+  category: z.literal("fish").default("fish"),
   /**
    * Built-in body shapes generated in code: `tall` is a high disc with a
    * pointed snout and large soft fins (butterflyfish, angelfish, damsels);
@@ -53,15 +63,27 @@ const proceduralBody = z.object({
   pattern: z
     .enum(["belly", "tail", "bands", "split", "eye-bar", "stripes", "bars", "idol"])
     .default("belly"),
-  colors: z
-    .object({
-      base: hexColor,
-      accent: hexColor,
-      /** Third color for richer patterns; defaults to the accent. */
-      detail: hexColor.optional(),
-    })
-    .transform((colors) => ({ ...colors, detail: colors.detail ?? colors.accent })),
+  colors: bodyColors,
 });
+
+const proceduralCrustaceanBody = z.object({
+  type: z.literal("procedural"),
+  category: z.literal("crustacean"),
+  /** Crustacean body shapes: shrimp, crab, hermit crab. */
+  shape: z.enum(["shrimp", "crab", "hermit-crab"]),
+  pattern: z.enum(["solid", "translucent", "spotted", "banded"]).default("solid"),
+  colors: bodyColors,
+});
+
+const proceduralBody = z.preprocess(
+  (data) => {
+    if (typeof data === "object" && data !== null && !("category" in data)) {
+      return { category: "fish", ...data };
+    }
+    return data;
+  },
+  z.discriminatedUnion("category", [proceduralFishBody, proceduralCrustaceanBody]),
+);
 
 /** A 3D model: a folder in `public/assets/species/` with a glTF file and a `model.json`. */
 const modelFolder = z
@@ -473,3 +495,6 @@ export type PropSpec = z.output<typeof prop>;
 export type SurfaceMaterialSpec = z.output<typeof surfaceMaterial>;
 export type RockworkSpec = z.output<typeof rockwork>;
 export type BlocksSpec = z.output<typeof blocks>;
+export type ProceduralFishBody = z.output<typeof proceduralFishBody>;
+export type ProceduralCrustaceanBody = z.output<typeof proceduralCrustaceanBody>;
+export type ProceduralBody = z.output<typeof proceduralBody>;

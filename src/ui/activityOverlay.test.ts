@@ -40,6 +40,7 @@ function fishFixture(): Fish {
     play: createPlay(),
     roll: 0,
     turnRate: 0,
+    walking: false,
     hiding: 0,
     refuge: new Vector3(),
     refugeSize: 0,

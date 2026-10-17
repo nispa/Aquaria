@@ -1,5 +1,6 @@
 import type { SwimSpec, SwimStyleId } from "../../scene/swimming";
 import { burstCoastStyle } from "./burstCoast";
+import { crawlStyle } from "./crawl";
 import { cruiseStyle } from "./cruise";
 import { glideStyle } from "./glide";
 import { hoverStyle } from "./hover";
@@ -29,6 +30,7 @@ export const SWIM_STYLES: { readonly [Id in SwimStyleId]: SwimStyle<Id> } = {
   hover: hoverStyle,
   glide: glideStyle,
   patrol: patrolStyle,
+  crawl: crawlStyle,
 };
 
 /** The style a species' `swim` entry asks for. */

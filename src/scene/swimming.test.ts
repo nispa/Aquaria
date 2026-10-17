@@ -49,7 +49,7 @@ describe("swimming styles", () => {
     ).toThrow(/coastSeconds/);
   });
 
-  it("offers the five styles of the roadmap", () => {
-    expect(SWIM_STYLE_IDS).toEqual(["cruise", "burst-coast", "hover", "glide", "patrol"]);
+  it("offers the five styles of the roadmap and walking on the floor", () => {
+    expect(SWIM_STYLE_IDS).toEqual(["cruise", "burst-coast", "hover", "glide", "patrol", "crawl"]);
   });
 });

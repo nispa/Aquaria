@@ -88,6 +88,12 @@ const SEABED_BODY_LENGTHS = 1.5;
 const SEABED_MIN_CLEARANCE = 0.08;
 /** Hard limit: a fish's centre never gets closer to the seabed than this, in body lengths. */
 const SEABED_MIN_GAP_BODY_LENGTHS = 0.5;
+/** A walker's body rides this many body lengths above the ground, on its legs. */
+const WALKING_GAP_BODY_LENGTHS = 0.12;
+/** A walker reaches places this many body lengths high without leaving the ground. */
+const GROUND_REACH_BODY_LENGTHS = 1;
+/** A walker off the ground (after a fright) sinks back this many body lengths a second. */
+const SINK_BODY_LENGTHS_PER_SECOND = 1.5;
 /**
  * At a place (pecking at the sand, resting, hiding) a fish keeps only this
  * many body lengths off the seabed, and its hard limit shrinks to
@@ -272,6 +278,8 @@ export interface Fish {
   roll: number;
   /** Yaw rate, rad/s: a body gets into and out of its turns gradually (sim/posture). */
   turnRate: number;
+  /** Walks on the seabed this step, rather than swimming (see the `crawl` style). */
+  walking: boolean;
   /** Seconds it still stays hidden after a fright, 0 when it is not hiding. */
   hiding: number;
   /** Where it hides, while `hiding`. */
@@ -563,6 +571,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
       play: createPlay(),
       roll: 0,
       turnRate: 0,
+      walking: false,
       hiding: 0,
       refuge: new Vector3(),
       refugeSize: 0,
@@ -1028,6 +1037,14 @@ export function createSimulation(options: SimulationOptions): Simulation {
     // Fleeing, feeding and pecking fish climb and dive steeply.
     const steep = member.fear > 0 || feedingSpeed !== undefined || swim.steep;
     const styled = reactionSpeed === undefined && member.state === "swimming";
+    // Walkers swim off only when called away: by a reaction, to a place up
+    // off the ground, to hide.
+    member.walking =
+      styled &&
+      swim.grounded &&
+      member.hiding === 0 &&
+      !isEnchanted(member.play) &&
+      (!activityOf(activity.id).atPlace || withinReachOfGround(member));
     const wantedSpeed = reactionSpeed ?? Math.min(cruise * swim.speed, species.speed.max);
     const response = styled ? swim.response : SPEED_RESPONSE;
     const thrust = styled ? swim.thrust : 1;
@@ -1043,7 +1060,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
     member.velocity.addScaledVector(force, deltaSeconds);
     const maxVertical =
       member.velocity.length() * (steep ? FEEDING_VERTICAL_RATIO : MAX_VERTICAL_RATIO);
-    member.velocity.y = clamp(member.velocity.y, -maxVertical, maxVertical);
+    member.velocity.y = member.walking ? 0 : clamp(member.velocity.y, -maxVertical, maxVertical);
     const clamped = clamp(member.velocity.length(), cruise * MIN_SPEED_RATIO, species.speed.max);
     member.velocity.setLength(clamped);
     // A tickled fish twists like a frightened one.
@@ -1067,16 +1084,42 @@ export function createSimulation(options: SimulationOptions): Simulation {
     member.roll = nextRoll(member.play, member.roll, deltaSeconds);
   };
 
+  /** Whether the place a fish's activity is about can be reached standing on the ground. */
+  const withinReachOfGround = (member: Fish): boolean => {
+    const { target } = member.activity;
+    return target.y - seabed(target.x, target.z) < member.length * GROUND_REACH_BODY_LENGTHS;
+  };
+
+  /** How close to the seabed a fish may come, in body lengths. */
+  const seabedGap = (member: Fish): number => {
+    if (member.walking) return WALKING_GAP_BODY_LENGTHS;
+    return closeIn(member) ? CLOSE_IN_SEABED_GAP : SEABED_MIN_GAP_BODY_LENGTHS;
+  };
+
+  /** Moves a walker along the seabed, sinking back onto it when above. */
+  const walk = (member: Fish, deltaSeconds: number): void => {
+    const { position, length } = member;
+    position.addScaledVector(member.velocity, deltaSeconds);
+    const ground = seabed(position.x, position.z) + length * WALKING_GAP_BODY_LENGTHS;
+    position.y = Math.max(
+      position.y - length * SINK_BODY_LENGTHS_PER_SECOND * deltaSeconds,
+      ground,
+    );
+  };
+
   const move = (member: Fish, deltaSeconds: number): void => {
-    current.sample(member.position, timeSeconds, drift);
-    member.position
-      .addScaledVector(member.velocity, deltaSeconds)
-      .addScaledVector(drift, deltaSeconds);
+    if (member.walking) {
+      // Holds on to the ground against the current, and follows its rise and fall.
+      walk(member, deltaSeconds);
+    } else {
+      current.sample(member.position, timeSeconds, drift);
+      member.position
+        .addScaledVector(member.velocity, deltaSeconds)
+        .addScaledVector(drift, deltaSeconds);
+    }
     // Steering keeps fish clear of the rock; this stops the rare one that
     // still dives into it (fast fish, steep faces) from passing through.
-    const floor =
-      seabed(member.position.x, member.position.z) +
-      member.length * (closeIn(member) ? CLOSE_IN_SEABED_GAP : SEABED_MIN_GAP_BODY_LENGTHS);
+    const floor = seabed(member.position.x, member.position.z) + member.length * seabedGap(member);
     if (member.position.y < floor) {
       member.position.y = floor;
       member.velocity.y = Math.max(member.velocity.y, 0);
