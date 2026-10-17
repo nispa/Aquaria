@@ -1,5 +1,7 @@
 # Aquaria
 
+_Versione italiana: [README.it.md](README.it.md)._
+
 [![Aquaria, a real-time 3D aquarium for the browser](docs/hero.jpg)](https://nispa.github.io/Aquaria/)
 
 <h3 align="center">▶ <a href="https://nispa.github.io/Aquaria/">Try it in your browser</a></h3>
@@ -155,7 +157,8 @@ built-in GPU.
   a small shader.
 - [How Aquaria is built](docs/ARCHITECTURE.md): the main choices and why.
 
-Every guide has an Italian version, linked at its top.
+Every guide has an Italian version, linked at its top; the Italian README
+links them all.
 
 ## Debugging
 

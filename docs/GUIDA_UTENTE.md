@@ -3,7 +3,7 @@
 _English version: [USER_GUIDE.md](USER_GUIDE.md)._
 
 Questa pagina spiega il pannello di controllo e l'editor delle scene. I
-tasti e come avviare Aquaria sono nel [README](../README.md); quello che
+tasti e come avviare Aquaria sono nel [README](../README.it.md); quello che
 si può fare con i pesci è in [Giocare con i pesci](INTERAZIONE.md).
 
 ## Il pannello di controllo
@@ -112,7 +112,7 @@ finché non li accendi tu.
   aver cambiato il limite di fotogrammi.
 - **Show FPS**: fotogrammi al secondo e risoluzione davvero disegnata.
 - La scheda grafica in uso, con un avviso se è quella integrata, la più
-  debole. Il README spiega [come sistemarlo](../README.md#use-the-dedicated-gpu).
+  debole. Il README spiega [come sistemarlo](../README.it.md#usare-la-scheda-grafica-dedicata).
 
 ### Sound
 
