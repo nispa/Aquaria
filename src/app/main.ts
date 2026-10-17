@@ -359,6 +359,7 @@ async function start(): Promise<void> {
     nextSimulation.setSeabed((x, z) => nextView.seabedHeight(x, z));
     nextSimulation.setPlaces(() => nextView.places());
     nextSimulation.setObstacles(() => nextView.obstacles());
+    nextSimulation.setRockField(() => nextView.rockField());
     nextSimulation.setDaylight(() => nextView.daylight());
     nextSimulation.setRealistic(settings.realistic === true);
     nextSimulation.setTorch(torchOn);

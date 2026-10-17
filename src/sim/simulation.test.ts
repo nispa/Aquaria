@@ -1314,6 +1314,14 @@ describe("obstacles", () => {
     expect(observe(simulation, 20, 0).deepest).toBeGreaterThan(0);
   });
 
+  it("never lets a fish swim into rock given as a distance field", () => {
+    const simulation = simulate();
+    // Rock built from blocks reaches the simulation as a field, not a list.
+    simulation.setRockField(() => field);
+
+    expect(observe(simulation, 20, 0).deepest).toBeGreaterThan(0);
+  });
+
   it("never sends a fish to a place buried in a rock", () => {
     const input = catalogFixture();
     const tuned = parseCatalog({

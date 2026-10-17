@@ -23,7 +23,13 @@ import { createGesture, isScribbling, spinOf, trackFinger, type Gesture } from "
 import { createCrowd } from "./crowd";
 import { createCurrentField, type CurrentField } from "./current";
 import { createFood, type Food } from "./food";
-import { createObstacleField, openYaw, type Obstacle } from "./obstacles";
+import {
+  combineFields,
+  createObstacleField,
+  openYaw,
+  type Obstacle,
+  type ObstacleField,
+} from "./obstacles";
 import { createPlaceFinder, topOf, type Place } from "./places";
 import { beamOffset, beamRadius, torchStrength } from "./torch";
 import {
@@ -323,6 +329,12 @@ export interface Simulation {
    * every step; a different list means the scenery changed.
    */
   setObstacles(obstacles: () => readonly Obstacle[]): void;
+  /**
+   * Sets solid rock given as a distance field, e.g. rock built from blocks
+   * (sim/blockwork), swum around like the obstacles. Read on every step; a
+   * different field means the rock changed.
+   */
+  setRockField(rock: () => ObstacleField | undefined): void;
   /** Drops a pinch of food at the surface above (x, z), tank coordinates. */
   dropFood(x: number, z: number): void;
   /**
@@ -408,6 +420,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
   let places: () => readonly Place[] = () => NO_PLACES;
   let obstacles: () => readonly Obstacle[] = () => NO_OBSTACLES;
   let knownObstacles: readonly Obstacle[] = NO_OBSTACLES;
+  let rockField: () => ObstacleField | undefined = () => undefined;
+  let knownRock: ObstacleField | undefined;
   let obstacleField = createObstacleField(NO_OBSTACLES);
   const crowd = createCrowd({
     minX: -halfWidth - EXIT_OFFSET,
@@ -1120,10 +1134,13 @@ export function createSimulation(options: SimulationOptions): Simulation {
         for (const member of group.members) group.alarm = Math.max(group.alarm, member.fear);
       }
       const currentObstacles = obstacles();
-      const obstaclesChanged = currentObstacles !== knownObstacles;
+      const currentRock = rockField();
+      const obstaclesChanged = currentObstacles !== knownObstacles || currentRock !== knownRock;
       if (obstaclesChanged) {
         knownObstacles = currentObstacles;
-        obstacleField = createObstacleField(currentObstacles);
+        knownRock = currentRock;
+        const props = createObstacleField(currentObstacles);
+        obstacleField = currentRock === undefined ? props : combineFields(props, currentRock);
       }
       const currentPlaces = places();
       if (currentPlaces !== knownPlaces || obstaclesChanged) {
@@ -1201,6 +1218,9 @@ export function createSimulation(options: SimulationOptions): Simulation {
     },
     setObstacles(next) {
       obstacles = next;
+    },
+    setRockField(next) {
+      rockField = next;
     },
     setRealistic(next) {
       realistic = next;

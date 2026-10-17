@@ -19,6 +19,25 @@ export interface RockworkRenderer {
   dispose(): void;
 }
 
+/** Rock colored and textured as a scene says, lit by the caustics. */
+export function rockMaterial(
+  spec: { readonly color: string; readonly material?: RockworkSpec["material"] },
+  water: WaterUniforms,
+  surfaces: SurfaceLibrary,
+): MeshStandardMaterial {
+  const patches: ShaderPatch[] =
+    spec.material === undefined
+      ? [causticsPatch(water)]
+      : [
+          surfacePatch(surfaces.get(spec.material.id), "triplanar", spec.material),
+          causticsPatch(water),
+        ];
+  return patchMaterial(
+    new MeshStandardMaterial({ color: new Color(spec.color), roughness: ROUGHNESS }),
+    patches,
+  );
+}
+
 /** The ridge body: a heightfield mesh that follows the rockwork surface. */
 export function createRockworkRenderer(
   rockwork: Rockwork,
@@ -46,17 +65,7 @@ export function createRockworkRenderer(
   }
   geometry.computeVertexNormals();
 
-  const patches: ShaderPatch[] =
-    spec.material === undefined
-      ? [causticsPatch(water)]
-      : [
-          surfacePatch(surfaces.get(spec.material.id), "triplanar", spec.material),
-          causticsPatch(water),
-        ];
-  const material = patchMaterial(
-    new MeshStandardMaterial({ color: new Color(spec.color), roughness: ROUGHNESS }),
-    patches,
-  );
+  const material = rockMaterial(spec, water, surfaces);
   const object = new Mesh(geometry, material);
   object.name = "rockwork";
   object.castShadow = true;

@@ -1,7 +1,6 @@
 import type { Rng } from "../core/rng";
 import type { FloraSpec, PropSpec, SurfaceMaterialSpec } from "../scene/schema";
 import { tagsOf } from "../scene/tags";
-import type { Rockwork } from "./rockwork";
 import { bandDepthRange, type TankSize } from "./tank";
 
 /**
@@ -109,16 +108,28 @@ interface Spot {
   readonly elevation?: number;
 }
 
-/** Draws a spot on the sand within the depth range, or on the rockwork surface. */
+/**
+ * Rock that plants and objects may stand on: the procedural ridge
+ * (sim/rockwork) or the tops of blocks (sim/blockwork).
+ */
+export interface RockSurface {
+  /** A random spot on the rock, or undefined when there is no rock. */
+  randomPoint(rng: Rng): readonly [number, number] | undefined;
+  /** Height of the rock surface above the sand at (x, z), m. */
+  heightAt(x: number, z: number): number;
+}
+
+/** Draws a spot on the sand within the depth range, or on the rock surface. */
 function drawSpot(
   entryRng: Rng,
   depth: { readonly near: number; readonly far: number },
   halfWidthAt: HalfWidthAt,
-  rockwork: Rockwork | undefined,
+  rock: RockSurface | undefined,
 ): Spot {
-  if (rockwork !== undefined) {
-    const [x, z] = rockwork.randomPoint(entryRng);
-    return { x, z, elevation: rockwork.heightAt(x, z) };
+  const point = rock?.randomPoint(entryRng);
+  if (rock !== undefined && point !== undefined) {
+    const [x, z] = point;
+    return { x, z, elevation: rock.heightAt(x, z) };
   }
   const across = entryRng.range(-1, 1);
   const z = entryRng.range(depth.far, Math.min(depth.near, -EDGE_CLEARANCE));
@@ -135,7 +146,7 @@ export function layoutFlora(
   specs: readonly FloraSpec[],
   rng: Rng,
   halfWidthAt: HalfWidthAt = tankHalfWidth(tank),
-  rockwork?: Rockwork,
+  rockwork?: RockSurface,
 ): Plant[] {
   const generators = entryGenerators(rng, specs.length);
   return specs.flatMap((spec, index) => {
@@ -164,7 +175,7 @@ export function layoutProps(
   specs: readonly PropSpec[],
   rng: Rng,
   halfWidthAt: HalfWidthAt = tankHalfWidth(tank),
-  rockwork?: Rockwork,
+  rockwork?: RockSurface,
 ): Prop[] {
   const generators = entryGenerators(rng, specs.length);
   return specs.flatMap((spec, index) => {

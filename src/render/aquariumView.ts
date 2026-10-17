@@ -35,6 +35,9 @@ import { createGpuTimer } from "./gpuTimer";
 import { obstaclesOf, type Obstacle } from "../sim/obstacles";
 import { placesOf, type Place } from "../sim/places";
 import { createLightMixer, cycleHour, daylight } from "../sim/lightCycle";
+import { createBlockwork } from "../sim/blockwork";
+import type { RockSurface } from "../sim/layout";
+import type { ObstacleField } from "../sim/obstacles";
 import { createRockwork, type Rockwork } from "../sim/rockwork";
 import { floorHeight } from "../sim/terrain";
 import type { Simulation } from "../sim/simulation";
@@ -51,6 +54,7 @@ import { createLightRig } from "./lightRig";
 import { createParticles, type Particles } from "./particles";
 import { createSurfaceLibrary } from "./surfaceLibrary";
 import { createPropRenderer, type PropRenderer } from "./propRenderer";
+import { createBlockworkRenderer } from "./blockworkRenderer";
 import { createRockworkRenderer, type RockworkRenderer } from "./rockworkRenderer";
 import { createWaterUniforms } from "./uniforms";
 import { createTorchLight } from "./torchLight";
@@ -68,6 +72,7 @@ const SHADOW_MAP_SIZE = 2048;
 const SEED_MAX = 2 ** 31 - 1;
 /** Derives the ridge seed from the props seed, keeping earlier seeds unchanged. */
 const ROCKWORK_SEED_OFFSET = 1;
+const BLOCKWORK_SEED_OFFSET = 2;
 /** Relative aspect change that makes the scenery spread again across the view. */
 const RELAYOUT_ASPECT_CHANGE = 0.02;
 
@@ -126,6 +131,8 @@ export interface AquariumView {
    * a new list whenever the scenery is laid out again.
    */
   obstacles(): readonly Obstacle[];
+  /** Rock built from blocks, for fish to swim around and into its caves. */
+  rockField(): ObstacleField | undefined;
   /**
    * Where a spot on the view (normalized device coordinates) meets the front
    * glass, in tank coordinates, written into `out`, and, when given, the
@@ -303,6 +310,29 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   let floraSpecs: Scene["flora"] = scene.flora;
   let propSpecs: Scene["props"] = scene.props;
 
+  // Rock built from blocks does not follow the camera: built once.
+  const blockwork =
+    scene.blocks === undefined ? undefined : createBlockwork(scene.tank, scene.blocks);
+  const blockRock =
+    blockwork === undefined || scene.blocks === undefined
+      ? undefined
+      : createBlockworkRenderer(
+          blockwork,
+          scene.blocks,
+          scene.tank,
+          scenerySeeds.props + BLOCKWORK_SEED_OFFSET,
+          water,
+          surfaces,
+        );
+  if (blockRock !== undefined) world.add(blockRock.object);
+  const blockTops: RockSurface | undefined =
+    blockwork === undefined
+      ? undefined
+      : {
+          randomPoint: (rng) => blockwork.randomTop(rng),
+          heightAt: (x, z) => Math.max(blockwork.topAt(x, z) - floorHeight(x, z), 0),
+        };
+
   const buildScenery = (): void => {
     flora?.dispose();
     props?.dispose();
@@ -333,14 +363,14 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       floraSpecs,
       createRng(scenerySeeds.flora),
       halfWidthAt,
-      ridge,
+      ridge ?? blockTops,
     );
     const items = layoutProps(
       scene.tank,
       propSpecs,
       createRng(scenerySeeds.props),
       halfWidthAt,
-      ridge,
+      ridge ?? blockTops,
     );
     places = placesOf(plants, [...(ridge?.rocks ?? []), ...items]);
     obstacles = obstaclesOf([...(ridge?.rocks ?? []), ...items]);
@@ -491,6 +521,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     seabedHeight: (x, z) => floorHeight(x, z) + (ridge?.heightAt(x, z) ?? 0),
     places: () => places,
     obstacles: () => obstacles,
+    rockField: () => blockwork?.field,
     render() {
       cycleInput.clockHour = options.clockHour();
       cycleInput.elapsedSeconds = simulation.timeSeconds;
@@ -538,6 +569,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       flora?.dispose();
       props?.dispose();
       rockwork?.dispose();
+      blockRock?.dispose();
       fish.dispose();
       food.dispose();
       particles?.dispose();

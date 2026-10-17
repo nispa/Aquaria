@@ -303,6 +303,20 @@ describe("placement on rockwork", () => {
     expect(anemones.every((plant) => (plant.elevation ?? 0) > 0)).toBe(true);
   });
 
+  it("falls back to the sand when the rock has no spot to offer", () => {
+    const bare = { randomPoint: () => undefined, heightAt: () => 0 };
+
+    const corals = layoutProps(
+      tank,
+      [{ kind: "brain-coral", count: 5, color: "#b89a5e", on: "rockwork" }],
+      createRng(6),
+      undefined,
+      bare,
+    );
+
+    expect(corals.every((coral) => coral.elevation === undefined)).toBe(true);
+  });
+
   it("keeps sand entries on the sand", () => {
     const shells = layoutProps(
       tank,

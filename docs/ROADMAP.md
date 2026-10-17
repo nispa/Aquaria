@@ -87,7 +87,7 @@ by Zod. Swimming styles and activities are one file each in
 - [x] Fish of different species keep out of each other's way, the
       smaller giving way; overlapping bodies are pulled apart.
 - [x] `C` in the `A` overlay outlines the collision shapes.
-- [ ] Voxel rockwork (C1) answers the same distance query, so overhangs
+- [x] Voxel rockwork (C1) answers the same distance query, so overhangs
       and caves need no change in behavior.
 
 ## C. Scene editor
@@ -99,7 +99,7 @@ scene.
 
 ### C1. Schema
 
-- [ ] Rockwork as a voxel grid (run-length encoded in the JSON), next to the
+- [x] Rockwork as a voxel grid (run-length encoded in the JSON), next to the
       existing procedural ridge, which stays valid.
 - [ ] Flora and props with explicit placements (`at`: position, rotation,
       scale) or painted areas, as an alternative to count + depth bands.
