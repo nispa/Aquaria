@@ -183,7 +183,7 @@ still loads unchanged.
       every parameter, and the code that carries it out. First ones:
       `sway`, `collision`, `tags`, `placement`. An unknown trait logs a
       warning and is skipped.
-- [ ] Per-vertex traits read a custom glTF attribute (`_SWAY`: how much
+- [x] Per-vertex traits read a custom glTF attribute (`_SWAY`: how much
       each point sways), which Blender can paint.
 - [x] `public/assets/materials/<id>/material.json`: texture paths, tile
       size, credit; the folders as they are today stay valid.
@@ -199,11 +199,11 @@ still loads unchanged.
 
 ### E3. Export and import
 
-- [ ] `pnpm export:objects` bakes each recipe into `model.glb` (a few
+- [x] `pnpm export:objects` bakes each recipe into `model.glb` (a few
       seeds), with standard PBR material, `_SWAY` and the traits copied
       into the glTF `extras`, so a round trip through Blender keeps them.
-- [ ] Block rock exports the same way.
-- [ ] A `.glb` from elsewhere becomes an object by adding an
+- [x] Block rock exports the same way.
+- [x] A `.glb` from elsewhere becomes an object by adding an
       `object.json`; with a model and a recipe, Aquaria draws the recipe's
       variants and the model is the fallback.
 

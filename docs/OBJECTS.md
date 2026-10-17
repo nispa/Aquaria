@@ -9,10 +9,6 @@ an object may be drawn instead by one of Aquaria's generators, the
 procedural plants and objects it builds in code, a different variant each
 time.
 
-> Status: every plant and object of the tank is a folder, drawn by its
-> recipe. Objects made of a model alone are listed but not drawn yet, and
-> exporting recipes to `.glb` comes next (roadmap E3).
-
 ## The folder
 
 ```
@@ -62,6 +58,10 @@ The folder name is the object's id, the `kind` a scene uses for it.
 An object needs a `model` or a `recipe`. With both, Aquaria draws the
 recipe's variants and the model is what other programs see, and the
 fallback.
+
+A model keeps the materials and textures it was made with; `color` only
+tints recipes. Top-level parts set side by side are drawn as variants, one
+per item, like the seeds of a recipe.
 
 Licenses: `CC0-1.0`, `CC-BY-3.0`, `CC-BY-4.0`, `MIT`, `Apache-2.0`,
 `BSD-2-Clause`, `BSD-3-Clause`, `0BSD`, `Unlicense`. Every third-party model
@@ -152,3 +152,16 @@ meters; a scene entry's own `tileSize` wins.
    `_SWAY` goes into the file.
 4. Make the folder, put the `.glb` in it and write `object.json`; add the
    credit to `ASSETS.md` if the model is not your own.
+
+## Exporting recipes and block rock to `.glb`
+
+```bash
+pnpm export:objects [path/to/scene.json ...]
+```
+
+Bakes every object with a `recipe` into `public/assets/objects/<id>/model.glb`
+(three seed variants side by side at real size in meters, with a standard PBR
+material, `_SWAY` vertex weights on plants, and the object's `traits` copied
+into `scenes[0].extras.traits` so a round trip through Blender keeps them with
+_Custom Properties_ ticked). Bundled scenes (and any scene JSON files passed on
+the command line) that contain `blocks` are also baked into `<scene>-blocks.glb`.

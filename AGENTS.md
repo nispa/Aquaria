@@ -34,6 +34,7 @@ pnpm test:coverage  # unit tests with coverage thresholds
 pnpm test:e2e       # end-to-end tests (Playwright)
 pnpm test:visual    # screenshot comparison of every scene (on demand)
 pnpm docs:gallery   # pictures for the docs (docs/scenes/, swimming styles)
+pnpm export:objects # bake object recipes and block rock into .glb models
 pnpm lint           # ESLint
 pnpm typecheck      # tsc --noEmit
 pnpm build          # production build

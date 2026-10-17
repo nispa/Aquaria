@@ -9,11 +9,6 @@ Aquaria. Il modello è facoltativo: un oggetto può essere disegnato invece da
 uno dei generatori di Aquaria, le piante e gli oggetti procedurali che
 costruisce nel codice, ogni volta in una variante diversa.
 
-> Stato: ogni pianta e oggetto della vasca è una cartella, disegnata dalla
-> sua ricetta. Gli oggetti fatti solo di un modello sono elencati ma non
-> ancora disegnati, e l'esportazione delle ricette in `.glb` arriva dopo
-> (roadmap E3).
-
 ## La cartella
 
 ```
@@ -64,6 +59,10 @@ oggetto.
 Un oggetto ha bisogno di un `model` o di una `recipe`. Con entrambi, Aquaria
 disegna le varianti della ricetta e il modello è ciò che vedono gli altri
 programmi, e il ripiego.
+
+Un modello tiene i materiali e le texture con cui è stato fatto; `color`
+colora solo le ricette. Le parti di primo livello affiancate diventano
+varianti, una per elemento, come i semi di una ricetta.
 
 Licenze: `CC0-1.0`, `CC-BY-3.0`, `CC-BY-4.0`, `MIT`, `Apache-2.0`,
 `BSD-2-Clause`, `BSD-3-Clause`, `0BSD`, `Unlicense`. Ogni modello di terzi è
@@ -154,3 +153,17 @@ della texture in metri; quella di una voce di scena ha la precedenza.
    così `_SWAY` finisce nel file.
 4. Crea la cartella, mettici il `.glb` e scrivi `object.json`; aggiungi i
    crediti in `ASSETS.md` se il modello non è tuo.
+
+## Esportare ricette e roccia a blocchi in `.glb`
+
+```bash
+pnpm export:objects [percorso/scena.json ...]
+```
+
+Cuoce ogni oggetto con una `recipe` in `public/assets/objects/<id>/model.glb`
+(tre varianti di seme affiancate a grandezza reale in metri, con materiale PBR
+standard, i pesi per vertice `_SWAY` sulle piante e i `traits` dell'oggetto
+copiati in `scenes[0].extras.traits`, così un passaggio in Blender li conserva
+spuntando _Custom Properties_). Le scene incluse (e i file JSON di scena passati
+da riga di comando) che contengono `blocks` vengono esportati allo stesso modo
+in `<scena>-blocks.glb`.

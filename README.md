@@ -265,8 +265,9 @@ Scenery entries:
   aquariums `driftwood`, `dragon-stone`, `moss` and `pebble`. `size` ([min,
   max] m) overrides the kind's default size. A kind is a folder in
   `public/assets/objects/` (its `object.json` holds its default size, depth
-  bands, tags and collision shape): a new folder is a new kind, no code
-  needed. See [Plants and objects as files](docs/OBJECTS.md).
+  bands, tags, collision shape, optional `.glb` model and optional procedural
+  recipe; `pnpm export:objects` bakes recipes and block rock to `.glb`): a new
+  folder is a new kind, no code needed. See [Plants and objects as files](docs/OBJECTS.md).
 - `water.surface` (0..1) sets how visible the underside of the surface is
   (low for aquariums) and `water.bubbles: false` turns the bubble streams off. Each entry sets `count` and `color`; `bands` is optional (small
   things default to the front, sea fans to the back).

@@ -22,7 +22,8 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "test:visual": "playwright test --project=visual",
-    "docs:gallery": "playwright test --project=gallery"
+    "docs:gallery": "playwright test --project=gallery",
+    "export:objects": "node scripts/exportObjects.ts"
   },
   "dependencies": {
     "three": "0.186.1",
