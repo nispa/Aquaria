@@ -70,8 +70,10 @@ export function causticsPatch(water: WaterUniforms): ShaderPatch {
           #ifdef USE_SHADOWMAP
             sunlit = mix(0.12, 1.0, getShadowMask());
           #endif
-          gl_FragColor.rgb += light * uCausticsIntensity * attenuation * facing * sunlit
+          vec3 causticAddition = light * uCausticsIntensity * attenuation * facing * sunlit
             * uLightColor * diffuseColor.rgb * 1.6;
+          // Soft-cap caustics so intense spots on reflective or saturated bodies do not blow out the bloom.
+          gl_FragColor.rgb += min(causticAddition, vec3(0.7));
           // Under an LED fixture light falls in pools below each spot,
           // widening with depth; between them the tank stays darker.
           float pools = 0.0;
