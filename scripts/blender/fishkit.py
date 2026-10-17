@@ -291,8 +291,8 @@ def rig(body_objects, eye_object, left_count, left_centre, right_centre):
     bind(eye_object, [("Eye.L", list(range(left_count))), ("Eye.R", list(range(left_count, total)))])
 
 
-def export(output):
-    """Writes model.glb to the output folder, as docs/FISH_MODELS.md says."""
+def export(output, animations=False):
+    """Writes model.glb to the output folder, as docs/FISH_MODELS.md says; with its clips if `animations`."""
     os.makedirs(output, exist_ok=True)
     bpy.ops.export_scene.gltf(
         filepath=os.path.join(output, "model.glb"),
@@ -300,7 +300,7 @@ def export(output):
         export_yup=True,
         export_skins=True,
         export_morph=True,
-        export_animations=False,
+        export_animations=animations,
         export_vertex_color="ACTIVE",
         export_apply=False,
     )

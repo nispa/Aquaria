@@ -4,6 +4,10 @@
   "forward": "+x",
   "up": "+y",
   "swimAmplitude": 0.02,
+  "animations": {
+    "walk": "Walk",
+    "speed": 0.8
+  },
   "credit": {
     "author": "Aquaria (scripts/blender/shrimp.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/shrimp.py",

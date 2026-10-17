@@ -16,9 +16,15 @@ the model is the project's own work (CC0, like the code that made it):
   antennules, five pairs of walking legs and small swimmerets;
 - deep cherry red, darker in specks, appendages paler and see-through.
 
-No bones and no mouth: on the bottom a shrimp is a few pixels tall. The
-shared pieces are in fishkit.py; docs/FISH_MODELS.md tells what Aquaria
-expects of a model.
+- a skeleton, a bone for each walking leg, antenna, antennule and
+  swimmeret, and a one-second "Walk" clip: the legs step in a wave running
+  from the tail to the head, the two sides half a stride apart, the
+  antennae sway, the antennules flick and the swimmerets beat. Aquaria
+  plays it in step with the shrimp's pace (model.json `animations`).
+
+No mouth: on the bottom a shrimp is a few pixels tall. The shared pieces
+are in fishkit.py; docs/FISH_MODELS.md tells what Aquaria expects of a
+model.
 """
 
 import math
@@ -26,7 +32,7 @@ import os
 import sys
 
 import bpy
-from mathutils import Vector
+from mathutils import Quaternion, Vector
 
 sys.path.insert(0, os.path.dirname(__file__))
 from fishkit import (  # noqa: E402
@@ -50,6 +56,22 @@ DARK = "#7a0a12"
 PALE = "#e8606a"
 LIMB = "#e04a52"
 EYE = "#0a0606"
+
+# The walk: one stride a second, at Blender's 24 frames a second.
+STRIDE_FRAMES = 24
+# How far a leg swings forward and back, and lifts as it comes forward, radians.
+LEG_SWING = 0.35
+LEG_LIFT = 0.25
+# The stride runs from the back leg to the front one, this share of it apart.
+LEG_WAVE = 0.2
+ANTENNA_SWAY = 0.08
+ANTENNA_NOD = 0.06
+ANTENNULE_FLICK = 0.15
+SWIMMERET_BEAT = 0.4
+# Each swimmeret beats this much of a turn after the one in front of it, radians.
+SWIMMERET_WAVE = 0.8
+LEG_XS = (0.3, 0.24, 0.18, 0.12, 0.06)
+SWIMMERET_XS = (0.0, -0.08, -0.16, -0.23)
 
 # The body runs from the front of the carapace to the start of the tail fan.
 FRONT_X = 0.36
@@ -158,16 +180,24 @@ def antennule(side, spread):
     return tube(points, tapering(0.004, 0.0015), limb_color(0.85), sides=6, smooth=2)
 
 
+def leg_root(side, x):
+    return Vector((x, side * 0.03, curve(MIDLINE, x) - curve(HALF_HEIGHT, x) * 0.6))
+
+
 def leg(side, x):
     """A walking leg: out from under the carapace, a knee, down to the ground."""
-    top = curve(MIDLINE, x) - curve(HALF_HEIGHT, x) * 0.6
+    top = leg_root(side, x).z
     points = [(x, side * 0.03, top), (x + 0.015, side * 0.08, top - 0.02), (x - 0.01, side * 0.1, top - 0.085)]
     return tube(points, tapering(0.006, 0.0025), limb_color(0.9), sides=6, smooth=1)
 
 
+def swimmeret_root(side, x):
+    return Vector((x, side * 0.015, curve(MIDLINE, x) - curve(HALF_HEIGHT, x) * 1.05))
+
+
 def swimmeret(side, x):
     """A small paddle under the abdomen."""
-    bottom = curve(MIDLINE, x) - curve(HALF_HEIGHT, x) * 1.05
+    bottom = swimmeret_root(side, x).z
     points = [(x, side * 0.015, bottom), (x - 0.015, side * 0.025, bottom - 0.03)]
     return tube(points, tapering(0.005, 0.002), limb_color(0.7), sides=5, smooth=1)
 
@@ -216,20 +246,105 @@ def tail_fan():
     return membrane(base, edge, color, steps_u=60, steps_v=12, bulge=0.004)
 
 
+def side_name(side):
+    return "L" if side > 0 else "R"
+
+
+def limbs():
+    """Every limb as (part, bone, root): the part moves with its bone, which turns about the root."""
+    parts = []
+    for side in (1, -1):
+        name = side_name(side)
+        parts.append((antenna(side), f"Antenna.{name}", Vector((0.37, side * 0.02, 0.0))))
+        for spread in (0.0, 0.02):
+            parts.append((antennule(side, spread), f"Antennule.{name}", Vector((0.37, side * 0.015, 0.02))))
+        for index, x in enumerate(LEG_XS):
+            parts.append((leg(side, x), f"Leg.{name}{index}", leg_root(side, x)))
+        for index, x in enumerate(SWIMMERET_XS):
+            parts.append((swimmeret(side, x), f"Swimmeret.{name}{index}", swimmeret_root(side, x)))
+    parts.append((tail_fan(), "Root", None))
+    return parts
+
+
+def skeleton(roots):
+    """An armature: Root holds the body, a bone pointing down from each limb's root holds the limb."""
+    data = bpy.data.armatures.new("Armature")
+    armature = bpy.data.objects.new("Armature", data)
+    bpy.context.collection.objects.link(armature)
+    bpy.context.view_layer.objects.active = armature
+    bpy.ops.object.mode_set(mode="EDIT")
+    root = data.edit_bones.new("Root")
+    root.head, root.tail = Vector((0.1, 0, 0)), Vector((-0.2, 0, 0))
+    for name, head in roots.items():
+        bone = data.edit_bones.new(name)
+        bone.head, bone.tail = head, head + Vector((0, 0, -0.03))
+        bone.parent = root
+    bpy.ops.object.mode_set(mode="OBJECT")
+    return armature
+
+
+def bind(obj, armature, groups):
+    """Each of `groups` (bone, vertex indices) moves rigidly with its bone."""
+    for name, indices in groups:
+        group = obj.vertex_groups.get(name) or obj.vertex_groups.new(name=name)
+        group.add(list(indices), 1.0, "REPLACE")
+    modifier = obj.modifiers.new("Armature", "ARMATURE")
+    modifier.object = armature
+    obj.parent = armature
+
+
+def turn(name, frame):
+    """How a limb is turned at `frame` of the stride, in the shrimp's own axes (+X snout, +Z up, +Y left)."""
+    t = 2 * math.pi * frame / STRIDE_FRAMES
+    side = 1 if ".L" in name else -1
+    index = int(name[-1]) if name[-1].isdigit() else 0
+    if name.startswith("Leg"):
+        step = t + 2 * math.pi * (LEG_WAVE * (len(LEG_XS) - 1 - index) + (0 if side > 0 else 0.5))
+        # The foot comes forward lifted and goes back on the ground.
+        swing = Quaternion((0, 0, 1), -side * LEG_SWING * math.sin(step))
+        return swing @ Quaternion((1, 0, 0), side * LEG_LIFT * max(math.cos(step), 0.0))
+    if name.startswith("Antennule"):
+        return Quaternion((0, 1, 0), ANTENNULE_FLICK * math.sin(2 * t))
+    if name.startswith("Antenna"):
+        sway = Quaternion((0, 0, 1), side * ANTENNA_SWAY * math.sin(t))
+        return sway @ Quaternion((0, 1, 0), ANTENNA_NOD * math.sin(t + 1))
+    return Quaternion((0, 1, 0), SWIMMERET_BEAT * math.sin(t + index * SWIMMERET_WAVE))
+
+
+def walk(armature):
+    """Keys one looping stride as the "Walk" clip; the body stays put, Aquaria moves it."""
+    for frame in range(STRIDE_FRAMES + 1):
+        for bone in armature.pose.bones:
+            if bone.name == "Root":
+                continue
+            rest = bone.bone.matrix_local.to_quaternion()
+            bone.rotation_mode = "QUATERNION"
+            bone.rotation_quaternion = rest.inverted() @ turn(bone.name, frame) @ rest
+            bone.keyframe_insert("rotation_quaternion", frame=frame)
+    armature.animation_data.action.name = "Walk"
+    bpy.context.scene.frame_start, bpy.context.scene.frame_end = 0, STRIDE_FRAMES
+
+
 def main():
     args = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
     output = os.path.abspath(args[0]) if args else DEFAULT_OUTPUT
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
     stalks, eyeballs = zip(*(eye(side) for side in (1, -1)))
-    make_object("Body", [body(), rostrum(), *stalks, *eyeballs], material("Shell", 0.3, 0.1, False))
-    limbs = [antenna(1), antenna(-1)]
-    limbs += [antennule(side, spread) for side in (1, -1) for spread in (0.0, 0.02)]
-    limbs += [leg(side, x) for side in (1, -1) for x in (0.3, 0.24, 0.18, 0.12, 0.06)]
-    limbs += [swimmeret(side, x) for side in (1, -1) for x in (0.0, -0.08, -0.16, -0.23)]
-    limbs.append(tail_fan())
-    make_object("Limbs", limbs, material("Limbs", 0.4, 0.0, True))
-    export(output)
+    shell = make_object("Body", [body(), rostrum(), *stalks, *eyeballs], material("Shell", 0.3, 0.1, False))
+    parts = limbs()
+    limb_object = make_object("Limbs", [part for part, _, _ in parts], material("Limbs", 0.4, 0.0, True))
+
+    armature = skeleton({name: root for _, name, root in parts if root is not None})
+    bind(shell, armature, [("Root", list(range(len(shell.data.vertices))))])
+    groups, start = {}, 0
+    for part, name, _ in parts:
+        groups.setdefault(name, []).extend(range(start, start + len(part[0])))
+        start += len(part[0])
+    bind(limb_object, armature, groups.items())
+    walk(armature)
+
+    export(output, animations=True)
     print(f"Red cherry shrimp written to {output}")
 
 
