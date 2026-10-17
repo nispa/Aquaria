@@ -1,6 +1,7 @@
 {
   "name": "Shells",
   "category": "object",
+  "color": ["#f3e6d4", "#e8d2b8"],
   "recipe": {
     "generator": "shell"
   },

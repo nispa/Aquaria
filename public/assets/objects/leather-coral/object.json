@@ -1,6 +1,7 @@
 {
   "name": "Leather corals",
   "category": "object",
+  "color": ["#5f9a8a", "#8fb87a"],
   "recipe": {
     "generator": "leather-coral"
   },

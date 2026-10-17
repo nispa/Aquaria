@@ -35,7 +35,8 @@ The folder name is the object's id, the `kind` a scene uses for it.
   "name": "Ludwigia",
   "category": "plant",
   "model": "model.glb",
-  "material": "../../materials/mossy-wood/material.json",
+  "color": ["#4f9a3a", "#5fae44"],
+  "material": { "file": "../../materials/mossy-wood/material.json", "tileSize": 0.35 },
   "recipe": { "generator": "stem", "seeds": [0, 999] },
   "traits": {
     "sway": { "amount": 0.08 },
@@ -47,15 +48,16 @@ The folder name is the object's id, the `kind` a scene uses for it.
 }
 ```
 
-| Field      | Meaning                                                                                                                               |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`     | Shown in the panel and the editor's palette.                                                                                          |
-| `category` | `plant` (grows, sways, has a height) or `object` (set down, has a size).                                                              |
-| `model`    | A `.glb` or `.gltf` file inside the folder.                                                                                           |
-| `material` | A `material.json`, by a path relative to this file. It must stay inside `assets/`.                                                    |
-| `recipe`   | One of Aquaria's generators (`generator`, any flora or prop kind of today), the `seeds` variants are drawn from, and its `params`.    |
-| `traits`   | Aquaria features by id, see below.                                                                                                    |
-| `credit`   | Required with a model: author, source URL and a license that allows reuse, changes and redistribution, also commercially (see below). |
+| Field      | Meaning                                                                                                                                                  |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`     | Shown in the panel and the editor's palette.                                                                                                             |
+| `category` | `plant` (grows, sways, has a height) or `object` (set down, has a size).                                                                                 |
+| `model`    | A `.glb` or `.gltf` file inside the folder.                                                                                                              |
+| `color`    | Its color, or a palette (`["#7a9a34", "#5f8a2e"]`) each item takes one color of; a scene entry may set its own. `tipColor` tints a plant's tips.         |
+| `material` | `file`: a `material.json`, by a path relative to this file (it must stay inside `assets/`); `tileSize` (m) and `displacement` (m) say how it is laid on. |
+| `recipe`   | One of Aquaria's generators (`generator`, any flora or prop kind of today), the `seeds` variants are drawn from, and its `params`.                       |
+| `traits`   | Aquaria features by id, see below.                                                                                                                       |
+| `credit`   | Required with a model: author, source URL and a license that allows reuse, changes and redistribution, also commercially (see below).                    |
 
 An object needs a `model` or a `recipe`. With both, Aquaria draws the
 recipe's variants and the model is what other programs see, and the

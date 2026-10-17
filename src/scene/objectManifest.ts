@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ALLOWED_MODEL_LICENSES } from "./modelManifest";
 import { formatIssues, SceneValidationError } from "./parse";
-import { PLANT_GENERATORS, PROP_GENERATORS } from "./schema";
+import { colorOrPalette, hexColor, PLANT_GENERATORS, PROP_GENERATORS } from "./schema";
 import { parseTraits, type ObjectTraits } from "./traits";
 
 /**
@@ -21,6 +21,8 @@ const ASSETS_ROOT = "assets";
 export const GENERATORS = [...PLANT_GENERATORS, ...PROP_GENERATORS] as const;
 
 const SEED_MAX = 2 ** 32 - 1;
+/** A plain stone grey, for an object that sets no color. */
+const DEFAULT_COLOR = "#8a8178";
 
 const modelFile = z
   .string()
@@ -42,8 +44,20 @@ export const objectManifestSchema = z
     category: z.enum(["plant", "object"]),
     /** The 3D model, a file in the folder. */
     model: modelFile.optional(),
-    /** The surface, a path to a `material.json`, relative to this file. */
-    material: materialFile.optional(),
+    /** Its color, or a palette each item takes one color of, unless a scene sets its own. */
+    color: colorOrPalette.default(DEFAULT_COLOR),
+    /** Color a plant's leaves turn towards the top (red-tipped stem plants). */
+    tipColor: hexColor.optional(),
+    /** The surface: a `material.json` (path relative to this file) and how it is laid on. */
+    material: z
+      .object({
+        file: materialFile,
+        /** Size of one texture tile, m. */
+        tileSize: z.number().positive().default(1),
+        /** How far the relief pushes the surface out, m. */
+        displacement: z.number().min(0).max(0.2).default(0),
+      })
+      .optional(),
     /** Drawn by one of Aquaria's generators, a different variant per seed. */
     recipe: z
       .object({
@@ -116,5 +130,5 @@ export function resolveAssetPath(folder: string, relative: string): string | und
 export function objectMaterialUrl(id: string, manifest: ObjectManifest): string | undefined {
   return manifest.material === undefined
     ? undefined
-    : resolveAssetPath(objectFolderUrl(id), manifest.material);
+    : resolveAssetPath(objectFolderUrl(id), manifest.material.file);
 }

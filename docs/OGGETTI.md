@@ -37,7 +37,8 @@ oggetto.
   "name": "Ludwigia",
   "category": "plant",
   "model": "model.glb",
-  "material": "../../materials/mossy-wood/material.json",
+  "color": ["#4f9a3a", "#5fae44"],
+  "material": { "file": "../../materials/mossy-wood/material.json", "tileSize": 0.35 },
   "recipe": { "generator": "stem", "seeds": [0, 999] },
   "traits": {
     "sway": { "amount": 0.08 },
@@ -49,15 +50,16 @@ oggetto.
 }
 ```
 
-| Campo      | Significato                                                                                                                              |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`     | Mostrato nel pannello e nella palette dell'editor.                                                                                       |
-| `category` | `plant` (cresce, ondeggia, ha un'altezza) o `object` (appoggiato, ha una dimensione).                                                    |
-| `model`    | Un file `.glb` o `.gltf` dentro la cartella.                                                                                             |
-| `material` | Un `material.json`, con un percorso relativo a questo file. Deve restare dentro `assets/`.                                               |
-| `recipe`   | Uno dei generatori di Aquaria (`generator`, uno dei tipi di piante o oggetti di oggi), i `seeds` da cui pescare le varianti, i `params`. |
-| `traits`   | Le caratteristiche di Aquaria per id, vedi sotto.                                                                                        |
-| `credit`   | Obbligatorio con un modello: autore, URL della fonte e una licenza che permetta riuso, modifiche e ridistribuzione, anche commerciale.   |
+| Campo      | Significato                                                                                                                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`     | Mostrato nel pannello e nella palette dell'editor.                                                                                                                              |
+| `category` | `plant` (cresce, ondeggia, ha un'altezza) o `object` (appoggiato, ha una dimensione).                                                                                           |
+| `model`    | Un file `.glb` o `.gltf` dentro la cartella.                                                                                                                                    |
+| `color`    | Il suo colore, o una tavolozza (`["#7a9a34", "#5f8a2e"]`) da cui ogni elemento ne prende uno; una voce di scena può impostare il suo. `tipColor` colora le punte di una pianta. |
+| `material` | `file`: un `material.json`, con un percorso relativo a questo file (deve restare dentro `assets/`); `tileSize` (m) e `displacement` (m) dicono come si stende.                  |
+| `recipe`   | Uno dei generatori di Aquaria (`generator`, uno dei tipi di piante o oggetti di oggi), i `seeds` da cui pescare le varianti, i `params`.                                        |
+| `traits`   | Le caratteristiche di Aquaria per id, vedi sotto.                                                                                                                               |
+| `credit`   | Obbligatorio con un modello: autore, URL della fonte e una licenza che permetta riuso, modifiche e ridistribuzione, anche commerciale.                                          |
 
 Un oggetto ha bisogno di un `model` o di una `recipe`. Con entrambi, Aquaria
 disegna le varianti della ricetta e il modello è ciò che vedono gli altri

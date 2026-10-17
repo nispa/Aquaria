@@ -1,6 +1,8 @@
 {
   "name": "Stem plants",
   "category": "plant",
+  "color": "#3f8f3a",
+  "tipColor": "#e0553a",
   "recipe": {
     "generator": "stem"
   },
@@ -13,7 +15,8 @@
     },
     "tags": ["plant", "shelter"],
     "placement": {
-      "on": ["sand"]
+      "on": ["sand"],
+      "height": [0.35, 0.75]
     }
   }
 }

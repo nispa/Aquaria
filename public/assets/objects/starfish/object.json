@@ -1,6 +1,11 @@
 {
   "name": "Starfish",
   "category": "object",
+  "color": "#e8612c",
+  "material": {
+    "file": "../../materials/reef-rock/material.json",
+    "tileSize": 0.12
+  },
   "recipe": {
     "generator": "starfish"
   },

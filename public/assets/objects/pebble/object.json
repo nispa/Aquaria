@@ -1,6 +1,7 @@
 {
   "name": "Pebbles",
   "category": "object",
+  "color": ["#8a857c", "#b8b0a2", "#5a5650", "#d0c8ba"],
   "recipe": {
     "generator": "pebble"
   },

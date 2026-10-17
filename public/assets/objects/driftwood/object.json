@@ -1,6 +1,11 @@
 {
   "name": "Driftwood",
   "category": "object",
+  "color": "#5a4636",
+  "material": {
+    "file": "../../materials/mossy-wood/material.json",
+    "tileSize": 0.35
+  },
   "recipe": {
     "generator": "driftwood"
   },

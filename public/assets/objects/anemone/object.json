@@ -1,6 +1,7 @@
 {
   "name": "Anemones",
   "category": "plant",
+  "color": ["#d98fb0", "#c98fd6"],
   "recipe": {
     "generator": "anemone"
   },
@@ -13,7 +14,8 @@
     },
     "tags": ["anemone", "shelter"],
     "placement": {
-      "on": ["sand", "rock"]
+      "on": ["sand", "rock"],
+      "height": [0.12, 0.22]
     }
   }
 }

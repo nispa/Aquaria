@@ -1,6 +1,7 @@
 {
   "name": "Macroalgae",
   "category": "plant",
+  "color": ["#4f9a3a", "#6fc24a"],
   "recipe": {
     "generator": "bush"
   },
@@ -13,7 +14,8 @@
     },
     "tags": ["plant", "algae", "shelter"],
     "placement": {
-      "on": ["sand"]
+      "on": ["sand"],
+      "height": [0.25, 0.6]
     }
   }
 }

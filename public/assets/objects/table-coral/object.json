@@ -1,6 +1,7 @@
 {
   "name": "Table corals",
   "category": "object",
+  "color": ["#8fb8c9", "#b0c8a0"],
   "recipe": {
     "generator": "table-coral"
   },

@@ -1,6 +1,7 @@
 {
   "name": "Carpet plants",
   "category": "plant",
+  "color": ["#6fc23a", "#8ed64a"],
   "recipe": {
     "generator": "carpet"
   },
@@ -13,7 +14,8 @@
     },
     "tags": ["plant"],
     "placement": {
-      "on": ["sand"]
+      "on": ["sand"],
+      "height": [0.02, 0.05]
     }
   }
 }

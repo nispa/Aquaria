@@ -93,7 +93,7 @@ describe("objectMaterialUrl", () => {
         name: "Rock",
         category: "object",
         recipe: { generator: "rock" },
-        material: "../../materials/reef-rock/material.json",
+        material: { file: "../../materials/reef-rock/material.json" },
       },
       "rock",
     );

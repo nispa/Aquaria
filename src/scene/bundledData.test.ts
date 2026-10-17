@@ -7,6 +7,7 @@ import {
 } from "./materialManifest";
 import { checkSceneObjects, parseObjectIndex } from "./objectCatalog";
 import { bundledObjects } from "./objectFixtures";
+import { objectMaterialUrl } from "./objectManifest";
 import { MODEL_MANIFEST_FILE, modelIdsOf, parseModelManifest } from "./modelManifest";
 import { parseCatalog, parseScene } from "./parse";
 import { parseSceneIndex } from "./sceneIndex";
@@ -58,6 +59,15 @@ describe("bundled data files", () => {
     expect(() => {
       checkSceneObjects(scene, objects);
     }).not.toThrow();
+  });
+
+  it.each(objectFolders)("gives the %s object a material that exists, if any", (id) => {
+    const manifest = objects.get(id);
+    const url = manifest === undefined ? undefined : objectMaterialUrl(id, manifest);
+
+    expect(url === undefined || existsSync(new URL(`../../public/${url}`, import.meta.url))).toBe(
+      true,
+    );
   });
 
   it.each(objectFolders)("lists the %s object folder in the object index", (id) => {

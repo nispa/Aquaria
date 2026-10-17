@@ -1,6 +1,7 @@
 {
   "name": "Branching corals",
   "category": "object",
+  "color": ["#e8743c", "#d9583a", "#f08a4a"],
   "recipe": {
     "generator": "branch-coral"
   },

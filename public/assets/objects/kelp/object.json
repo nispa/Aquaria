@@ -1,6 +1,7 @@
 {
   "name": "Kelp",
   "category": "plant",
+  "color": ["#7a9a34", "#5f8a2e", "#9aa83e"],
   "recipe": {
     "generator": "kelp"
   },
@@ -13,7 +14,8 @@
     },
     "tags": ["plant", "shelter"],
     "placement": {
-      "on": ["sand"]
+      "on": ["sand"],
+      "height": [1.0, 2.2]
     }
   }
 }

@@ -16,7 +16,7 @@ export const DEPTH_BAND_COUNT = 5;
 /** Upper limit per species; the population manager relies on it for budgets. */
 export const MAX_INDIVIDUALS_PER_SPECIES = 50;
 
-const hexColor = z
+export const hexColor = z
   .string()
   .regex(/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i, "Expected a hex color such as #1f5fd6.");
 
@@ -201,7 +201,7 @@ export const PROP_GENERATORS = [
 ] as const;
 
 /** One color, or a palette: each item then takes one of the colors. */
-const colorOrPalette = z.union([hexColor, z.array(hexColor).min(1)]);
+export const colorOrPalette = z.union([hexColor, z.array(hexColor).min(1)]);
 
 /** Where an entry grows: on the sand (when absent) or on the scene's rockwork ridge. */
 const placement = z.enum(["sand", "rockwork"]).optional();

@@ -1,6 +1,11 @@
 {
   "name": "Brain corals",
   "category": "object",
+  "color": ["#c8a85a", "#b8955a"],
+  "material": {
+    "file": "../../materials/reef-rock/material.json",
+    "tileSize": 0.35
+  },
   "recipe": {
     "generator": "brain-coral"
   },

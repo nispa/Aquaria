@@ -1,6 +1,7 @@
 {
   "name": "Moss",
   "category": "object",
+  "color": ["#6fc23a", "#8ed64a"],
   "recipe": {
     "generator": "moss"
   },

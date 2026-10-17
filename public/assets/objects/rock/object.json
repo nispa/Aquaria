@@ -1,6 +1,12 @@
 {
   "name": "Rocks",
   "category": "object",
+  "color": "#7e8580",
+  "material": {
+    "file": "../../materials/reef-rock/material.json",
+    "tileSize": 0.45,
+    "displacement": 0.07
+  },
   "recipe": {
     "generator": "rock"
   },

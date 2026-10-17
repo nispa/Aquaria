@@ -1,6 +1,12 @@
 {
   "name": "Dragon stones",
   "category": "object",
+  "color": "#5c5e60",
+  "material": {
+    "file": "../../materials/dark-slate/material.json",
+    "tileSize": 0.3,
+    "displacement": 0.015
+  },
   "recipe": {
     "generator": "dragon-stone"
   },

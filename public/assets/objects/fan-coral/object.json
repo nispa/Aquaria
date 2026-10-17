@@ -1,6 +1,7 @@
 {
   "name": "Sea fans",
   "category": "object",
+  "color": ["#7a4fa8", "#5a6fc8"],
   "recipe": {
     "generator": "fan-coral"
   },
