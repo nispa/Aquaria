@@ -4,6 +4,27 @@
   "forward": "+z",
   "up": "+y",
   "swimAmplitude": 0.08,
+  "mouth": {
+    "jaw": {
+      "start": 0.45,
+      "line": 0.006,
+      "drop": 0.015
+    }
+  },
+  "eyes": {
+    "painted": {
+      "center": [0.423, 0.007],
+      "radius": 0.026,
+      "pupil": 0.8,
+      "iris": "#8fd0e0"
+    }
+  },
+  "gills": {
+    "edge": 0.32,
+    "top": 0.044,
+    "bottom": -0.072,
+    "curve": 8
+  },
   "credit": {
     "author": "BlueMesh",
     "source": "https://sketchfab.com/3d-models/paracheirodon-innesi---tetra-neon-2fabf5db754746b7b81ebfa0bbe99161",

@@ -4,6 +4,20 @@
   "forward": "+z",
   "up": "+y",
   "swimAmplitude": 0.06,
+  "eyes": {
+    "painted": {
+      "center": [0.447, -0.031],
+      "radius": 0.009,
+      "pupil": 0.6,
+      "iris": "#8a6a34"
+    }
+  },
+  "gills": {
+    "edge": 0.25,
+    "top": 0.012,
+    "bottom": -0.124,
+    "curve": 6
+  },
   "credit": {
     "author": "Microsoft",
     "source": "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish",

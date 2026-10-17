@@ -4,6 +4,20 @@
   "forward": "+z",
   "up": "+y",
   "swimAmplitude": 0.07,
+  "eyes": {
+    "painted": {
+      "center": [0.395, 0.013],
+      "radius": 0.02,
+      "pupil": 0.55,
+      "iris": "#9a7a44"
+    }
+  },
+  "gills": {
+    "edge": 0.28,
+    "top": 0.054,
+    "bottom": -0.12,
+    "curve": 3
+  },
   "credit": {
     "author": "BlueMesh",
     "source": "https://sketchfab.com/3d-models/bream-fish-dorade-royale-a3d0e1a597794a9bb74739a13cfc8b77",
