@@ -702,3 +702,38 @@ optgroup {
   color: #ffb3a7;
   text-align: right;
 }
+
+/* The scene editor's palette: cards of every plant and object, on the right. */
+.palette {
+  position: fixed;
+  top: 92px;
+  right: 12px;
+  bottom: 12px;
+  width: min(300px, 40vw);
+  overflow-y: auto;
+  padding: 10px 12px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.palette__heading {
+  margin: 4px 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.palette__card {
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.palette__card[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: rgb(79 195 232 / 0.18);
+}

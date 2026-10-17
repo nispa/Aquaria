@@ -578,6 +578,56 @@ test.describe("scene editor", () => {
     expect(errors).toEqual([]);
   });
 
+  test("sets down an object from the palette, then deletes it", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto("/?scene=iwagumi&effects=none");
+    await waitForState(page);
+    await page.keyboard.press("e");
+    const box = await page.locator("#aquarium").boundingBox();
+    if (box === null) throw new Error("No canvas.");
+    const floor = { x: box.x + box.width * 0.4, y: box.y + box.height * 0.75 };
+
+    await page
+      .getByRole("complementary", { name: "Palette" })
+      .getByRole("button", { name: "Rocks" })
+      .click();
+    await page.mouse.click(floor.x, floor.y);
+    const remove = page.getByRole("button", { name: "Delete the selected item" });
+    await expect(remove).toBeEnabled();
+    await remove.click();
+
+    await expect(remove).toBeDisabled();
+    expect(errors).toEqual([]);
+  });
+
+  test("saves an object set down from the palette at its spot", async ({ page }) => {
+    await page.goto("/?scene=iwagumi&effects=none");
+    await waitForState(page);
+    await page.keyboard.press("e");
+    const box = await page.locator("#aquarium").boundingBox();
+    if (box === null) throw new Error("No canvas.");
+
+    await page
+      .getByRole("complementary", { name: "Palette" })
+      .getByRole("button", { name: "Starfish" })
+      .click();
+    await page.mouse.click(box.x + box.width * 0.4, box.y + box.height * 0.75);
+    await page.getByRole("button", { name: "Save as a new scene" }).click();
+
+    await expect(page).toHaveURL(/scene=my-iwagumi/);
+    await waitForState(page);
+    const stored = await page.evaluate(() => localStorage.getItem("aquaria.customScenes"));
+    const scenes = JSON.parse(stored ?? "{}") as Record<
+      string,
+      { props: { kind: string; at?: unknown[] }[] }
+    >;
+    const starfish = Object.values(scenes)
+      .flatMap((scene) => scene.props)
+      .filter((entry) => entry.kind === "starfish" && entry.at !== undefined);
+    expect(starfish.map((entry) => entry.at?.length)).toEqual([1]);
+  });
+
   test("leaves without saving and brings the tank back", async ({ page }) => {
     await page.goto("/?scene=iwagumi&effects=none");
     await waitForState(page);

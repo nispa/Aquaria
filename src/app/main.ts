@@ -814,6 +814,15 @@ async function start(): Promise<void> {
     editor = openSceneEditor({
       canvas,
       root: document.body,
+      objects,
+      logger,
+      drawPortraits(shown, requests) {
+        portraits = portraits
+          .then(() => drawSceneryPortraits(shown, objects, requests, logger))
+          .catch((error: unknown) => {
+            logger.warn("Palette pictures could not be drawn", { error: String(error) });
+          });
+      },
       scene: { ...scene, id: sceneId, lights: settings.lights ?? scene.lights },
       canSave: isCustomSceneId(sceneId),
       onSave(draft, asNew) {

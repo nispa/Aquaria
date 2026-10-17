@@ -1,10 +1,10 @@
-import type { CursorMode } from "../render/editorView";
 import { element, slider } from "./controls";
 
 /**
  * The scene editor's tool bar, along the top of the window: add or remove
- * blocks, brush size, how many layers show (slicing), smooth or blocky
- * rock, turning and zooming the view, and save, save as new or leave.
+ * blocks, select and move plants and objects (turn, resize, delete the
+ * selected one), brush size, how many layers show (slicing), smooth or
+ * blocky rock, turning and zooming the view, and save, save as new or leave.
  * Big buttons, so it works with a finger as well as a mouse.
  */
 
@@ -15,8 +15,16 @@ export interface EditorBarState {
   readonly canSave: boolean;
 }
 
+/** What a tap on the tank does: blocks in or out, pick an item, or set down the palette's choice. */
+export type EditorTool = "add" | "remove" | "select" | "place";
+
 export interface EditorBarCallbacks {
-  onTool(mode: CursorMode): void;
+  onTool(tool: EditorTool): void;
+  /** Turns the selected item by degrees. */
+  onTurnItem(degrees: number): void;
+  /** Scales the selected item. */
+  onResizeItem(factor: number): void;
+  onDeleteItem(): void;
   /** Brush radius in blocks: 0 is a single block. */
   onBrush(radius: number): void;
   /** The highest layer shown and edited, from 0. */
@@ -31,6 +39,10 @@ export interface EditorBarCallbacks {
 }
 
 export interface EditorBar {
+  /** Shows the tool in use; "place" when the palette took over. */
+  setTool(tool: EditorTool): void;
+  /** Enables the buttons for the selected item, when there is one. */
+  setSelected(selected: boolean): void;
   /** Shows a message, e.g. why saving failed; empty clears it. */
   showStatus(message: string): void;
   dispose(): void;
@@ -38,6 +50,10 @@ export interface EditorBar {
 
 const MAX_BRUSH = 3;
 const ZOOM_STEP = 1.25;
+/** One press of a turn button, degrees. */
+const TURN_STEP = 15;
+/** One press of a resize button. */
+const RESIZE_STEP = 1.15;
 
 function button(label: string, title: string, onClick: () => void): HTMLButtonElement {
   const node = element("button", "editor-bar__button", label);
@@ -69,13 +85,43 @@ export function createEditorBar(
   const remove = button("－", "Remove blocks", () => {
     choose("remove");
   });
-  const choose = (mode: CursorMode): void => {
-    add.setAttribute("aria-pressed", String(mode === "add"));
-    remove.setAttribute("aria-pressed", String(mode === "remove"));
-    callbacks.onTool(mode);
+  const select = button("☝", "Select and move plants and objects", () => {
+    choose("select");
+  });
+  const tools = [
+    ["add", add],
+    ["remove", remove],
+    ["select", select],
+  ] as const;
+  const show = (tool: EditorTool): void => {
+    for (const [id, node] of tools) node.setAttribute("aria-pressed", String(id === tool));
   };
-  add.setAttribute("aria-pressed", "true");
-  remove.setAttribute("aria-pressed", "false");
+  const choose = (tool: EditorTool): void => {
+    show(tool);
+    callbacks.onTool(tool);
+  };
+  show("add");
+  const itemButtons = [
+    button("↺", "Turn the selected item left", () => {
+      callbacks.onTurnItem(-TURN_STEP);
+    }),
+    button("↻", "Turn the selected item right", () => {
+      callbacks.onTurnItem(TURN_STEP);
+    }),
+    button("▫", "Make the selected item smaller", () => {
+      callbacks.onResizeItem(1 / RESIZE_STEP);
+    }),
+    button("▢", "Make the selected item bigger", () => {
+      callbacks.onResizeItem(RESIZE_STEP);
+    }),
+    button("🗑", "Delete the selected item", () => {
+      callbacks.onDeleteItem();
+    }),
+  ];
+  const setSelected = (selected: boolean): void => {
+    for (const node of itemButtons) node.disabled = !selected;
+  };
+  setSelected(false);
 
   const brush = slider(0, MAX_BRUSH, 1, 0);
   brush.name = "brush";
@@ -106,6 +152,8 @@ export function createEditorBar(
     element("span", "editor-bar__title", "Editing"),
     add,
     remove,
+    select,
+    ...itemButtons,
     labelled("Brush", brush),
     labelled("Layers", slice),
     labelled("Smooth", smoothInput),
@@ -133,6 +181,8 @@ export function createEditorBar(
   root.append(bar);
 
   return {
+    setTool: show,
+    setSelected,
     showStatus(message) {
       status.textContent = message;
     },

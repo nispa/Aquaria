@@ -91,7 +91,11 @@ In the scene editor the tank is seen from above at an angle. Click or drag
 with one finger to add blocks (`＋`) or remove them (`－`); the brush sets how
 many at once and Layers slices off the top ones to reach inside. Drag with
 the right button or two fingers to move the view, use the wheel or pinch to
-zoom, ⟲ ⟳ to turn it. Smooth shows the rock as it will look. Save keeps a
+zoom, ⟲ ⟳ to turn it. Smooth shows the rock as it will look. Choose a plant or
+an object in the palette on the right and tap the sand or a block's top to
+set it down; with ☝ tap one to select it, drag it elsewhere, turn it (↺ ↻),
+resize it (▫ ▢) or delete it (🗑 or `Delete`). What stood on blocks you
+remove comes down to the next support. Save keeps a
 scene of your own (bundled scenes are saved as new ones); Exit or `Esc`
 leaves without saving.
 

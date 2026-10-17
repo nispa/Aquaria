@@ -1,26 +1,58 @@
 import { Vector3 } from "three";
 import { createEventBus } from "../core/eventBus";
+import type { Logger } from "../core/logger";
+import { createRng, type Rng } from "../core/rng";
 import { createEditorPointerInput, type EditorPointerEvents } from "../input/editorPointer";
 import type { ViewSpot } from "../input/pointer";
-import { createEditorView, type CursorMode } from "../render/editorView";
-import { paintBlocks, pickBlock, type BlockCell } from "../scene/blockEditing";
+import { createEditorView, type ItemBall, type ItemBox } from "../render/editorView";
+import {
+  paintBlocks,
+  pickBlock,
+  supportBelow,
+  type BlockCell,
+  type BlockPick,
+} from "../scene/blockEditing";
 import { blockGrid, cellCount, decodeRuns, encodeRuns } from "../scene/blocks";
+import type { ObjectCatalog } from "../scene/objectCatalog";
+import { paletteScene } from "../scene/objectEntries";
+import {
+  moveItem,
+  pickItem,
+  placeItem,
+  removeItem,
+  resizeItem,
+  settleItems,
+  turnItem,
+  type ItemRef,
+  type LaidOutItem,
+  type Scenery,
+} from "../scene/sceneryEditing";
 import type { BlocksSpec, Scene } from "../scene/schema";
-import { createEditorBar } from "../ui/editorBar";
+import { layoutFlora, layoutProps, type Plant, type Prop, type RockSurface } from "../sim/layout";
+import { propTop } from "../sim/obstacles";
+import { floorHeight } from "../sim/terrain";
+import { createEditorBar, type EditorTool } from "../ui/editorBar";
+import { createPalette } from "../ui/palette";
+import type { SceneryPortraitRequest } from "../ui/sceneryCards";
 
 /**
- * Editing mode: the window shows the scene editor instead of the tank, the
- * viewer builds rock from blocks, then saves (the tank is rebuilt with the
- * saved scene) or leaves without saving.
+ * Editing mode: the window shows the scene editor instead of the tank. The
+ * viewer builds rock from blocks and sets down, moves, turns, resizes and
+ * removes plants and objects from the palette, then saves (the tank is
+ * rebuilt with the saved scene) or leaves without saving.
  */
 
 export interface SceneEditorOptions {
   readonly canvas: HTMLCanvasElement;
-  /** Where the tool bar goes. */
+  /** Where the tool bar and the palette go. */
   readonly root: HTMLElement;
   readonly scene: Scene;
+  readonly objects: ObjectCatalog;
+  readonly logger: Logger;
   /** Whether the scene is the viewer's own and may be overwritten. */
   readonly canSave: boolean;
+  /** Draws pictures of a scene's scenery entries, like the panel's cards. */
+  drawPortraits(scene: Scene, requests: readonly SceneryPortraitRequest[]): void;
   /** Saves the edited scene; returns why it could not, or undefined. */
   onSave(scene: Scene, asNew: boolean): string | undefined;
   onExit(): void;
@@ -28,7 +60,7 @@ export interface SceneEditorOptions {
 
 export interface SceneEditor {
   resize(cssWidth: number, cssHeight: number): void;
-  /** Draws a frame, rebuilding the rock first if it changed. */
+  /** Draws a frame, rebuilding the rock and the scenery first if they changed. */
   render(): void;
   dispose(): void;
 }
@@ -40,6 +72,15 @@ const DEFAULT_BLOCKS: Pick<BlocksSpec, "color" | "material"> = {
   color: "#8a8178",
   material: { id: "layered-rock", tileSize: 0.5, displacement: 0 },
 };
+/** Smallest ball round an item for picking it, m: tiny pebbles stay easy to hit. */
+const MIN_PICK_RADIUS = 0.03;
+/** A plant's spread, as a share of its height, for its selection box. */
+const PLANT_SPREAD = 0.25;
+/** A plant set down grows at most this share of the tank's height: reef kelp would not fit a tank. */
+const MAX_PLANT_SHARE = 0.8;
+/** Seeds of the editor's layout of entries drawn at random, after the scene's seed. */
+const FLORA_SEED_OFFSET = 101;
+const PROPS_SEED_OFFSET = 102;
 
 /** The scene with the edited blocks; without any solid block, none at all. */
 function withBlocks(scene: Scene, size: number, cells: Uint8Array): Scene {
@@ -50,8 +91,14 @@ function withBlocks(scene: Scene, size: number, cells: Uint8Array): Scene {
   return { ...rest, blocks: { ...look, size, runs: encodeRuns(cells) } };
 }
 
+const sameCell = (a: BlockCell | undefined, b: BlockCell): boolean =>
+  a?.column === b.column && a.layer === b.layer && a.row === b.row;
+
+const sameRef = (a: ItemRef, b: ItemRef | undefined): boolean =>
+  a.section === b?.section && a.entry === b.entry && a.item === b.item;
+
 export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
-  const { canvas, scene } = options;
+  const { canvas, scene, objects } = options;
   const { tank } = scene;
   const size = scene.blocks?.size ?? DEFAULT_BLOCK_SIZE;
   const grid = blockGrid(tank, size);
@@ -67,60 +114,216 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
     floorColor: scene.floor.color,
     rockColor: scene.blocks?.color ?? DEFAULT_BLOCKS.color,
     backgroundColor: scene.water.color,
+    logger: options.logger,
   });
 
-  let mode: CursorMode = "add";
+  let tool: EditorTool = "add";
+  /** The palette's choice, set down by the "place" tool. */
+  let chosen: string | undefined;
   let radius = 0;
   let topLayer = grid.layers - 1;
   /** The blocks as they were when the stroke began: a stroke paints one surface, never its own. */
   let strokeStart: Uint8Array | undefined;
   let lastPainted: BlockCell | undefined;
-  let dirty = false;
+  let blocksChanged = false;
+  let scenery: Scenery = { flora: scene.flora, props: scene.props };
+  let sceneryChanged = true;
+  let selected: ItemRef | undefined;
+  /** Whether the current stroke drags the selected item. */
+  let dragging = false;
+  let plants: Plant[] = [];
+  let props: Prop[] = [];
   const origin = new Vector3();
   const direction = new Vector3();
 
-  const targetAt = (spot: ViewSpot): BlockCell | undefined => {
+  // The rock as plants and objects see it: the tops of the block columns.
+  const elevationAt = (x: number, z: number, height = Infinity): number =>
+    Math.max(
+      supportBelow(tank, grid, cells, x, z, floorHeight(x, z) + height) - floorHeight(x, z),
+      0,
+    );
+  const blockTops: RockSurface = {
+    randomPoint(rng: Rng) {
+      // Every column with a block in it, whatever its layer.
+      const tops = new Set<number>();
+      cells.forEach((cell, index) => {
+        if (cell === 1) tops.add(index % (grid.columns * grid.rows));
+      });
+      const columns = [...tops];
+      if (columns.length === 0) return undefined;
+      const index = columns[rng.int(0, columns.length - 1)] ?? 0;
+      return [
+        -tank.width / 2 + ((index % grid.columns) + rng.next()) * size,
+        -tank.depth + (Math.floor(index / grid.columns) + rng.next()) * size,
+      ];
+    },
+    heightAt: (x, z) => elevationAt(x, z),
+  };
+
+  const relayout = (): void => {
+    plants = layoutFlora(
+      objects,
+      tank,
+      scenery.flora,
+      createRng(scene.seed + FLORA_SEED_OFFSET),
+      undefined,
+      blockTops,
+    );
+    props = layoutProps(
+      objects,
+      tank,
+      scenery.props,
+      createRng(scene.seed + PROPS_SEED_OFFSET),
+      undefined,
+      blockTops,
+    );
+    view.setScenery(plants, props);
+  };
+
+  /** A ball and a box round every laid-out item, with its source, for picking and outlining. */
+  const balls = (): { ball: ItemBall; box: ItemBox; ref: ItemRef }[] => [
+    ...plants.flatMap((plant) => {
+      if (plant.source === undefined) return [];
+      const base = floorHeight(plant.x, plant.z) + (plant.elevation ?? 0);
+      const middle = { x: plant.x, y: base + plant.height / 2, z: plant.z };
+      const ball = { ...middle, radius: Math.max(plant.height / 2, MIN_PICK_RADIUS) };
+      const box = {
+        ...middle,
+        halfWidth: Math.max(plant.height * PLANT_SPREAD, MIN_PICK_RADIUS),
+        halfHeight: plant.height / 2,
+      };
+      return [{ ball, box, ref: plant.source }];
+    }),
+    ...props.flatMap((prop) => {
+      if (prop.source === undefined) return [];
+      const base = floorHeight(prop.x, prop.z) + (prop.elevation ?? 0);
+      const top = propTop(prop);
+      const middle = { x: prop.x, y: base + top / 2, z: prop.z };
+      const ball = { ...middle, radius: Math.max(prop.size / 2, top / 2, MIN_PICK_RADIUS) };
+      const box = { ...middle, halfWidth: prop.size / 2, halfHeight: top / 2 };
+      return [{ ball, box, ref: prop.source }];
+    }),
+  ];
+
+  /** Where the layout put the items of an entry, to keep them there when one is edited. */
+  const laidOutOf = (ref: ItemRef): LaidOutItem[] =>
+    ref.section === "flora"
+      ? plants
+          .filter((plant) => plant.source?.entry === ref.entry)
+          .map(({ x, z, rotation, height }) => ({ x, z, rotation, height }))
+      : props
+          .filter((prop) => prop.source?.entry === ref.entry)
+          .map(({ x, z, rotation, size: across }) => ({ x, z, rotation, size: across }));
+
+  const editScenery = (next: Scenery): void => {
+    scenery = next;
+    sceneryChanged = true;
+  };
+  const select = (ref: ItemRef | undefined): void => {
+    selected = ref;
+    bar.setSelected(ref !== undefined);
+  };
+
+  const pickAt = (spot: ViewSpot, against: Uint8Array = cells): BlockPick | undefined => {
     view.ray(spot.x, spot.y, origin, direction);
-    const pick = pickBlock(tank, grid, strokeStart ?? cells, origin, direction, topLayer);
-    return mode === "add" ? pick?.place : pick?.hit;
+    return pickBlock(tank, grid, against, origin, direction, topLayer);
+  };
+  /** Where an item goes for a tap: on the floor, or on a block's top (with its height). */
+  const groundAt = (spot: ViewSpot): { x: number; z: number; y?: number } | undefined => {
+    const pick = pickAt(spot);
+    if (pick?.up !== true) return undefined;
+    const { x, z } = pick.point;
+    if (pick.hit === undefined) return { x, z };
+    return { x, z, y: Math.max(pick.point.y - floorHeight(x, z), 0) };
+  };
+
+  const blockTarget = (spot: ViewSpot): BlockCell | undefined => {
+    const pick = pickAt(spot, strokeStart);
+    return tool === "add" ? pick?.place : pick?.hit;
   };
   const paint = (cell: BlockCell): void => {
-    if (
-      lastPainted?.column === cell.column &&
-      lastPainted.layer === cell.layer &&
-      lastPainted.row === cell.row
-    ) {
-      return;
-    }
+    if (sameCell(lastPainted, cell)) return;
     lastPainted = cell;
-    if (paintBlocks(grid, cells, cell, radius, mode === "add" ? 1 : 0, topLayer)) dirty = true;
+    if (paintBlocks(grid, cells, cell, radius, tool === "add" ? 1 : 0, topLayer)) {
+      blocksChanged = true;
+    }
   };
   const hover = (spot: ViewSpot): void => {
-    view.setCursor(targetAt(spot), mode, radius);
+    const blockTool = tool === "add" || tool === "remove";
+    view.setCursor(
+      blockTool ? blockTarget(spot) : undefined,
+      tool === "add" ? "add" : "remove",
+      radius,
+    );
+  };
+
+  const press = (spot: ViewSpot): void => {
+    if (tool === "add" || tool === "remove") {
+      strokeStart = cells.slice();
+      lastPainted = undefined;
+      const cell = blockTarget(spot);
+      if (cell !== undefined) paint(cell);
+      hover(spot);
+      return;
+    }
+    if (tool === "place") {
+      const object = chosen === undefined ? undefined : objects.get(chosen);
+      const ground = groundAt(spot);
+      if (chosen === undefined || object === undefined || ground === undefined) return;
+      // A plant too tall for the tank: its usual range, shrunk to fit.
+      const range = object.traits.placement?.height;
+      const limit = tank.height * MAX_PLANT_SHARE;
+      const where =
+        object.category === "plant" && range !== undefined && range[1] > limit
+          ? { ...ground, height: (((range[0] + range[1]) / 2) * limit) / range[1] }
+          : ground;
+      const placed = placeItem(scenery, chosen, object, where);
+      editScenery(placed.scenery);
+      select(placed.ref);
+      return;
+    }
+    view.ray(spot.x, spot.y, origin, direction);
+    const candidates = balls();
+    const hit = pickItem(
+      candidates.map((candidate) => candidate.ball),
+      origin,
+      direction,
+    );
+    const ref = hit === undefined ? undefined : candidates[hit]?.ref;
+    select(ref);
+    dragging = ref !== undefined;
+  };
+  const drag = (spot: ViewSpot): void => {
+    if (tool === "add" || tool === "remove") {
+      const cell = blockTarget(spot);
+      if (cell !== undefined) paint(cell);
+      view.setCursor(cell, tool, radius);
+      return;
+    }
+    if (tool !== "select" || !dragging || selected === undefined) return;
+    const ground = groundAt(spot);
+    if (ground === undefined) return;
+    editScenery(moveItem(scenery, selected, laidOutOf(selected), ground));
+  };
+  const release = (): void => {
+    if (strokeStart !== undefined && blocksChanged) {
+      // What stood on blocks that went comes down to the next support.
+      editScenery(settleItems(scenery, (x, z, y) => elevationAt(x, z, y)));
+    }
+    strokeStart = undefined;
+    lastPainted = undefined;
+    dragging = false;
   };
 
   const bus = createEventBus<EditorPointerEvents>();
   const input = createEditorPointerInput(canvas, bus);
   canvas.classList.add("editing");
   bus.on("editor-hover", hover);
-  bus.on("editor-press", (spot) => {
-    strokeStart = cells.slice();
-    lastPainted = undefined;
-    const cell = targetAt(spot);
-    if (cell !== undefined) paint(cell);
-    hover(spot);
-  });
-  bus.on("editor-drag", (spot) => {
-    const cell = targetAt(spot);
-    if (cell !== undefined) paint(cell);
-    view.setCursor(cell, mode, radius);
-  });
-  bus.on("editor-release", () => {
-    strokeStart = undefined;
-    lastPainted = undefined;
-  });
+  bus.on("editor-press", press);
+  bus.on("editor-drag", drag);
+  bus.on("editor-release", release);
   bus.on("editor-leave", () => {
-    view.setCursor(undefined, mode, radius);
+    view.setCursor(undefined, "add", radius);
   });
   bus.on("editor-pan", ({ dx, dy }) => {
     view.pan(dx, dy);
@@ -129,16 +332,40 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
     view.zoom(factor);
   });
 
+  const editSelected = (edit: (ref: ItemRef, laidOut: LaidOutItem[]) => Scenery): void => {
+    if (selected === undefined) return;
+    editScenery(edit(selected, laidOutOf(selected)));
+  };
+  const deleteSelected = (): void => {
+    editSelected((ref, laidOut) => removeItem(scenery, ref, laidOut));
+    select(undefined);
+  };
+
   const save = (asNew: boolean): void => {
-    bar.showStatus(options.onSave(withBlocks(scene, size, cells), asNew) ?? "");
+    const edited: Scene = {
+      ...withBlocks(scene, size, cells),
+      flora: [...scenery.flora],
+      props: [...scenery.props],
+    };
+    bar.showStatus(options.onSave(edited, asNew) ?? "");
   };
   const bar = createEditorBar(
     options.root,
     { layers: grid.layers, canSave: options.canSave },
     {
       onTool(next) {
-        mode = next;
+        tool = next;
+        chosen = undefined;
+        palette.setChosen(undefined);
+        if (next !== "select") select(undefined);
       },
+      onTurnItem(degrees) {
+        editSelected((ref, laidOut) => turnItem(scenery, ref, laidOut, degrees));
+      },
+      onResizeItem(factor) {
+        editSelected((ref, laidOut) => resizeItem(scenery, ref, laidOut, factor));
+      },
+      onDeleteItem: deleteSelected,
       onBrush(next) {
         radius = next;
       },
@@ -166,8 +393,27 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
       },
     },
   );
+  const paletteItems = (category: "plant" | "object") =>
+    objects.ids(category).map((id) => ({ id, name: objects.get(id)?.name ?? id }));
+  const palette = createPalette(options.root, {
+    plants: paletteItems("plant"),
+    objects: paletteItems("object"),
+    drawPortraits: (requests) => {
+      options.drawPortraits(paletteScene(scene, objects), requests);
+    },
+    onChoose(id) {
+      chosen = id;
+      tool = id === undefined ? "select" : "place";
+      bar.setTool(tool);
+      view.setCursor(undefined, "add", radius);
+    },
+  });
+
   const onKey = (event: KeyboardEvent): void => {
     if (event.key === "Escape") options.onExit();
+    if ((event.key === "Delete" || event.key === "Backspace") && selected !== undefined) {
+      deleteSelected();
+    }
   };
   window.addEventListener("keydown", onKey);
 
@@ -176,10 +422,17 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
       view.resize(cssWidth, cssHeight);
     },
     render() {
-      if (dirty) {
-        dirty = false;
+      if (blocksChanged) {
+        blocksChanged = false;
         view.refresh();
+        sceneryChanged = true;
       }
+      if (sceneryChanged) {
+        sceneryChanged = false;
+        relayout();
+      }
+      const outline = balls().find((candidate) => sameRef(candidate.ref, selected));
+      view.setSelection(outline?.box);
       view.render();
     },
     dispose() {
@@ -187,6 +440,7 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
       canvas.classList.remove("editing");
       input.dispose();
       bar.dispose();
+      palette.dispose();
       view.dispose();
     },
   };

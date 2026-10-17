@@ -29,7 +29,7 @@ and `pnpm test:e2e` green.
       when the panel first opens and released after the batch (the
       aquarium's renderer and effects are untouched); redrawn when the 3D
       badge changes.
-- [ ] The same cards are reused by the scene editor's palette (C3).
+- [x] The same cards are reused by the scene editor's palette (C3).
 
 ## B. Fish behavior
 
@@ -120,8 +120,8 @@ scene.
 
 Comes after block E: the palette lists the object folders.
 
-- [ ] Palette of cards for every flora and prop kind (data-driven).
-- [ ] Drop on sand or on rock tops, move, rotate, scale, delete; items fall
+- [x] Palette of cards for every flora and prop kind (data-driven).
+- [x] Drop on sand or on rock tops, move, rotate, scale, delete; items fall
       to the next support when the block under them is removed.
 - [ ] Undo / redo.
 

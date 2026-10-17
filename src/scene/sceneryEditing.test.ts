@@ -44,6 +44,12 @@ describe("placeItem", () => {
     expect([scenery.flora.length, scenery.flora[0]?.count, ref.item]).toEqual([1, 2, 1]);
   });
 
+  it("keeps positions to the millimeter, so scene files stay tidy", () => {
+    const { scenery } = placeItem(empty, "rock", rockObject, { x: 0.123456, z: -0.4004001 });
+
+    expect(scenery.props[0]?.at?.[0]).toEqual({ x: 0.123, z: -0.4 });
+  });
+
   it("keeps a spot's height above the sand, e.g. on a block", () => {
     const { scenery } = placeItem(empty, "rock", rockObject, { x: 0, z: -0.4, y: 0.2 });
 

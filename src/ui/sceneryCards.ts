@@ -1,9 +1,6 @@
 import type { SceneryEntry } from "../scene/scenery";
 import { element, slider } from "./controls";
-
-/** Picture size in device pixels, the same as the fish cards'. */
-const PORTRAIT_WIDTH = 192;
-const PORTRAIT_HEIGHT = 120;
+import { pictureCard } from "./pictureCard";
 
 /** One picture for the panel to have drawn: one item of a scenery entry. */
 export interface SceneryPortraitRequest {
@@ -36,16 +33,9 @@ export function createSceneryCards(options: SceneryCardsOptions): SceneryCards {
 
   const grid = element("div", "fish-cards");
   for (const entry of options.entries) {
-    const card = element("div", "fish-card");
+    const { card, canvas } = pictureCard("div", entry.label);
     card.dataset.sceneryCard = entry.key;
     card.classList.toggle("fish-card--empty", entry.count === 0);
-
-    const picture = element("div", "fish-card__picture");
-    const canvas = element("canvas", "fish-card__canvas");
-    canvas.width = PORTRAIT_WIDTH;
-    canvas.height = PORTRAIT_HEIGHT;
-    canvas.setAttribute("aria-hidden", "true");
-    picture.append(canvas);
     requests.push({ key: entry.key, canvas });
 
     const value = element("output", "fish-card__value", String(entry.count));
@@ -60,10 +50,7 @@ export function createSceneryCards(options: SceneryCardsOptions): SceneryCards {
     });
     const countRow = element("div", "fish-card__count");
     countRow.append(input, value);
-    const name = element("span", "fish-card__name", entry.label);
-    // Long names are cut short on the card; the full one shows on hover.
-    name.title = entry.label;
-    card.append(picture, name, countRow);
+    card.append(countRow);
     grid.append(card);
   }
 

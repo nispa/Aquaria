@@ -136,6 +136,32 @@ export function pickBlock(
   }
 }
 
+/** Lets a support exactly at a height count as below it. */
+const SUPPORT_TOLERANCE = 1e-6;
+
+/**
+ * The height of the highest block top at or below `height` over (x, z), m;
+ * 0 (the floor) when there is none: where something set at that height
+ * comes to rest.
+ */
+export function supportBelow(
+  tank: TankSize,
+  grid: BlockGrid,
+  cells: Uint8Array,
+  x: number,
+  z: number,
+  height: number,
+): number {
+  const column = Math.floor((x + tank.width / 2) / grid.size);
+  const row = Math.floor((z + tank.depth) / grid.size);
+  if (column < 0 || column >= grid.columns || row < 0 || row >= grid.rows) return 0;
+  const highest = Math.min(Math.floor(height / grid.size + SUPPORT_TOLERANCE), grid.layers) - 1;
+  for (let layer = highest; layer >= 0; layer -= 1) {
+    if (cells[cellIndex(grid, column, layer, row)] === 1) return (layer + 1) * grid.size;
+  }
+  return 0;
+}
+
 /**
  * Fills (`solid` 1) or empties (0) the blocks within `radius` blocks of
  * `center`, up to `topLayer`. True when any block changed.

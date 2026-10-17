@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { blockGrid, cellCount, cellIndex } from "./blocks";
-import { paintBlocks, pickBlock } from "./blockEditing";
+import { paintBlocks, pickBlock, supportBelow } from "./blockEditing";
 
 /** A 1 m × 0.5 m × 1 m tank in 0.1 m blocks: 10 × 5 × 10. */
 const tank = { width: 1, height: 0.5, depth: 1 };
@@ -104,6 +104,25 @@ describe("pickBlock", () => {
     const pick = pickBlock(tank, grid, cells, from, { x: -1, y: -1, z: -1 });
 
     expect(pick?.hit).toEqual({ column: 5, layer: 0, row: 5 });
+  });
+});
+
+describe("supportBelow", () => {
+  const cells = empty();
+  cells[cellIndex(grid, 3, 0, 4)] = 1;
+  cells[cellIndex(grid, 3, 3, 4)] = 1;
+  const middle = { x: -0.5 + 3.5 * 0.1, z: -1 + 4.5 * 0.1 };
+
+  it("is the top of the highest block at or below a height", () => {
+    expect(supportBelow(tank, grid, cells, middle.x, middle.z, 0.3)).toBeCloseTo(0.1);
+  });
+
+  it("is the top of the column from above it", () => {
+    expect(supportBelow(tank, grid, cells, middle.x, middle.z, 1)).toBeCloseTo(0.4);
+  });
+
+  it("is the floor where there is no block", () => {
+    expect(supportBelow(tank, grid, cells, 0.4, -0.1, 1)).toBe(0);
   });
 });
 

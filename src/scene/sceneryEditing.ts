@@ -55,6 +55,25 @@ const ANGLE_PRECISION = 1000;
 
 type Entry = FloraSpec | PropSpec;
 
+/** Lengths are kept to the millimeter, the scene files' precision. */
+const MILLIMETERS = 1000;
+const tidyLength = (meters: number): number => Math.round(meters * MILLIMETERS) / MILLIMETERS;
+
+/** A spot with its lengths to the millimeter. */
+function tidySpot(spot: Spot): Spot {
+  const tidy = (value: number | undefined): number | undefined =>
+    value === undefined ? undefined : tidyLength(value);
+  const { y, size, height } = spot;
+  return {
+    ...spot,
+    x: tidyLength(spot.x),
+    z: tidyLength(spot.z),
+    ...(y === undefined ? {} : { y: tidy(y) }),
+    ...(size === undefined ? {} : { size: tidy(size) }),
+    ...(height === undefined ? {} : { height: tidy(height) }),
+  };
+}
+
 const tidyAngle = (degrees: number): number =>
   Math.round((((degrees % FULL_TURN) + FULL_TURN) % FULL_TURN) * ANGLE_PRECISION) / ANGLE_PRECISION;
 
@@ -78,7 +97,7 @@ function withSpots(
 ): Scenery {
   const replace = <T extends Entry>(entries: readonly T[]): T[] =>
     entries.map((entry, index) =>
-      index === ref.entry ? { ...entry, count: spots.length, at: spots } : entry,
+      index === ref.entry ? { ...entry, count: spots.length, at: spots.map(tidySpot) } : entry,
     );
   return ref.section === "flora"
     ? { ...scenery, flora: replace(scenery.flora) }

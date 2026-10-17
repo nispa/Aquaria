@@ -6,6 +6,7 @@ import {
   DirectionalLight,
   EdgesGeometry,
   Float32BufferAttribute,
+  Group,
   HemisphereLight,
   LineBasicMaterial,
   LineSegments,
@@ -19,10 +20,17 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
+import type { Logger } from "../core/logger";
 import type { BlockCell } from "../scene/blockEditing";
 import type { BlockGrid } from "../scene/blocks";
+import type { Plant, Prop } from "../sim/layout";
+import { createAssetLoaders } from "./assetLoaders";
 import { blockMesh } from "./blockMesh";
 import { blockyMesh, isometricView } from "./editorFraming";
+import { createFloraRenderer, type FloraRenderer } from "./floraRenderer";
+import { createPropRenderer, type PropRenderer } from "./propRenderer";
+import { createSurfaceLibrary } from "./surfaceLibrary";
+import { neutralWaterUniforms } from "./uniforms";
 
 /**
  * The scene editor's view: the tank from above at an angle (isometric,
@@ -40,6 +48,24 @@ export interface EditorViewOptions {
   readonly floorColor: string;
   readonly rockColor: string;
   readonly backgroundColor: string;
+  readonly logger: Logger;
+}
+
+/** A ball round a plant or object, for picking it, m. */
+export interface ItemBall {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly radius: number;
+}
+
+/** The box round a plant or object, outlined when it is selected, m. */
+export interface ItemBox {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly halfWidth: number;
+  readonly halfHeight: number;
 }
 
 /** What the cursor shows: where a block goes, or which one is removed. */
@@ -60,6 +86,10 @@ export interface EditorView {
   pan(dx: number, dy: number): void;
   /** The ray through a spot on the view (normalized device coordinates), in tank coordinates. */
   ray(x: number, y: number, origin: Vector3, direction: Vector3): void;
+  /** Shows these plants and objects, as they will stand in the tank. */
+  setScenery(plants: readonly Plant[], props: readonly Prop[]): void;
+  /** Outlines the selected plant or object; none when undefined. */
+  setSelection(box: ItemBox | undefined): void;
   /** Outlines the block(s) a tool would change; none when undefined. */
   setCursor(cell: BlockCell | undefined, mode: CursorMode, radius: number): void;
   resize(cssWidth: number, cssHeight: number): void;
@@ -74,6 +104,7 @@ const TANK_EDGE_OPACITY = 0.45;
 const ADD_COLOR = 0x6ee7a0;
 const REMOVE_COLOR = 0xff6b6b;
 const SLICE_COLOR = 0xffd166;
+const SELECTION_COLOR = 0xffd166;
 const SKY_LIGHT = 1.6;
 const SUN_LIGHT = 1.4;
 const SKY_GROUND = 0x404040;
@@ -115,6 +146,12 @@ function gridLines(
 export function createEditorView(options: EditorViewOptions): EditorView {
   const { canvas, tank, grid, cells } = options;
   const renderer = new WebGLRenderer({ canvas, antialias: true });
+  const loaders = createAssetLoaders(renderer);
+  const surfaces = createSurfaceLibrary((url) => loaders.textures.loadAsync(url), options.logger);
+  // No water in the editor: plants and objects as they are, without caustics.
+  const water = neutralWaterUniforms();
+  let flora: FloraRenderer | undefined;
+  let props: PropRenderer | undefined;
   const world = new World();
   world.background = new Color(options.backgroundColor);
   const sun = new DirectionalLight(0xffffff, SUN_LIGHT);
@@ -156,7 +193,8 @@ export function createEditorView(options: EditorViewOptions): EditorView {
     roughness: ROUGHNESS,
   });
   const rock = new Mesh(new BufferGeometry(), rockMaterial);
-  world.add(rock);
+  const sceneryGroup = new Group();
+  world.add(rock, sceneryGroup);
 
   const unitCube = new BoxGeometry(1, 1, 1);
   const cubeEdges = new EdgesGeometry(unitCube);
@@ -166,6 +204,11 @@ export function createEditorView(options: EditorViewOptions): EditorView {
   cursor.renderOrder = 1;
   cursor.visible = false;
   world.add(cursor);
+  const selectionMaterial = new LineBasicMaterial({ color: SELECTION_COLOR, depthTest: false });
+  const selection = new LineSegments(cubeEdges, selectionMaterial);
+  selection.renderOrder = 1;
+  selection.visible = false;
+  world.add(selection);
 
   const camera = new OrthographicCamera();
   let smooth = false;
@@ -229,6 +272,20 @@ export function createEditorView(options: EditorViewOptions): EditorView {
 
   return {
     refresh,
+    setScenery(plants, items) {
+      flora?.dispose();
+      props?.dispose();
+      flora = createFloraRenderer(plants, water);
+      props = createPropRenderer(items, water, surfaces);
+      sceneryGroup.clear();
+      sceneryGroup.add(flora.object, props.object);
+    },
+    setSelection(box) {
+      selection.visible = box !== undefined;
+      if (box === undefined) return;
+      selection.position.set(box.x, box.y, box.z);
+      selection.scale.set(box.halfWidth * 2, box.halfHeight * 2, box.halfWidth * 2);
+    },
     setSmooth(next) {
       smooth = next;
       refresh();
@@ -302,6 +359,11 @@ export function createEditorView(options: EditorViewOptions): EditorView {
       sliceMaterial.dispose();
       cubeEdges.dispose();
       cursorMaterial.dispose();
+      selectionMaterial.dispose();
+      flora?.dispose();
+      props?.dispose();
+      surfaces.dispose();
+      loaders.dispose();
       renderer.dispose();
     },
   };
