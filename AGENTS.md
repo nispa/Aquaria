@@ -179,7 +179,8 @@ Shaders:
   procedural body (always, the light fallback) and optionally a 3D model: a
   folder in `public/assets/species/<id>/` with a glTF file and a
   `model.json` manifest (orientation, swimming, mouth morph target, credit),
-  validated by `src/scene/modelManifest.ts`. The viewer switches models on
+  validated by `src/scene/modelManifest.ts`; how to make one in Blender
+  (mouth shape key, eye bones): `docs/FISH_MODELS.md`. The viewer switches models on
   or off per species; both kinds swim together in the same tank.
 - How a species swims is its `swim` entry: a style from `src/sim/behaviors/`
   (one file each, registered in `SWIM_STYLES`) with parameters declared in

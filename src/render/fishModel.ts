@@ -3,6 +3,7 @@ import {
   BufferAttribute,
   Matrix3,
   Matrix4,
+  PropertyBinding,
   Vector3,
   Vector4,
   type BufferGeometry,
@@ -175,8 +176,68 @@ function bakeGeometry(mesh: Mesh, frame: Matrix4): BufferGeometry {
   return geometry;
 }
 
-/** Centres the parts on their joint bounding box and scales them to one body length along x. */
-function normalizeToBodyLength(geometries: readonly BufferGeometry[]): void {
+/**
+ * Whether a bone is one the manifest names. The glTF loader drops the dots
+ * from node names (Blender's "Eye.L" arrives as "EyeL"), so both are matched.
+ */
+function namedIn(names: readonly string[], bone: Object3D): boolean {
+  return names.some(
+    (name) => name === bone.name || PropertyBinding.sanitizeNodeName(name) === bone.name,
+  );
+}
+
+/**
+ * Eye attributes of one mesh, set on its baked `geometry`, for the eye patch: how much of each vertex
+ * belongs to the eye bones (aEyeWeight, 0..1) and the point it turns about,
+ * the weighted heads of those bones in the root's frame (aEyeCenter). A
+ * mesh without a skeleton has no eye in it: all weights 0.
+ */
+function eyeAttributes(
+  mesh: Mesh,
+  geometry: BufferGeometry,
+  eyeBones: readonly string[],
+  frame: Matrix4,
+): void {
+  const count = geometry.getAttribute("position").count;
+  const weights = new Float32Array(count);
+  const centres = new Float32Array(count * 3);
+  if (isSkinnedMesh(mesh) && mesh.geometry.hasAttribute("skinIndex")) {
+    const bones = mesh.skeleton.bones;
+    const heads = bones.map((bone) =>
+      namedIn(eyeBones, bone)
+        ? bone.getWorldPosition(new Vector3()).applyMatrix4(frame)
+        : undefined,
+    );
+    const skinIndex = toFloat(mesh.geometry.getAttribute("skinIndex"));
+    const skinWeight = toFloat(mesh.geometry.getAttribute("skinWeight"));
+    const indices = new Vector4();
+    const shares = new Vector4();
+    const centre = new Vector3();
+    for (let index = 0; index < count; index += 1) {
+      indices.fromBufferAttribute(skinIndex, index);
+      shares.fromBufferAttribute(skinWeight, index);
+      let total = 0;
+      centre.set(0, 0, 0);
+      for (let slot = 0; slot < 4; slot += 1) {
+        const head = heads[indices.getComponent(slot)];
+        const share = shares.getComponent(slot);
+        if (head === undefined || share === 0) continue;
+        total += share;
+        centre.addScaledVector(head, share);
+      }
+      weights[index] = Math.min(total, 1);
+      if (total > 0) centre.divideScalar(total).toArray(centres, index * 3);
+    }
+  }
+  geometry.setAttribute("aEyeWeight", new BufferAttribute(weights, 1));
+  geometry.setAttribute("aEyeCenter", new BufferAttribute(centres, 3));
+}
+
+/**
+ * Centres the parts on their joint bounding box and scales them to one body
+ * length along x; returns the matrix it applied.
+ */
+function normalizeToBodyLength(geometries: readonly BufferGeometry[]): Matrix4 {
   // From the rest positions only: Three.js' own bounding box also grows to
   // hold every morph target, and an open mouth must not shrink the fish.
   const bounds = new Box3();
@@ -198,6 +259,7 @@ function normalizeToBodyLength(geometries: readonly BufferGeometry[]): void {
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
   }
+  return matrix;
 }
 
 /**
@@ -215,15 +277,23 @@ export function prepareFishModel(root: Object3D, manifest: ModelManifest): FishM
   root.traverse((object) => {
     if (isMesh(object)) meshes.push(object);
   });
+  const eyeBones = manifest.eyes?.bones;
   const parts = meshes.map((mesh) => {
     const morphTarget = manifest.mouth?.morphTarget;
+    const geometry = bakeGeometry(mesh, frame);
+    if (eyeBones !== undefined) eyeAttributes(mesh, geometry, eyeBones, frame);
     return {
-      geometry: bakeGeometry(mesh, frame),
+      geometry,
       material: mesh.material,
       mouthMorphIndex:
         morphTarget === undefined ? undefined : mesh.morphTargetDictionary?.[morphTarget],
     };
   });
-  normalizeToBodyLength(parts.map((part) => part.geometry));
+  const normalize = normalizeToBodyLength(parts.map((part) => part.geometry));
+  for (const { geometry } of parts) {
+    if (geometry.hasAttribute("aEyeCenter")) {
+      (geometry.getAttribute("aEyeCenter") as BufferAttribute).applyMatrix4(normalize);
+    }
+  }
   return parts;
 }

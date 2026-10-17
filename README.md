@@ -384,10 +384,15 @@ texture files next to it. The species points to the folder:
   fin (default `+x` and `+y`). The engine turns, centres and scales the model
   to the species' length, so models can come in any size.
 - `swimAmplitude` is the tail sweep in body lengths (default 0.07). The
-  model needs no skeleton: the engine bends its rear half to swim and turn.
+  model needs no animation: the engine bends its rear half to swim and turn.
 - `mouth.morphTarget` (optional) is a morph target (a Blender shape key) with
   the mouth wide open, used when the fish eats; without it the mouth stays
   shut.
+- `eyes` (optional) names the armature bones the eyeballs are weighted to
+  (`"bones": ["Eye.L", "Eye.R"]`, their heads at the eyeballs' centres) and
+  how far they turn at full gaze (`"turn"`, degrees, default 20): the eyes
+  then glance the way the fish is about to turn. How to rig them in
+  Blender: [docs/FISH_MODELS.md](docs/FISH_MODELS.md).
 - `credit.license` must be one of `CC0-1.0`, `CC-BY-3.0`, `CC-BY-4.0`, `MIT`,
   `Apache-2.0`, `BSD-2-Clause`, `BSD-3-Clause`, `0BSD`, `Unlicense`. List the
   model in `ASSETS.md` too; the tests check it.

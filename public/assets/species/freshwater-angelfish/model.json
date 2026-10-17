@@ -1,0 +1,14 @@
+{
+  "name": "Freshwater angelfish",
+  "file": "model.glb",
+  "forward": "+x",
+  "up": "+y",
+  "swimAmplitude": 0.04,
+  "mouth": { "morphTarget": "MouthOpen" },
+  "eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 22 },
+  "credit": {
+    "author": "Aquaria (scripts/blender/angelfish.py)",
+    "source": "https://github.com/nispaur/Aquaria/blob/main/scripts/blender/angelfish.py",
+    "license": "CC0-1.0"
+  }
+}

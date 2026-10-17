@@ -49,6 +49,7 @@ listed here).
 | Powder blue tang         | `public/assets/species/blue-tang/`                | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
 | Moorish idol             | `public/assets/species/moorish-idol/`             | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
 | Yellow tang              | `public/assets/species/yellow-tang/`              | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
+| Freshwater angelfish     | `public/assets/species/freshwater-angelfish/`     | https://github.com/nispaur/Aquaria/blob/main/scripts/blender/angelfish.py                                    | Aquaria       | CC0       |
 
 All were optimized with glTF Transform (meshopt geometry, KTX2 textures at
 1024 px; see README, "3D fish models"); the seabream's specular-glossiness

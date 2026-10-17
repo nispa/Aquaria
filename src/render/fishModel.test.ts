@@ -160,3 +160,80 @@ describe("prepareFishModel", () => {
     expect(size.y).toBeCloseTo(0.125);
   });
 });
+
+/** One skinned mesh: every vertex bound to `boneIndex`. */
+function boundMesh(geometry: BoxGeometry, boneIndex: number): SkinnedMesh {
+  const count = geometry.getAttribute("position").count;
+  const indices = new Uint16Array(count * 4);
+  const weights = new Float32Array(count * 4);
+  for (let index = 0; index < count; index += 1) {
+    indices[index * 4] = boneIndex;
+    weights[index * 4] = 1;
+  }
+  geometry.setAttribute("skinIndex", new Uint16BufferAttribute(indices, 4));
+  geometry.setAttribute("skinWeight", new Float32BufferAttribute(weights, 4));
+  return new SkinnedMesh(geometry, new MeshStandardMaterial());
+}
+
+/**
+ * A box fish 4 long along x with one eyeball: a small box at (1.5, 0.2, 0.15)
+ * bound to the bone "Eye.L", whose head is at the eyeball's centre.
+ */
+function fishWithEyeBone(): Group {
+  const spine = new Bone();
+  spine.name = "Spine";
+  const eye = new Bone();
+  eye.name = "Eye.L";
+  eye.position.set(1.5, 0.2, 0.15);
+  const body = boundMesh(new BoxGeometry(4, 1, 0.5), 0);
+  const eyeGeometry = new BoxGeometry(0.1, 0.1, 0.1);
+  eyeGeometry.translate(1.5, 0.2, 0.15);
+  const eyeball = boundMesh(eyeGeometry, 1);
+  const root = new Group();
+  root.add(spine, eye, body, eyeball);
+  root.updateWorldMatrix(true, true);
+  const skeleton = new Skeleton([spine, eye]);
+  body.bind(skeleton);
+  eyeball.bind(skeleton);
+  return root;
+}
+
+describe("prepareFishModel with eyes", () => {
+  const withEyes = manifest({ eyes: { bones: ["Eye.L"] } });
+
+  it("weights the eyeball's vertices to its eye bone, and nothing else", () => {
+    const [body, eyeball] = prepareFishModel(fishWithEyeBone(), withEyes);
+
+    expect([
+      body?.geometry.getAttribute("aEyeWeight").getX(0),
+      eyeball?.geometry.getAttribute("aEyeWeight").getX(0),
+    ]).toEqual([0, 1]);
+  });
+
+  it("turns the eyeball about its bone's head, in the fish frame", () => {
+    const [, eyeball] = prepareFishModel(fishWithEyeBone(), withEyes);
+    const centre = new Vector3().fromBufferAttribute(
+      eyeball?.geometry.getAttribute("aEyeCenter") ?? new Float32BufferAttribute([0, 0, 0], 3),
+      0,
+    );
+
+    // The fish is 4 long, so the frame is a quarter of the model's size.
+    expect(centre.toArray()).toEqual([
+      expect.closeTo(1.5 / 4) as number,
+      expect.closeTo(0.2 / 4) as number,
+      expect.closeTo(0.15 / 4) as number,
+    ]);
+  });
+
+  it("gives every part eye attributes, so one shader fits them all", () => {
+    const parts = prepareFishModel(boxFishAlongZ(), manifest({ eyes: { bones: ["Eye.L"] } }));
+
+    expect(parts.map((part) => part.geometry.getAttribute("aEyeWeight").getX(0))).toEqual([0]);
+  });
+
+  it("adds no eye attributes to a model without eyes", () => {
+    const [body] = prepareFishModel(fishWithEyeBone(), manifest());
+
+    expect(body?.geometry.hasAttribute("aEyeWeight")).toBe(false);
+  });
+});

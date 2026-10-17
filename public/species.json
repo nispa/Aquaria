@@ -529,6 +529,7 @@
           "accent": "#2a2c2e"
         }
       },
+      "model": "freshwater-angelfish",
       "length": {
         "mean": 0.12,
         "standardDeviation": 0.012

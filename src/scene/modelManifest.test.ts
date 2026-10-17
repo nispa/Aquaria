@@ -51,6 +51,33 @@ describe("parseModelManifest", () => {
     ).toThrow(SceneValidationError);
   });
 
+  it("has no moving eyes unless it names their bones", () => {
+    const manifest = parseModelManifest({ name: "Barramundi", credit }, "barramundi");
+
+    expect(manifest.eyes).toBeUndefined();
+  });
+
+  it("turns the eyes up to 20 degrees unless told otherwise", () => {
+    const input = { name: "Barramundi", credit, eyes: { bones: ["Eye.L", "Eye.R"] } };
+
+    expect(parseModelManifest(input, "barramundi").eyes).toEqual({
+      bones: ["Eye.L", "Eye.R"],
+      turn: 20,
+    });
+  });
+
+  it("refuses eyes that turn further than an eye can", () => {
+    const input = { name: "Barramundi", credit, eyes: { bones: ["Eye.L"], turn: 90 } };
+
+    expect(() => parseModelManifest(input, "barramundi")).toThrow(/eyes\.turn/);
+  });
+
+  it("refuses eyes without bones", () => {
+    const input = { name: "Barramundi", credit, eyes: { bones: [] } };
+
+    expect(() => parseModelManifest(input, "barramundi")).toThrow(/eyes\.bones/);
+  });
+
   it("names the model in its error messages", () => {
     expect(() => parseModelManifest({ credit }, "barramundi")).toThrow(/barramundi/);
   });

@@ -30,6 +30,10 @@ export const ALLOWED_MODEL_LICENSES = [
 /** Tail sweep of a model that does not set one, in body lengths. */
 export const DEFAULT_MODEL_SWIM_AMPLITUDE = 0.07;
 const MAX_SWIM_AMPLITUDE = 0.2;
+/** How far an eye turns at full gaze unless the manifest says, degrees. */
+const DEFAULT_EYE_TURN = 20;
+/** Fish eyes turn a few tens of degrees; more would show the back of the eyeball. */
+const MAX_EYE_TURN = 45;
 
 const axis = z.enum(["+x", "-x", "+y", "-y", "+z", "-z"]);
 
@@ -52,6 +56,18 @@ export const modelManifestSchema = z
     swimAmplitude: z.number().min(0).max(MAX_SWIM_AMPLITUDE).default(DEFAULT_MODEL_SWIM_AMPLITUDE),
     /** Morph target (Blender shape key) that opens the mouth; without it the mouth stays shut. */
     mouth: z.object({ morphTarget: z.string().min(1) }).optional(),
+    /**
+     * Eyes that glance the way the fish is about to turn: the bones (Blender
+     * armature bones) the eyeballs are weighted to, their heads at the
+     * eyeballs' centres, and how far they turn at full gaze, degrees.
+     * Without it the eyes stay as modelled.
+     */
+    eyes: z
+      .object({
+        bones: z.array(z.string().min(1)).min(1).max(2),
+        turn: z.number().min(0).max(MAX_EYE_TURN).default(DEFAULT_EYE_TURN),
+      })
+      .optional(),
     credit: z.object({
       author: z.string().min(1),
       source: z.url(),

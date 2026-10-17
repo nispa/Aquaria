@@ -5,6 +5,7 @@ import {
   Group,
   InstancedBufferAttribute,
   InstancedMesh,
+  MathUtils,
   Matrix4,
   Mesh,
   MeshPhysicalMaterial,
@@ -24,6 +25,7 @@ import { prepareFishModel, type FishModelPart } from "./fishModel";
 import { causticsPatch } from "./shaders/causticsPatch";
 import { fishMotionPatch } from "./shaders/fishMotionPatch";
 import { fishPatch, PATTERN_IDS } from "./shaders/fishPatch";
+import { fishEyesPatch } from "./shaders/fishEyesPatch";
 import { patchMaterial } from "./shaders/patch";
 import type { WaterUniforms } from "./uniforms";
 
@@ -172,7 +174,11 @@ function modelMaterial(
 ): Material {
   const copy = material.clone();
   copy.transparent = true;
+  const eyes = manifest.eyes;
   return patchMaterial(copy, [
+    ...(eyes === undefined
+      ? []
+      : [fishEyesPatch({ uEyeTurn: { value: MathUtils.degToRad(eyes.turn) } })]),
     fishMotionPatch({ uSwimAmplitude: { value: manifest.swimAmplitude } }),
     causticsPatch(water),
   ]);
