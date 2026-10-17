@@ -55,7 +55,11 @@ function marked(part: BufferGeometry, limb: 0 | 1): BufferGeometry {
 
 /** Carapace: front half of the shrimp, tapering towards the head at +x. */
 function buildCarapace(proportions: CrustaceanProportions): BufferGeometry {
-  const geom = new SphereGeometry(0.5, CARAPACE_SEGMENTS.width, CARAPACE_SEGMENTS.height).toNonIndexed();
+  const geom = new SphereGeometry(
+    0.5,
+    CARAPACE_SEGMENTS.width,
+    CARAPACE_SEGMENTS.height,
+  ).toNonIndexed();
   const positions = geom.getAttribute("position");
   // Centre carapace around x = 0.12, length ~0.45
   for (let index = 0; index < positions.count; index += 1) {
@@ -103,7 +107,7 @@ function buildAbdomen(proportions: CrustaceanProportions): BufferGeometry {
     const cx = startX - i * segmentLength;
     // Arching downwards
     const cy = -0.01 - Math.sin(t * Math.PI * 0.6) * 0.08;
-    const scale = (1 - t * 0.45);
+    const scale = 1 - t * 0.45;
 
     for (let index = 0; index < pos.count; index += 1) {
       pos.setXYZ(
@@ -172,15 +176,27 @@ function buildLegs(proportions: CrustaceanProportions): BufferGeometry {
 
     // Left leg
     legVertices.push(
-      lx, topY, zOffset,
-      lx + 0.02, midY, zOffset + 0.04,
-      lx + 0.01, footY, zOffset + 0.03,
+      lx,
+      topY,
+      zOffset,
+      lx + 0.02,
+      midY,
+      zOffset + 0.04,
+      lx + 0.01,
+      footY,
+      zOffset + 0.03,
     );
     // Right leg
     legVertices.push(
-      lx, topY, -zOffset,
-      lx + 0.01, footY, -(zOffset + 0.03),
-      lx + 0.02, midY, -(zOffset + 0.04),
+      lx,
+      topY,
+      -zOffset,
+      lx + 0.01,
+      footY,
+      -(zOffset + 0.03),
+      lx + 0.02,
+      midY,
+      -(zOffset + 0.04),
     );
   }
 
