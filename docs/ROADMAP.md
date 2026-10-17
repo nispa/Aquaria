@@ -117,6 +117,8 @@ scene.
 
 ### C3. Palette and placement
 
+Comes after block E: the palette lists the object folders.
+
 - [ ] Palette of cards for every flora and prop kind (data-driven).
 - [ ] Drop on sand or on rock tops, move, rotate, scale, delete; items fall
       to the next support when the block under them is removed.
@@ -157,3 +159,48 @@ builds). Models in `downloads/` (licenses checked): a sea turtle
       again when calm.
 - [ ] Species entries and fauna cards (freshwater crab for planted tanks,
       hermit crab for reefs), docs, `ASSETS.md`.
+
+## E. Objects as files
+
+Plants and objects become folders of data, like the species: a standard
+`.glb` any 3D program opens, plus a documented Aquaria contract that only
+Aquaria carries out and other programs simply ignore. Comes before C3.
+Scenes keep naming objects by `kind`, now the folder id, so every scene
+still loads unchanged.
+
+### E1. The contract
+
+- [ ] `public/assets/objects/<id>/object.json`, validated with Zod: name,
+      optional `model` (a `.glb` in the folder), optional `material` (a
+      path relative to the file), optional `recipe` (a registered
+      generator, its parameters and a seed range), `traits`, `credit`.
+      `object.json` is the source of truth; a model without one is not an
+      object.
+- [ ] Traits are optional, non-standard features, one file each,
+      registered by id like the swimming styles: schema with a default for
+      every parameter, and the code that carries it out. First ones:
+      `sway`, `collision`, `tags`, `placement`. An unknown trait logs a
+      warning and is skipped.
+- [ ] Per-vertex traits read a custom glTF attribute (`_SWAY`: how much
+      each point sways), which Blender can paint.
+- [ ] `public/assets/materials/<id>/material.json`: texture paths, tile
+      size, credit; the folders as they are today stay valid.
+- [ ] `docs/OBJECTS.md` (+ Italian version): the contract, every trait,
+      how to make an object in Blender.
+
+### E2. Today's kinds as objects
+
+- [ ] Every flora and prop kind becomes a folder whose `recipe` is
+      today's procedural generator, so nothing changes on screen.
+- [ ] Renderers, `sim/layout`, collisions and places read the object's
+      traits instead of tables in the code (`PROP_PLACEMENT`, tags).
+
+### E3. Export and import
+
+- [ ] `pnpm export:objects` bakes each recipe into `model.glb` (a few
+      seeds), with standard PBR material, `_SWAY` and the traits copied
+      into the glTF `extras`, so a round trip through Blender keeps them.
+- [ ] Block rock exports the same way.
+- [ ] A `.glb` from elsewhere becomes an object by adding an
+      `object.json`; with a model and a recipe, Aquaria draws the recipe's
+      variants and the model is the fallback.
