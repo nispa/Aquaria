@@ -60,6 +60,14 @@ function keyed(entries: readonly NamedEntry[]): string[] {
   });
 }
 
+/** The largest count of an entry: one item per chosen spot, else the format's limit. */
+function largestCount(
+  entry: { readonly at?: readonly unknown[] | undefined },
+  limit: number,
+): number {
+  return entry.at?.length ?? limit;
+}
+
 /** Flora then props, in scene order, with their panel keys and labels. */
 export function sceneryEntries(scene: Scene): readonly SceneryEntry[] {
   const all = [...scene.flora, ...scene.props];
@@ -68,7 +76,10 @@ export function sceneryEntries(scene: Scene): readonly SceneryEntry[] {
     key: keys[index] ?? entry.kind,
     label: entry.name ?? KIND_LABELS[entry.kind],
     count: entry.count,
-    max: index < scene.flora.length ? MAX_FLORA_PER_ENTRY : MAX_PROPS_PER_ENTRY,
+    max: largestCount(
+      entry,
+      index < scene.flora.length ? MAX_FLORA_PER_ENTRY : MAX_PROPS_PER_ENTRY,
+    ),
   }));
 }
 
@@ -87,11 +98,15 @@ export function applySceneryOverrides(
     ...scene,
     flora: scene.flora.map((entry, index) => ({
       ...entry,
-      count: countFor(index, entry.count, MAX_FLORA_PER_ENTRY),
+      count: countFor(index, entry.count, largestCount(entry, MAX_FLORA_PER_ENTRY)),
     })),
     props: scene.props.map((entry, index) => ({
       ...entry,
-      count: countFor(scene.flora.length + index, entry.count, MAX_PROPS_PER_ENTRY),
+      count: countFor(
+        scene.flora.length + index,
+        entry.count,
+        largestCount(entry, MAX_PROPS_PER_ENTRY),
+      ),
     })),
   };
 }

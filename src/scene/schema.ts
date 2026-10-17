@@ -246,6 +246,25 @@ export const MAX_FLORA_PER_ENTRY = 200;
 /** Largest count per prop entry; also the top of its panel slider. */
 export const MAX_PROPS_PER_ENTRY = 50;
 
+/**
+ * A chosen spot for one plant or object, as the scene editor writes it,
+ * instead of a random one in the depth bands. What it leaves out is drawn
+ * from the entry as usual.
+ */
+const spot = {
+  /** Across the tank, m (0 = middle). */
+  x: z.number(),
+  /** Toward the glass, m (0 = the glass, -depth = the back wall). */
+  z: z.number(),
+  /**
+   * Height of the base above the sand, m, e.g. on the floor of a cave;
+   * when absent, it stands on the rock under the spot, or on the sand.
+   */
+  y: z.number().min(0).optional(),
+  /** Turn around the vertical axis, degrees. */
+  rotation: z.number().optional(),
+};
+
 const flora = z.object({
   /**
    * Anemones are short, swaying tentacle clumps and bushes are grape-like
@@ -264,6 +283,11 @@ const flora = z.object({
   on: placement,
   /** What the plants are to fish; the kind's tags when absent (see scene/tags). */
   tags: z.array(tagSchema).optional(),
+  /** Chosen spots, one plant each, at most `count`; random spots when absent. */
+  at: z
+    .array(z.object({ ...spot, /** Plant height, m. */ height: positive.optional() }))
+    .max(MAX_FLORA_PER_ENTRY)
+    .optional(),
 });
 
 const prop = z.object({
@@ -280,6 +304,11 @@ const prop = z.object({
   material: surfaceMaterial.optional(),
   /** What the items are to fish; the kind's tags when absent (see scene/tags). */
   tags: z.array(tagSchema).optional(),
+  /** Chosen spots, one item each, at most `count`; random spots when absent. */
+  at: z
+    .array(z.object({ ...spot, /** Rough diameter, m. */ size: positive.optional() }))
+    .max(MAX_PROPS_PER_ENTRY)
+    .optional(),
 });
 
 const fauna = z.object({
@@ -338,6 +367,24 @@ export const sceneSchema = z
           message: `The runs cover ${String(covered)} cells, but the tank's grid has ${String(cells)}.`,
         });
       }
+    }
+    const { width, height, depth } = scene.tank;
+    for (const section of ["flora", "props"] as const) {
+      scene[section].forEach((entry, index) => {
+        entry.at?.forEach((place, spotIndex) => {
+          const inside =
+            Math.abs(place.x) <= width / 2 &&
+            place.z <= 0 &&
+            place.z >= -depth &&
+            (place.y ?? 0) <= height;
+          if (inside) return;
+          context.addIssue({
+            code: "custom",
+            path: [section, index, "at", spotIndex],
+            message: "The spot is outside the tank.",
+          });
+        });
+      });
     }
     // Blocks are rockwork too: plants and objects may grow on them.
     if (scene.rockwork !== undefined || scene.blocks !== undefined) return;

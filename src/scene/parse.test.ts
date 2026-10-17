@@ -269,6 +269,28 @@ describe("blocks", () => {
   });
 });
 
+describe("placements", () => {
+  const catalog = parseCatalog(catalogFixture());
+
+  it("accepts plants and objects at chosen spots", () => {
+    const input = sceneFixture();
+    input.props = [
+      { kind: "rock", count: 1, color: "#888888", at: [{ x: 1, z: -2, rotation: 90, size: 0.4 }] },
+    ];
+
+    expect(parseScene(input, catalog).props[0]?.at).toEqual([
+      { x: 1, z: -2, rotation: 90, size: 0.4 },
+    ]);
+  });
+
+  it("rejects a spot outside the tank", () => {
+    const input = sceneFixture();
+    input.props = [{ kind: "rock", count: 1, color: "#888888", at: [{ x: 9, z: -2 }] }];
+
+    expect(() => parseScene(input, catalog)).toThrow(/props\.0\.at\.0.*outside the tank/);
+  });
+});
+
 describe("scene lights", () => {
   const catalog = parseCatalog(catalogFixture());
 

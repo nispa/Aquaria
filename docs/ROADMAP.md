@@ -101,9 +101,10 @@ scene.
 
 - [x] Rockwork as a voxel grid (run-length encoded in the JSON), next to the
       existing procedural ridge, which stays valid.
-- [ ] Flora and props with explicit placements (`at`: position, rotation,
+- [x] Flora and props with explicit placements (`at`: position, rotation,
       scale) or painted areas, as an alternative to count + depth bands.
-- [ ] Smooth rock mesh from voxels (surface nets + noise), pure and tested;
+      Painted areas come with the brush (C4).
+- [x] Smooth rock mesh from voxels (surface nets + noise), pure and tested;
       renderers and `sim/layout` honor placements.
 
 ### C2. Editing mode and voxels

@@ -136,6 +136,32 @@ function drawSpot(
   return { x: spreadX(across, z, halfWidthAt), z };
 }
 
+/** A chosen spot (see the scene's `at`), as a spot to place an item on. */
+interface ChosenSpot {
+  readonly x: number;
+  readonly z: number;
+  readonly y?: number | undefined;
+  readonly rotation?: number | undefined;
+}
+
+/**
+ * Where an item at a chosen spot stands: at the spot's own height when it
+ * sets one, else on the rock under it, else on the sand.
+ */
+function spotAt(chosen: ChosenSpot, rock: RockSurface | undefined): Spot {
+  const elevation = chosen.y ?? rock?.heightAt(chosen.x, chosen.z) ?? 0;
+  return elevation > 0 ? { x: chosen.x, z: chosen.z, elevation } : { x: chosen.x, z: chosen.z };
+}
+
+const DEGREES = Math.PI / 180;
+
+/** A chosen spot's turn in radians, or a random one. */
+function drawRotation(chosen: ChosenSpot | undefined, entryRng: Rng): number {
+  return chosen?.rotation === undefined
+    ? entryRng.range(0, Math.PI * 2)
+    : chosen.rotation * DEGREES;
+}
+
 /** A single color is used as is; a palette gives each item one of its colors. */
 function drawColor(color: string | readonly string[], entryRng: Rng): string {
   return typeof color === "string" ? color : entryRng.pick(color);
@@ -153,14 +179,19 @@ export function layoutFlora(
     const entryRng = generators[index] ?? rng;
     const depth = bandDepthRange(tank, spec.bands);
     const surface = spec.on === "rockwork" ? rockwork : undefined;
-    return Array.from({ length: spec.count }, (): Plant => {
-      const spot = drawSpot(entryRng, depth, halfWidthAt, surface);
+    const chosenSpots = spec.at?.slice(0, spec.count);
+    return Array.from({ length: chosenSpots?.length ?? spec.count }, (_, item): Plant => {
+      const chosen = chosenSpots?.[item];
+      const spot =
+        chosen === undefined
+          ? drawSpot(entryRng, depth, halfWidthAt, surface)
+          : spotAt(chosen, rockwork);
       return {
         kind: spec.kind,
         color: drawColor(spec.color, entryRng),
         ...spot,
-        height: entryRng.range(spec.height[0], spec.height[1]),
-        rotation: entryRng.range(0, Math.PI * 2),
+        height: chosen?.height ?? entryRng.range(spec.height[0], spec.height[1]),
+        rotation: drawRotation(chosen, entryRng),
         swayPhase: entryRng.range(0, Math.PI * 2),
         seed: Math.floor(entryRng.next() * SEED_RANGE),
         ...(spec.tipColor === undefined ? {} : { tipColor: spec.tipColor }),
@@ -183,14 +214,19 @@ export function layoutProps(
     const placement = PROP_PLACEMENT[spec.kind];
     const depth = bandDepthRange(tank, spec.bands ?? placement.bands);
     const surface = spec.on === "rockwork" ? rockwork : undefined;
-    return Array.from({ length: spec.count }, (): Prop => {
-      const spot = drawSpot(entryRng, depth, halfWidthAt, surface);
+    const chosenSpots = spec.at?.slice(0, spec.count);
+    return Array.from({ length: chosenSpots?.length ?? spec.count }, (_, item): Prop => {
+      const chosen = chosenSpots?.[item];
+      const spot =
+        chosen === undefined
+          ? drawSpot(entryRng, depth, halfWidthAt, surface)
+          : spotAt(chosen, rockwork);
       return {
         kind: spec.kind,
         color: drawColor(spec.color, entryRng),
         ...spot,
-        size: entryRng.range(...(spec.size ?? placement.size)),
-        rotation: entryRng.range(0, Math.PI * 2),
+        size: chosen?.size ?? entryRng.range(...(spec.size ?? placement.size)),
+        rotation: drawRotation(chosen, entryRng),
         seed: Math.floor(entryRng.next() * SEED_RANGE),
         ...(spec.material === undefined ? {} : { material: spec.material }),
         tags: tagsOf(spec),

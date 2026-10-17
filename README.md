@@ -266,6 +266,17 @@ Scenery entries:
   `height` range (m), `coverage` (share of the visible width), `thickness`
   (m), `rocks`, `color` and an optional `material`. Flora and prop entries
   with `"on": "rockwork"` grow on its surface instead of the sand.
+- `blocks` (optional) builds rock from cubes, as the scene editor will: a
+  block `size` (m), `runs` (alternating empty and solid stretches of the
+  tank's grid, layer by layer from the floor), `color` and an optional
+  `material`. The blocks are smoothed into rock with caves and overhangs
+  fish swim into; `"on": "rockwork"` entries grow on their tops.
+- Instead of random spots in the depth bands, a flora or prop entry may list
+  chosen spots in `at`: `{ "x": 0.4, "z": -0.6, "rotation": 30 }` (m from the
+  middle and from the glass, degrees), with an optional `height` (plants),
+  `size` (objects) or `y` (height above the sand, e.g. in a cave; by default
+  an item stands on the rock under it or on the sand). It places at most
+  `count` items, one per spot.
 - Any entry may have a `name`, used as its label in the panel. Every entry
   gets a card (a picture of one item and a count slider) in the panel's
   Scenery section; adding items never moves the

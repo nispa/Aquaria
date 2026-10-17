@@ -330,6 +330,72 @@ describe("placement on rockwork", () => {
   });
 });
 
+describe("placement at chosen spots", () => {
+  const fern: FloraSpec = {
+    kind: "fern",
+    count: 2,
+    bands: [0, 4],
+    height: [0.1, 0.2],
+    color: "#2f7a3a",
+    at: [
+      { x: 0.5, z: -1, rotation: 90, height: 0.3 },
+      { x: -0.5, z: -2 },
+    ],
+  };
+
+  it("grows one plant at each spot, as the spot sets it", () => {
+    const [first] = layoutFlora(tank, [fern], createRng(1));
+
+    expect([first?.x, first?.z, first?.rotation, first?.height]).toEqual([
+      0.5,
+      -1,
+      Math.PI / 2,
+      0.3,
+    ]);
+  });
+
+  it("uses no more spots than the count", () => {
+    const plants = layoutFlora(tank, [{ ...fern, count: 1 }], createRng(1));
+
+    expect(plants).toHaveLength(1);
+  });
+
+  it("draws what a spot leaves out from the entry's ranges", () => {
+    const [, second] = layoutFlora(tank, [fern], createRng(1));
+
+    expect(second?.height).toBeGreaterThanOrEqual(0.1);
+    expect(second?.height).toBeLessThanOrEqual(0.2);
+  });
+
+  it("stands an item on the rock under its spot", () => {
+    const rock = { randomPoint: () => undefined, heightAt: () => 0.3 };
+
+    const [stone] = layoutProps(
+      tank,
+      [{ kind: "rock", count: 1, color: "#888888", at: [{ x: 0, z: -1 }] }],
+      createRng(1),
+      undefined,
+      rock,
+    );
+
+    expect(stone?.elevation).toBe(0.3);
+  });
+
+  it("sets an item at a spot's own height, e.g. on the floor of a cave", () => {
+    const rock = { randomPoint: () => undefined, heightAt: () => 0.3 };
+
+    const [stone] = layoutProps(
+      tank,
+      [{ kind: "rock", count: 1, color: "#888888", at: [{ x: 0, z: -1, y: 0, size: 0.2 }] }],
+      createRng(1),
+      undefined,
+      rock,
+    );
+
+    expect([stone?.elevation, stone?.size]).toEqual([undefined, 0.2]);
+  });
+});
+
 describe("tip color", () => {
   it("passes an entry's tip color on to its plants", () => {
     const plants = layoutFlora(

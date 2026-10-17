@@ -52,9 +52,38 @@ describe("sceneryEntries", () => {
 
     expect(entries.map((entry) => entry.max)).toEqual([200, 200, 50, 50, 50]);
   });
+
+  it("lets an entry at chosen spots show at most one item per spot", () => {
+    const entries = sceneryEntries(
+      sceneWith({
+        props: [
+          {
+            kind: "rock",
+            count: 2,
+            color: "#666666",
+            at: [
+              { x: 0, z: -1 },
+              { x: 1, z: -1 },
+            ],
+          },
+        ],
+      }),
+    );
+
+    expect(entries.find((entry) => entry.key === "rock")?.max).toBe(2);
+  });
 });
 
 describe("applySceneryOverrides", () => {
+  it("never asks for more items than an entry has chosen spots", () => {
+    const scene = applySceneryOverrides(
+      sceneWith({ props: [{ kind: "rock", count: 1, color: "#666666", at: [{ x: 0, z: -1 }] }] }),
+      { rock: 9 },
+    );
+
+    expect(scene.props[0]?.count).toBe(1);
+  });
+
   it("replaces the counts of the entries named by key", () => {
     const scene = applySceneryOverrides(sceneWith(reefInput), { "rock-2": 9, anemone: 0 });
 
