@@ -69,8 +69,8 @@ describe("parseSettings", () => {
     expect(parseSettings({ renderHeight: 8000 }).valid).toBe(false);
   });
 
-  it("limits frames to a safe 60 a second unless told otherwise", () => {
-    expect(frameLimitOf(DEFAULT_SETTINGS)).toBe(60);
+  it("limits frames to a safe 30 a second unless told otherwise", () => {
+    expect(frameLimitOf(DEFAULT_SETTINGS)).toBe(30);
   });
 
   it("remembers a frame limit of 30, or none", () => {

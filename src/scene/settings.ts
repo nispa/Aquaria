@@ -18,11 +18,12 @@ export type MsaaSamples = (typeof MSAA_SAMPLE_CHOICES)[number];
 
 /**
  * Frames drawn per second at most: 30, 60, or 0 for as many as the display
- * shows. A limit leaves the GPU room for the rest of the computer.
+ * shows. A limit leaves the GPU room for the rest of the computer. 30 by
+ * default: slow fish look smooth at 30, and the room left buys effects.
  */
 export const FRAME_LIMIT_CHOICES = [30, 60, 0] as const;
 export type FrameLimit = (typeof FRAME_LIMIT_CHOICES)[number];
-export const DEFAULT_FRAME_LIMIT: FrameLimit = 60;
+export const DEFAULT_FRAME_LIMIT: FrameLimit = 30;
 
 /** Viewer preferences saved in the browser. */
 export const settingsSchema = z.object({
