@@ -126,13 +126,13 @@ test("draws no more pixels than the screen has with the automatic resolution", a
   expect(await bufferHeight(page)).toBeLessThanOrEqual(720);
 });
 
-test("offers a frame limit, 60 by default", async ({ page }) => {
+test("offers a frame limit, 30 by default", async ({ page }) => {
   await openLive(page);
   await waitForState(page);
   await page.keyboard.press("h");
   await openSection(page, "quality");
 
-  await expect(page.locator('select[name="frame-limit"]')).toHaveValue("60");
+  await expect(page.locator('select[name="frame-limit"]')).toHaveValue("30");
 });
 
 test("draws a picture of each fish on its card", async ({ page }) => {
