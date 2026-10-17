@@ -4,8 +4,9 @@ A species may have a 3D model next to its procedural body: a folder in
 `public/assets/species/<id>/` with a `model.glb` and a `model.json` (the
 fields are in the README, "3D fish models"). This guide tells how to make
 one in Blender so that Aquaria can swim it, open its mouth and turn its
-eyes. `scripts/blender/angelfish.py` builds the freshwater angelfish this
-way, from code; read it as a worked example.
+eyes. `scripts/blender/angelfish.py` and `scripts/blender/guppy.py` build
+the freshwater angelfish and the guppy this way, from code, with the shared
+pieces in `scripts/blender/fishkit.py`; read them as worked examples.
 
 ## What Aquaria does with the model
 
@@ -98,6 +99,13 @@ bpy.ops.export_scene.gltf(
     export_skins=True, export_morph=True, export_animations=False,
     export_vertex_color="ACTIVE", export_apply=False,
 )
+```
+
+Then compress it, which keeps the bones, the shape keys and the colors
+and makes it about a tenth of the size:
+
+```bash
+pnpm dlx @gltf-transform/cli@4.5.1 optimize model.glb public/assets/species/<id>/model.glb --compress meshopt --simplify false
 ```
 
 Save `model.glb` in the species' folder, write `model.json`, point the

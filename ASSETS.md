@@ -43,7 +43,7 @@ listed here).
 | Barramundi               | `public/assets/species/barramundi/`               | https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish                           | Microsoft     | CC0       |
 | Neon tetra               | `public/assets/species/neon-tetra/`               | https://sketchfab.com/3d-models/paracheirodon-innesi---tetra-neon-2fabf5db754746b7b81ebfa0bbe99161           | BlueMesh      | CC-BY 4.0 |
 | Gilthead seabream        | `public/assets/species/gilthead-seabream/`        | https://sketchfab.com/3d-models/bream-fish-dorade-royale-a3d0e1a597794a9bb74739a13cfc8b77                    | BlueMesh      | CC-BY 4.0 |
-| Guppy                    | `public/assets/species/guppy/`                    | https://sketchfab.com/3d-models/guppy-fish-21e14e4b961e406385539f79eacdb1dc                                  | BlueMesh      | CC-BY 4.0 |
+| Guppy                    | `public/assets/species/guppy/`                    | https://github.com/nispa/Aquaria/blob/main/scripts/blender/guppy.py                                         | Aquaria       | CC0       |
 | Copperband butterflyfish | `public/assets/species/copperband-butterflyfish/` | https://sketchfab.com/3d-models/small-fish-8f5de32946f347a0b6c8e55c6a66d46d                                  | The SpezX     | CC-BY 4.0 |
 | Clownfish                | `public/assets/species/clownfish/`                | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
 | Powder blue tang         | `public/assets/species/blue-tang/`                | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
@@ -65,9 +65,6 @@ Credits for the CC-BY models, as their licenses ask:
   (http://creativecommons.org/licenses/by/4.0/).
 - "Bream Fish ( Dorade Royale)"
   (https://sketchfab.com/3d-models/bream-fish-dorade-royale-a3d0e1a597794a9bb74739a13cfc8b77)
-  by BlueMesh (https://sketchfab.com/VapTor), licensed under CC-BY-4.0.
-- "Guppy Fish"
-  (https://sketchfab.com/3d-models/guppy-fish-21e14e4b961e406385539f79eacdb1dc)
   by BlueMesh (https://sketchfab.com/VapTor), licensed under CC-BY-4.0.
 - "Small fish"
   (https://sketchfab.com/3d-models/small-fish-8f5de32946f347a0b6c8e55c6a66d46d)

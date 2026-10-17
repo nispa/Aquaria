@@ -4,9 +4,10 @@ Una specie può avere un modello 3D accanto al suo corpo procedurale: una
 cartella in `public/assets/species/<id>/` con un `model.glb` e un
 `model.json` (i campi sono nel README, "3D fish models"). Questa guida
 spiega come farne uno in Blender perché Aquaria lo faccia nuotare, gli apra
-la bocca e gli muova gli occhi. `scripts/blender/angelfish.py` costruisce
-così lo scalare (angelfish d'acqua dolce), da codice: leggilo come esempio
-completo.
+la bocca e gli muova gli occhi. `scripts/blender/angelfish.py` e
+`scripts/blender/guppy.py` costruiscono così lo scalare (angelfish d'acqua
+dolce) e il guppy, da codice, con le parti comuni in
+`scripts/blender/fishkit.py`: leggili come esempi completi.
 
 ## Che cosa fa Aquaria con il modello
 
@@ -102,6 +103,13 @@ bpy.ops.export_scene.gltf(
     export_skins=True, export_morph=True, export_animations=False,
     export_vertex_color="ACTIVE", export_apply=False,
 )
+```
+
+Poi comprimilo: le ossa, gli shape key e i colori restano, e il file
+diventa circa un decimo:
+
+```bash
+pnpm dlx @gltf-transform/cli@4.5.1 optimize model.glb public/assets/species/<id>/model.glb --compress meshopt --simplify false
 ```
 
 Salva `model.glb` nella cartella della specie, scrivi `model.json`, collega

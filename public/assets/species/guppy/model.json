@@ -1,12 +1,14 @@
 {
   "name": "Guppy",
   "file": "model.glb",
-  "forward": "-z",
+  "forward": "+x",
   "up": "+y",
-  "swimAmplitude": 0.07,
+  "swimAmplitude": 0.08,
+  "mouth": { "morphTarget": "MouthOpen" },
+  "eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 22 },
   "credit": {
-    "author": "BlueMesh",
-    "source": "https://sketchfab.com/3d-models/guppy-fish-21e14e4b961e406385539f79eacdb1dc",
-    "license": "CC-BY-4.0"
+    "author": "Aquaria (scripts/blender/guppy.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/guppy.py",
+    "license": "CC0-1.0"
   }
 }
