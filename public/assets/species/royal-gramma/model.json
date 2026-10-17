@@ -1,0 +1,14 @@
+{
+  "name": "Royal gramma",
+  "file": "model.glb",
+  "forward": "+x",
+  "up": "+y",
+  "swimAmplitude": 0.07,
+  "mouth": { "morphTarget": "MouthOpen" },
+  "eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 20 },
+  "credit": {
+    "author": "Aquaria (scripts/blender/royal_gramma.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/royal_gramma.py",
+    "license": "CC0-1.0"
+  }
+}

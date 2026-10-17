@@ -50,6 +50,8 @@ listed here).
 | Moorish idol             | `public/assets/species/moorish-idol/`             | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
 | Yellow tang              | `public/assets/species/yellow-tang/`              | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
 | Freshwater angelfish     | `public/assets/species/freshwater-angelfish/`     | https://github.com/nispa/Aquaria/blob/main/scripts/blender/angelfish.py                                    | Aquaria       | CC0       |
+| Royal gramma             | `public/assets/species/royal-gramma/`             | https://github.com/nispa/Aquaria/blob/main/scripts/blender/royal_gramma.py                                  | Aquaria       | CC0       |
+| Sardine                  | `public/assets/species/sardine/`                  | https://github.com/nispa/Aquaria/blob/main/scripts/blender/sardine.py                                       | Aquaria       | CC0       |
 
 All were optimized with glTF Transform (meshopt geometry, KTX2 textures at
 1024 px; see README, "3D fish models"); the seabream's specular-glossiness

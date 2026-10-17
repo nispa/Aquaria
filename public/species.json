@@ -99,6 +99,7 @@
           "accent": "#e8f0f6"
         }
       },
+      "model": "sardine",
       "length": {
         "mean": 0.13,
         "standardDeviation": 0.01
@@ -177,6 +178,7 @@
           "accent": "#ffc21a"
         }
       },
+      "model": "royal-gramma",
       "length": {
         "mean": 0.08,
         "standardDeviation": 0.008
