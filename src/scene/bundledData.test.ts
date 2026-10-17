@@ -1,5 +1,10 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import {
+  MATERIAL_MANIFEST_FILE,
+  materialTextureUrls,
+  parseMaterialManifest,
+} from "./materialManifest";
 import { MODEL_MANIFEST_FILE, modelIdsOf, parseModelManifest } from "./modelManifest";
 import { parseCatalog, parseScene } from "./parse";
 import { parseSceneIndex } from "./sceneIndex";
@@ -18,6 +23,12 @@ const modelFolders = existsSync(new URL(MODELS, import.meta.url))
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
   : [];
+const MATERIALS = "../../public/assets/materials/";
+const materialIds = (
+  JSON.parse(readFileSync(new URL(`${MATERIALS}index.json`, import.meta.url), "utf8")) as {
+    materials: string[];
+  }
+).materials;
 const assetCredits = readFileSync(new URL("../../ASSETS.md", import.meta.url), "utf8");
 
 describe("bundled data files", () => {
@@ -85,5 +96,26 @@ describe("bundled data files", () => {
     const catalog = parseCatalog(readJson("../../public/species.json"));
 
     expect(modelIdsOf(catalog).filter((id) => !modelFolders.includes(id))).toEqual([]);
+  });
+
+  it.each(materialIds)("ships a valid manifest and both textures for the %s material", (id) => {
+    const manifest = parseMaterialManifest(
+      readJson(`${MATERIALS}${id}/${MATERIAL_MANIFEST_FILE}`),
+      id,
+    );
+    const { normal, surface } = materialTextureUrls(id, manifest);
+
+    expect(
+      [normal, surface].map((url) => existsSync(new URL(`../../public/${url}`, import.meta.url))),
+    ).toEqual([true, true]);
+  });
+
+  it.each(materialIds)("credits the %s material in ASSETS.md", (id) => {
+    const manifest = parseMaterialManifest(
+      readJson(`${MATERIALS}${id}/${MATERIAL_MANIFEST_FILE}`),
+      id,
+    );
+
+    expect(assetCredits).toContain(manifest.credit.source);
   });
 });

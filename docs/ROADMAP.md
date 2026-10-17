@@ -171,22 +171,22 @@ still loads unchanged.
 
 ### E1. The contract
 
-- [ ] `public/assets/objects/<id>/object.json`, validated with Zod: name,
+- [x] `public/assets/objects/<id>/object.json`, validated with Zod: name,
       optional `model` (a `.glb` in the folder), optional `material` (a
       path relative to the file), optional `recipe` (a registered
       generator, its parameters and a seed range), `traits`, `credit`.
       `object.json` is the source of truth; a model without one is not an
       object.
-- [ ] Traits are optional, non-standard features, one file each,
+- [x] Traits are optional, non-standard features, one file each,
       registered by id like the swimming styles: schema with a default for
       every parameter, and the code that carries it out. First ones:
       `sway`, `collision`, `tags`, `placement`. An unknown trait logs a
       warning and is skipped.
 - [ ] Per-vertex traits read a custom glTF attribute (`_SWAY`: how much
       each point sways), which Blender can paint.
-- [ ] `public/assets/materials/<id>/material.json`: texture paths, tile
+- [x] `public/assets/materials/<id>/material.json`: texture paths, tile
       size, credit; the folders as they are today stay valid.
-- [ ] `docs/OBJECTS.md` (+ Italian version): the contract, every trait,
+- [x] `docs/OBJECTS.md` (+ Italian version): the contract, every trait,
       how to make an object in Blender.
 
 ### E2. Today's kinds as objects

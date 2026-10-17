@@ -175,6 +175,13 @@ Shaders:
   `src/scene/swimming.ts`. What it does (inspect, peck…) is its `activities`
   entry, built the same way (`ACTIVITIES`, `src/scene/activities.ts`). See
   `docs/SWIMMING.md`.
+- A plant or object is a folder in `public/assets/objects/<id>/`: an
+  `object.json` (validated by `src/scene/objectManifest.ts`) with an
+  optional `.glb` model, a material path, a recipe (one of Aquaria's
+  generators) and traits. A trait is one file in `src/scene/traits/`,
+  registered in `TRAITS`, with a default for every parameter; unknown
+  traits are skipped with a warning. Materials carry a `material.json`.
+  See `docs/OBJECTS.md`.
 - Adding a new scene or species must not require code changes, only data and
   assets. A new bundled scene also gets a caption in `e2e/gallery.spec.ts`,
   a picture and a square card picture in `public/scenes/thumbnails/`

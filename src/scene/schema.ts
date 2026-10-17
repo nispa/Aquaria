@@ -28,12 +28,12 @@ const band = z
   .min(0)
   .max(DEPTH_BAND_COUNT - 1);
 
-const orderedPair = (item: z.ZodNumber, label: string) =>
+export const orderedPair = (item: z.ZodNumber, label: string) =>
   z
     .tuple([item, item])
     .refine(([min, max]) => min <= max, `${label} must be written as [min, max].`);
 
-const bandRange = orderedPair(band, "bands");
+export const bandRange = orderedPair(band, "bands");
 const heightRange = orderedPair(unit, "heightRange");
 
 const proceduralBody = z.object({
