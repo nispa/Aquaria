@@ -188,14 +188,19 @@ show, single steps do not.
 
 ### D4. Crabs and hermit crabs
 
-- [ ] Crabs on the `crawl` style and shader limbs of D3: sideways, around
+- [x] Crabs on the `crawl` style and shader limbs of D3: sideways, around
       obstacles, stopping to pick at the sand, eating flakes that reach the
       bottom.
-- [ ] Tapped, they scuttle away or hide: a crab under the nearest shelter,
+- [x] Tapped, they scuttle away or hide: a crab under the nearest shelter,
       a hermit crab into its shell (it stops and sinks down), coming out
       again when calm.
-- [ ] Species entries and fauna cards (freshwater crab for planted tanks,
+- [x] Species entries and fauna cards (freshwater crab for planted tanks,
       hermit crab for reefs), docs, `ASSETS.md`.
+
+Done without the shader limbs of D3: legs, claws and antennae are still,
+the bodies glide. The crab model is a scan (CC0, ffish.asia), the hermit
+crab a CC-BY model by kenchoo; both carry skeletons and walk clips that
+species bodies do not play yet.
 
 ## E. Objects as files
 
