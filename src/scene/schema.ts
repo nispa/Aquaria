@@ -324,6 +324,30 @@ const fauna = z.object({
   count: z.number().int().min(0).max(MAX_INDIVIDUALS_PER_SPECIES),
 });
 
+/**
+ * The waves of the surface, seen from below (the "Surface waves" lighting
+ * feature). Every value has a default: gentle waves on a calm sea.
+ */
+export const wavesSchema = z.object({
+  /** Height of the tallest waves, crest to trough, m. */
+  height: z.number().min(0).max(0.5).default(0.04),
+  /** Length of the longest waves, m; shorter ones ride on them. */
+  length: positive.max(10).default(1.6),
+  /** How fast they travel: 1 is as fast as real waves of their length. */
+  speed: z.number().min(0).max(4).default(0.6),
+  /** Strength of the sun's glare through the waves (0 none). */
+  glare: z.number().min(0).max(3).default(1),
+  /**
+   * How readily the sky shows through: 0 is true to physics (from a tank the
+   * surface mostly mirrors the water), higher opens bright patches where the
+   * waves tilt, as in photographs of the open sea.
+   */
+  window: unit.default(0.35),
+});
+
+export type Waves = z.output<typeof wavesSchema>;
+export const DEFAULT_WAVES: Waves = wavesSchema.parse({});
+
 export const sceneSchema = z
   .object({
     id: z.string().min(1),
@@ -339,6 +363,7 @@ export const sceneSchema = z
        * sea, low for aquariums, where it is only a thin bright band.
        */
       surface: unit.default(1),
+      waves: wavesSchema.default(DEFAULT_WAVES),
       /** Bubble streams rising from rocks; planted aquariums usually have none. */
       bubbles: z.boolean().default(true),
     }),

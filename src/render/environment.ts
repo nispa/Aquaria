@@ -7,6 +7,7 @@ import {
   MeshStandardMaterial,
   PlaneGeometry,
   ShaderMaterial,
+  Vector2,
   type BufferGeometry,
   type Material,
   type Object3D,
@@ -18,6 +19,7 @@ import { CAUSTICS_GLSL } from "./shaders/caustics";
 import { causticsPatch } from "./shaders/causticsPatch";
 import { patchMaterial, type ShaderPatch } from "./shaders/patch";
 import { surfacePatch } from "./shaders/surfacePatch";
+import { WAVE_SURFACE_FRAGMENT, WAVE_SURFACE_VERTEX } from "./shaders/waveSurface";
 import type { SurfaceLibrary } from "./surfaceLibrary";
 import type { WaterUniforms } from "./uniforms";
 
@@ -30,12 +32,19 @@ const LIGHT_SHAFT_COUNT = 7;
 const FLOOR_FRONT_OVERHANG = 2;
 /** Gap between the far end of the sand and the backdrop, m (hidden by fog). */
 const BACKDROP_GAP = 1;
+/** Grid cells along each side of the wave surface: fine enough for the shortest waves near the tank. */
+const WAVE_SEGMENTS = 256;
+/** Where the sun glares through the surface: over the middle, towards the back, in tank sizes. */
+const GLARE_DEPTH_SHARE = 0.55;
+const GLARE_RADIUS_SHARE = 0.35;
 
 export interface Environment {
   readonly object: Group;
   /** Additive light-shaft planes, so depth passes can skip them. */
   readonly lightShafts: Object3D;
   setLightShaftsVisible(visible: boolean): void;
+  /** The surface moved by waves (the "waves" feature), or the plain rippling one. */
+  setWavesVisible(visible: boolean): void;
   dispose(): void;
 }
 
@@ -135,6 +144,40 @@ function surface(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
   const mesh = new Mesh(geometry, material);
   mesh.position.y = scene.tank.height;
   mesh.renderOrder = -1;
+  tracker.geometries.push(geometry);
+  tracker.materials.push(material);
+  return mesh;
+}
+
+/** The underside of the surface moved by waves, with Snell's window and the sun's glare. */
+function waveSurface(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
+  const size = scene.tank.width * EXTENT;
+  const geometry = new PlaneGeometry(size, size, WAVE_SEGMENTS, WAVE_SEGMENTS);
+  geometry.rotateX(Math.PI / 2);
+  const { waves } = scene.water;
+  const material = new ShaderMaterial({
+    uniforms: {
+      ...water,
+      uWaveHeight: { value: waves.height },
+      uWaveLength: { value: waves.length },
+      uWaveSpeed: { value: waves.speed },
+      uGlare: { value: waves.glare },
+      uGlareCenter: { value: new Vector2(0, -scene.tank.depth * GLARE_DEPTH_SHARE) },
+      uGlareRadius: { value: scene.tank.width * GLARE_RADIUS_SHARE },
+      uWindow: { value: waves.window },
+      uSurfaceOpacity: { value: scene.water.surface },
+    },
+    transparent: true,
+    depthWrite: false,
+    side: DoubleSide,
+    vertexShader: WAVE_SURFACE_VERTEX,
+    fragmentShader: WAVE_SURFACE_FRAGMENT,
+  });
+  const mesh = new Mesh(geometry, material);
+  mesh.position.y = scene.tank.height;
+  mesh.renderOrder = -1;
+  // The waves move the vertices in the shader, beyond the plane's bounds.
+  mesh.frustumCulled = false;
   tracker.geometries.push(geometry);
   tracker.materials.push(material);
   return mesh;
@@ -261,10 +304,14 @@ export function createEnvironment(
   object.name = "environment";
   const tracker: Tracker = { geometries: [], materials: [] };
   const shafts = lightShafts(scene, water, rng, tracker);
+  const plainSurface = surface(scene, water, tracker);
+  const wavySurface = waveSurface(scene, water, tracker);
+  wavySurface.visible = false;
   object.add(
     backdrop(scene, water, tracker),
     floor(scene, water, surfaces, tracker),
-    surface(scene, water, tracker),
+    plainSurface,
+    wavySurface,
     shafts,
   );
 
@@ -273,6 +320,10 @@ export function createEnvironment(
     lightShafts: shafts,
     setLightShaftsVisible(visible) {
       shafts.visible = visible;
+    },
+    setWavesVisible(visible) {
+      wavySurface.visible = visible;
+      plainSurface.visible = !visible;
     },
     dispose() {
       tracker.geometries.forEach((geometry) => {

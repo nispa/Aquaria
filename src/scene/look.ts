@@ -41,7 +41,13 @@ export interface LookFeature {
 
 /** Ids of the features the renderer builds in, as opposed to registered effects. */
 export type LightingFeatureId =
-  "caustics" | "shadows" | "reflections" | "refractive-bubbles" | "light-shafts" | "fluorescence";
+  | "caustics"
+  | "shadows"
+  | "reflections"
+  | "waves"
+  | "refractive-bubbles"
+  | "light-shafts"
+  | "fluorescence";
 
 /**
  * Lighting features, in the order the startup calibration tries them.
@@ -52,6 +58,8 @@ export const LIGHTING_FEATURES: readonly (LookFeature & { readonly id: LightingF
   { id: "caustics", name: "Caustics", kind: "lighting", startup: "base" },
   { id: "shadows", name: "Shadows", kind: "lighting", startup: "added" },
   { id: "reflections", name: "Water reflections", kind: "lighting", startup: "added" },
+  // Alpha: the look is not settled yet, so only the viewer turns it on.
+  { id: "waves", name: "Surface waves (alpha)", kind: "lighting", startup: "manual" },
   { id: "refractive-bubbles", name: "Refractive bubbles", kind: "lighting", startup: "added" },
   { id: "light-shafts", name: "Light shaft planes", kind: "lighting", startup: "manual" },
   { id: "fluorescence", name: "Coral fluorescence", kind: "lighting", startup: "base" },

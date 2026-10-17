@@ -253,8 +253,11 @@ later, from trusted sources only.
 ### F2. Waves seen from below
 
 The surface is geometry in the scene, not a full-screen pass, so it is a
-lighting feature of the renderer (startup `added`) rather than a file
-effect.
+lighting feature of the renderer rather than a file effect. In alpha:
+_Surface waves (alpha)_ is a manual switch, its look not settled yet.
+Shafts that start from the glare, smoothed in several low-resolution
+passes, wait on the local branch `alpha/waves-and-rays`: they still band
+under LED spots and in sunlight.
 
 - [ ] The underside of the water as moving waves: total reflection at a
       slant, the bright window of the sky overhead (Snell's window), the

@@ -2,7 +2,7 @@ import { RECOMMENDED_LIGHTS } from "./lights";
 import { describe, expect, it } from "vitest";
 import { catalogFixture, sceneFixture } from "./fixtures";
 import { parseCatalog, parseScene, SceneValidationError } from "./parse";
-import { DEFAULT_APPETITE, DEFAULT_CURIOSITY, DEFAULT_SHYNESS } from "./schema";
+import { DEFAULT_APPETITE, DEFAULT_CURIOSITY, DEFAULT_SHYNESS, DEFAULT_WAVES } from "./schema";
 
 describe("parseCatalog", () => {
   it("accepts a valid species catalog", () => {
@@ -360,6 +360,29 @@ describe("water options", () => {
     const scene = parseScene(input, catalog);
 
     expect([scene.water.surface, scene.water.bubbles]).toEqual([0.2, false]);
+  });
+
+  it("gives the surface gentle waves unless the scene sets its own", () => {
+    const scene = parseScene(sceneFixture(), catalog);
+
+    expect(scene.water.waves).toEqual(DEFAULT_WAVES);
+  });
+
+  it("lets a scene set the height, length, speed, glare and window of its waves", () => {
+    const input = sceneFixture();
+    const waves = { height: 0.2, length: 3, speed: 0.5, glare: 2, window: 0.1 };
+    input.water = { ...input.water, waves };
+
+    const scene = parseScene(input, catalog);
+
+    expect(scene.water.waves).toEqual(waves);
+  });
+
+  it("refuses waves too high for a tank", () => {
+    const input = sceneFixture();
+    input.water = { ...input.water, waves: { height: 3 } };
+
+    expect(() => parseScene(input, catalog)).toThrow(/waves\.height/);
   });
 });
 

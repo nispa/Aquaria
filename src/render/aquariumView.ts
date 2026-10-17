@@ -471,6 +471,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     currentLook = look;
     particles?.setBubbleStyle(look.has("refractive-bubbles") ? "refractive" : "sprite");
     environment.setLightShaftsVisible(look.has("light-shafts"));
+    environment.setWavesVisible(look.has("waves"));
     // Shadow and environment support are compiled into the shaders.
     forEachMaterial(world, (material) => {
       material.needsUpdate = true;

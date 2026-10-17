@@ -447,20 +447,21 @@ fields (all optional), for example sunlight for an open-sea scene:
 Every effect has its own switch in the control panel (press `H`), so you
 choose what the GPU spends its time on.
 
-| Switch              | What it does                                         | At startup |
-| ------------------- | ---------------------------------------------------- | ---------- |
-| Caustics            | Moving web of light on sand, rocks, plants and fish  | on         |
-| Shadows             | Sun shadows of fish, rocks and plants                | if it fits |
-| Water reflections   | Image-based light from the water around the tank     | if it fits |
-| Refractive bubbles  | Glass-like bubbles instead of sprites                | if it fits |
-| Light shaft planes  | Cheap shafts; redundant with volumetric light        | off        |
-| Coral fluorescence  | Corals and anemones glow under blue and violet LEDs  | on         |
-| Ambient occlusion   | Darkens creases and contact areas                    | off        |
-| Volumetric light    | Shafts through the water, occluded by fish and kelp  | if it fits |
-| Depth of field      | Blurs what is nearer or further than the focus plane | off        |
-| Bloom               | Soft glow around the brightest pixels                | if it fits |
-| SMAA anti-aliasing  | Smooths thin edges (grass, fins) that MSAA misses    | off        |
-| Vignette and dither | Darker corners; dither against banding on LED walls  | if it fits |
+| Switch                | What it does                                           | At startup |
+| --------------------- | ------------------------------------------------------ | ---------- |
+| Caustics              | Moving web of light on sand, rocks, plants and fish    | on         |
+| Shadows               | Sun shadows of fish, rocks and plants                  | if it fits |
+| Water reflections     | Image-based light from the water around the tank       | if it fits |
+| Surface waves (alpha) | The surface moving with waves, the sun glaring through | off        |
+| Refractive bubbles    | Glass-like bubbles instead of sprites                  | if it fits |
+| Light shaft planes    | Cheap shafts; redundant with volumetric light          | off        |
+| Coral fluorescence    | Corals and anemones glow under blue and violet LEDs    | on         |
+| Ambient occlusion     | Darkens creases and contact areas                      | off        |
+| Volumetric light      | Shafts through the water, occluded by fish and kelp    | if it fits |
+| Depth of field        | Blurs what is nearer or further than the focus plane   | off        |
+| Bloom                 | Soft glow around the brightest pixels                  | if it fits |
+| SMAA anti-aliasing    | Smooths thin edges (grass, fins) that MSAA misses      | off        |
+| Vignette and dither   | Darker corners; dither against banding on LED walls    | if it fits |
 
 The look fits itself to the machine. At startup the aquarium draws the
 light base look, times the GPU on every frame, and switches on the
