@@ -14,6 +14,7 @@ import {
   type BufferGeometry,
 } from "three";
 import { createRng } from "../core/rng";
+import type { PlantGenerator } from "../scene/schema";
 import type { Plant } from "../sim/layout";
 import { floorHeight } from "../sim/terrain";
 import {
@@ -36,7 +37,6 @@ interface BladeStyle {
   /** Horizontal spread of the blades around the plant, m. */
   readonly spread: number;
   readonly segments: number;
-  readonly sway: number;
   /** Lean away from the vertical, radians: blades stand, tentacles splay out. */
   readonly tilt: readonly [number, number];
   /** blade: flat leaf. tentacle: round tapering tube. bush: a whole plant per instance. */
@@ -46,13 +46,12 @@ interface BladeStyle {
   readonly fluorescent: boolean;
 }
 
-const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
+const STYLES: Readonly<Record<PlantGenerator, BladeStyle>> = {
   kelp: {
     blades: 3,
     width: 0.22,
     spread: 0.18,
     segments: 16,
-    sway: 0.18,
     tilt: [0, 0.08],
     shape: "blade",
     // Kelp blades have a few broad ribs.
@@ -64,7 +63,6 @@ const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
     width: 0.035,
     spread: 0.12,
     segments: 6,
-    sway: 0.08,
     tilt: [0, 0.08],
     shape: "blade",
     leaf: { veins: 7, veinStrength: 0.3 },
@@ -75,7 +73,6 @@ const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
     width: 0.022,
     spread: 0.04,
     segments: 6,
-    sway: 0.05,
     tilt: [0.15, 1.1],
     shape: "tentacle",
     leaf: { veins: 0, veinStrength: 0 },
@@ -87,7 +84,6 @@ const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
     width: 0.7,
     spread: 0,
     segments: 0,
-    sway: 0.04,
     tilt: [0, 0.1],
     shape: "bush",
     leaf: { veins: 0, veinStrength: 0 },
@@ -99,7 +95,6 @@ const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
     width: 0.02,
     spread: 0.13,
     segments: 2,
-    sway: 0.01,
     tilt: [0.6, 1.3],
     shape: "blade",
     leaf: { veins: 1, veinStrength: 0.2 },
@@ -110,7 +105,6 @@ const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
     width: 1,
     spread: 0.03,
     segments: 0,
-    sway: 0.04,
     tilt: [0.25, 0.8],
     shape: "frond",
     leaf: { veins: 0, veinStrength: 0 },
@@ -122,7 +116,6 @@ const STYLES: Readonly<Record<Plant["kind"], BladeStyle>> = {
     width: 0.5,
     spread: 0,
     segments: 0,
-    sway: 0.05,
     tilt: [0, 0.08],
     shape: "stem",
     leaf: { veins: 0, veinStrength: 0 },
@@ -201,7 +194,7 @@ export function createFloraRenderer(plants: readonly Plant[], water: WaterUnifor
   for (const members of groups.values()) {
     const first = members[0];
     if (first === undefined) continue;
-    const style = STYLES[first.kind];
+    const style = STYLES[first.generator];
     const count = members.length * style.blades;
     const geometry = shapeGeometry(style);
     geometry.setAttribute("aAcross", acrossAttribute(geometry, style.shape));
@@ -218,7 +211,7 @@ export function createFloraRenderer(plants: readonly Plant[], water: WaterUnifor
       [
         plantPatch(
           water,
-          { value: style.sway },
+          { value: first.sway },
           style.leaf,
           first.tipColor === undefined ? undefined : new Color(first.tipColor),
         ),

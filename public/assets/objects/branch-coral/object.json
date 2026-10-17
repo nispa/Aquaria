@@ -1,0 +1,21 @@
+{
+  "name": "Branching corals",
+  "category": "object",
+  "recipe": {
+    "generator": "branch-coral"
+  },
+  "traits": {
+    "collision": {
+      "across": 0.42,
+      "up": 0.94,
+      "along": 0.42,
+      "sink": -0.03,
+      "lift": 0
+    },
+    "tags": ["coral", "shelter"],
+    "placement": {
+      "bands": [1, 4],
+      "size": [0.3, 0.6]
+    }
+  }
+}

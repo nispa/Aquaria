@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { catalogFixture, sceneFixture } from "./fixtures";
+import { bundledObjects } from "./objectFixtures";
 import { parseCatalog, parseScene } from "./parse";
 import { applySceneryOverrides, sceneryAlone, sceneryEntries } from "./scenery";
 import type { SceneInput } from "./schema";
 
 const catalog = parseCatalog(catalogFixture());
+const objects = bundledObjects();
 
 function sceneWith(changes: Partial<SceneInput>) {
   return parseScene({ ...sceneFixture(), ...changes }, catalog);
@@ -24,7 +26,7 @@ const reefInput: Partial<SceneInput> = {
 
 describe("sceneryEntries", () => {
   it("lists every flora and prop entry with its count, flora first", () => {
-    const entries = sceneryEntries(sceneWith(reefInput));
+    const entries = sceneryEntries(sceneWith(reefInput), objects);
 
     expect(entries.map((entry) => [entry.key, entry.count])).toEqual([
       ["kelp", 12],
@@ -36,7 +38,7 @@ describe("sceneryEntries", () => {
   });
 
   it("labels entries by kind unless the scene gives them a name", () => {
-    const entries = sceneryEntries(sceneWith(reefInput));
+    const entries = sceneryEntries(sceneWith(reefInput), objects);
 
     expect(entries.map((entry) => entry.label)).toEqual([
       "Kelp",
@@ -48,7 +50,7 @@ describe("sceneryEntries", () => {
   });
 
   it("gives each entry the largest count the scene format accepts", () => {
-    const entries = sceneryEntries(sceneWith(reefInput));
+    const entries = sceneryEntries(sceneWith(reefInput), objects);
 
     expect(entries.map((entry) => entry.max)).toEqual([200, 200, 50, 50, 50]);
   });
@@ -68,6 +70,7 @@ describe("sceneryEntries", () => {
           },
         ],
       }),
+      objects,
     );
 
     expect(entries.find((entry) => entry.key === "rock")?.max).toBe(2);

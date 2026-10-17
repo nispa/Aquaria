@@ -1,0 +1,19 @@
+{
+  "name": "Seagrass",
+  "category": "plant",
+  "recipe": {
+    "generator": "seagrass"
+  },
+  "traits": {
+    "sway": {
+      "amount": 0.08
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["plant"],
+    "placement": {
+      "on": ["sand"]
+    }
+  }
+}

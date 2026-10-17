@@ -31,6 +31,19 @@ import {
   parseModelManifest,
   type ModelManifest,
 } from "../scene/modelManifest";
+import {
+  checkSceneObjects,
+  createObjectCatalog,
+  parseObjectIndex,
+  type ObjectCatalog,
+} from "../scene/objectCatalog";
+import {
+  OBJECT_MANIFEST_FILE,
+  OBJECTS_FOLDER,
+  objectFolderUrl,
+  parseObjectManifest,
+  type ObjectManifest,
+} from "../scene/objectManifest";
 import { parseCatalog, parseScene, SceneValidationError } from "../scene/parse";
 import type { Scene, SpeciesCatalog } from "../scene/schema";
 import {
@@ -253,6 +266,32 @@ async function loadModelManifests(catalog: SpeciesCatalog): Promise<Map<string, 
   return new Map(entries.filter((entry) => entry !== undefined));
 }
 
+/**
+ * The plants and objects of `assets/objects/`. A missing object.json skips
+ * its object with a warning; an invalid one is an error, like an invalid scene.
+ */
+async function loadObjects(): Promise<ObjectCatalog> {
+  const ids = parseObjectIndex(await fetchJson(`${OBJECTS_FOLDER}/index.json`));
+  const entries = await Promise.all(
+    ids.map(async (id): Promise<[string, ObjectManifest] | undefined> => {
+      let data: unknown;
+      try {
+        data = await fetchJson(`${objectFolderUrl(id)}/${OBJECT_MANIFEST_FILE}`);
+      } catch (error) {
+        logger.warn("Object could not be loaded", { object: id, error: String(error) });
+        return undefined;
+      }
+      const { manifest, warnings } = parseObjectManifest(data, id);
+      for (const warning of warnings) logger.warn(warning);
+      if (manifest.recipe === undefined) {
+        logger.warn("Objects drawn from a model alone are not shown yet", { object: id });
+      }
+      return [id, manifest];
+    }),
+  );
+  return createObjectCatalog(entries.filter((entry) => entry !== undefined));
+}
+
 /** A custom scene saved in this browser, or a clear error if it is gone. */
 function customSceneData(custom: Readonly<Record<string, Scene>>, id: string): Scene {
   const scene = custom[id];
@@ -268,10 +307,11 @@ async function start(): Promise<void> {
 
   const options = parseLaunchOptions(window.location.search);
   let settings = loadSettings();
-  const [indexData, catalogData, materialIds] = await Promise.all([
+  const [indexData, catalogData, materialIds, objects] = await Promise.all([
     fetchJson("scenes/index.json"),
     fetchJson("species.json"),
     loadMaterialIds(),
+    loadObjects(),
   ]);
   const catalog = parseCatalog(catalogData);
   const modelManifests = await loadModelManifests(catalog);
@@ -290,11 +330,14 @@ async function start(): Promise<void> {
   ]);
   const features = lookFeatures(EFFECTS);
   let look: Look = resolveLook(features, settings.look ?? {}, options.effects);
-  const baseScene = applyCountOverrides(
-    parseScene(sceneData, catalog),
-    settings.counts[sceneId] ?? {},
-    catalog,
-  );
+  /** A scene validated, down to the plants and objects it names. */
+  const parseWithObjects = (input: unknown): Scene => {
+    const parsed = parseScene(input, catalog);
+    checkSceneObjects(parsed, objects);
+    return parsed;
+  };
+  const loadedScene = parseWithObjects(sceneData);
+  const baseScene = applyCountOverrides(loadedScene, settings.counts[sceneId] ?? {}, catalog);
   let sceneryCounts: Readonly<Record<string, number>> = settings.scenery?.[sceneId] ?? {};
   const scene = applySceneryOverrides(baseScene, sceneryCounts);
 
@@ -344,6 +387,7 @@ async function start(): Promise<void> {
       canvas,
       scene: shown,
       catalog,
+      objects,
       modelManifests,
       fishModelEnabled,
       simulation: nextSimulation,
@@ -483,7 +527,7 @@ async function start(): Promise<void> {
   // Scenery pictures wait their turn too: one small renderer at a time.
   const drawSceneryPictures = (requests: readonly SceneryPortraitRequest[]): void => {
     portraits = portraits
-      .then(() => drawSceneryPortraits(scene, requests, logger))
+      .then(() => drawSceneryPortraits(scene, objects, requests, logger))
       .catch((error: unknown) => {
         logger.warn("Scenery pictures could not be drawn", { error: String(error) });
       });
@@ -530,7 +574,7 @@ async function start(): Promise<void> {
         sceneIndex.scenes.includes(id)
           ? `${import.meta.env.BASE_URL}scenes/thumbnails/${id}.jpg`
           : undefined,
-      scenery: sceneryEntries(scene),
+      scenery: sceneryEntries(scene, objects),
       drawSceneryPortraits: drawSceneryPictures,
       lights: {
         lights: settings.lights ?? scene.lights,
@@ -675,7 +719,7 @@ async function start(): Promise<void> {
   const saveScene = (draft: Scene, id: string, reopenDesigner = true): string | undefined => {
     let valid: Scene;
     try {
-      valid = { ...parseScene({ ...draft, id }, catalog), id };
+      valid = { ...parseWithObjects({ ...draft, id }), id };
     } catch (error) {
       return error instanceof SceneValidationError ? error.message : String(error);
     }
@@ -702,12 +746,13 @@ async function start(): Promise<void> {
       catalog,
       isCustom: isCustomSceneId(sceneId),
       materials: materialIds,
+      kinds: { plants: objects.ids("plant"), objects: objects.ids("object") },
     },
     {
       onPreview(draft) {
         let shown: Scene;
         try {
-          shown = parseScene(draft, catalog);
+          shown = parseWithObjects(draft);
         } catch (error) {
           designer.showError(error instanceof SceneValidationError ? error.message : String(error));
           return;
@@ -722,7 +767,7 @@ async function start(): Promise<void> {
       },
       onExport(draft) {
         try {
-          parseScene(draft, catalog);
+          parseWithObjects(draft);
         } catch (error) {
           designer.showError(error instanceof SceneValidationError ? error.message : String(error));
           return;

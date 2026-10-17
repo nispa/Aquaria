@@ -1,15 +1,34 @@
 import type { Rng } from "../core/rng";
-import type { FloraSpec, PropSpec, SurfaceMaterialSpec } from "../scene/schema";
+import type { ObjectCatalog } from "../scene/objectCatalog";
+import type { ObjectManifest } from "../scene/objectManifest";
+import {
+  PLANT_GENERATORS,
+  PROP_GENERATORS,
+  type FloraSpec,
+  type PlantGenerator,
+  type PropGenerator,
+  type PropSpec,
+  type SurfaceMaterialSpec,
+} from "../scene/schema";
 import { tagsOf } from "../scene/tags";
+import { TRAITS } from "../scene/traits";
+import type { PropShape } from "./obstacles";
 import { bandDepthRange, type TankSize } from "./tank";
 
 /**
  * Static placement of plants and props. Pure and seeded, so a scene always
- * looks the same and the layout can be tested without a renderer.
+ * looks the same and the layout can be tested without a renderer. The one
+ * place that reads the objects' traits (scene/traits): each item carries
+ * what the rest of the engine needs, so nothing else looks objects up.
  */
 
 export interface Plant {
-  readonly kind: FloraSpec["kind"];
+  /** The object it is (its folder in public/assets/objects). */
+  readonly kind: string;
+  /** How it is drawn: one of Aquaria's plant generators. */
+  readonly generator: PlantGenerator;
+  /** How far its tips sway, m (the `sway` trait); 0 when it does not. */
+  readonly sway: number;
   /** One color; a palette entry has already been resolved to one of its colors. */
   readonly color: string;
   readonly x: number;
@@ -30,7 +49,14 @@ export interface Plant {
 }
 
 export interface Prop {
-  readonly kind: PropSpec["kind"];
+  /** The object it is (its folder in public/assets/objects). */
+  readonly kind: string;
+  /** How it is drawn: one of Aquaria's object generators. */
+  readonly generator: PropGenerator;
+  /** Its rough shape (the `collision` trait), relative to its size. */
+  readonly shape: PropShape;
+  /** Whether fish swim round it. */
+  readonly solid: boolean;
   readonly color: string;
   readonly x: number;
   readonly z: number;
@@ -51,29 +77,47 @@ export interface Prop {
 const EDGE_CLEARANCE = 0.2;
 const SEED_RANGE = 2 ** 32;
 
-interface PropPlacement {
-  /** Rough diameter range, m. */
-  readonly size: readonly [number, number];
-  /** Default depth bands; a scene entry may override them. */
-  readonly bands: readonly [number, number];
+/** Size range of an object whose placement trait sets none, m. */
+const DEFAULT_SIZE: readonly [number, number] = [0.2, 0.5];
+/** An object without a collision trait: fish swim through it. */
+const NO_COLLISION = { ...TRAITS.collision.schema.parse({}), solid: false };
+
+const isPlantGenerator = (id: string): id is PlantGenerator =>
+  (PLANT_GENERATORS as readonly string[]).includes(id);
+const isPropGenerator = (id: string): id is PropGenerator =>
+  (PROP_GENERATORS as readonly string[]).includes(id);
+
+interface PlantTraits {
+  readonly object: ObjectManifest;
+  readonly generator: PlantGenerator;
+  readonly sway: number;
 }
 
-/** Small things sit near the glass where they can be seen; large ones frame the back. */
-const PROP_PLACEMENT: Readonly<Record<PropSpec["kind"], PropPlacement>> = {
-  rock: { size: [0.25, 0.75], bands: [1, 4] },
-  starfish: { size: [0.14, 0.22], bands: [0, 1] },
-  shell: { size: [0.08, 0.14], bands: [0, 1] },
-  "brain-coral": { size: [0.25, 0.5], bands: [1, 3] },
-  "branch-coral": { size: [0.3, 0.6], bands: [1, 4] },
-  "fan-coral": { size: [0.5, 1], bands: [2, 4] },
-  "table-coral": { size: [0.35, 0.7], bands: [1, 3] },
-  "mushroom-coral": { size: [0.08, 0.16], bands: [0, 2] },
-  "leather-coral": { size: [0.2, 0.4], bands: [1, 3] },
-  driftwood: { size: [0.5, 1.1], bands: [1, 3] },
-  "dragon-stone": { size: [0.15, 0.35], bands: [1, 3] },
-  moss: { size: [0.08, 0.2], bands: [0, 3] },
-  pebble: { size: [0.02, 0.06], bands: [0, 2] },
-};
+/** What the layout needs of a plant object; undefined when Aquaria cannot draw it yet. */
+function plantOf(object: ObjectManifest | undefined): PlantTraits | undefined {
+  const generator = object?.recipe?.generator;
+  if (object === undefined || generator === undefined || !isPlantGenerator(generator)) {
+    return undefined;
+  }
+  return { object, generator, sway: object.traits.sway?.amount ?? 0 };
+}
+
+export interface PropTraits {
+  readonly generator: PropGenerator;
+  readonly shape: PropShape;
+  readonly solid: boolean;
+  readonly tags: readonly string[];
+}
+
+/** What a prop of this object is to the rest of the engine; undefined when it cannot be drawn yet. */
+export function propTraitsOf(object: ObjectManifest | undefined): PropTraits | undefined {
+  const generator = object?.recipe?.generator;
+  if (object === undefined || generator === undefined || !isPropGenerator(generator)) {
+    return undefined;
+  }
+  const { solid, ...shape } = object.traits.collision ?? NO_COLLISION;
+  return { generator, shape, solid, tags: object.traits.tags ?? [] };
+}
 
 /**
  * One independent generator per entry, forked before anything is drawn, so
@@ -167,7 +211,13 @@ function drawColor(color: string | readonly string[], entryRng: Rng): string {
   return typeof color === "string" ? color : entryRng.pick(color);
 }
 
+/**
+ * Plants for the scene's flora entries. An entry whose object Aquaria cannot
+ * draw (missing, or a model without a recipe) places nothing; the app warns
+ * about it when the scene loads.
+ */
 export function layoutFlora(
+  objects: ObjectCatalog,
   tank: TankSize,
   specs: readonly FloraSpec[],
   rng: Rng,
@@ -177,6 +227,8 @@ export function layoutFlora(
   const generators = entryGenerators(rng, specs.length);
   return specs.flatMap((spec, index) => {
     const entryRng = generators[index] ?? rng;
+    const plant = plantOf(objects.get(spec.kind));
+    if (plant === undefined) return [];
     const depth = bandDepthRange(tank, spec.bands);
     const surface = spec.on === "rockwork" ? rockwork : undefined;
     const chosenSpots = spec.at?.slice(0, spec.count);
@@ -188,6 +240,8 @@ export function layoutFlora(
           : spotAt(chosen, rockwork);
       return {
         kind: spec.kind,
+        generator: plant.generator,
+        sway: plant.sway,
         color: drawColor(spec.color, entryRng),
         ...spot,
         height: chosen?.height ?? entryRng.range(spec.height[0], spec.height[1]),
@@ -195,13 +249,15 @@ export function layoutFlora(
         swayPhase: entryRng.range(0, Math.PI * 2),
         seed: Math.floor(entryRng.next() * SEED_RANGE),
         ...(spec.tipColor === undefined ? {} : { tipColor: spec.tipColor }),
-        tags: tagsOf(spec),
+        tags: tagsOf(spec, plant.object),
       };
     });
   });
 }
 
+/** Props for the scene's prop entries; see layoutFlora. */
 export function layoutProps(
+  objects: ObjectCatalog,
   tank: TankSize,
   specs: readonly PropSpec[],
   rng: Rng,
@@ -211,7 +267,10 @@ export function layoutProps(
   const generators = entryGenerators(rng, specs.length);
   return specs.flatMap((spec, index) => {
     const entryRng = generators[index] ?? rng;
-    const placement = PROP_PLACEMENT[spec.kind];
+    const object = objects.get(spec.kind);
+    const traits = propTraitsOf(object);
+    if (traits === undefined) return [];
+    const placement = TRAITS.placement.schema.parse(object?.traits.placement ?? {});
     const depth = bandDepthRange(tank, spec.bands ?? placement.bands);
     const surface = spec.on === "rockwork" ? rockwork : undefined;
     const chosenSpots = spec.at?.slice(0, spec.count);
@@ -223,13 +282,16 @@ export function layoutProps(
           : spotAt(chosen, rockwork);
       return {
         kind: spec.kind,
+        generator: traits.generator,
+        shape: traits.shape,
+        solid: traits.solid,
         color: drawColor(spec.color, entryRng),
         ...spot,
-        size: chosen?.size ?? entryRng.range(...(spec.size ?? placement.size)),
+        size: chosen?.size ?? entryRng.range(...(spec.size ?? placement.size ?? DEFAULT_SIZE)),
         rotation: drawRotation(chosen, entryRng),
         seed: Math.floor(entryRng.next() * SEED_RANGE),
         ...(spec.material === undefined ? {} : { material: spec.material }),
-        tags: tagsOf(spec),
+        tags: tagsOf(spec, object),
       };
     });
   });

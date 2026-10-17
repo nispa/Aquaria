@@ -1,0 +1,21 @@
+{
+  "name": "Mushroom corals",
+  "category": "object",
+  "recipe": {
+    "generator": "mushroom-coral"
+  },
+  "traits": {
+    "collision": {
+      "across": 0.52,
+      "up": 0.09,
+      "along": 0.52,
+      "sink": -0.02,
+      "lift": 0
+    },
+    "tags": ["coral"],
+    "placement": {
+      "bands": [0, 2],
+      "size": [0.08, 0.16]
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Pebbles",
+  "category": "object",
+  "recipe": {
+    "generator": "pebble"
+  },
+  "traits": {
+    "collision": {
+      "across": 0.5,
+      "up": 0.4,
+      "along": 0.5,
+      "sink": -0.1,
+      "lift": 0
+    },
+    "tags": [],
+    "placement": {
+      "bands": [0, 2],
+      "size": [0.02, 0.06]
+    }
+  }
+}

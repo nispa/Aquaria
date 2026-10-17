@@ -1,0 +1,21 @@
+{
+  "name": "Rocks",
+  "category": "object",
+  "recipe": {
+    "generator": "rock"
+  },
+  "traits": {
+    "collision": {
+      "across": 0.58,
+      "up": 0.36,
+      "along": 0.58,
+      "sink": 0,
+      "lift": 0
+    },
+    "tags": ["rock", "algae"],
+    "placement": {
+      "bands": [1, 4],
+      "size": [0.25, 0.75]
+    }
+  }
+}

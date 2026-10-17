@@ -1,0 +1,19 @@
+{
+  "name": "Macroalgae",
+  "category": "plant",
+  "recipe": {
+    "generator": "bush"
+  },
+  "traits": {
+    "sway": {
+      "amount": 0.04
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["plant", "algae", "shelter"],
+    "placement": {
+      "on": ["sand"]
+    }
+  }
+}

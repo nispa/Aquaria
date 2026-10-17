@@ -52,7 +52,7 @@ export function bubbleStreamsFromProps(
 ): BubbleStream[] {
   if (!enabled) return [];
   return props
-    .filter((prop) => prop.kind === "rock")
+    .filter((prop) => prop.generator === "rock")
     .slice(0, limit)
     .map((rock) => ({ x: rock.x, z: rock.z, baseY: rock.size * ROCK_TOP_RATIO, surfaceY }));
 }

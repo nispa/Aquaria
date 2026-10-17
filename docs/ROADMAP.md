@@ -191,9 +191,9 @@ still loads unchanged.
 
 ### E2. Today's kinds as objects
 
-- [ ] Every flora and prop kind becomes a folder whose `recipe` is
+- [x] Every flora and prop kind becomes a folder whose `recipe` is
       today's procedural generator, so nothing changes on screen.
-- [ ] Renderers, `sim/layout`, collisions and places read the object's
+- [x] Renderers, `sim/layout`, collisions and places read the object's
       traits instead of tables in the code (`PROP_PLACEMENT`, tags).
 
 ### E3. Export and import

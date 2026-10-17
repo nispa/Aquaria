@@ -255,7 +255,10 @@ Scenery entries:
 - `props` kinds: `rock`, `starfish`, `shell`, `brain-coral`, `branch-coral`,
   `fan-coral`, `table-coral`, `mushroom-coral`, `leather-coral`, and for
   aquariums `driftwood`, `dragon-stone`, `moss` and `pebble`. `size` ([min,
-  max] m) overrides the kind's default size.
+  max] m) overrides the kind's default size. A kind is a folder in
+  `public/assets/objects/` (its `object.json` holds its default size, depth
+  bands, tags and collision shape): a new folder is a new kind, no code
+  needed. See [Plants and objects as files](docs/OBJECTS.md).
 - `water.surface` (0..1) sets how visible the underside of the surface is
   (low for aquariums) and `water.bubbles: false` turns the bubble streams off. Each entry sets `count` and `color`; `bands` is optional (small
   things default to the front, sea fans to the back).
@@ -266,8 +269,7 @@ Scenery entries:
   pushes the surface out by up to that many meters. The entry's `color` still
   sets the hue. A missing material logs a warning and falls back to the plain
   color. Each material folder has a `material.json` with its name and
-  credit; plants and objects are becoming folders too, see
-  [Plants and objects as files](docs/OBJECTS.md). Available: sands and gravels `fine-sand`, `coarse-sand`,
+  credit. Available: sands and gravels `fine-sand`, `coarse-sand`,
   `aquarium-gravel`, `black-gravel`, `aqua-soil`; rocks `reef-rock`,
   `limestone`, `dark-slate`, `layered-rock`, `basalt`, `red-rock`,
   `mossy-rock`; woods `driftwood`, `rough-bark`, `mossy-wood`.

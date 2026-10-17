@@ -1,6 +1,4 @@
 import {
-  FLORA_KINDS,
-  PROP_KINDS,
   type FloraSpec,
   type PropSpec,
   type Scene,
@@ -24,6 +22,8 @@ export interface DesignerOptions {
   readonly isCustom: boolean;
   /** Surface material ids for the floor, rockwork and objects. */
   readonly materials: readonly string[];
+  /** Plant and object ids (folders in public/assets/objects) for the kind lists. */
+  readonly kinds: { readonly plants: readonly string[]; readonly objects: readonly string[] };
 }
 
 export interface DesignerCallbacks {
@@ -574,8 +574,8 @@ export function createDesigner(
         const card = element("div", "designer__card");
         card.dataset.plant = String(index);
         card.append(
-          selectRow("Kind", kindOptions(FLORA_KINDS), entry.kind, (kind) => {
-            set({ kind: kind as FloraSpec["kind"] });
+          selectRow("Kind", kindOptions(options.kinds.plants), entry.kind, (kind) => {
+            set({ kind });
           }),
           textRow("Name", entry.name ?? "", (name) => {
             set({ name: name === "" ? undefined : name });
@@ -641,8 +641,8 @@ export function createDesigner(
         const card = element("div", "designer__card");
         card.dataset.object = String(index);
         card.append(
-          selectRow("Kind", kindOptions(PROP_KINDS), entry.kind, (kind) => {
-            set({ kind: kind as PropSpec["kind"] });
+          selectRow("Kind", kindOptions(options.kinds.objects), entry.kind, (kind) => {
+            set({ kind });
           }),
           textRow("Name", entry.name ?? "", (name) => {
             set({ name: name === "" ? undefined : name });

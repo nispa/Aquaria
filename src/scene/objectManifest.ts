@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ALLOWED_MODEL_LICENSES } from "./modelManifest";
 import { formatIssues, SceneValidationError } from "./parse";
-import { FLORA_KINDS, PROP_KINDS } from "./schema";
+import { PLANT_GENERATORS, PROP_GENERATORS } from "./schema";
 import { parseTraits, type ObjectTraits } from "./traits";
 
 /**
@@ -18,7 +18,7 @@ export const OBJECT_MANIFEST_FILE = "object.json";
 const ASSETS_ROOT = "assets";
 
 /** Aquaria's generators: the procedural plants and objects it draws in code. */
-export const OBJECT_GENERATORS = [...FLORA_KINDS, ...PROP_KINDS] as const;
+export const GENERATORS = [...PLANT_GENERATORS, ...PROP_GENERATORS] as const;
 
 const SEED_MAX = 2 ** 32 - 1;
 
@@ -47,7 +47,7 @@ export const objectManifestSchema = z
     /** Drawn by one of Aquaria's generators, a different variant per seed. */
     recipe: z
       .object({
-        generator: z.enum(OBJECT_GENERATORS),
+        generator: z.enum(GENERATORS),
         /** The seeds variants are drawn from. */
         seeds: z.tuple([seed, seed]).default([0, SEED_MAX]),
         /** Settings of the generator, if it has any. */

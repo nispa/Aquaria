@@ -1,41 +1,11 @@
-import {
-  MAX_FLORA_PER_ENTRY,
-  MAX_PROPS_PER_ENTRY,
-  type FloraSpec,
-  type PropSpec,
-  type Scene,
-} from "./schema";
+import type { ObjectCatalog } from "./objectCatalog";
+import { MAX_FLORA_PER_ENTRY, MAX_PROPS_PER_ENTRY, type Scene } from "./schema";
 
 /**
  * Scenery entries (plants, rocks, corals, shells) as the control panel sees
  * them: one count per entry, addressed by a key that stays the same as long
  * as the scene file keeps its entries in order.
  */
-
-type SceneryKind = FloraSpec["kind"] | PropSpec["kind"];
-
-const KIND_LABELS: Readonly<Record<SceneryKind, string>> = {
-  kelp: "Kelp",
-  seagrass: "Seagrass",
-  anemone: "Anemones",
-  rock: "Rocks",
-  starfish: "Starfish",
-  shell: "Shells",
-  "brain-coral": "Brain corals",
-  "branch-coral": "Branching corals",
-  "fan-coral": "Sea fans",
-  "table-coral": "Table corals",
-  "mushroom-coral": "Mushroom corals",
-  "leather-coral": "Leather corals",
-  bush: "Macroalgae",
-  carpet: "Carpet plants",
-  fern: "Ferns",
-  stem: "Stem plants",
-  driftwood: "Driftwood",
-  "dragon-stone": "Dragon stones",
-  moss: "Moss",
-  pebble: "Pebbles",
-};
 
 export interface SceneryEntry {
   /** The kind, suffixed with -2, -3… when a kind appears more than once. */
@@ -46,7 +16,7 @@ export interface SceneryEntry {
 }
 
 interface NamedEntry {
-  readonly kind: SceneryKind;
+  readonly kind: string;
   readonly name?: string | undefined;
   readonly count: number;
 }
@@ -68,13 +38,16 @@ function largestCount(
   return entry.at?.length ?? limit;
 }
 
-/** Flora then props, in scene order, with their panel keys and labels. */
-export function sceneryEntries(scene: Scene): readonly SceneryEntry[] {
+/**
+ * Flora then props, in scene order, with their panel keys and labels (the
+ * entry's name, or its object's).
+ */
+export function sceneryEntries(scene: Scene, objects: ObjectCatalog): readonly SceneryEntry[] {
   const all = [...scene.flora, ...scene.props];
   const keys = keyed(all);
   return all.map((entry, index) => ({
     key: keys[index] ?? entry.kind,
-    label: entry.name ?? KIND_LABELS[entry.kind],
+    label: entry.name ?? objects.get(entry.kind)?.name ?? entry.kind,
     count: entry.count,
     max: largestCount(
       entry,

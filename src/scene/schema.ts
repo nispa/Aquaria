@@ -172,8 +172,8 @@ const surfaceMaterial = z.object({
   displacement: z.number().min(0).max(0.2).default(0),
 });
 
-/** Every kind of plant a scene can grow; the scene designer lists them. */
-export const FLORA_KINDS = [
+/** Aquaria's plant generators: the plants it draws in code (an object's `recipe`). */
+export const PLANT_GENERATORS = [
   "kelp",
   "seagrass",
   "anemone",
@@ -183,8 +183,8 @@ export const FLORA_KINDS = [
   "stem",
 ] as const;
 
-/** Every kind of object a scene can place; the scene designer lists them. */
-export const PROP_KINDS = [
+/** Aquaria's object generators: the objects it draws in code (an object's `recipe`). */
+export const PROP_GENERATORS = [
   "rock",
   "starfish",
   "shell",
@@ -247,6 +247,14 @@ export const MAX_FLORA_PER_ENTRY = 200;
 export const MAX_PROPS_PER_ENTRY = 50;
 
 /**
+ * A plant or object of `public/assets/objects/`, by its folder; the app
+ * checks it exists (scene/objectCatalog).
+ */
+const objectId = z
+  .string()
+  .regex(/^[a-z0-9-]+$/, "Object ids are folder names: lowercase, digits, dashes.");
+
+/**
  * A chosen spot for one plant or object, as the scene editor writes it,
  * instead of a random one in the depth bands. What it leaves out is drawn
  * from the entry as usual.
@@ -270,7 +278,7 @@ const flora = z.object({
    * Anemones are short, swaying tentacle clumps and bushes are grape-like
    * macroalgae; both use the same sway as plants.
    */
-  kind: z.enum(FLORA_KINDS),
+  kind: objectId,
   /** Label in the control panel; defaults to the kind. */
   name: z.string().min(1).optional(),
   count: z.number().int().min(0).max(MAX_FLORA_PER_ENTRY),
@@ -291,7 +299,7 @@ const flora = z.object({
 });
 
 const prop = z.object({
-  kind: z.enum(PROP_KINDS),
+  kind: objectId,
   /** Label in the control panel; defaults to the kind. */
   name: z.string().min(1).optional(),
   count: z.number().int().min(0).max(MAX_PROPS_PER_ENTRY),
@@ -406,6 +414,8 @@ export type SpeciesCatalog = z.output<typeof speciesCatalogSchema>;
 export type Species = z.output<typeof speciesSchema>;
 export type SceneInput = z.input<typeof sceneSchema>;
 export type Scene = z.output<typeof sceneSchema>;
+export type PlantGenerator = (typeof PLANT_GENERATORS)[number];
+export type PropGenerator = (typeof PROP_GENERATORS)[number];
 export type FloraSpec = z.output<typeof flora>;
 export type PropSpec = z.output<typeof prop>;
 export type SurfaceMaterialSpec = z.output<typeof surfaceMaterial>;

@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "../core/rng";
 import { sceneFixture } from "../scene/fixtures";
+import { bundledObjects } from "../scene/objectFixtures";
 import type { FloraSpec, PropSpec } from "../scene/schema";
 import { layoutFlora, layoutProps } from "./layout";
 import { createRockwork } from "./rockwork";
 import { bandDepthRange } from "./tank";
 
 const tank = sceneFixture().tank;
+const objects = bundledObjects();
 
 describe("layoutFlora", () => {
   const spec: FloraSpec = {
@@ -18,7 +20,7 @@ describe("layoutFlora", () => {
   };
 
   it("places the requested number of plants", () => {
-    const plants = layoutFlora(tank, [spec], createRng(1));
+    const plants = layoutFlora(objects, tank, [spec], createRng(1));
 
     expect(plants).toHaveLength(30);
   });
@@ -26,7 +28,7 @@ describe("layoutFlora", () => {
   it("keeps plants inside their bands and the tank width", () => {
     const { near, far } = bandDepthRange(tank, spec.bands);
 
-    const plants = layoutFlora(tank, [spec], createRng(1));
+    const plants = layoutFlora(objects, tank, [spec], createRng(1));
 
     const misplaced = plants.filter(
       (plant) =>
@@ -36,7 +38,7 @@ describe("layoutFlora", () => {
   });
 
   it("draws heights within the requested range", () => {
-    const plants = layoutFlora(tank, [spec], createRng(1));
+    const plants = layoutFlora(objects, tank, [spec], createRng(1));
 
     const heights = plants.map((plant) => plant.height);
 
@@ -45,13 +47,13 @@ describe("layoutFlora", () => {
   });
 
   it("is deterministic for a given seed", () => {
-    expect(layoutFlora(tank, [spec], createRng(5))).toEqual(
-      layoutFlora(tank, [spec], createRng(5)),
+    expect(layoutFlora(objects, tank, [spec], createRng(5))).toEqual(
+      layoutFlora(objects, tank, [spec], createRng(5)),
     );
   });
 
   it("keeps the kind and color of each group", () => {
-    const plants = layoutFlora(tank, [spec], createRng(1));
+    const plants = layoutFlora(objects, tank, [spec], createRng(1));
 
     expect(plants.every((plant) => plant.kind === "kelp" && plant.color === "#3d7a3a")).toBe(true);
   });
@@ -60,6 +62,7 @@ describe("layoutFlora", () => {
 describe("layoutProps", () => {
   it("places the requested props on the floor inside the tank", () => {
     const props = layoutProps(
+      objects,
       tank,
       [
         { kind: "rock", count: 5, color: "#666666" },
@@ -76,6 +79,7 @@ describe("layoutProps", () => {
     const { far } = bandDepthRange(tank, [0, 1]);
 
     const props = layoutProps(
+      objects,
       tank,
       [{ kind: "starfish", count: 10, color: "#e8683c" }],
       createRng(3),
@@ -85,7 +89,12 @@ describe("layoutProps", () => {
   });
 
   it("gives every prop a positive size and a rotation", () => {
-    const props = layoutProps(tank, [{ kind: "rock", count: 4, color: "#666666" }], createRng(4));
+    const props = layoutProps(
+      objects,
+      tank,
+      [{ kind: "rock", count: 4, color: "#666666" }],
+      createRng(4),
+    );
 
     expect(props.every((prop) => prop.size > 0 && Number.isFinite(prop.rotation))).toBe(true);
   });
@@ -108,17 +117,17 @@ describe("stable layout", () => {
   };
 
   it("keeps existing plants in place when a count grows", () => {
-    const before = layoutFlora(tank, [kelp], createRng(7));
+    const before = layoutFlora(objects, tank, [kelp], createRng(7));
 
-    const after = layoutFlora(tank, [{ ...kelp, count: 6 }], createRng(7));
+    const after = layoutFlora(objects, tank, [{ ...kelp, count: 6 }], createRng(7));
 
     expect(after.slice(0, 5)).toEqual(before);
   });
 
   it("does not move other entries when one entry's count changes", () => {
-    const before = layoutFlora(tank, [kelp, grass], createRng(7));
+    const before = layoutFlora(objects, tank, [kelp, grass], createRng(7));
 
-    const after = layoutFlora(tank, [{ ...kelp, count: 1 }, grass], createRng(7));
+    const after = layoutFlora(objects, tank, [{ ...kelp, count: 1 }, grass], createRng(7));
 
     expect(after.filter((plant) => plant.kind === "seagrass")).toEqual(
       before.filter((plant) => plant.kind === "seagrass"),
@@ -127,16 +136,21 @@ describe("stable layout", () => {
 
   it("keeps existing props in place when a count grows", () => {
     const rocks: PropSpec = { kind: "rock", count: 3, color: "#666666" };
-    const before = layoutProps(tank, [rocks], createRng(7));
+    const before = layoutProps(objects, tank, [rocks], createRng(7));
 
-    const after = layoutProps(tank, [{ ...rocks, count: 4 }], createRng(7));
+    const after = layoutProps(objects, tank, [{ ...rocks, count: 4 }], createRng(7));
 
     expect(after.slice(0, 3)).toEqual(before);
   });
 
   it("gives every plant and prop its own integer seed for renderer details", () => {
-    const plants = layoutFlora(tank, [kelp], createRng(7));
-    const props = layoutProps(tank, [{ kind: "rock", count: 3, color: "#666666" }], createRng(7));
+    const plants = layoutFlora(objects, tank, [kelp], createRng(7));
+    const props = layoutProps(
+      objects,
+      tank,
+      [{ kind: "rock", count: 3, color: "#666666" }],
+      createRng(7),
+    );
 
     const seeds = [...plants, ...props].map((item) => item.seed);
 
@@ -147,7 +161,7 @@ describe("stable layout", () => {
 
 describe("scenery kinds", () => {
   const layoutOne = (kind: PropSpec["kind"]) =>
-    layoutProps(tank, [{ kind, count: 20, color: "#ffffff" }], createRng(9));
+    layoutProps(objects, tank, [{ kind, count: 20, color: "#ffffff" }], createRng(9));
 
   it("keeps shells near the glass where they can be seen", () => {
     const { far } = bandDepthRange(tank, [0, 1]);
@@ -165,6 +179,7 @@ describe("scenery kinds", () => {
     const { near, far } = bandDepthRange(tank, [4, 4]);
 
     const props = layoutProps(
+      objects,
       tank,
       [{ kind: "branch-coral", count: 10, color: "#ff8866", bands: [4, 4] }],
       createRng(9),
@@ -187,7 +202,7 @@ describe("visible width", () => {
   const widening = (z: number): number => 4 + -z * 1.5;
 
   it("spreads props across the width the camera sees at their depth", () => {
-    const props = layoutProps(tank, [rocks], createRng(3), widening);
+    const props = layoutProps(objects, tank, [rocks], createRng(3), widening);
 
     expect(props.every((prop) => Math.abs(prop.x) <= widening(prop.z))).toBe(true);
     expect(Math.max(...props.map((prop) => Math.abs(prop.x)))).toBeGreaterThan(tank.width / 2);
@@ -202,16 +217,16 @@ describe("visible width", () => {
       color: "#3d7a3a",
     };
 
-    const plants = layoutFlora(tank, [kelp], createRng(3), widening);
+    const plants = layoutFlora(objects, tank, [kelp], createRng(3), widening);
 
     expect(plants.every((plant) => Math.abs(plant.x) <= widening(plant.z))).toBe(true);
     expect(Math.max(...plants.map((plant) => Math.abs(plant.x)))).toBeGreaterThan(tank.width / 2);
   });
 
   it("keeps items at the same depth and side, only further out, when the view widens", () => {
-    const narrow = layoutProps(tank, [rocks], createRng(3), () => 2);
+    const narrow = layoutProps(objects, tank, [rocks], createRng(3), () => 2);
 
-    const wide = layoutProps(tank, [rocks], createRng(3), () => 4);
+    const wide = layoutProps(objects, tank, [rocks], createRng(3), () => 4);
 
     const moved = wide.filter((prop, index) => {
       const before = narrow[index];
@@ -230,6 +245,7 @@ describe("color palettes", () => {
 
   it("gives each prop one color from its entry's palette", () => {
     const props = layoutProps(
+      objects,
       tank,
       [{ kind: "branch-coral", count: 30, color: palette }],
       createRng(4),
@@ -241,6 +257,7 @@ describe("color palettes", () => {
 
   it("gives each plant one color from its entry's palette", () => {
     const plants = layoutFlora(
+      objects,
       tank,
       [{ kind: "anemone", count: 30, bands: [0, 2], height: [0.1, 0.2], color: palette }],
       createRng(4),
@@ -267,6 +284,7 @@ describe("placement on rockwork", () => {
 
   it("sets corals on the ridge surface instead of the sand", () => {
     const corals = layoutProps(
+      objects,
       tank,
       [{ kind: "brain-coral", count: 20, color: "#b89a5e", on: "rockwork" }],
       createRng(6),
@@ -284,6 +302,7 @@ describe("placement on rockwork", () => {
 
   it("sets anemones on the ridge surface", () => {
     const anemones = layoutFlora(
+      objects,
       tank,
       [
         {
@@ -307,6 +326,7 @@ describe("placement on rockwork", () => {
     const bare = { randomPoint: () => undefined, heightAt: () => 0 };
 
     const corals = layoutProps(
+      objects,
       tank,
       [{ kind: "brain-coral", count: 5, color: "#b89a5e", on: "rockwork" }],
       createRng(6),
@@ -319,6 +339,7 @@ describe("placement on rockwork", () => {
 
   it("keeps sand entries on the sand", () => {
     const shells = layoutProps(
+      objects,
       tank,
       [{ kind: "shell", count: 5, color: "#ffffff" }],
       createRng(6),
@@ -344,7 +365,7 @@ describe("placement at chosen spots", () => {
   };
 
   it("grows one plant at each spot, as the spot sets it", () => {
-    const [first] = layoutFlora(tank, [fern], createRng(1));
+    const [first] = layoutFlora(objects, tank, [fern], createRng(1));
 
     expect([first?.x, first?.z, first?.rotation, first?.height]).toEqual([
       0.5,
@@ -355,13 +376,13 @@ describe("placement at chosen spots", () => {
   });
 
   it("uses no more spots than the count", () => {
-    const plants = layoutFlora(tank, [{ ...fern, count: 1 }], createRng(1));
+    const plants = layoutFlora(objects, tank, [{ ...fern, count: 1 }], createRng(1));
 
     expect(plants).toHaveLength(1);
   });
 
   it("draws what a spot leaves out from the entry's ranges", () => {
-    const [, second] = layoutFlora(tank, [fern], createRng(1));
+    const [, second] = layoutFlora(objects, tank, [fern], createRng(1));
 
     expect(second?.height).toBeGreaterThanOrEqual(0.1);
     expect(second?.height).toBeLessThanOrEqual(0.2);
@@ -371,6 +392,7 @@ describe("placement at chosen spots", () => {
     const rock = { randomPoint: () => undefined, heightAt: () => 0.3 };
 
     const [stone] = layoutProps(
+      objects,
       tank,
       [{ kind: "rock", count: 1, color: "#888888", at: [{ x: 0, z: -1 }] }],
       createRng(1),
@@ -385,6 +407,7 @@ describe("placement at chosen spots", () => {
     const rock = { randomPoint: () => undefined, heightAt: () => 0.3 };
 
     const [stone] = layoutProps(
+      objects,
       tank,
       [{ kind: "rock", count: 1, color: "#888888", at: [{ x: 0, z: -1, y: 0, size: 0.2 }] }],
       createRng(1),
@@ -399,6 +422,7 @@ describe("placement at chosen spots", () => {
 describe("tip color", () => {
   it("passes an entry's tip color on to its plants", () => {
     const plants = layoutFlora(
+      objects,
       tank,
       [
         {
@@ -418,6 +442,7 @@ describe("tip color", () => {
 
   it("gives plants without a tip color none", () => {
     const plants = layoutFlora(
+      objects,
       tank,
       [{ kind: "fern", count: 3, bands: [2, 4], height: [0.2, 0.4], color: "#3a8a2a" }],
       createRng(2),
@@ -430,6 +455,7 @@ describe("tip color", () => {
 describe("size override", () => {
   it("uses an entry's own size range instead of the kind's default", () => {
     const props = layoutProps(
+      objects,
       tank,
       [{ kind: "rock", count: 20, color: "#666666", size: [0.1, 0.15] }],
       createRng(3),
@@ -449,7 +475,7 @@ describe("tags", () => {
       color: "#d98fb0",
     };
 
-    const plants = layoutFlora(tank, [anemones], createRng(1));
+    const plants = layoutFlora(objects, tank, [anemones], createRng(1));
 
     expect(plants.map((plant) => plant.tags)).toEqual([
       ["anemone", "shelter"],
@@ -460,7 +486,7 @@ describe("tags", () => {
   it("gives props the tags their entry sets", () => {
     const rocks: PropSpec = { kind: "rock", count: 1, color: "#888888", tags: ["shelter"] };
 
-    const props = layoutProps(tank, [rocks], createRng(1));
+    const props = layoutProps(objects, tank, [rocks], createRng(1));
 
     expect(props[0]?.tags).toEqual(["shelter"]);
   });

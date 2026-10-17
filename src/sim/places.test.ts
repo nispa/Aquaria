@@ -8,6 +8,8 @@ import { floorHeight } from "./terrain";
 
 const plant = (x: number, z: number, tags: readonly string[]): Plant => ({
   kind: "anemone",
+  generator: "anemone",
+  sway: 0.05,
   color: "#ffffff",
   x,
   z,
@@ -20,6 +22,9 @@ const plant = (x: number, z: number, tags: readonly string[]): Plant => ({
 
 const prop = (x: number, z: number, size: number): Prop => ({
   kind: "rock",
+  generator: "rock",
+  shape: { across: 0.58, up: 0.36, along: 0.58, sink: 0, lift: 0 },
+  solid: true,
   color: "#888888",
   x,
   z,
@@ -47,7 +52,7 @@ describe("placesOf", () => {
   it("uses a plant's height and the top of a prop's shape as the height of the place", () => {
     const places = placesOf([plant(1, -1, ["anemone"])], [prop(2, -2, 0.4)]);
 
-    expect(places.map((place) => place.height)).toEqual([0.2, propTop("rock", 0.4)]);
+    expect(places.map((place) => place.height)).toEqual([0.2, propTop(prop(2, -2, 0.4))]);
   });
 });
 

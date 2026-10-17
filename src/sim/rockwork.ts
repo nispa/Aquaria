@@ -1,7 +1,6 @@
 import type { Rng } from "../core/rng";
 import type { RockworkSpec } from "../scene/schema";
-import type { HalfWidthAt, Prop } from "./layout";
-import { DEFAULT_TAGS } from "../scene/tags";
+import type { HalfWidthAt, Prop, PropTraits } from "./layout";
 import { bandDepthRange, type TankSize } from "./tank";
 
 /**
@@ -53,17 +52,31 @@ const ROCK_SINK = 0.35;
 const EDGE_HEIGHT = 0.25;
 const RANDOM_POINT_TRIES = 40;
 const SEED_RANGE = 2 ** 32;
+/** The object the loose rocks are (public/assets/objects/rock). */
+export const LOOSE_ROCK = "rock";
+/** Loose rocks when the rock object is missing: plain, solid, untagged. */
+const LOOSE_ROCK_FALLBACK: PropTraits = {
+  generator: "rock",
+  shape: { across: 0.5, up: 0.5, along: 0.5, sink: 0, lift: 0 },
+  solid: true,
+  tags: [],
+};
 
 function smoothstep(edge0: number, edge1: number, value: number): number {
   const t = Math.min(Math.max((value - edge0) / (edge1 - edge0), 0), 1);
   return t * t * (3 - 2 * t);
 }
 
+/**
+ * The ridge of a scene; `looseRock` is what its loose rocks are (the traits
+ * of the `rock` object, see sim/layout's propTraitsOf).
+ */
 export function createRockwork(
   tank: TankSize,
   spec: RockworkSpec,
   rng: Rng,
   halfWidthAt: HalfWidthAt,
+  looseRock?: PropTraits,
 ): Rockwork {
   const { near, far } = bandDepthRange(tank, spec.bands);
   const zMiddle = (near + far) / 2;
@@ -148,7 +161,8 @@ export function createRockwork(
     const [x, z] = randomPoint(rng);
     const size = rng.range(ROCK_SIZE[0], ROCK_SIZE[1]);
     return {
-      kind: "rock",
+      kind: LOOSE_ROCK,
+      ...(looseRock ?? LOOSE_ROCK_FALLBACK),
       color: spec.color,
       x,
       z,
@@ -157,7 +171,6 @@ export function createRockwork(
       seed: Math.floor(rng.next() * SEED_RANGE),
       elevation: Math.max(heightAt(x, z) - size * ROCK_SINK, 0),
       ...(spec.material === undefined ? {} : { material: spec.material }),
-      tags: DEFAULT_TAGS.rock,
     };
   });
 

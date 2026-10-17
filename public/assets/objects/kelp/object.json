@@ -1,0 +1,19 @@
+{
+  "name": "Kelp",
+  "category": "plant",
+  "recipe": {
+    "generator": "kelp"
+  },
+  "traits": {
+    "sway": {
+      "amount": 0.18
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["plant", "shelter"],
+    "placement": {
+      "on": ["sand"]
+    }
+  }
+}

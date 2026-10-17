@@ -11,10 +11,11 @@ import { floorHeight } from "./terrain";
  */
 
 /**
- * The shape of a kind of prop, relative to its size (its rough diameter):
- * the ellipsoid's semi-axes across its width (x), up (y) and along its
- * depth (z) before the prop's rotation. Measured on the procedural meshes;
- * a render test keeps the two in step.
+ * The shape of a prop, relative to its size (its rough diameter): the
+ * ellipsoid's semi-axes across its width (x), up (y) and along its depth (z)
+ * before the prop's rotation. It is the object's `collision` trait; for the
+ * procedural objects, measured on their meshes, and a render test keeps the
+ * two in step.
  */
 export interface PropShape {
   readonly across: number;
@@ -28,22 +29,6 @@ export interface PropShape {
    */
   readonly lift: number;
 }
-
-export const PROP_SHAPES: Readonly<Record<Prop["kind"], PropShape>> = {
-  rock: { across: 0.58, up: 0.36, along: 0.58, sink: 0, lift: 0 },
-  starfish: { across: 0.5, up: 0.13, along: 0.5, sink: 0, lift: 0 },
-  shell: { across: 0.42, up: 0.15, along: 0.27, sink: -0.05, lift: 0 },
-  "brain-coral": { across: 0.5, up: 0.35, along: 0.5, sink: -0.04, lift: 0 },
-  "branch-coral": { across: 0.42, up: 0.94, along: 0.42, sink: -0.03, lift: 0 },
-  "fan-coral": { across: 0.44, up: 0.92, along: 0.06, sink: -0.02, lift: 0 },
-  "table-coral": { across: 0.55, up: 0.08, along: 0.55, sink: -0.02, lift: 0.2 },
-  "mushroom-coral": { across: 0.52, up: 0.09, along: 0.52, sink: -0.02, lift: 0 },
-  "leather-coral": { across: 0.52, up: 0.57, along: 0.52, sink: -0.03, lift: 0 },
-  driftwood: { across: 0.55, up: 0.5, along: 0.48, sink: -0.02, lift: 0 },
-  "dragon-stone": { across: 0.34, up: 1.48, along: 0.34, sink: -0.03, lift: 0 },
-  moss: { across: 0.52, up: 0.26, along: 0.52, sink: -0.05, lift: 0 },
-  pebble: { across: 0.5, up: 0.4, along: 0.5, sink: -0.1, lift: 0 },
-};
 
 export interface Obstacle {
   /** The centre of its ellipsoid, tank coordinates. */
@@ -59,7 +44,7 @@ export interface Obstacle {
 
 /** The obstacle a prop is, standing where the renderer stands it. */
 export function obstacleOf(prop: Prop): Obstacle {
-  const shape = PROP_SHAPES[prop.kind];
+  const { shape } = prop;
   const base = floorHeight(prop.x, prop.z) + (prop.elevation ?? 0) + shape.sink * prop.size;
   const middle = base + shape.lift * prop.size;
   const radii = new Vector3(shape.across, shape.up, shape.along).multiplyScalar(prop.size);
@@ -72,15 +57,15 @@ export function obstacleOf(prop: Prop): Obstacle {
   };
 }
 
-/** How high a prop of this kind and size reaches above the sand it stands on, m. */
-export function propTop(kind: Prop["kind"], size: number): number {
-  const shape = PROP_SHAPES[kind];
+/** How high a prop reaches above the sand it stands on, m. */
+export function propTop(prop: Pick<Prop, "shape" | "size">): number {
+  const { shape, size } = prop;
   return (shape.sink + shape.lift + shape.up) * size;
 }
 
-/** Every prop as an obstacle. */
+/** Every solid prop as an obstacle; fish swim through the others. */
 export function obstaclesOf(props: readonly Prop[]): Obstacle[] {
-  return props.map(obstacleOf);
+  return props.filter((prop) => prop.solid).map(obstacleOf);
 }
 
 /** Where fish find the obstacles around them. */

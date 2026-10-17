@@ -1,18 +1,29 @@
 import { Vector3 } from "three";
 import { describe, expect, it } from "vitest";
-import type { Prop } from "./layout";
+import { bundledObjects } from "../scene/objectFixtures";
+import { propTraitsOf, type Prop, type PropTraits } from "./layout";
 import {
   combineFields,
   createObstacleField,
   obstacleOf,
+  obstaclesOf,
   openYaw,
-  PROP_SHAPES,
   propTop,
 } from "./obstacles";
 import { floorHeight } from "./terrain";
 
-const prop = (kind: Prop["kind"], x: number, z: number, size: number, rotation = 0): Prop => ({
+const objects = bundledObjects();
+
+/** The traits of a bundled object, as the layout reads them. */
+function traitsOf(kind: string): PropTraits {
+  const traits = propTraitsOf(objects.get(kind));
+  if (traits === undefined) throw new Error(`No object "${kind}".`);
+  return traits;
+}
+
+const prop = (kind: string, x: number, z: number, size: number, rotation = 0): Prop => ({
   kind,
+  ...traitsOf(kind),
   color: "#888888",
   x,
   z,
@@ -26,7 +37,7 @@ describe("obstacleOf", () => {
   it("stands a prop on the sand, sunk as the renderer sinks it", () => {
     const rock = obstacleOf(prop("brain-coral", 1, -2, 0.4));
 
-    const base = floorHeight(1, -2) + PROP_SHAPES["brain-coral"].sink * 0.4;
+    const base = floorHeight(1, -2) + traitsOf("brain-coral").shape.sink * 0.4;
     expect(rock.center.toArray()).toEqual([1, base, -2]);
   });
 
@@ -36,10 +47,16 @@ describe("obstacleOf", () => {
     expect(rock.center.y).toBeCloseTo(floorHeight(0, -2) + 0.3);
   });
 
+  it("leaves out props fish swim through", () => {
+    const soft = { ...prop("rock", 0, -2, 0.4), solid: false };
+
+    expect(obstaclesOf([soft, prop("rock", 1, -2, 0.4)])).toHaveLength(1);
+  });
+
   it("scales its kind's shape by its size", () => {
     const stone = obstacleOf(prop("dragon-stone", 0, -2, 0.2));
 
-    expect(stone.radii.y).toBeCloseTo(PROP_SHAPES["dragon-stone"].up * 0.2);
+    expect(stone.radii.y).toBeCloseTo(traitsOf("dragon-stone").shape.up * 0.2);
   });
 });
 
@@ -47,7 +64,7 @@ describe("propTop", () => {
   it("is the top of the prop's shape above the sand, plate and all", () => {
     const table = obstacleOf(prop("table-coral", 0, -2, 0.5));
 
-    expect(propTop("table-coral", 0.5)).toBeCloseTo(
+    expect(propTop(prop("table-coral", 0, -2, 0.5))).toBeCloseTo(
       table.center.y + table.radii.y - floorHeight(0, -2),
     );
   });

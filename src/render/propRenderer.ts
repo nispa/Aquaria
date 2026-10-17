@@ -11,8 +11,8 @@ import {
   type BufferGeometry,
 } from "three";
 import { createRng, type Rng } from "../core/rng";
+import type { PropGenerator } from "../scene/schema";
 import type { Prop } from "../sim/layout";
-import { PROP_SHAPES } from "../sim/obstacles";
 import { floorHeight } from "../sim/terrain";
 import {
   branchCoralGeometry,
@@ -49,7 +49,7 @@ interface PropStyle {
   readonly fluorescent: boolean;
 }
 
-export const PROP_STYLES: Readonly<Record<Prop["kind"], PropStyle>> = {
+export const PROP_STYLES: Readonly<Record<PropGenerator, PropStyle>> = {
   rock: {
     variants: 5,
     build: rockGeometry,
@@ -174,9 +174,9 @@ const STARFISH_TURN_SECONDS = 1800;
 /** Seeds the shape variants so they look the same whatever the scene holds. */
 const VARIANT_SEED = 7919;
 
-/** The mesh of one shape variant of a kind of prop, standing on y = 0, one unit across. */
-export function propGeometry(kind: Prop["kind"], variant: number): BufferGeometry {
-  return PROP_STYLES[kind].build(createRng(VARIANT_SEED + variant));
+/** The mesh of one shape variant of a generator's prop, standing on y = 0, one unit across. */
+export function propGeometry(generator: PropGenerator, variant: number): BufferGeometry {
+  return PROP_STYLES[generator].build(createRng(VARIANT_SEED + variant));
 }
 
 export interface PropRenderer {
@@ -201,11 +201,11 @@ export function createPropRenderer(
   object.name = "props";
   const disposables: { dispose(): void }[] = [];
   const geometries = new Map<string, BufferGeometry>();
-  const geometryFor = (kind: Prop["kind"], variant: number): BufferGeometry => {
-    const key = `${kind}|${variant}`;
+  const geometryFor = (generator: PropGenerator, variant: number): BufferGeometry => {
+    const key = `${generator}|${variant}`;
     const existing = geometries.get(key);
     if (existing !== undefined) return existing;
-    const geometry = propGeometry(kind, variant);
+    const geometry = propGeometry(generator, variant);
     geometries.set(key, geometry);
     disposables.push(geometry);
     return geometry;
@@ -213,7 +213,7 @@ export function createPropRenderer(
 
   const groups = new Map<string, Placed[]>();
   for (const prop of items) {
-    const variant = createRng(prop.seed).int(0, PROP_STYLES[prop.kind].variants - 1);
+    const variant = createRng(prop.seed).int(0, PROP_STYLES[prop.generator].variants - 1);
     const material = prop.material;
     const surface =
       material === undefined
@@ -232,7 +232,7 @@ export function createPropRenderer(
 
   const place = (mesh: InstancedMesh, index: number, prop: Prop, turn: number): void => {
     const base = floorHeight(prop.x, prop.z) + (prop.elevation ?? 0);
-    position.set(prop.x, base + PROP_SHAPES[prop.kind].sink * prop.size, prop.z);
+    position.set(prop.x, base + prop.shape.sink * prop.size, prop.z);
     rotation.setFromEuler(euler.set(0, prop.rotation + turn, 0));
     scale.setScalar(prop.size);
     matrix.compose(position, rotation, scale);
@@ -242,7 +242,7 @@ export function createPropRenderer(
   for (const members of groups.values()) {
     const first = members[0];
     if (first === undefined) continue;
-    const style = PROP_STYLES[first.prop.kind];
+    const style = PROP_STYLES[first.prop.generator];
     const surface = first.prop.material;
     const patches: ShaderPatch[] =
       surface === undefined
@@ -260,7 +260,7 @@ export function createPropRenderer(
       patches,
     );
     const mesh = new InstancedMesh(
-      geometryFor(first.prop.kind, first.variant),
+      geometryFor(first.prop.generator, first.variant),
       material,
       members.length,
     );
@@ -270,7 +270,7 @@ export function createPropRenderer(
       place(mesh, index, prop, 0);
     });
     mesh.computeBoundingSphere();
-    if (first.prop.kind === "starfish") {
+    if (first.prop.generator === "starfish") {
       starfish.push({ mesh, props: members.map(({ prop }) => prop) });
     }
     object.add(mesh);

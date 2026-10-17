@@ -35,12 +35,12 @@ export function placesOf(plants: readonly Plant[], props: readonly Prop[]): Plac
       tags,
       base: baseOf(x, z, elevation),
     })),
-    ...props.map(({ kind, x, z, size, tags, elevation }) => ({
-      x,
-      z,
-      height: propTop(kind, size),
-      tags,
-      base: baseOf(x, z, elevation),
+    ...props.map((prop) => ({
+      x: prop.x,
+      z: prop.z,
+      height: propTop(prop),
+      tags: prop.tags,
+      base: baseOf(prop.x, prop.z, prop.elevation),
     })),
   ].filter((place) => place.tags.length > 0);
 }

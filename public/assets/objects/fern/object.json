@@ -1,0 +1,19 @@
+{
+  "name": "Ferns",
+  "category": "plant",
+  "recipe": {
+    "generator": "fern"
+  },
+  "traits": {
+    "sway": {
+      "amount": 0.04
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["plant", "shelter"],
+    "placement": {
+      "on": ["sand"]
+    }
+  }
+}

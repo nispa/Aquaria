@@ -9,10 +9,10 @@ Aquaria. Il modello è facoltativo: un oggetto può essere disegnato invece da
 uno dei generatori di Aquaria, le piante e gli oggetti procedurali che
 costruisce nel codice, ogni volta in una variante diversa.
 
-> Stato: il contratto qui sotto è definito e validato (`src/scene/`). La
-> vasca comincia a leggere le cartelle-oggetto con il passo E2 della
-> roadmap, quando i tipi di oggi (`rock`, `kelp`…) diventano cartelle;
-> l'esportazione delle ricette in `.glb` è E3.
+> Stato: ogni pianta e oggetto della vasca è una cartella, disegnata dalla
+> sua ricetta. Gli oggetti fatti solo di un modello sono elencati ma non
+> ancora disegnati, e l'esportazione delle ricette in `.glb` arriva dopo
+> (roadmap E3).
 
 ## La cartella
 
@@ -80,8 +80,8 @@ sbagliati ferma il caricamento con un messaggio che dice dove.
 
 | Parametro   | Predefinito | Significato                                                      |
 | ----------- | ----------- | ---------------------------------------------------------------- |
-| `amount`    | `0.05`      | Quanto si muovono le punte, in proporzione all'altezza (0..1).   |
-| `speed`     | `0.6`       | Oscillazioni al secondo con corrente costante.                   |
+| `amount`    | `0.05`      | Quanto si muovono le punte, m (0..0.5).                          |
+| `speed`     | `1`         | Ritmo dell'ondeggiamento lento, 1 = quello solito.               |
 | `attribute` | `"_SWAY"`   | I pesi di ondeggiamento per punto del modello, vedi _Dipingere_. |
 
 ### `collision`: i pesci ci girano intorno

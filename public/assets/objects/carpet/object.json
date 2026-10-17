@@ -1,0 +1,19 @@
+{
+  "name": "Carpet plants",
+  "category": "plant",
+  "recipe": {
+    "generator": "carpet"
+  },
+  "traits": {
+    "sway": {
+      "amount": 0.01
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["plant"],
+    "placement": {
+      "on": ["sand"]
+    }
+  }
+}

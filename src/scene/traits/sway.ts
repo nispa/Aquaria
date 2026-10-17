@@ -13,10 +13,10 @@ export const sway = defineTrait({
   id: "sway",
   summary: "sways in the current like a plant",
   schema: z.object({
-    /** How far the tips move, as a share of the height. */
-    amount: z.number().min(0).max(1).default(0.05),
-    /** Sways per second at a steady current. */
-    speed: z.number().positive().max(5).default(0.6),
+    /** How far the tips move, m. */
+    amount: z.number().min(0).max(0.5).default(0.05),
+    /** Pace of the slow swaying, 1 = the usual. */
+    speed: z.number().positive().max(4).default(1),
     /** The per-point weights in the model; see SWAY_ATTRIBUTE. */
     attribute: z
       .string()

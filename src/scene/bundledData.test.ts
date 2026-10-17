@@ -5,6 +5,8 @@ import {
   materialTextureUrls,
   parseMaterialManifest,
 } from "./materialManifest";
+import { checkSceneObjects, parseObjectIndex } from "./objectCatalog";
+import { bundledObjects } from "./objectFixtures";
 import { MODEL_MANIFEST_FILE, modelIdsOf, parseModelManifest } from "./modelManifest";
 import { parseCatalog, parseScene } from "./parse";
 import { parseSceneIndex } from "./sceneIndex";
@@ -29,6 +31,13 @@ const materialIds = (
     materials: string[];
   }
 ).materials;
+const OBJECTS = new URL("../../public/assets/objects/", import.meta.url);
+const objectFolders = readdirSync(OBJECTS, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name);
+const objectIndex = parseObjectIndex(readJson("../../public/assets/objects/index.json"));
+// Reading every object.json validates it: an invalid one throws here.
+const objects = bundledObjects();
 const assetCredits = readFileSync(new URL("../../ASSETS.md", import.meta.url), "utf8");
 
 describe("bundled data files", () => {
@@ -40,6 +49,19 @@ describe("bundled data files", () => {
     const catalog = parseCatalog(readJson("../../public/species.json"));
 
     expect(() => parseScene(readJson("../../public/scenes/reef.json"), catalog)).not.toThrow();
+  });
+
+  it.each(sceneFiles)("names only bundled plants and objects in %s", (file) => {
+    const catalog = parseCatalog(readJson("../../public/species.json"));
+    const scene = parseScene(readJson(`../../public/scenes/${file}`), catalog);
+
+    expect(() => {
+      checkSceneObjects(scene, objects);
+    }).not.toThrow();
+  });
+
+  it.each(objectFolders)("lists the %s object folder in the object index", (id) => {
+    expect(objectIndex).toContain(id);
   });
 
   it.each(sceneFiles)("ships a valid scene in %s, named after its file", (file) => {

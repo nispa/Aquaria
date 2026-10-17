@@ -11,6 +11,7 @@ import {
 } from "three";
 import { createRng } from "../core/rng";
 import type { Logger } from "../core/logger";
+import type { ObjectCatalog } from "../scene/objectCatalog";
 import { sceneryAlone } from "../scene/scenery";
 import type { Scene } from "../scene/schema";
 import { layoutFlora, layoutProps } from "../sim/layout";
@@ -57,6 +58,7 @@ function boundsOf(object: Object3D, bounds: Box3): Box3 {
  */
 export async function drawSceneryPortraits(
   scene: Scene,
+  objects: ObjectCatalog,
   requests: readonly SceneryPortraitRequest[],
   logger: Logger,
 ): Promise<void> {
@@ -90,11 +92,11 @@ export async function drawSceneryPortraits(
       z: 0,
     });
     const flora = createFloraRenderer(
-      layoutFlora(scene.tank, alone.flora, createRng(PORTRAIT_SEED)).map(centered),
+      layoutFlora(objects, scene.tank, alone.flora, createRng(PORTRAIT_SEED)).map(centered),
       water,
     );
     const props = createPropRenderer(
-      layoutProps(scene.tank, alone.props, createRng(PORTRAIT_SEED)).map(centered),
+      layoutProps(objects, scene.tank, alone.props, createRng(PORTRAIT_SEED)).map(centered),
       water,
       surfaces,
     );

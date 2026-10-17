@@ -1,34 +1,31 @@
 import { describe, expect, it } from "vitest";
 import { catalogFixture, sceneFixture } from "./fixtures";
+import { bundledObjects } from "./objectFixtures";
 import { parseCatalog, parseScene } from "./parse";
-import { FLORA_KINDS, PROP_KINDS } from "./schema";
-import { DEFAULT_TAGS, tagsOf } from "./tags";
+import { tagsOf } from "./tags";
 
 const catalog = parseCatalog(catalogFixture());
+const objects = bundledObjects();
+const tagsOfObject = (id: string): readonly string[] | undefined => objects.get(id)?.traits.tags;
 
 describe("tags of scenery", () => {
   it("gives anemones the anemone and shelter tags", () => {
-    expect(DEFAULT_TAGS.anemone).toEqual(["anemone", "shelter"]);
+    expect(tagsOfObject("anemone")).toEqual(["anemone", "shelter"]);
   });
 
   it("offers dense plants as shelter, for freshwater fish to hide in", () => {
-    expect([DEFAULT_TAGS.bush, DEFAULT_TAGS.fern, DEFAULT_TAGS.stem]).toEqual([
+    expect([tagsOfObject("bush"), tagsOfObject("fern"), tagsOfObject("stem")]).toEqual([
       expect.arrayContaining(["shelter"]),
       expect.arrayContaining(["shelter"]),
       expect.arrayContaining(["shelter"]),
     ]);
   });
 
-  it("declares tags for every flora and prop kind", () => {
-    const kinds = [...FLORA_KINDS, ...PROP_KINDS];
-
-    expect(kinds.filter((kind) => !(kind in DEFAULT_TAGS))).toEqual([]);
-  });
-
-  it("uses the kind's tags for an entry that sets none", () => {
+  it("uses the object's tags for an entry that sets none", () => {
     const scene = parseScene(sceneFixture(), catalog);
+    const entry = scene.props[0] ?? { kind: "starfish", tags: undefined };
 
-    expect(tagsOf(scene.props[0] ?? { kind: "rock" })).toEqual(DEFAULT_TAGS.starfish);
+    expect(tagsOf(entry, objects.get(entry.kind))).toEqual(["starfish"]);
   });
 
   it("lets a scene entry set its own tags", () => {
@@ -37,7 +34,11 @@ describe("tags of scenery", () => {
 
     const scene = parseScene(input, catalog);
 
-    expect(tagsOf(scene.props[0] ?? { kind: "rock" })).toEqual(["shelter"]);
+    expect(tagsOf(scene.props[0] ?? {}, objects.get("rock"))).toEqual(["shelter"]);
+  });
+
+  it("gives no tags to an entry whose object is missing", () => {
+    expect(tagsOf({}, undefined)).toEqual([]);
   });
 
   it("rejects tags that are not lowercase words", () => {

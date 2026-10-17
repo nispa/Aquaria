@@ -26,19 +26,19 @@ import type { Logger } from "../core/logger";
 import { pixelRatioForHeight } from "../core/resolution";
 import { createRng, type Rng } from "../core/rng";
 import type { ModelManifest } from "../scene/modelManifest";
+import type { ObjectCatalog } from "../scene/objectCatalog";
 import type { Scene, SpeciesCatalog } from "../scene/schema";
 import type { Lights } from "../scene/lights";
 import { lookPasses, type Look } from "../scene/look";
-import { layoutFlora, layoutProps } from "../sim/layout";
 import { createLens } from "./lens";
 import { createGpuTimer } from "./gpuTimer";
 import { obstaclesOf, type Obstacle } from "../sim/obstacles";
 import { placesOf, type Place } from "../sim/places";
 import { createLightMixer, cycleHour, daylight } from "../sim/lightCycle";
 import { createBlockwork } from "../sim/blockwork";
-import type { RockSurface } from "../sim/layout";
+import { layoutFlora, layoutProps, propTraitsOf, type RockSurface } from "../sim/layout";
 import type { ObstacleField } from "../sim/obstacles";
-import { createRockwork, type Rockwork } from "../sim/rockwork";
+import { createRockwork, LOOSE_ROCK, type Rockwork } from "../sim/rockwork";
 import { floorHeight } from "../sim/terrain";
 import type { Simulation } from "../sim/simulation";
 import type { EffectDefinition, EffectInstance } from "./effects/types";
@@ -80,6 +80,8 @@ export interface AquariumViewOptions {
   readonly canvas: HTMLCanvasElement;
   readonly scene: Scene;
   readonly catalog: SpeciesCatalog;
+  /** The plants and objects the scene's entries name. */
+  readonly objects: ObjectCatalog;
   /** Manifests of the species' 3D models, by model folder. */
   readonly modelManifests: ReadonlyMap<string, ModelManifest>;
   /** Whether a species starts with its 3D model instead of its procedural body. */
@@ -357,8 +359,10 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
             scene.rockwork,
             createRng(scenerySeeds.props + ROCKWORK_SEED_OFFSET),
             halfWidthAt,
+            propTraitsOf(options.objects.get(LOOSE_ROCK)),
           );
     const plants = layoutFlora(
+      options.objects,
       scene.tank,
       floraSpecs,
       createRng(scenerySeeds.flora),
@@ -366,6 +370,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       ridge ?? blockTops,
     );
     const items = layoutProps(
+      options.objects,
       scene.tank,
       propSpecs,
       createRng(scenerySeeds.props),

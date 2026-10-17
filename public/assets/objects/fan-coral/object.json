@@ -1,0 +1,21 @@
+{
+  "name": "Sea fans",
+  "category": "object",
+  "recipe": {
+    "generator": "fan-coral"
+  },
+  "traits": {
+    "collision": {
+      "across": 0.44,
+      "up": 0.92,
+      "along": 0.06,
+      "sink": -0.02,
+      "lift": 0
+    },
+    "tags": ["coral"],
+    "placement": {
+      "bands": [2, 4],
+      "size": [0.5, 1]
+    }
+  }
+}

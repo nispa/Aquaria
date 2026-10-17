@@ -9,9 +9,9 @@ an object may be drawn instead by one of Aquaria's generators, the
 procedural plants and objects it builds in code, a different variant each
 time.
 
-> Status: the contract below is defined and validated (`src/scene/`). The
-> tank starts reading object folders in roadmap step E2, when today's kinds
-> (`rock`, `kelp`…) become folders; exporting recipes to `.glb` is E3.
+> Status: every plant and object of the tank is a folder, drawn by its
+> recipe. Objects made of a model alone are listed but not drawn yet, and
+> exporting recipes to `.glb` comes next (roadmap E3).
 
 ## The folder
 
@@ -78,8 +78,8 @@ saying where.
 
 | Parameter   | Default   | Meaning                                                  |
 | ----------- | --------- | -------------------------------------------------------- |
-| `amount`    | `0.05`    | How far the tips move, as a share of the height (0..1).  |
-| `speed`     | `0.6`     | Sways per second at a steady current.                    |
+| `amount`    | `0.05`    | How far the tips move, m (0..0.5).                       |
+| `speed`     | `1`       | Pace of the slow swaying, 1 = the usual.                 |
 | `attribute` | `"_SWAY"` | The model's per-point sway weights, see _Painting sway_. |
 
 ### `collision`: fish swim round it

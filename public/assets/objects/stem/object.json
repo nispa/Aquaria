@@ -1,0 +1,19 @@
+{
+  "name": "Stem plants",
+  "category": "plant",
+  "recipe": {
+    "generator": "stem"
+  },
+  "traits": {
+    "sway": {
+      "amount": 0.05
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["plant", "shelter"],
+    "placement": {
+      "on": ["sand"]
+    }
+  }
+}
