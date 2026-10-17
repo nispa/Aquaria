@@ -476,6 +476,11 @@ Ambient occlusion is by far the most expensive (about 18 ms per frame at
 1080p on a mid-range GPU) and depth of field looks like blur on a wall seen
 with the naked eye, so both stay off until you turn them on.
 
+An effect can also be a folder of files, a short `effect.json` and a GLSL
+shader in `public/effects/`, loaded at startup with its own switch: no
+code, no rebuild. _Water shimmer_ is one. How to write one:
+[docs/EFFECTS.md](docs/EFFECTS.md).
+
 Each effect's parameters and ranges are documented, with their tuned
 defaults, in `src/render/effects/`. To add a new effect: create a file there
 with `defineEffect` (id, panel name, stage, default on/off, Zod parameter

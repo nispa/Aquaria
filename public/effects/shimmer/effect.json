@@ -1,0 +1,11 @@
+{
+  "name": "Water shimmer",
+  "stage": "hdr",
+  "startup": "manual",
+  "shader": "effect.glsl",
+  "params": {
+    "amount": { "min": 0, "max": 0.01, "default": 0.0015 },
+    "speed": { "min": 0, "max": 3, "default": 0.7 },
+    "scale": { "min": 1, "max": 60, "default": 14 }
+  }
+}

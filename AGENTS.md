@@ -158,6 +158,10 @@ Shaders:
   schema with a default for every parameter (the tuned look), and a `create`
   function returning a Three.js pass with `dispose()`.
 - Heavy effects are `manual`. State the measured cost when adding one.
+- An effect can also be data: a folder in `public/effects/` with an
+  `effect.json` (validated by `src/scene/effectManifest.ts`) and a GLSL
+  fragment shader, loaded at startup after `EFFECTS`; one that is invalid
+  or does not compile is left out with a warning. See `docs/EFFECTS.md`.
 - At startup the look is fitted to the GPU (`core/featureCalibration.ts`):
   from the `base` features it adds the `added` ones one at a time, lighting
   first, keeping those that leave room under the frame budget. The viewer's

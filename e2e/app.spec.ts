@@ -188,6 +188,39 @@ test("switches effects on and off from the panel", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test("switches on an effect made of files, without shader errors", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
+  await openLive(page);
+  await waitForState(page);
+  await page.keyboard.press("h");
+  await openSection(page, "effect");
+
+  await page.getByRole("checkbox", { name: "Water shimmer" }).check();
+  await page.waitForTimeout(500);
+
+  await expect(page.getByRole("checkbox", { name: "Water shimmer" })).toBeChecked();
+  expect(errors).toEqual([]);
+});
+
+test("leaves out an effect whose shader does not compile", async ({ page }) => {
+  const warnings: string[] = [];
+  page.on("console", (message) => warnings.push(message.text()));
+  await page.route("**/effects/shimmer/effect.glsl", (route) =>
+    route.fulfill({ contentType: "text/plain", body: "void main() { not glsl }" }),
+  );
+  await openLive(page);
+  await waitForState(page);
+  await page.keyboard.press("h");
+  await openSection(page, "effect");
+
+  await expect(page.getByRole("checkbox", { name: "Water shimmer" })).toHaveCount(0);
+  expect(warnings.some((text) => text.includes("shader does not compile"))).toBe(true);
+});
+
 test("remembers effect choices after a reload", async ({ page }) => {
   await page.addInitScript(() => {
     if (localStorage.getItem("aquaria.settings") === null) {

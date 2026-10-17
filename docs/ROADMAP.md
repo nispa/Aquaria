@@ -236,16 +236,25 @@ later, from trusted sources only.
 
 ### F1. The contract
 
-- [ ] `public/effects/<id>/effect.json`, validated with Zod: name, stage
-      (`hdr` or `display`), on by default or not, parameters with a type,
-      a range and a default (they become the panel's sliders), credit.
-- [ ] A fragment shader in the folder (`.glsl`), given the frame, depth,
-      time and its parameters as uniforms; a broken shader logs a warning
-      and its switch is left out.
-- [ ] Loaded at startup next to the built-in `EFFECTS`, which stay as
-      they are; each one is a switch in the panel.
+- [x] `public/effects/<id>/effect.json`, validated with Zod: name, stage
+      (`hdr` or `display`), startup role (as in G), parameters with a
+      range and a default, credit.
+- [x] A fragment shader in the folder (`.glsl`), given the frame, time,
+      resolution, frame count and its parameters as uniforms; a broken
+      shader logs a warning and its switch is left out.
+- [x] Loaded at startup next to the built-in `EFFECTS`, which stay as
+      they are; each one is a switch in the panel. First one: _Water
+      shimmer_.
+- [ ] Sliders in the panel for every effect's parameters, built-in or
+      made of files.
+- [ ] Depth of the scene for effects made of files (fog, focus): needs a
+      depth pass, so only when an effect asks for it.
 
 ### F2. Waves seen from below
+
+The surface is geometry in the scene, not a full-screen pass, so it is a
+lighting feature of the renderer (startup `added`) rather than a file
+effect.
 
 - [ ] The underside of the water as moving waves: total reflection at a
       slant, the bright window of the sky overhead (Snell's window), the
@@ -257,7 +266,7 @@ later, from trusted sources only.
 
 ### F3. Writing an effect
 
-- [ ] `docs/EFFECTS.md` (+ Italian version): the contract, the uniforms,
+- [x] `docs/EFFECTS.md` (+ Italian version): the contract, the uniforms,
       a worked example, how to try a shader in the tank.
 
 ## Ideas to discuss

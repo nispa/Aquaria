@@ -15,6 +15,9 @@ import { openSceneEditor, type SceneEditor } from "./sceneEditor";
 import { drawFishPortraits, type FishPortraitRequest } from "../render/fishPortraits";
 import { drawSceneryPortraits, type SceneryPortraitRequest } from "../render/sceneryPortraits";
 import { EFFECTS } from "../render/effects";
+import { createFileEffect, fileEffectFragment } from "../render/effects/fileEffect";
+import { fragmentShaderError } from "../render/effects/shaderCheck";
+import type { EffectDefinition } from "../render/effects/types";
 import {
   customSceneId,
   exportScene,
@@ -63,7 +66,21 @@ import {
   type Settings,
 } from "../scene/settings";
 import type { Lights } from "../scene/lights";
-import { calibrationPlan, lookFeatures, resolveLook, type Look } from "../scene/look";
+import {
+  EFFECT_MANIFEST_FILE,
+  EFFECTS_FOLDER,
+  effectFolderUrl,
+  effectShaderUrl,
+  parseEffectIndex,
+  parseEffectManifest,
+} from "../scene/effectManifest";
+import {
+  calibrationPlan,
+  LIGHTING_FEATURES,
+  lookFeatures,
+  resolveLook,
+  type Look,
+} from "../scene/look";
 import { applySceneryOverrides, sceneryEntries } from "../scene/scenery";
 import {
   parseSceneIndex,
@@ -311,6 +328,59 @@ async function loadObjects(): Promise<ObjectCatalog> {
   return createObjectCatalog(entries.filter((entry) => entry !== undefined));
 }
 
+async function fetchText(path: string): Promise<string> {
+  const response = await fetch(path);
+  // Single-page servers answer missing files with index.html and status 200.
+  if (!response.ok || (response.headers.get("content-type") ?? "").includes("html")) {
+    throw new Error(`Could not load ${path}: the file does not exist.`);
+  }
+  return response.text();
+}
+
+/**
+ * The effects made of files in `effects/` (scene/effectManifest). They are
+ * extras: an effect that is missing, invalid, named like another feature or
+ * whose shader does not compile is left out with a warning.
+ */
+async function loadFileEffects(): Promise<readonly EffectDefinition[]> {
+  let ids: readonly string[];
+  try {
+    ids = parseEffectIndex(await fetchJson(`${EFFECTS_FOLDER}/index.json`));
+  } catch (error) {
+    logger.warn("No effects made of files", { error: String(error) });
+    return [];
+  }
+  const taken = new Set([
+    ...LIGHTING_FEATURES.map((feature) => feature.id),
+    ...EFFECTS.map((effect) => effect.id),
+  ]);
+  const loaded = await Promise.all(
+    ids.map(async (id): Promise<EffectDefinition | undefined> => {
+      if (taken.has(id)) {
+        logger.warn("Effect left out: its id is taken by Aquaria's own", { effect: id });
+        return undefined;
+      }
+      try {
+        const manifest = parseEffectManifest(
+          await fetchJson(`${effectFolderUrl(id)}/${EFFECT_MANIFEST_FILE}`),
+          id,
+        );
+        const body = await fetchText(effectShaderUrl(id, manifest));
+        const error = fragmentShaderError(fileEffectFragment(manifest, body));
+        if (error !== undefined) {
+          logger.warn("Effect left out: its shader does not compile", { effect: id, error });
+          return undefined;
+        }
+        return createFileEffect(id, manifest, body);
+      } catch (error) {
+        logger.warn("Effect left out", { effect: id, error: String(error) });
+        return undefined;
+      }
+    }),
+  );
+  return loaded.filter((effect) => effect !== undefined);
+}
+
 /** A custom scene saved in this browser, or a clear error if it is gone. */
 function customSceneData(custom: Readonly<Record<string, Scene>>, id: string): Scene {
   const scene = custom[id];
@@ -326,12 +396,15 @@ async function start(): Promise<void> {
 
   const options = parseLaunchOptions(window.location.search);
   let settings = loadSettings();
-  const [indexData, catalogData, materialIds, objects] = await Promise.all([
+  const [indexData, catalogData, materialIds, objects, fileEffects] = await Promise.all([
     fetchJson("scenes/index.json"),
     fetchJson("species.json"),
     loadMaterialIds(),
     loadObjects(),
+    loadFileEffects(),
   ]);
+  // Aquaria's own effects, then those made of files.
+  const effects = [...EFFECTS, ...fileEffects];
   const catalog = parseCatalog(catalogData);
   const modelManifests = await loadModelManifests(catalog);
   const customScenes = loadCustomScenes(catalog);
@@ -348,7 +421,7 @@ async function start(): Promise<void> {
       : fetchJson(`scenes/${sceneId}.json`),
     loadSceneChoices(sceneIndex, customScenes),
   ]);
-  const features = lookFeatures(EFFECTS);
+  const features = lookFeatures(effects);
   // The look is fitted to the GPU on live frames; a requested list or a still frame is used as is.
   const fitsLook = options.effects === undefined && options.frozenSeconds === undefined;
   let look: Look = fitsLook
@@ -419,7 +492,7 @@ async function start(): Promise<void> {
       logger: createLogger("render", consoleSink),
       renderHeight: settings.renderHeight,
       look,
-      effects: EFFECTS,
+      effects,
       lights: effectiveLights(settings.lights),
       msaaSamples: settings.msaaSamples ?? DEFAULT_MSAA_SAMPLES,
       clockHour: () => clockHour,

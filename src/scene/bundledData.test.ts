@@ -5,6 +5,12 @@ import {
   materialTextureUrls,
   parseMaterialManifest,
 } from "./materialManifest";
+import {
+  EFFECT_MANIFEST_FILE,
+  effectShaderUrl,
+  parseEffectIndex,
+  parseEffectManifest,
+} from "./effectManifest";
 import { checkSceneObjects, parseObjectIndex } from "./objectCatalog";
 import { bundledObjects } from "./objectFixtures";
 import { objectMaterialUrl } from "./objectManifest";
@@ -37,6 +43,8 @@ const objectFolders = readdirSync(OBJECTS, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
   .map((entry) => entry.name);
 const objectIndex = parseObjectIndex(readJson("../../public/assets/objects/index.json"));
+const EFFECTS = "../../public/effects/";
+const effectIds = parseEffectIndex(readJson(`${EFFECTS}index.json`));
 // Reading every object.json validates it: an invalid one throws here.
 const objects = bundledObjects();
 const assetCredits = readFileSync(new URL("../../ASSETS.md", import.meta.url), "utf8");
@@ -110,6 +118,22 @@ describe("bundled data files", () => {
     const index = readJson("../../public/assets/materials/index.json") as { materials: string[] };
 
     expect([...index.materials].sort()).toEqual(folders.sort());
+  });
+
+  it("lists every effect folder in the effect index, and nothing else", () => {
+    const folders = readdirSync(new URL(EFFECTS, import.meta.url), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name);
+
+    expect([...effectIds].sort()).toEqual(folders.sort());
+  });
+
+  it.each(effectIds)("ships a valid manifest and its shader for the %s effect", (id) => {
+    const manifest = parseEffectManifest(readJson(`${EFFECTS}${id}/${EFFECT_MANIFEST_FILE}`), id);
+
+    expect(
+      existsSync(new URL(`../../public/${effectShaderUrl(id, manifest)}`, import.meta.url)),
+    ).toBe(true);
   });
 
   it.each(modelFolders)("ships a valid manifest and model file for the %s model", (id) => {
