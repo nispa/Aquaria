@@ -1,0 +1,12 @@
+{
+  "name": "Freshwater crab",
+  "file": "model.glb",
+  "forward": "+z",
+  "up": "+y",
+  "swimAmplitude": 0,
+  "credit": {
+    "author": "ffish.asia / floraZia.com",
+    "source": "https://sketchfab.com/3d-models/cc0-japanese-freshwater-crab-35559c2236d04c1a80ccbe08cae863c6",
+    "license": "CC0-1.0"
+  }
+}

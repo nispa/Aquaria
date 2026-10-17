@@ -848,6 +848,128 @@
           "weight": 0.6
         }
       }
+    },
+    {
+      "id": "freshwater-crab",
+      "name": "Freshwater crab",
+      "body": {
+        "type": "procedural",
+        "category": "crustacean",
+        "shape": "crab",
+        "pattern": "solid",
+        "colors": {
+          "base": "#6b4a2e",
+          "accent": "#c89a5a",
+          "detail": "#2a1c12"
+        }
+      },
+      "model": "freshwater-crab",
+      "length": {
+        "mean": 0.04,
+        "standardDeviation": 0.005
+      },
+      "speed": {
+        "cruise": 0.05,
+        "max": 0.2
+      },
+      "schooling": 0,
+      "maxCount": 3,
+      "bands": [0, 4],
+      "heightRange": [0, 0.1],
+      "behavior": {
+        "appetite": 1,
+        "curiosity": 0.1,
+        "shyness": 0.9,
+        "hiding": 0.9,
+        "torch": -0.6
+      },
+      "swim": {
+        "style": "crawl",
+        "sideways": true,
+        "swims": false,
+        "speed": 0.8,
+        "walkSeconds": [1, 4],
+        "stopSeconds": [2, 6],
+        "turnAngle": 2,
+        "rideHeight": 0.28
+      },
+      "activities": {
+        "peck": {
+          "weight": 0.6,
+          "tags": {
+            "rock": 0.7,
+            "wood": 0.7,
+            "shell": 0.5,
+            "moss": 0.6
+          }
+        },
+        "rest": {
+          "weight": 1
+        }
+      }
+    },
+    {
+      "id": "hermit-crab",
+      "name": "Hermit crab",
+      "body": {
+        "type": "procedural",
+        "category": "crustacean",
+        "shape": "hermit-crab",
+        "pattern": "solid",
+        "colors": {
+          "base": "#d0522a",
+          "accent": "#e8c08a",
+          "detail": "#f0e0c8"
+        }
+      },
+      "model": "hermit-crab",
+      "length": {
+        "mean": 0.05,
+        "standardDeviation": 0.008
+      },
+      "speed": {
+        "cruise": 0.03,
+        "max": 0.08
+      },
+      "schooling": 0,
+      "maxCount": 4,
+      "bands": [0, 4],
+      "heightRange": [0, 0.1],
+      "behavior": {
+        "appetite": 1,
+        "curiosity": 0.3,
+        "shyness": 0.8,
+        "hiding": 0,
+        "torch": 0
+      },
+      "swim": {
+        "style": "crawl",
+        "swims": false,
+        "fright": "shell",
+        "speed": 0.6,
+        "walkSeconds": [3, 8],
+        "stopSeconds": [2, 6],
+        "rideHeight": 0.29
+      },
+      "activities": {
+        "inspect": {
+          "weight": 0.6,
+          "tags": {
+            "shell": 1
+          }
+        },
+        "peck": {
+          "weight": 0.8,
+          "tags": {
+            "rock": 0.8,
+            "shell": 0.6,
+            "starfish": 0.3
+          }
+        },
+        "rest": {
+          "weight": 1
+        }
+      }
     }
   ]
 }

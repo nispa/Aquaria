@@ -165,6 +165,7 @@ foot. Off the ground, it sinks back once it is free to walk again.
 | `stopSeconds` | [1, 4]  | How long it stands still, picking at the ground |
 | `turnAngle`   | 1.2     | Spread of the change of heading after a stop    |
 | `turnJitter`  | 0.3     | Heading jitter while walking                    |
+| `rideHeight`  | 0.12    | Body lengths from the body's middle to its feet |
 | `sideways`    | false   | Walks sideways, its body across its way (crabs) |
 | `swims`       | true    | false: never leaves the ground (crabs)          |
 | `fright`      | "flee"  | "shell": withdraws into its shell (hermit crab) |
@@ -187,7 +188,7 @@ safe again. Every walker stands perfectly still while it stops.
 | `hover`       | clownfish, royal gramma, dwarf gourami                                                |
 | `glide`       | moorish idol, emperor angelfish, freshwater angelfish                                 |
 | `patrol`      | butterflyfish, barramundi                                                             |
-| `crawl`       | red cherry shrimp                                                                     |
+| `crawl`       | red cherry shrimp, freshwater crab, hermit crab                                       |
 
 ## Activities: what a fish is doing
 

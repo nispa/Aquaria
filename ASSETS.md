@@ -38,27 +38,31 @@ Each model is a folder in `public/assets/species/` whose `model.json` repeats
 the author, source and license (the unit tests check that the source is
 listed here).
 
-| Model                    | Path                                              | Source                                                                                                       | Author        | License   |
-| ------------------------ | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------- | --------- |
-| Barramundi               | `public/assets/species/barramundi/`               | https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish                           | Microsoft     | CC0       |
-| Neon tetra               | `public/assets/species/neon-tetra/`               | https://sketchfab.com/3d-models/paracheirodon-innesi---tetra-neon-2fabf5db754746b7b81ebfa0bbe99161           | BlueMesh      | CC-BY 4.0 |
-| Gilthead seabream        | `public/assets/species/gilthead-seabream/`        | https://sketchfab.com/3d-models/bream-fish-dorade-royale-a3d0e1a597794a9bb74739a13cfc8b77                    | BlueMesh      | CC-BY 4.0 |
-| Guppy                    | `public/assets/species/guppy/`                    | https://github.com/nispa/Aquaria/blob/main/scripts/blender/guppy.py                                          | Aquaria       | CC0       |
-| Copperband butterflyfish | `public/assets/species/copperband-butterflyfish/` | https://sketchfab.com/3d-models/small-fish-8f5de32946f347a0b6c8e55c6a66d46d                                  | The SpezX     | CC-BY 4.0 |
-| Clownfish                | `public/assets/species/clownfish/`                | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
-| Powder blue tang         | `public/assets/species/blue-tang/`                | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
-| Moorish idol             | `public/assets/species/moorish-idol/`             | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
-| Yellow tang              | `public/assets/species/yellow-tang/`              | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice | CC-BY 4.0 |
-| Royal gramma             | `public/assets/species/royal-gramma/`             | https://github.com/nispa/Aquaria/blob/main/scripts/blender/royal_gramma.py                                   | Aquaria       | CC0       |
-| Sardine                  | `public/assets/species/sardine/`                  | https://github.com/nispa/Aquaria/blob/main/scripts/blender/sardine.py                                        | Aquaria       | CC0       |
-| Sea turtle               | `public/assets/animals/sea-turtle/`               | https://sketchfab.com/3d-models/sea-turtle-23dcb315dea44f5082b020b04710bd31                                  | Eloi          | CC-BY 4.0 |
-| Freshwater angelfish     | `public/assets/species/freshwater-angelfish/`     | https://github.com/nispa/Aquaria/blob/main/scripts/blender/angelfish.py                                      | Aquaria       | CC0       |
-| Platy                    | `public/assets/species/platy/`                    | https://github.com/nispa/Aquaria/blob/main/scripts/blender/platy.py                                          | Aquaria       | CC0       |
-| Red cherry shrimp        | `public/assets/species/red-cherry-shrimp/`        | https://github.com/nispa/Aquaria/blob/main/scripts/blender/shrimp.py                                         | Aquaria       | CC0       |
+| Model                    | Path                                              | Source                                                                                                       | Author                    | License   |
+| ------------------------ | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------- | --------- |
+| Barramundi               | `public/assets/species/barramundi/`               | https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish                           | Microsoft                 | CC0       |
+| Neon tetra               | `public/assets/species/neon-tetra/`               | https://sketchfab.com/3d-models/paracheirodon-innesi---tetra-neon-2fabf5db754746b7b81ebfa0bbe99161           | BlueMesh                  | CC-BY 4.0 |
+| Gilthead seabream        | `public/assets/species/gilthead-seabream/`        | https://sketchfab.com/3d-models/bream-fish-dorade-royale-a3d0e1a597794a9bb74739a13cfc8b77                    | BlueMesh                  | CC-BY 4.0 |
+| Guppy                    | `public/assets/species/guppy/`                    | https://github.com/nispa/Aquaria/blob/main/scripts/blender/guppy.py                                          | Aquaria                   | CC0       |
+| Copperband butterflyfish | `public/assets/species/copperband-butterflyfish/` | https://sketchfab.com/3d-models/small-fish-8f5de32946f347a0b6c8e55c6a66d46d                                  | The SpezX                 | CC-BY 4.0 |
+| Clownfish                | `public/assets/species/clownfish/`                | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice             | CC-BY 4.0 |
+| Powder blue tang         | `public/assets/species/blue-tang/`                | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice             | CC-BY 4.0 |
+| Moorish idol             | `public/assets/species/moorish-idol/`             | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice             | CC-BY 4.0 |
+| Yellow tang              | `public/assets/species/yellow-tang/`              | https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99 | LasquetiSpice             | CC-BY 4.0 |
+| Royal gramma             | `public/assets/species/royal-gramma/`             | https://github.com/nispa/Aquaria/blob/main/scripts/blender/royal_gramma.py                                   | Aquaria                   | CC0       |
+| Sardine                  | `public/assets/species/sardine/`                  | https://github.com/nispa/Aquaria/blob/main/scripts/blender/sardine.py                                        | Aquaria                   | CC0       |
+| Sea turtle               | `public/assets/animals/sea-turtle/`               | https://sketchfab.com/3d-models/sea-turtle-23dcb315dea44f5082b020b04710bd31                                  | Eloi                      | CC-BY 4.0 |
+| Freshwater angelfish     | `public/assets/species/freshwater-angelfish/`     | https://github.com/nispa/Aquaria/blob/main/scripts/blender/angelfish.py                                      | Aquaria                   | CC0       |
+| Platy                    | `public/assets/species/platy/`                    | https://github.com/nispa/Aquaria/blob/main/scripts/blender/platy.py                                          | Aquaria                   | CC0       |
+| Red cherry shrimp        | `public/assets/species/red-cherry-shrimp/`        | https://github.com/nispa/Aquaria/blob/main/scripts/blender/shrimp.py                                         | Aquaria                   | CC0       |
+| Hermit crab              | `public/assets/species/hermit-crab/`              | https://sketchfab.com/3d-models/hermit-crab-7e71ce922fd44ab8b9221737e9618361                                 | kenchoo                   | CC-BY 4.0 |
+| Freshwater crab          | `public/assets/species/freshwater-crab/`          | https://sketchfab.com/3d-models/cc0-japanese-freshwater-crab-35559c2236d04c1a80ccbe08cae863c6                | ffish.asia / floraZia.com | CC0       |
 
 All were optimized with glTF Transform (meshopt geometry, KTX2 textures at
 1024 px; see README, "3D fish models"); the seabream's specular-glossiness
-material was first converted to metallic-roughness. Skeletons and swim
+material was first converted to metallic-roughness. The crabs, a few
+pixels tall on the bottom, have 512 px textures, and the freshwater crab
+scan, drawn unlit, is lit like the other bodies. Skeletons and swim
 animations are not used: the rest pose is baked and the engine swims the
 model.
 
@@ -71,6 +75,9 @@ Credits for the CC-BY models, as their licenses ask:
 - "Bream Fish ( Dorade Royale)"
   (https://sketchfab.com/3d-models/bream-fish-dorade-royale-a3d0e1a597794a9bb74739a13cfc8b77)
   by BlueMesh (https://sketchfab.com/VapTor), licensed under CC-BY-4.0.
+- "Hermit Crab"
+  (https://sketchfab.com/3d-models/hermit-crab-7e71ce922fd44ab8b9221737e9618361)
+  by kenchoo (https://sketchfab.com/kenchoo), licensed under CC-BY-4.0.
 - "Sea Turtle"
   (https://sketchfab.com/3d-models/sea-turtle-23dcb315dea44f5082b020b04710bd31)
   by Eloi (https://sketchfab.com/Eloiart), licensed under CC-BY-4.0.

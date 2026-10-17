@@ -1,0 +1,12 @@
+{
+  "name": "Hermit crab",
+  "file": "model.glb",
+  "forward": "+z",
+  "up": "+y",
+  "swimAmplitude": 0,
+  "credit": {
+    "author": "kenchoo",
+    "source": "https://sketchfab.com/3d-models/hermit-crab-7e71ce922fd44ab8b9221737e9618361",
+    "license": "CC-BY-4.0"
+  }
+}
