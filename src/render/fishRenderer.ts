@@ -13,6 +13,7 @@ import {
   Texture,
   Vector2,
   Vector3,
+  type AnimationClip,
   type BufferGeometry,
   type Material,
   type Object3D,
@@ -33,6 +34,7 @@ import { fishJawPatch } from "./shaders/fishJawPatch";
 import { fishPaintedEyesPatch } from "./shaders/fishPaintedEyesPatch";
 import { patchMaterial, type ShaderPatch } from "./shaders/patch";
 import type { WaterUniforms } from "./uniforms";
+import { createWalkingBodies, type WalkingBodies } from "./walkingBodies";
 
 /** Strength of the skin's rainbow sheen, 0..1. */
 const IRIDESCENCE = 0.35;
@@ -41,10 +43,20 @@ const MATRIX_SIZE = 16;
 /** Loads a glTF file and returns its scene; injected so tests run without a browser. */
 export type FishModelLoader = (url: string) => Promise<Object3D>;
 
+/** Loads a glTF scene with its animation clips. */
+export type AnimatedModelLoader = (
+  url: string,
+) => Promise<{ readonly root: Object3D; readonly clips: readonly AnimationClip[] }>;
+
 /** The 3D models available to species with a glTF body, by model folder. */
 export interface FishModels {
   readonly manifests: ReadonlyMap<string, ModelManifest>;
   readonly load: FishModelLoader;
+  /**
+   * Loads models whose manifest names a walk (or idle) clip: they are drawn
+   * as skinned bodies playing it. Without it they stay still, instanced.
+   */
+  readonly loadAnimated?: AnimatedModelLoader;
 }
 
 interface MouthMorph {
@@ -78,13 +90,20 @@ interface SpeciesInstances {
   wantModel: boolean;
   /** Meshes that open the mouth with a morph target, and which one. */
   readonly mouthMorphs: MouthMorph[];
+  /** A walking model's bodies, in place of the instanced model meshes. */
+  walking: WalkingBodies | undefined;
+  /** This step's individuals of a walking species; reused, never reallocated. */
+  readonly walkers: Fish[];
   count: number;
 }
 
 export interface FishRenderer {
   readonly object: Group;
-  /** Copies simulation state into the instance buffers. Allocation-free. */
-  update(fish: readonly Fish[]): void;
+  /**
+   * Copies simulation state into the instance buffers, and moves walking
+   * bodies' clips on by `seconds` (0: a still picture). Allocation-free.
+   */
+  update(fish: readonly Fish[], seconds?: number): void;
   /** Resolves when every model requested so far has loaded or failed. */
   settled(): Promise<void>;
   /**
@@ -113,6 +132,8 @@ function createInstances(species: Species, wantModel: boolean): SpeciesInstances
     modelState: "idle",
     wantModel,
     mouthMorphs: [],
+    walking: undefined,
+    walkers: [],
     count: 0,
   };
 }
@@ -272,6 +293,7 @@ function showBody(instances: SpeciesInstances): void {
   const model = instances.wantModel && instances.modelState === "ready";
   for (const mesh of instances.procedural) mesh.visible = !model;
   for (const mesh of instances.model) mesh.visible = model;
+  if (instances.walking !== undefined) instances.walking.group.visible = model;
 }
 
 /**
@@ -296,6 +318,8 @@ export function createFishRenderer(
   const materials: Material[] = [];
   const textures: Texture[] = [];
   const loading: Promise<void>[] = [];
+  /** Walking models as loaded: their bodies share these geometries and materials. */
+  const loadedWalkers: Object3D[] = [];
   let disposed = false;
 
   const addMesh = (
@@ -357,6 +381,11 @@ export function createFishRenderer(
     }
     instances.modelState = "loading";
     const url = modelFileUrl(modelId, manifest);
+    const { loadAnimated } = models;
+    if (manifest.animations !== undefined && loadAnimated !== undefined) {
+      loadWalking(instances, url, manifest, loadAnimated);
+      return;
+    }
     const done = models
       .load(url)
       .then((root) => {
@@ -375,6 +404,35 @@ export function createFishRenderer(
       .catch((error: unknown) => {
         instances.modelState = "failed";
         logger.warn("Fish model could not be loaded; the procedural body is used", {
+          species: entry.id,
+          url,
+          error: String(error),
+        });
+      });
+    loading.push(done);
+  };
+
+  const loadWalking = (
+    instances: SpeciesInstances,
+    url: string,
+    manifest: ModelManifest,
+    loadAnimated: AnimatedModelLoader,
+  ): void => {
+    const { species: entry } = instances;
+    const done = loadAnimated(url)
+      .then(({ root, clips }) => {
+        loadedWalkers.push(root);
+        if (disposed) return;
+        const count = Math.min(entry.maxCount, MAX_INDIVIDUALS_PER_SPECIES);
+        const walking = createWalkingBodies(`${entry.id}/animated`, root, clips, manifest, count);
+        instances.walking = walking;
+        object.add(walking.group);
+        instances.modelState = "ready";
+        showBody(instances);
+      })
+      .catch((error: unknown) => {
+        instances.modelState = "failed";
+        logger.warn("Walking model could not be loaded; the procedural body is used", {
           species: entry.id,
           url,
           error: String(error),
@@ -418,8 +476,11 @@ export function createFishRenderer(
 
   return {
     object,
-    update(fish) {
-      for (const instances of species.values()) instances.count = 0;
+    update(fish, seconds = 0) {
+      for (const instances of species.values()) {
+        instances.count = 0;
+        instances.walkers.length = 0;
+      }
       for (const individual of fish) {
         const instances = species.get(individual.species.id);
         if (instances === undefined || instances.count >= MAX_INDIVIDUALS_PER_SPECIES) continue;
@@ -438,6 +499,7 @@ export function createFishRenderer(
         instances.effort.setX(index, individual.effort);
         instances.mouth.setX(index, individual.mouth);
         instances.count += 1;
+        if (instances.walking !== undefined) instances.walkers.push(individual);
       }
       for (const instances of species.values()) {
         for (const mesh of instances.procedural) mesh.count = instances.count;
@@ -450,6 +512,7 @@ export function createFishRenderer(
         instances.effort.needsUpdate = true;
         instances.mouth.needsUpdate = true;
         openMouths(instances);
+        instances.walking?.update(instances.walkers, seconds);
       }
     },
     settled: () => Promise.all(loading).then(() => undefined),
@@ -464,7 +527,9 @@ export function createFishRenderer(
       disposed = true;
       for (const instances of species.values()) {
         for (const mesh of [...instances.procedural, ...instances.model]) mesh.dispose();
+        instances.walking?.dispose();
       }
+      for (const root of loadedWalkers) textures.push(...disposeLoadedScene(root));
       materials.forEach((material) => {
         material.dispose();
       });

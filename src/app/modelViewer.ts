@@ -251,7 +251,7 @@ async function start(): Promise<void> {
     catalog,
     water,
     logger,
-    { manifests, load: loaders.loadModel },
+    { manifests, load: loaders.loadModel, loadAnimated: loaders.loadAnimated },
     (id) => id === named.id && modelSwitch.checked,
   );
   let individual = posedFish(species, new Vector3(1, 0, 0));
@@ -316,10 +316,12 @@ async function start(): Promise<void> {
     individual.mouth = sliders.value("mouth");
     individual.bend = sliders.value("bend");
     individual.effort = sliders.value("effort");
-    individual.swimPhase += 2 * Math.PI * sliders.value("beats") * seconds;
+    const beats = sliders.value("beats");
+    individual.swimPhase += 2 * Math.PI * beats * seconds;
     const rate = manifests.get(species.model ?? "")?.gills?.rate ?? DEFAULT_GILL_RATE;
     water.uTime.value = breathTime(sliders.value("breath"), rate);
-    fish.update([individual]);
+    // A walking model steps as fast as the swimming slider beats.
+    fish.update([individual], seconds * beats);
     frame();
     renderer.render(scene, camera);
     requestAnimationFrame(tick);

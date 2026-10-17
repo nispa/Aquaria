@@ -1,5 +1,4 @@
-import type {
-  Mesh} from "three";
+import type { Mesh } from "three";
 import {
   AnimationMixer,
   Group,
@@ -12,12 +11,10 @@ import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js
 import type { Logger } from "../core/logger";
 import type { ModelManifest } from "../scene/modelManifest";
 import type { VisitorState } from "../sim/visitors";
-import { animatedModelFrame, pinRootMotion } from "./animatedModel";
+import { animatedModelFrame, clipSeconds, pinRootMotion } from "./animatedModel";
 
 /** Loads a model's manifest and its glTF scene with its clips; injected by the app. */
-export type AnimalLoader = (
-  id: string,
-) => Promise<{
+export type AnimalLoader = (id: string) => Promise<{
   readonly manifest: ModelManifest;
   readonly root: Object3D;
   readonly clips: readonly AnimationClip[];
@@ -119,8 +116,7 @@ export function createVisitorRenderer(
         );
         body.carrier.scale.setScalar(length);
         // The clip keeps time with the stroke: faster as the animal goes faster.
-        const lengthsPerSecond = velocity.length() / length;
-        body.mixer.update((seconds * lengthsPerSecond) / body.pace);
+        body.mixer.update(clipSeconds(seconds, velocity.length(), length, body.pace));
       }
     },
     settled: () => Promise.all(loading).then(() => undefined),

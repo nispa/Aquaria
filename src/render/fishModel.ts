@@ -272,7 +272,7 @@ const SCAN_ROUGHNESS = 1;
  * light painted into the texture) becomes a lit one with the same colors,
  * so the tank's lights, fog and caustics reach it like every other body.
  */
-function litMaterial(material: Material): Material {
+export function litMaterial(material: Material): Material {
   if (!(material instanceof MeshBasicMaterial)) return material;
   return new MeshStandardMaterial({
     name: material.name,

@@ -4,6 +4,10 @@
   "forward": "+z",
   "up": "+y",
   "swimAmplitude": 0,
+  "animations": {
+    "walk": "Animation",
+    "speed": 0.6
+  },
   "credit": {
     "author": "ffish.asia / floraZia.com",
     "source": "https://sketchfab.com/3d-models/cc0-japanese-freshwater-crab-35559c2236d04c1a80ccbe08cae863c6",

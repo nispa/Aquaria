@@ -86,3 +86,12 @@ export function animatedModelFrame(root: Object3D, manifest: ModelManifest): Ani
     .multiply(axes);
   return { matrix, length };
 }
+
+/**
+ * How far to move an animal's clip on, s, after `seconds` of going at
+ * `speed` m/s: at `pace` body lengths a second the clip plays at its own
+ * pace, faster or slower as the animal goes; standing, it holds.
+ */
+export function clipSeconds(seconds: number, speed: number, length: number, pace: number): number {
+  return (seconds * speed) / length / pace;
+}

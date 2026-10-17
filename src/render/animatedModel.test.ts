@@ -1,6 +1,6 @@
 import { AnimationClip, Bone, Group, VectorKeyframeTrack } from "three";
 import { describe, expect, it } from "vitest";
-import { pinRootMotion } from "./animatedModel";
+import { clipSeconds, pinRootMotion } from "./animatedModel";
 
 /** A model 1 m across with one bone, animated by a position track going `travel` along y. */
 function animated(travel: number): { root: Group; clip: AnimationClip } {
@@ -50,5 +50,19 @@ describe("pinRootMotion", () => {
     pinRootMotion(clip, root, 1);
 
     expect(clip.tracks[0]?.values[7]).toBe(4);
+  });
+});
+
+describe("clipSeconds", () => {
+  it("plays a clip at its own pace when the animal goes at the clip's pace", () => {
+    expect(clipSeconds(0.5, 0.2, 0.1, 2)).toBeCloseTo(0.5);
+  });
+
+  it("plays it faster as the animal goes faster", () => {
+    expect(clipSeconds(0.5, 0.4, 0.1, 2)).toBeCloseTo(1);
+  });
+
+  it("holds the clip while the animal stands still", () => {
+    expect(clipSeconds(0.5, 0, 0.1, 2)).toBe(0);
   });
 });

@@ -21,6 +21,14 @@ modello com'è nella posa di riposo e fa il resto nei suoi shader:
 - gira i bulbi oculari dove il pesce sta per girare (`eyes`);
 - fa respirare gli opercoli delle branchie (`gills`).
 
+L'eccezione è un animale che cammina (un granchio, un paguro): se il suo
+`model.json` nomina una clip, `"animations": { "walk": "<clip>", "speed": 0.6 }`,
+ogni individuo è una copia del modello con scheletro che riproduce quella
+clip, al suo ritmo quando l'animale va a `speed` lunghezze di corpo al
+secondo, più veloce o più lenta secondo il passo, ferma quando sta fermo.
+Ne entrano pochi (il `maxCount` della specie), quindi tieni queste specie in
+numero ridotto.
+
 Un'armatura è benvenuta, per gli occhi e per gli altri programmi, ma non
 serve nessuna animazione. Anche un modello preso altrove, con gli occhi solo
 dipinti sulla texture e senza shape key, può fare tutto questo, senza

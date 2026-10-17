@@ -279,6 +279,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     {
       manifests: options.modelManifests,
       load: loaders.loadModel,
+      loadAnimated: loaders.loadAnimated,
     },
     options.fishModelEnabled,
   );
@@ -292,7 +293,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     },
     logger,
   );
-  let visitorsTime = simulation.timeSeconds;
+  let animatedTime = simulation.timeSeconds;
   // Stable containers: effects keep references to them across rebuilds.
   const floraGroup = new Group();
   const propGroup = new Group();
@@ -593,10 +594,10 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       fixture.update(light);
       water.uTime.value = simulation.timeSeconds;
       props?.update(simulation.timeSeconds);
-      fish.update(simulation.fish);
+      fish.update(simulation.fish, simulation.timeSeconds - animatedTime);
       food.update(simulation.food.pellets);
-      visitors.update(simulation.visitors, simulation.timeSeconds - visitorsTime);
-      visitorsTime = simulation.timeSeconds;
+      visitors.update(simulation.visitors, simulation.timeSeconds - animatedTime);
+      animatedTime = simulation.timeSeconds;
       particles?.update(simulation.timeSeconds);
       instances.forEach((instance) => {
         instance.update?.();
