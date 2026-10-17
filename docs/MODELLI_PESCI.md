@@ -1,169 +1,94 @@
-# Fare un pesce in Blender
+# Modelli 3D dei pesci
 
-Una specie può avere un modello 3D accanto al suo corpo procedurale: una
-cartella in `public/assets/species/<id>/` con un `model.glb` e un
-`model.json` (i campi sono nel README, "3D fish models"). Questa guida
-spiega come farne uno in Blender perché Aquaria lo faccia nuotare, gli apra
-la bocca e gli muova gli occhi. `scripts/blender/angelfish.py` e
-`scripts/blender/guppy.py` costruiscono così lo scalare (angelfish d'acqua
-dolce) e il guppy, da codice, con le parti comuni in
-`scripts/blender/fishkit.py`: leggili come esempi completi.
+_English version: [FISH_MODELS.md](FISH_MODELS.md)._
 
-## Che cosa fa Aquaria con il modello
+Ogni specie ha un corpo che Aquaria disegna da solo. Può avere anche un
+modello 3D, e chi guarda sceglie quale vedere (il bollino **3D** sulla
+scheda della specie nel pannello). Il modello si scarica solo quando viene
+mostrato, e se non si carica resta il corpo disegnato.
 
-Aquaria disegna tutti i pesci di una specie in un colpo solo sulla GPU
-(instancing), quindi non riproduce animazioni scheletriche. Prende il
-modello com'è nella posa di riposo e fa il resto nei suoi shader:
+Questa pagina spiega come aggiungere un modello trovato in giro, e come
+farne uno in Blender.
 
-- lo gira, lo centra e lo scala alla lunghezza della specie;
-- piega la parte posteriore del corpo per nuotare e girare (`swimAmplitude`);
-- apre la bocca con uno shape key, quando il pesce mangia (`mouth`);
-- gira i bulbi oculari dove il pesce sta per girare (`eyes`);
-- fa respirare gli opercoli delle branchie (`gills`).
-
-L'eccezione è un animale che cammina (un granchio, un paguro): se il suo
-`model.json` nomina una clip, `"animations": { "walk": "<clip>", "speed": 0.6 }`,
-ogni individuo è una copia del modello con scheletro che riproduce quella
-clip, al suo ritmo quando l'animale va a `speed` lunghezze di corpo al
-secondo, più veloce o più lenta secondo il passo, ferma quando sta fermo. Una clip `"hide"` è la posa in cui si nasconde quando ha paura (un
-paguro rientrato nel guscio).
-Ne entrano pochi (il `maxCount` della specie), quindi tieni queste specie in
-numero ridotto.
-
-Un'armatura è benvenuta, per gli occhi e per gli altri programmi, ma non
-serve nessuna animazione. Anche un modello preso altrove, con gli occhi solo
-dipinti sulla texture e senza shape key, può fare tutto questo, senza
-Blender: vedi la sezione 7.
-
-## Il riferimento del pesce e il visore dei modelli
-
-I punti del pesce (un occhio, la bocca, gli opercoli) si danno nel
-**riferimento del pesce**, quello in cui Aquaria porta ogni modello: una
-lunghezza di corpo lungo x, dalla coda a -0,5 al muso a +0,5, la pinna
-dorsale in alto (+y), in lunghezze di corpo. Si leggono sul visore dei
-modelli: lancia `pnpm dev` e apri
+## La cartella
 
 ```
-http://localhost:5173/model-viewer.html?id=<specie o cartella del modello>
+public/assets/species/<id>/
+  model.json   come Aquaria deve usare il modello
+  model.glb    il modello, texture comprese
 ```
 
-(oppure sceglilo da `/debug.html`, la pagina di tutti gli strumenti di
-debug). Disegna il pesce dal lato destro, come lo disegna l'acquario, corpo
-procedurale o modello 3D, con sopra la griglia del riferimento del pesce.
-Gli slider a destra muovono sguardo, bocca, opercoli, piega di una virata,
-sforzo della coda e nuoto; spunta **auto** e lo slider oscilla da un capo
-all'altro da solo, per guardare un movimento a mani libere. L'URL può dire
-da dove partono: `gaze` (-1..1), `mouth` (0..1), `breath` (0..1), `model=0`
-per il corpo procedurale e `zoom=x,y,mezzaLarghezza` per guardare da vicino.
+Va bene anche un `.gltf` con accanto il suo `.bin` e le texture. La specie
+punta alla cartella con `"model": "<id>"` in `public/species.json`.
 
-## 1. Forma e dimensioni
+## model.json
 
-- Modella il pesce lungo il **+X** di Blender (il muso) con la pinna dorsale
-  in alto (**+Z**). L'esportatore glTF trasforma il +Z in alto in +Y in
-  alto, quindi `model.json` dice `"forward": "+x", "up": "+y"`. Va bene
-  anche un altro orientamento: basta dire quali assi puntano al muso e alla
-  pinna dorsale.
-- Le dimensioni non contano: Aquaria scala il pesce alla lunghezza della
-  specie, misurata dal muso alla punta della coda.
-- Tieni la testa davanti alla metà del corpo: Aquaria tiene rigido il primo
-  quinto del pesce e piega il resto.
-- Da 5.000 a 20.000 triangoli bastano e avanzano. Le pinne possono essere
-  fogli singoli: Aquaria disegna entrambi i lati.
-
-## 2. Colori e materiali
-
-Usa materiali Principled BSDF: l'esportatore li trasforma in materiali glTF
-PBR, che Aquaria conserva (colore base, normali, rugosità, metallicità,
-trasparenza). I colori possono essere texture o un attributo colore (colori
-per vertice) collegato a _Base Color_; esportalo con _Data > Mesh > Vertex
-Color: Active_. Le pinne rendono meglio un po' trasparenti: alfa sotto 1 e
-_Blend Mode: Blended_.
-
-## 3. La bocca
-
-Aggiungi uno shape key, per esempio `MouthOpen`, con la bocca spalancata (la
-mandibola abbassata), e indicalo in `model.json`:
+Quello del platy, per esempio:
 
 ```json
-"mouth": { "morphTarget": "MouthOpen" }
+{
+  "name": "Platy",
+  "file": "model.glb",
+  "forward": "+x",
+  "up": "+y",
+  "swimAmplitude": 0.08,
+  "mouth": { "morphTarget": "MouthOpen" },
+  "eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 22 },
+  "gills": { "edge": 0.3, "top": 0.07, "bottom": -0.08, "curve": 4 },
+  "credit": {
+    "author": "Aquaria (scripts/blender/platy.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/platy.py",
+    "license": "CC0-1.0"
+  }
+}
 ```
 
-## 4. Gli occhi
+- `forward` e `up`: quali assi del modello puntano verso il muso e verso
+  il dorso. Aquaria ruota, centra e scala il modello alla lunghezza della
+  specie, quindi va bene qualsiasi misura e orientamento.
+- `swimAmplitude`: quanto si muove la coda, in lunghezze del corpo (di
+  partenza 0.07). Il modello non ha bisogno di un'animazione di nuoto: lo
+  piega Aquaria.
+- `mouth`, `eyes`, `gills`: facoltativi, vedi sotto. Senza, la bocca resta
+  chiusa, gli occhi fermi e le branchie immobili.
+- `credit`: chi l'ha fatto, da dove viene e la licenza. Sono accettate solo
+  licenze che permettono riuso, modifiche e uso commerciale: `CC0-1.0`,
+  `CC-BY-3.0`, `CC-BY-4.0`, `MIT`, `Apache-2.0`, `BSD-2-Clause`,
+  `BSD-3-Clause`, `0BSD`, `Unlicense`. Il modello va elencato anche in
+  `ASSETS.md`; un test lo controlla.
 
-Gli occhi guardano a scatti verso dove il pesce sta per girare, come quelli
-di un pesce vero. Ad Aquaria serve sapere quali vertici sono bulbo oculare e
-dov'è il centro di ogni bulbo:
+Il modello tiene i suoi materiali e le sue texture.
 
-1. Fai di ogni bulbo una parte separata della mesh (o un oggetto a parte):
-   una sfera, o la sua parte anteriore, con la pupilla rivolta di lato.
-2. Aggiungi un'armatura con un osso radice per il corpo e **un osso per
-   occhio**, per esempio `Eye.L` ed `Eye.R`. Metti la **testa** di ogni osso
-   dell'occhio **al centro del suo bulbo**: Aquaria gira l'occhio attorno a
-   quel punto. Imparenta le ossa degli occhi all'osso radice. (La sinistra
-   del pesce è il +Y di Blender.)
-3. Imparenta le mesh all'armatura (_With Empty Groups_, o con un modificatore
-   Armature) e **dipingi i pesi** di ogni bulbo interamente (1,0) sul suo
-   osso; corpo e pinne vanno all'osso radice. I vertici pesati in parte su un
-   osso dell'occhio girano in parte, utile per sfumare una palpebra o un
-   bordo.
-4. Lascia l'armatura nella posa di riposo; non serve nessuna animazione.
-5. Indica le ossa in `model.json`, e di quanti gradi girano al massimo gli
-   occhi (20 se manca, al massimo 45):
+## Guardarlo: il pesce sul piano millimetrato
 
-```json
-"eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 22 }
-```
+Avvia `pnpm dev` e apri `/model-viewer.html?id=<specie>` (o sceglilo da
+`/debug.html`). Mostra il pesce dal lato destro, esattamente come lo
+disegna l'acquario, sopra una griglia in lunghezze del corpo: la coda a
+-0,5, il muso a +0,5, il dorso in alto.
 
-Scrivi i nomi delle ossa come li mostra Blender: Aquaria li trova anche dopo
-che il caricatore glTF ha tolto i punti (`Eye.L` arriva come `EyeL`).
+I cursori di lato muovono occhi, bocca, branchie, la piega della virata,
+la coda e il nuoto. Spunta **auto** e il cursore va avanti e indietro da
+solo. La casella **3D** passa dal modello al corpo disegnato.
 
-## 5. Esportazione
+È qui che leggi le posizioni che chiedono `mouth.jaw`, `eyes.painted` e
+`gills`.
 
-_File > Export > glTF 2.0_, formato **glTF Binary (.glb)**, con:
+## Un modello trovato in giro
 
-- _Include_: gli oggetti del pesce e l'armatura;
-- _Transform_: **+Y Up** attivo;
-- _Data > Mesh_: _Apply Modifiers_ spento (l'armatura deve restare una
-  skin), _Vertex Color: Active_ se hai dipinto i colori;
-- _Data > Shape Keys_ attivo; _Data > Armature_ attivo (skin);
-- _Animation_ spento.
-
-Da script, `scripts/blender/angelfish.py` finisce con le stesse impostazioni:
-
-```python
-bpy.ops.export_scene.gltf(
-    filepath="model.glb", export_format="GLB", export_yup=True,
-    export_skins=True, export_morph=True, export_animations=False,
-    export_vertex_color="ACTIVE", export_apply=False,
-)
-```
-
-Poi comprimilo: le ossa, gli shape key e i colori restano, e il file
-diventa circa un decimo:
+I modelli scaricati sono spesso pesanti. Prima di aggiungerne uno,
+comprimilo con [glTF Transform](https://gltf-transform.dev) (serve
+KTX-Software nel `PATH`, vedi [Fare una texture nuova](SCRIVERE_SCENE.md#fare-una-texture-nuova)):
 
 ```bash
-pnpm dlx @gltf-transform/cli@4.5.1 optimize model.glb public/assets/species/<id>/model.glb --compress meshopt --simplify false
+pnpm dlx @gltf-transform/cli@4.5.1 optimize sorgente.glb public/assets/species/<id>/model.glb --compress meshopt --texture-compress ktx2 --texture-size 1024
 ```
 
-Salva `model.glb` nella cartella della specie, scrivi `model.json`, collega
-la specie alla cartella (`"model": "<id>"` in `public/species.json`) ed
-elenca il modello in `ASSETS.md`. Un modello fatto da zero può essere CC0.
+Punta a 5.000-20.000 triangoli. Le scansioni di esemplari veri di solito
+pesano molto di più, e in acqua sembrano morte: spesso rendono male.
 
-## 6. Controllo
-
-Lancia `pnpm dev`, apri una scena con la specie, premi `H` e verifica che la
-scheda della specie mostri il badge **3D** acceso. Premi `A` per la
-sovrimpressione delle attività e guarda un pesce che gira: gli occhi
-guardano prima. Se gli occhi non si muovono, la console del browser non
-segnala errori e i nomi delle ossa sono giusti, controlla che i bulbi siano
-pesati sulle ossa degli occhi e non sulla radice.
-
-## 7. Un modello preso altrove
-
-Un modello scaricato ha spesso gli occhi dipinti sulla texture e nessuno
-shape key, e le sue texture possono essere in un formato che Blender non
-apre (KTX2). `model.json` può dargli comunque bocca, occhi e branchie, con
-punti del riferimento del pesce letti sul visore:
+Un modello così di solito ha gli occhi dipinti e nessuna posa a bocca
+aperta. Puoi comunque fargli guardare in giro, mangiare e respirare, con
+posizioni lette sulla griglia:
 
 ```json
 "mouth": { "jaw": { "start": 0.43, "line": -0.01, "drop": 0.02 } },
@@ -171,25 +96,82 @@ punti del riferimento del pesce letti sul visore:
 "gills": { "edge": 0.28, "top": 0.17, "bottom": -0.06, "curve": 3 }
 ```
 
-- `mouth.jaw`: quando il pesce mangia, i punti davanti a `start` e sotto la
-  `line` della bocca scendono fino a `drop` alla punta del muso; il labbro
-  superiore si alza un poco. Metti `line` dove si incontrano le labbra.
-- `eyes.painted`: un occhio dipinto sopra quello del modello, sui due lati:
-  il `center` (x, y), il `radius`, il colore dell'`iris` e la quota del
-  raggio occupata dalla `pupil` (0,65 se manca). La pupilla scorre con lo
-  sguardo. Fai combaciare il raggio con l'occhio dipinto, così la vecchia
-  pupilla resta coperta.
-- `gills`: il bordo posteriore dell'opercolo (`edge`, x), fin dove arriva
-  in alto e in basso (`top`, `bottom`) e come si piega il bordo (`curve`:
-  il bordo sta a `edge + curve * (y - metà)^2`, quindi una curva positiva
-  lo porta più indietro a metà altezza, come nella maggior parte dei
-  pesci). Si solleva fino a `open` lunghezze di corpo (0,006 se manca),
-  `rate` volte al secondo (1,1 se manca), ogni pesce nel suo momento, e
-  dietro si vede una fessura rosso scuro. I pesci fatti in Blender
-  prendono `gills` allo stesso modo.
+- `mouth.jaw`: tutto quello che sta davanti a `start` e sotto `line` (dove
+  si chiudono le labbra) si abbassa, fino a `drop` sulla punta del muso.
+- `eyes.painted`: un occhio nuovo disegnato sopra quello dipinto, sui due
+  lati. Fai `radius` abbastanza grande da coprire la vecchia pupilla.
+  `pupil` è quanto è grande la pupilla rispetto all'occhio (di partenza
+  0.65); si sposta con lo sguardo.
+- `gills`: il bordo posteriore dell'opercolo (`edge`), quanto sale e
+  scende (`top`, `bottom`), e quanto è curvo (`curve`, 0 è dritto). Si
+  solleva di `open` (di partenza 0.006) circa una volta al secondo
+  (`rate`), ogni pesce per conto suo.
 
-Per lanciare lo script dello scalare:
+Un pesce che allunga la bocca in avanti quando la apre, come l'orata o il
+barramundi, con `jaw` viene male. Gli serve una vera posa a bocca aperta
+fatta in Blender: `scripts/blender/seabream.py` la prende dall'animazione
+della mandibola del modello stesso, `scripts/blender/barramundi.py` la
+costruisce a mano.
+
+## Fare un pesce in Blender
+
+Guppy, platy, pesce angelo, royal gramma, sardina e gamberetto red cherry
+sono fatti interamente da script in `scripts/blender/`, che condividono i
+pezzi comuni in `fishkit.py`. Sono gli esempi migliori. Per lanciarne uno:
 
 ```bash
-blender --background --python scripts/blender/angelfish.py -- public/assets/species/freshwater-angelfish
+blender --background --python scripts/blender/platy.py
 ```
+
+Se modelli a mano:
+
+1. **Forma.** Muso verso il +X di Blender, dorso verso il +Z; allora
+   `model.json` dice `"forward": "+x", "up": "+y"`. La misura non conta.
+   Tieni la testa nella metà anteriore: Aquaria tiene rigido il primo
+   quinto del corpo e piega il resto. Le pinne possono essere fogli
+   singoli.
+2. **Colori.** Materiali Principled BSDF, con texture o colori dei vertici
+   in _Base Color_. Le pinne rendono meglio un po' trasparenti (alpha sotto
+   1, modalità _Blended_).
+3. **Bocca.** Una shape key con la bocca spalancata, per esempio
+   `MouthOpen`, indicata con `"mouth": { "morphTarget": "MouthOpen" }`.
+4. **Occhi.** Ogni bulbo oculare un pezzo a sé. Un'armatura con un osso
+   radice e un osso per occhio (`Eye.L`, `Eye.R`), con la testa di ogni
+   osso al centro del suo occhio. Dai a ogni occhio peso pieno sul suo
+   osso, e il resto alla radice. Poi
+   `"eyes": { "bones": ["Eye.L", "Eye.R"] }`. Gli occhi guardano da dove
+   il pesce sta per girare.
+5. **Esporta** in glTF Binary (`.glb`), con +Y Up, shape key e armatura
+   accese, _Apply Modifiers_ spento e animazione spenta. Poi comprimilo:
+
+   ```bash
+   pnpm dlx @gltf-transform/cli@4.5.1 optimize model.glb public/assets/species/<id>/model.glb --compress meshopt --simplify false
+   ```
+
+   `--simplify false` lascia intatti ossa, shape key e colori.
+
+6. **Controllalo** sulla griglia, poi in vasca: premi `A` e guarda un pesce
+   girare. Gli occhi dovrebbero muoversi per primi. Se non si muovono,
+   probabilmente i bulbi sono pesati sull'osso radice.
+
+## Animali che camminano
+
+Sui pesci Aquaria non riproduce animazioni: disegna un branco intero in un
+colpo solo e piega lei i corpi. Gli animali che camminano sono diversi. Se
+`model.json` indica un'animazione di camminata, ogni individuo è disegnato
+come un modello animato a sé:
+
+```json
+"animations": { "walk": "Walk", "hide": "Hide", "speed": 0.4 }
+```
+
+- `walk`: l'animazione mentre cammina. Va al suo ritmo quando l'animale fa
+  `speed` lunghezze del corpo al secondo, più veloce o più lenta con lui,
+  e si ferma quando si ferma.
+- `hide` (facoltativo): una posa in cui scivola quando ha paura, come un
+  paguro che si ritira nel guscio.
+
+Ognuno costa più di un pesce, quindi a queste specie dai un `maxCount`.
+`scripts/blender/shrimp.py` fa scheletro e camminata del gamberetto da
+zero; `scripts/blender/hermit_crab.py` dà a un paguro scaricato una
+camminata migliore e la posa per nascondersi.

@@ -1,132 +1,124 @@
-# Plants and objects as files
+# Plants and objects
 
 _Italian version: [OGGETTI.md](OGGETTI.md)._
 
-A plant or an object of the tank is a folder of data, like a species: a
-standard 3D model any program opens (Blender, Godot, a glTF viewer), plus
-`object.json`, which says what Aquaria does with it. The model is optional:
-an object may be drawn instead by one of Aquaria's generators, the
-procedural plants and objects it builds in code, a different variant each
-time.
+Every plant and object in the tank is a folder: an `object.json` that says
+what it is, and, if you like, a 3D model that Blender or any glTF viewer
+can open. Without a model, Aquaria draws the object itself with one of its
+generators, a little different each time.
+
+A new folder is a new kind of object, usable in any scene. No code needed.
 
 ## The folder
 
 ```
 public/assets/objects/<id>/
-  object.json      what it is and what Aquaria does with it (required)
+  object.json      what it is (required)
   model.glb        the 3D model (optional)
-public/assets/materials/<id>/
-  material.json    name, tile size, credit
-  normal.ktx2      normal map
-  surface.ktx2     R displacement, G roughness, B brightness detail
 ```
 
-The folder name is the object's id, the `kind` a scene uses for it.
-`object.json` is the source of truth: a model without one is not an object.
+The folder name is the `kind` scenes use, for example `driftwood`.
 
 ## object.json
 
+The driftwood's:
+
 ```json
 {
-  "name": "Ludwigia",
-  "category": "plant",
-  "model": "model.glb",
-  "color": ["#4f9a3a", "#5fae44"],
+  "name": "Driftwood",
+  "category": "object",
+  "color": "#5a4636",
   "material": { "file": "../../materials/mossy-wood/material.json", "tileSize": 0.35 },
-  "recipe": { "generator": "stem", "seeds": [0, 999] },
+  "recipe": { "generator": "driftwood" },
   "traits": {
-    "sway": { "amount": 0.08 },
-    "collision": { "solid": false },
-    "tags": ["plant", "shelter"],
-    "placement": { "on": ["sand"], "bands": [1, 3], "height": [0.2, 0.4] }
-  },
-  "credit": { "author": "…", "source": "https://…", "license": "CC0-1.0" }
+    "collision": { "across": 0.55, "up": 0.5, "along": 0.48, "sink": -0.02, "lift": 0 },
+    "tags": ["wood", "shelter"],
+    "placement": { "bands": [1, 3], "size": [0.5, 1.1] }
+  }
 }
 ```
 
-| Field      | Meaning                                                                                                                                                  |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`     | Shown in the panel and the editor's palette.                                                                                                             |
-| `category` | `plant` (grows, sways, has a height) or `object` (set down, has a size).                                                                                 |
-| `model`    | A `.glb` or `.gltf` file inside the folder.                                                                                                              |
-| `color`    | Its color, or a palette (`["#7a9a34", "#5f8a2e"]`) each item takes one color of; a scene entry may set its own. `tipColor` tints a plant's tips.         |
-| `material` | `file`: a `material.json`, by a path relative to this file (it must stay inside `assets/`); `tileSize` (m) and `displacement` (m) say how it is laid on. |
-| `recipe`   | One of Aquaria's generators (`generator`, any flora or prop kind of today), the `seeds` variants are drawn from, and its `params`.                       |
-| `traits`   | Aquaria features by id, see below.                                                                                                                       |
-| `credit`   | Required with a model: author, source URL and a license that allows reuse, changes and redistribution, also commercially (see below).                    |
+| Field      | What it is                                                                                    |
+| ---------- | --------------------------------------------------------------------------------------------- |
+| `name`     | The name in the panel and in the editor                                                       |
+| `category` | `plant` (sways, has a height) or `object` (has a size)                                        |
+| `model`    | A `.glb` or `.gltf` file in the folder                                                        |
+| `recipe`   | Which of Aquaria's generators draws it, and optionally `seeds` and `params`                   |
+| `color`    | Its color, or a list of colors to pick from. `tipColor` tints the tips of a plant             |
+| `material` | A surface texture (`file`: the path to a `material.json`, plus `tileSize` and `displacement`) |
+| `traits`   | What else Aquaria should know, see below                                                      |
+| `credit`   | Needed with a model made by someone else: author, source and license                          |
 
 An object needs a `model` or a `recipe`. With both, Aquaria draws the
-recipe's variants and the model is what other programs see, and the
-fallback.
+recipe and other programs see the model.
 
-A model keeps the materials and textures it was made with; `color` only
-tints recipes. Top-level parts set side by side are drawn as variants, one
-per item, like the seeds of a recipe.
+A model keeps its own materials; `color` only tints what a recipe draws.
+If the model has several pieces side by side at the top level, each item
+in the tank uses one of them, for variety.
 
-Licenses: `CC0-1.0`, `CC-BY-3.0`, `CC-BY-4.0`, `MIT`, `Apache-2.0`,
-`BSD-2-Clause`, `BSD-3-Clause`, `0BSD`, `Unlicense`. Every third-party model
-is also listed in `ASSETS.md`.
+The accepted licenses are the same as for fish: `CC0-1.0`, `CC-BY-3.0`,
+`CC-BY-4.0`, `MIT`, `Apache-2.0`, `BSD-2-Clause`, `BSD-3-Clause`, `0BSD`,
+`Unlicense`. Models by others also go in `ASSETS.md`.
 
 ## Traits
 
-A trait is a feature a 3D file cannot say. Each is one file in
-`src/scene/traits/`, registered by id in `TRAITS`, with a default for every
-parameter: `"sway": {}` is a valid trait. A trait Aquaria does not know
-(another program's, or a newer Aquaria's) is skipped with a warning in the
-console; a known one with wrong parameters stops the load with a message
-saying where.
+A trait is something a 3D file cannot say, like "fish can hide in here".
+Every value has a default, so `"sway": {}` is fine. A trait Aquaria does
+not know is skipped with a warning; a known one with a wrong value stops
+the loading and says where.
 
-### `sway`: sways in the current like a plant
+### `sway`: moves with the current
 
-| Parameter   | Default   | Meaning                                                  |
-| ----------- | --------- | -------------------------------------------------------- |
-| `amount`    | `0.05`    | How far the tips move, m (0..0.5).                       |
-| `speed`     | `1`       | Pace of the slow swaying, 1 = the usual.                 |
-| `attribute` | `"_SWAY"` | The model's per-point sway weights, see _Painting sway_. |
+| Value       | Default   | What it is                                     |
+| ----------- | --------- | ---------------------------------------------- |
+| `amount`    | `0.05`    | How far the tips move, in meters               |
+| `speed`     | `1`       | How fast it sways (1 = normal)                 |
+| `attribute` | `"_SWAY"` | Where the model says how much each point sways |
 
-### `collision`: fish swim round it
+### `collision`: fish swim around it
 
-An ellipsoid, each measure a share of the object's size (its rough
-diameter).
+A rough ellipsoid. Each value is a share of the object's size.
 
-| Parameter | Default | Meaning                                                    |
-| --------- | ------- | ---------------------------------------------------------- |
-| `solid`   | `true`  | `false` for soft things fish swim through, like plants.    |
-| `across`  | `0.5`   | Half the width (x).                                        |
-| `up`      | `0.5`   | Half the height (y).                                       |
-| `along`   | `0.5`   | Half the depth (z).                                        |
-| `sink`    | `0`     | How far the base sinks into the sand (negative sinks).     |
-| `lift`    | `0`     | Height of the middle above the base (a table coral's top). |
+| Value    | Default | What it is                                           |
+| -------- | ------- | ---------------------------------------------------- |
+| `solid`  | `true`  | `false` for soft things fish go through, like plants |
+| `across` | `0.5`   | Half the width                                       |
+| `up`     | `0.5`   | Half the height                                      |
+| `along`  | `0.5`   | Half the depth                                       |
+| `sink`   | `0`     | How far it sinks into the sand (negative = deeper)   |
+| `lift`   | `0`     | How high the middle is above the base                |
 
 ### `tags`: what it is to a fish
 
-A list, default empty: `shelter`, `anemone`, `coral`, `plant`, `algae`,
-`rock`, `wood`… Fish look for places by tag, never by object (a clownfish
-keeps to an `anemone`); a scene entry may retag its items. See
-[Swimming styles](SWIMMING.md).
+A list of words: `shelter`, `anemone`, `coral`, `plant`, `algae`, `rock`,
+`wood`, `shell`… Fish choose places by these words, never by object: a
+clownfish looks for an `anemone`, a scared fish for a `shelter`. See
+[Swimming styles](SWIMMING.md#places-and-tags).
 
-### `placement`: where it goes and how big it comes
+### `placement`: where it goes and how big
 
-Used when a scene asks for a number of them and leaves the spots to chance;
-a scene entry may override any of it.
+Used when a scene asks for a number of items and lets Aquaria place them.
+A scene entry can override any of it.
 
-| Parameter | Default    | Meaning                                       |
-| --------- | ---------- | --------------------------------------------- |
-| `on`      | `["sand"]` | What it may stand on: `sand`, `rock`.         |
-| `bands`   | `[0, 4]`   | Depth bands, 0 at the glass to 4 at the back. |
-| `size`    | none       | Rough diameter range, m (objects).            |
-| `height`  | none       | Height range, m (plants).                     |
+| Value    | Default    | What it is                                 |
+| -------- | ---------- | ------------------------------------------ |
+| `on`     | `["sand"]` | What it can stand on: `sand`, `rock`       |
+| `bands`  | `[0, 4]`   | Depth bands, 0 at the glass, 4 at the back |
+| `size`   | none       | Size range in meters (objects)             |
+| `height` | none       | Height range in meters (plants)            |
 
 ### Adding a trait
 
-1. A file in `src/scene/traits/` built with `defineTrait`: id, a one-line
-   summary, a Zod schema with a default for every parameter.
-2. Its line in `TRAITS` (`src/scene/traits/index.ts`) and a test.
-3. The code that carries it out, in `sim/` or `render/`, reading
-   `manifest.traits.<id>`.
-4. A section in this file.
+1. A file in `src/scene/traits/` made with `defineTrait`: an id, a one-line
+   description, and its values with defaults.
+2. A line in `TRAITS` (`src/scene/traits/index.ts`) and a test.
+3. The code that uses it, in `sim/` or `render/`.
+4. A section on this page.
 
-## material.json
+## Surface textures
+
+A texture folder in `public/assets/materials/<id>/` holds `normal.ktx2`,
+`surface.ktx2` and a `material.json`:
 
 ```json
 {
@@ -136,32 +128,26 @@ a scene entry may override any of it.
 }
 ```
 
-`textures` (`normal`, `surface`) defaults to `normal.ktx2` and
-`surface.ktx2` in the folder. `tileSize` is the size of one texture tile in
-meters; a scene entry's own `tileSize` wins.
+`tileSize` is how big one repeat of the texture is, in meters; a scene can
+set its own. How to make a new one: [Making a new texture](SCENES.md#making-a-new-texture).
 
 ## Making an object in Blender
 
-1. Model at real size, in meters, standing on its base at the origin, with
-   +Y up (the glTF exporter turns Blender's +Z up into +Y).
-2. For a plant, paint how much each point sways: add a generic attribute
-   named `_SWAY` (Object Data, Attributes, Float, Point) and paint it from 0
-   at the base to 1 at the tips. Without it, points sway more the higher
-   they are.
-3. Export as glTF Binary (`.glb`) with Data, Mesh, _Attributes_ ticked, so
-   `_SWAY` goes into the file.
-4. Make the folder, put the `.glb` in it and write `object.json`; add the
-   credit to `ASSETS.md` if the model is not your own.
+1. Model it at real size, in meters, standing on the origin.
+2. For a plant, tell Aquaria which parts sway: add an attribute named
+   `_SWAY` (Object Data → Attributes → Float, Point) and paint it from 0 at
+   the base to 1 at the tips. Without it, higher points sway more.
+3. Export as glTF Binary (`.glb`), with Data → Mesh → _Attributes_ ticked
+   so `_SWAY` is saved.
+4. Make the folder, put the `.glb` in it and write `object.json`.
 
-## Exporting recipes and block rock to `.glb`
+## Turning generated objects into files
 
 ```bash
-pnpm export:objects [path/to/scene.json ...]
+pnpm export:objects [scene.json ...]
 ```
 
-Bakes every object with a `recipe` into `public/assets/objects/<id>/model.glb`
-(three seed variants side by side at real size in meters, with a standard PBR
-material, `_SWAY` vertex weights on plants, and the object's `traits` copied
-into `scenes[0].extras.traits` so a round trip through Blender keeps them with
-_Custom Properties_ ticked). Bundled scenes (and any scene JSON files passed on
-the command line) that contain `blocks` are also baked into `<scene>-blocks.glb`.
+Saves every object drawn by a recipe as a `model.glb` in its folder (three
+variants side by side, real size, with `_SWAY` on plants), so it can be
+opened and changed in Blender. Scenes with block rock are saved too, as
+`<scene>-blocks.glb`.

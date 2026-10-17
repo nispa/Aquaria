@@ -1,164 +1,93 @@
-# Making a fish in Blender
+# 3D fish models
 
-A species may have a 3D model next to its procedural body: a folder in
-`public/assets/species/<id>/` with a `model.glb` and a `model.json` (the
-fields are in the README, "3D fish models"). This guide tells how to make
-one in Blender so that Aquaria can swim it, open its mouth and turn its
-eyes. `scripts/blender/angelfish.py`, `scripts/blender/guppy.py` and `scripts/blender/platy.py` build
-the freshwater angelfish, the guppy and the platy this way, from code, with the shared
-pieces in `scripts/blender/fishkit.py`; read them as worked examples.
+_Italian version: [MODELLI_PESCI.md](MODELLI_PESCI.md)._
 
-## What Aquaria does with the model
+Every species has a body that Aquaria draws by itself. It can also have a
+3D model, and the viewer chooses which one to see (the **3D** badge on the
+species' card in the panel). The model is only downloaded when it is shown,
+and if it fails to load the drawn body stays.
 
-Aquaria draws every fish of a species in one go on the GPU (instancing), so
-it does not play skeletal animations. It takes the model as it stands in
-its rest pose and does the rest in its shaders:
+This page covers adding a model you found, and making one in Blender.
 
-- it turns, centres and scales the model to the species' length;
-- it bends the rear of the body to swim and to turn (`swimAmplitude`);
-- it opens the mouth with a shape key, when the fish eats (`mouth`);
-- it turns the eyeballs the way the fish is about to turn (`eyes`);
-- it lets the gill covers breathe (`gills`).
-
-The exception is an animal that walks (a crab, a hermit crab): if its
-`model.json` names a clip, `"animations": { "walk": "<clip>", "speed": 0.6 }`,
-every individual is a skinned copy of the model playing that clip, at its
-own pace when the animal goes `speed` body lengths a second, faster or
-slower as it goes, held while it stands. A `"hide"` clip names the pose it
-hides in when frightened (a hermit crab pulled into its shell). Only a few of them fit (the
-species' `maxCount`), so keep such species small in number.
-
-An armature is welcome, for the eyes and for other programs, but no
-animation is needed. A model from elsewhere, with its eyes only painted on
-and no shape keys, can do all of it too, with no Blender at all: see
-section 7.
-
-## The fish frame and the model viewer
-
-Places on the fish (an eye, the mouth, the gill covers) are given in the
-**fish frame**, the one Aquaria brings every model to: one body length
-along x, from the tail at -0.5 to the snout at +0.5, the dorsal fin up
-(+y), in body lengths. Read them off the model viewer: run `pnpm dev` and
-open
+## The folder
 
 ```
-http://localhost:5173/model-viewer.html?id=<species or model folder>
+public/assets/species/<id>/
+  model.json   how Aquaria should use the model
+  model.glb    the model, textures included
 ```
 
-(or pick it from `/debug.html`, the page of every debug tool). It draws the
-fish from its right side, as the aquarium draws it, procedural body or 3D
-model, with the fish frame's grid over it. Sliders on the right move the
-gaze, the mouth, the gill covers, the bend of a turn, the tail's effort and
-the swimming; tick **auto** and a slider swings from one end to the other
-by itself, to watch a motion hands free. The URL can set where they start:
-`gaze` (-1..1), `mouth` (0..1), `breath` (0..1), `model=0` for the
-procedural body and `zoom=x,y,halfWidth` to look up close.
+A `.gltf` with its `.bin` and textures next to it works too. The species
+points to the folder with `"model": "<id>"` in `public/species.json`.
 
-## 1. Shape and size
+## model.json
 
-- Model the fish along Blender's **+X** (the snout) with the dorsal fin up
-  (**+Z**). The glTF exporter turns +Z up into +Y up, so `model.json` says
-  `"forward": "+x", "up": "+y"`. Any other orientation works too: say which
-  axes point to the snout and to the dorsal fin.
-- The size does not matter: Aquaria scales the fish to the species' length,
-  measured from the snout to the tip of the tail.
-- Keep the head ahead of the middle of the body: Aquaria keeps the front
-  fifth of the fish rigid and bends the rest.
-- 5,000 to 20,000 triangles are plenty. Fins can be single sheets: Aquaria
-  draws both sides.
-
-## 2. Colors and materials
-
-Use Principled BSDF materials: the exporter turns them into glTF PBR
-materials, which Aquaria keeps (base color, normal, roughness, metalness,
-transparency). Colors can be image textures or a color attribute (vertex
-colors) wired into _Base Color_; export it with _Data > Mesh > Vertex Color:
-Active_. Fins look best a little see-through: alpha below 1 and _Blend
-Mode: Blended_.
-
-## 3. The mouth
-
-Add a shape key, for example `MouthOpen`, with the mouth wide open (the
-lower jaw dropped), and name it in `model.json`:
+The platy's, for example:
 
 ```json
-"mouth": { "morphTarget": "MouthOpen" }
+{
+  "name": "Platy",
+  "file": "model.glb",
+  "forward": "+x",
+  "up": "+y",
+  "swimAmplitude": 0.08,
+  "mouth": { "morphTarget": "MouthOpen" },
+  "eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 22 },
+  "gills": { "edge": 0.3, "top": 0.07, "bottom": -0.08, "curve": 4 },
+  "credit": {
+    "author": "Aquaria (scripts/blender/platy.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/platy.py",
+    "license": "CC0-1.0"
+  }
+}
 ```
 
-## 4. The eyes
+- `forward` and `up`: which axes of the model point to the snout and to
+  the back. Aquaria turns, centres and scales the model to the species'
+  length, so any size and orientation will do.
+- `swimAmplitude`: how far the tail sweeps, in body lengths (default 0.07).
+  The model needs no swimming animation: Aquaria bends it.
+- `mouth`, `eyes`, `gills`: optional, see below. Without them the mouth
+  stays shut, the eyes stay still and the gills do not move.
+- `credit`: who made it, where it comes from, and the license. Only
+  licenses that allow reuse, changes and commercial use are accepted:
+  `CC0-1.0`, `CC-BY-3.0`, `CC-BY-4.0`, `MIT`, `Apache-2.0`, `BSD-2-Clause`,
+  `BSD-3-Clause`, `0BSD`, `Unlicense`. List the model in `ASSETS.md` too;
+  a test checks it.
 
-The eyes glance the way the fish is about to turn, in quick jumps, as a
-real fish's do. Aquaria needs to know which vertices are eyeball and where
-each eyeball's centre is:
+The model keeps its own materials and textures.
 
-1. Make each eyeball a separate part of the mesh (or a separate object):
-   a sphere, or the front of one, with the pupil looking out to its side.
-2. Add an armature with a root bone for the body and **one bone per eye**,
-   for example `Eye.L` and `Eye.R`. Put each eye bone's **head at the
-   centre of its eyeball**: Aquaria turns the eye about that point. Parent
-   the eye bones to the root bone. (The fish's left is Blender's +Y.)
-3. Parent the meshes to the armature (_With Empty Groups_, or with an
-   Armature modifier) and **weight paint** each eyeball fully (1.0) to its
-   eye bone; the body and the fins go to the root bone. Vertices partly
-   weighted to an eye bone turn partly, which smooths a lid or a rim.
-4. Leave the armature in its rest pose; there is no need for an animation.
-5. Name the bones in `model.json`, and how far the eyes turn at most, in
-   degrees (default 20, at most 45):
+## Looking at it: the fish on the grid
 
-```json
-"eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 22 }
-```
+Run `pnpm dev` and open `/model-viewer.html?id=<species>` (or pick it from
+`/debug.html`). It shows the fish from its right side, exactly as the
+aquarium draws it, over a grid in body lengths: the tail at -0.5, the snout
+at +0.5, the back up.
 
-Write the bone names as Blender shows them: Aquaria also finds them after
-the glTF loader has dropped the dots (`Eye.L` arrives as `EyeL`).
+Sliders on the side move the eyes, the mouth, the gills, the bend of a
+turn, the tail and the swimming. Tick **auto** and a slider moves back and
+forth on its own. The **3D** box switches between the model and the drawn
+body.
 
-## 5. Export
+This is where you read the positions that `mouth.jaw`, `eyes.painted` and
+`gills` ask for.
 
-_File > Export > glTF 2.0_, format **glTF Binary (.glb)**, with:
+## A model you found
 
-- _Include_: the fish's objects and the armature;
-- _Transform_: **+Y Up** on;
-- _Data > Mesh_: _Apply Modifiers_ off (the armature must stay a skin),
-  _Vertex Color: Active_ if you painted colors;
-- _Data > Shape Keys_ on; _Data > Armature_ on (skins);
-- _Animation_ off.
-
-From a script, `scripts/blender/angelfish.py` ends with the same settings:
-
-```python
-bpy.ops.export_scene.gltf(
-    filepath="model.glb", export_format="GLB", export_yup=True,
-    export_skins=True, export_morph=True, export_animations=False,
-    export_vertex_color="ACTIVE", export_apply=False,
-)
-```
-
-Then compress it, which keeps the bones, the shape keys and the colors
-and makes it about a tenth of the size:
+Downloaded models are often heavy. Before adding one, compress it with
+[glTF Transform](https://gltf-transform.dev) (it needs KTX-Software on the
+`PATH`, see [Making a new texture](SCENES.md#making-a-new-texture)):
 
 ```bash
-pnpm dlx @gltf-transform/cli@4.5.1 optimize model.glb public/assets/species/<id>/model.glb --compress meshopt --simplify false
+pnpm dlx @gltf-transform/cli@4.5.1 optimize source.glb public/assets/species/<id>/model.glb --compress meshopt --texture-compress ktx2 --texture-size 1024
 ```
 
-Save `model.glb` in the species' folder, write `model.json`, point the
-species to the folder (`"model": "<id>"` in `public/species.json`) and
-list the model in `ASSETS.md`. A model made from scratch can be CC0.
+Aim for 5,000 to 20,000 triangles. Scans of real specimens are usually
+much heavier, and tend to look dead in the water: they often work badly.
 
-## 6. Check it
-
-Run `pnpm dev`, open a scene with the species, press `H` and make sure the
-species' card shows the **3D** badge switched on. Press `A` for the
-activity overlay and watch a fish turn: its eyes glance first. If the eyes
-do not move, the browser console says nothing is wrong, and the bones are
-named right, check that the eyeballs are weighted to the eye bones and not
-to the root.
-
-## 7. A model from elsewhere
-
-A downloaded model often has its eyes painted on its texture and no shape
-keys, and its textures may be in a format Blender cannot open (KTX2).
-`model.json` can still give it a mouth, eyes and gills, from places in the
-fish frame read off the model viewer:
+Such a model usually has its eyes painted on, and no open-mouth pose. You
+can still make it look around, eat and breathe, with positions read on the
+grid:
 
 ```json
 "mouth": { "jaw": { "start": 0.43, "line": -0.01, "drop": 0.02 } },
@@ -166,23 +95,78 @@ fish frame read off the model viewer:
 "gills": { "edge": 0.28, "top": 0.17, "bottom": -0.06, "curve": 3 }
 ```
 
-- `mouth.jaw`: the points ahead of `start` and below the mouth's `line`
-  drop by up to `drop` at the tip of the snout when the fish eats; the
-  upper lip lifts a little. Put `line` where the lips meet.
-- `eyes.painted`: an eye painted over the model's own, on both sides: its
-  `center` (x, y), `radius`, `iris` color and the `pupil`'s share of the
-  radius (default 0.65). The pupil slides with the gaze. Match the radius
-  to the painted eye, so the old pupil is covered.
-- `gills`: the gill cover's rear `edge` (x), how far it reaches up and down
-  (`top`, `bottom`), and how its edge bends (`curve`: the edge lies at
-  `edge + curve * (y - middle)^2`, so a positive curve sets it furthest
-  back halfway up, as on most fish). It lifts by up to `open` body lengths
-  (default 0.006), `rate` times a second (default 1.1), each fish at its
-  own moment, and a dark red slit shows behind it. Fish made in Blender
-  take `gills` the same way.
+- `mouth.jaw`: everything in front of `start` and below `line` (where the
+  lips meet) drops, up to `drop` at the tip of the snout.
+- `eyes.painted`: a new eye drawn over the painted one, on both sides. Make
+  `radius` big enough to cover the old pupil. `pupil` is the pupil's share
+  of the eye (default 0.65); it moves with the gaze.
+- `gills`: the back edge of the gill cover (`edge`), how high and low it
+  goes (`top`, `bottom`), and how curved it is (`curve`, 0 is straight). It
+  lifts by `open` (default 0.006) about once a second (`rate`), each fish
+  at its own moment.
 
-To run the angelfish script:
+A fish whose mouth pushes forward when it opens, like the seabream or the
+barramundi, looks wrong with `jaw`. It needs a real open-mouth pose made in
+Blender: `scripts/blender/seabream.py` takes it from the model's own jaw
+animation, `scripts/blender/barramundi.py` shapes it by hand.
+
+## Making a fish in Blender
+
+The guppy, platy, angelfish, royal gramma, sardine and red cherry shrimp
+are made entirely by scripts in `scripts/blender/`, which share their
+building blocks in `fishkit.py`. They are the best examples. To run one:
 
 ```bash
-blender --background --python scripts/blender/angelfish.py -- public/assets/species/freshwater-angelfish
+blender --background --python scripts/blender/platy.py
 ```
+
+If you model by hand:
+
+1. **Shape.** Snout towards Blender's +X, back towards +Z; then
+   `model.json` says `"forward": "+x", "up": "+y"`. Size does not matter.
+   Keep the head in the front half: Aquaria keeps the front fifth of the
+   body stiff and bends the rest. Fins can be single sheets.
+2. **Colors.** Principled BSDF materials, with image textures or vertex
+   colors in _Base Color_. Fins look best a little see-through (alpha
+   below 1, blend mode _Blended_).
+3. **Mouth.** A shape key with the mouth wide open, for example
+   `MouthOpen`, named in `"mouth": { "morphTarget": "MouthOpen" }`.
+4. **Eyes.** Each eyeball a separate piece. An armature with a root bone
+   and one bone per eye (`Eye.L`, `Eye.R`), the head of each eye bone at
+   the centre of its eyeball. Weight each eyeball fully to its bone and the
+   rest to the root. Then `"eyes": { "bones": ["Eye.L", "Eye.R"] }`. The
+   eyes glance the way the fish is about to turn.
+5. **Export** as glTF Binary (`.glb`), with +Y Up, shape keys and armature
+   on, _Apply Modifiers_ off, and animation off. Then compress it:
+
+   ```bash
+   pnpm dlx @gltf-transform/cli@4.5.1 optimize model.glb public/assets/species/<id>/model.glb --compress meshopt --simplify false
+   ```
+
+   `--simplify false` keeps the bones, shape keys and colors intact.
+
+6. **Check it** on the grid, then in a tank: press `A` and watch a fish
+   turn. Its eyes should move first. If they do not, the eyeballs are
+   probably weighted to the root bone.
+
+## Animals that walk
+
+Aquaria does not play animations on fish: it draws a whole school in one
+go and bends the bodies itself. Animals that walk are different. If
+`model.json` names a walking clip, every individual is drawn as its own
+animated model:
+
+```json
+"animations": { "walk": "Walk", "hide": "Hide", "speed": 0.4 }
+```
+
+- `walk`: the clip played while it walks. It plays at its own pace when the
+  animal goes `speed` body lengths a second, faster or slower with it, and
+  stops when the animal stops.
+- `hide` (optional): a pose it slips into when scared, like a hermit crab
+  pulling into its shell.
+
+Each one costs more than a fish, so give such species a `maxCount`.
+`scripts/blender/shrimp.py` rigs and animates the shrimp from scratch;
+`scripts/blender/hermit_crab.py` gives a downloaded hermit crab a better
+walk and its hiding pose.

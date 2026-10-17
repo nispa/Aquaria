@@ -2,214 +2,137 @@
 
 _Italian version: [INTERAZIONE.md](INTERAZIONE.md)._
 
-Watching is half the fun of an aquarium; the other half is playing with the
-fish. In Aquaria the mouse (or a finger on a touch screen) is a finger on
-the glass, and the fish react to what it does: some come to look, some flee,
-and a few gestures do things no real fish would.
+The mouse, or your finger on a touch screen, is a finger on the glass. The
+fish notice it.
 
 ## What you can do
 
-| You…                                    | The fish…                                                                                                                        |
-| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| **Rest the pointer on the tank**        | The curious ones come to look: they swim up behind the glass and slow down there. The finger counts as gone after 8 s still.     |
-| **Click (tap) the tank**                | Those nearby dart away, or run for the nearest shelter and hide there; a startled school packs together. They calm down soon.    |
-| **Press `Space`** (or _Feed the fish_)  | Flakes drift down above the pointer. Hungry fish swim up to snap them, mouth wide open; full ones lose interest.                 |
-| **Draw quick circles near a fish**      | It is **hypnotized**: it stops, floats, follows the finger with its eyes, turns the way of your circles and rolls over and over. |
-| **…then stop**                          | It comes round **dizzy**, swimming a wobbly corkscrew for a few seconds.                                                         |
-| **Scribble right over a fish**          | It is **tickled**: it wriggles, flips belly up, then darts off in a zigzag.                                                      |
-| **Press `A`**                           | Shows what every fish is doing, and a card with the details of the fish nearest the pointer.                                     |
-| **Press `T`** (or the torch button)     | The pointer becomes a **torch**: fish that love light gather in its beam, shy ones flee it. Best at night.                       |
-| **Press `Z`** (or the magnifier button) | A round **lens** over the pointer shows the tank three times larger: look at a fish up close.                                    |
-| **Press `M`**                           | Sound on or off: the water bubbles softly, a tap thuds on the glass, food patters, the torch clicks and the lens chimes.         |
+| You…                              | The fish…                                                              |
+| --------------------------------- | ---------------------------------------------------------------------- |
+| Leave the mouse still on the tank | The curious ones come over and look at you from behind the glass       |
+| Click the tank                    | The ones nearby dart away, some go and hide; a school bunches up       |
+| Press `Space`                     | Food falls above the mouse; hungry fish come up and snap it            |
+| Draw quick circles near a fish    | It is **hypnotized**: it stops, turns with your circles and rolls over |
+| …then stop                        | It comes round **dizzy**, wobbling for a few seconds                   |
+| Scribble right over a fish        | It is **tickled**: it wriggles belly up, then zigzags away             |
+| Press `T`                         | The mouse is a **torch**: some fish gather in the light, shy ones flee |
+| Press `Z`                         | A **magnifying glass** follows the mouse                               |
+| Press `A`                         | You see what every fish is doing                                       |
+| Press `M`                         | Sound on or off                                                        |
 
-Moving the mouse or touching the screen shows buttons in the top right
-corner, big enough for a finger: **point**, the **torch**, the
-**magnifier**, **feed** (a pinch of food) and the **control panel**. They
-fade after a few seconds, so nothing stays on screen.
+When you move the mouse or touch the screen, round buttons show up in the
+top right corner: point, torch, magnifier, food and panel. They are big
+enough for a finger and fade away after a few seconds.
 
-On a touch screen (a tablet, a phone, an interactive whiteboard) a finger
-has no hover: every touch taps the glass. With **Point** on (`P`) a touch
-points instead, like resting the mouse: the curious fish come to look and
-the circles and scribbles work without startling anyone, and the spot stays
-where the finger is lifted. The torch and the magnifier point by
-themselves while they are on, so a finger aims them.
+**On a touch screen** every touch taps the glass, since a finger cannot
+hover. Turn on **Point** (`P`) and a touch points instead, like the resting
+mouse: curious fish come over, circles and scribbles work, and nobody gets
+scared. The torch and the magnifier always point.
 
-Hypnosis and tickling are deliberately surreal: they are toys, not biology.
-Switch _Realistic_ on in the panel's Fauna section and they are off, while
-fish keep the hours of their species and rest at night (see
-[Swimming styles](SWIMMING.md)). Everything else on this page works in both
-modes.
+Hypnosis and tickling are toys, not biology. Turn on **Realistic** in the
+panel's Fauna section and they are gone, while fish keep their hours and
+rest at night. Everything else works either way.
 
-### Who reacts, and how much
+## Who reacts, and how much
 
-Each species tunes its reactions in `public/species.json`, under `behavior`,
-from 0 to 1:
+Each species sets its character in `public/species.json`, under
+`behavior`, with values from 0 to 1:
 
-- `curiosity`: the share of its individuals that come to look at a finger
-  (always the same individuals, so a tank has its regular onlookers).
-  They come from up to 3 m away and look from two body lengths behind the
-  glass.
-- `shyness`: how far a tap startles it, from 30% of 2.5 m for a bold
-  species to the full 2.5 m for a shy one.
-- `appetite`: how keen it is on food. Fish notice flakes within 3 m and
-  leave their habitat by up to 0.5 m to reach them. Each flake fills a fish
-  by 15%; above 80% it ignores food, and a full fish empties again over
-  five minutes.
-- `hiding`: the share of its individuals (always the same ones) that, when
-  startled, run for the nearest shelter within 15 body lengths (at least
-  1 m) instead of only darting away, and lurk in it for six seconds.
-  Shelters are plants and objects tagged `shelter`: anemones, branch and
-  table corals, kelp, driftwood, dense plants. A clownfish always hides in
-  its own anemone.
-- `torch`, from -1 to 1: how it takes the torch. Above 0 it is drawn to
-  the beam from up to 3 m away and mills about slowly in it (sardines,
-  tetras, the barramundi); below 0 it flees the beam and, if it hides,
-  hides for four seconds (grammas, damsels, gouramis). At 0 it does not
-  care.
+- `curiosity`: how many of them come to look at your finger. It is always
+  the same individuals, so a tank has its regular onlookers.
+- `shyness`: how far away a tap scares it. A bold fish only notices taps
+  close by; a shy one, taps across the tank.
+- `appetite`: how keen it is on food. A fish that has eaten enough ignores
+  food for a few minutes.
+- `hiding`: how many of them, when scared, run to the nearest shelter and
+  stay there a few seconds, instead of just darting off. Shelters are
+  plants and objects tagged `shelter`: anemones, corals, kelp, driftwood.
+  A clownfish always hides in its own anemone.
+- `torch`, from -1 to 1: above 0 the fish likes the torch and gathers in
+  its beam; below 0 it flees it. The torch works best at night.
 
-A startled fish also alarms its school: the whole school closes up, and
-loosens again as the fright fades.
+A scared fish also alarms its school, which closes ranks for a while.
 
-Hypnosis and tickling work on every species alike.
+## The tricks, in detail
 
-### The spells in detail
+**Hypnosis.** The circles need to be quick and steady, about half a turn a
+second or faster. Every fish near the line from your eye through the finger
+falls under the spell within a second: it nearly stops, floats, turns with
+your circles, rolls over and keeps its eyes on your finger. When you stop,
+a fish that was deeply hypnotized stays dizzy for a few seconds.
 
-**Hypnosis.** Circles count when they are quick (the finger moving at least
-0.4 m/s across the glass) and steady (turning one way at 3 rad/s or more,
-about half a turn per second). Every fish within 0.6 m of your line of
-sight through the finger falls under the spell: fully in 1.2 s. It slows to
-a twentieth of its cruise speed, floats at its height, keeps turning the
-way of the circles, rolls about its length and keeps its eyes on the
-finger. When the circles stop, the spell wears off in 0.6 s; a fish that
-was deeply under (80% or more) is then dizzy for 4 s, wobbling its heading,
-bobbing up and down and rolling from side to side, less and less as it
-recovers.
+**Tickling.** Scribble fast, back and forth, right on top of the fish.
+After a moment it wriggles belly up for a second, then shoots off in a
+zigzag.
 
-**Tickling.** Scribbling counts when the finger moves fast (0.6 m/s or more)
-and turns a lot, but this way and that rather than round. It must be right
-over the fish: within 0.7 body lengths of it (at least 5 cm), seen through
-the finger. After 0.4 s of it the fish is tickled for 2.6 s: one second of
-wriggling belly up, then a zigzag dash at 2.2 times its cruise speed, and back
-upright.
+**The torch.** A warm beam goes from your eye through the glass into the
+tank. While it is on, the mouse is a torch rather than a finger: no fish
+come to look, and circles do nothing. Taps and food still work.
 
-### The magnifier: `Z`
+**The magnifying glass.** A round lens shows what is under the mouse three
+times bigger. The mouse is still a finger, so curious fish come and look
+at you through it.
 
-With the magnifier on (`Z` or its corner button), a round lens follows the
-pointer and shows what lies under it three times larger, seen from the
-viewer's eye like the rest of the tank. The pointer is still a finger on the
-glass, so curious fish come to look at you through the lens.
+## Seeing what goes on: `A`
 
-### The torch: `T`
+`A` writes over every fish what it is doing (`wander 12s`, `peck ×3`,
+`inspect`) or what spell it is under (`hypnotized 80%`, `dizzy 3s`), with a
+line to the place it is going to. The fish nearest the mouse gets a card:
+species, size, swimming style, activity, speed, how full it is, how
+scared. A line at the top says what your finger is drawing.
 
-With the torch on (`T` or its corner button, which lights up while it is
-on), the pointer shines a beam from your eye through the glass into the
-tank, a warm spot light that widens with depth. Fish react as their
-species' `torch` says, fully at night and about a third as much in
-daylight, when a torch hardly shows. While it is on, the pointer is a
-torch rather than a finger: curious fish do not come to look and circles
-and scribbles cast no spells. Taps and food work as usual.
-
-### Seeing what goes on: `A`
-
-`A` shows, over every fish, what it is doing (`wander 12s`, `peck ×3`,
-`inspect`) or the spell it is under (`hypnotized 80%`, `dizzy 3s`,
-`tickled!`), with a line to the place an activity is about. The fish
-nearest the pointer gets a card: species and size, swimming style and
-activity, speed relative to cruise speed, how full it is and how
-frightened. At the top, a line says what the finger is drawing
-(`circles ↺`, `circles ↻`, `scribbling`). Press `A` again to hide it all.
-With it on, `C` outlines the collision shapes of rocks, corals and wood
-(see [Swimming styles](SWIMMING.md#collisions)).
+With `A` on, `C` draws the shapes fish swim around.
 
 ## Who wins
 
-Several things can call for a fish's attention at once. They are weighed
-in this order, the first that applies setting the pace:
+When several things call a fish at once, the first in this list wins:
 
-1. **Fright** after a tap: it flees, whatever else is going on.
-2. **Food** nearby, if it is hungry.
-3. **A spell**: hypnotized, dizzy or tickled.
-4. **The torch**, while it is on; otherwise **curiosity** about a finger
-   on the glass.
-5. **Its activity**: inspecting or pecking at a place.
-6. **Its swimming style**: how it swims when nothing else matters.
+1. fear, after a tap;
+2. food, if it is hungry;
+3. a spell: hypnosis, dizziness, tickling;
+4. the torch, or else curiosity about your finger;
+5. its activity (pecking, inspecting, resting);
+6. its swimming style.
 
-Anything from 1 to 4 calls off an activity; the fish goes back to wandering
-when it is over. Activities and styles are described in
-[Swimming styles](SWIMMING.md).
+The first four interrupt whatever activity the fish was doing.
 
-## How it works
+## For developers
 
-```mermaid
-flowchart LR
-  P[Pointer events<br/>input/pointer.ts] --> B[Event bus]
-  B --> A[app/main.ts]
-  A -->|glass point + line of sight| S[Simulation.setFinger]
-  S --> G[Gesture<br/>sim/gesture.ts]
-  G --> Y[Per-fish play<br/>sim/play.ts]
-  Y -->|wishes, roll, bend, gaze| F[Fish]
-  F --> R[Renderer]
-```
+How a gesture gets to the fish:
 
-1. **Input.** `input/pointer.ts` turns pointer events into `pointer-move`,
-   `pointer-leave` and `tap` events on the event bus. Nothing below `app`
-   knows about the DOM.
-2. **Into the tank.** The app asks the view where the pointer meets the
-   front glass, in tank coordinates, and for the direction of the viewer's
-   line of sight through it, and hands both to the simulation
-   (`setFinger`). Taps become `tap(point)`; food is `dropFood(x, z)`.
-3. **Reading the gesture.** Every simulation step, `sim/gesture.ts` follows
-   the finger across the glass and keeps smoothed measures: its speed, how
-   much its path turns one way (`spin`) and how much it turns at all.
-   Sharp reversals (over 150°) count as turning but not as spin, since a
-   hair of wobble decides their sign; that is what tells scribbles from
-   circles. The measures hold between pointer events, so a slow event rate
-   does not read as a stop.
-4. **Who it touches.** The simulation measures each fish's distance from
-   the line of sight: within 0.6 m it feels circles, within 0.7 body
-   lengths it feels scribbles.
-5. **The spell.** `sim/play.ts` keeps, for each fish, how deeply it is
-   hypnotized, how long it stays dizzy or tickled, and turns that into
-   wishes (heading, height, speed, tail) that replace those of its style
-   and activity, as activities do. It also drives three posture channels
-   the renderer draws: `roll` about the body's length, `bend` (the wriggle)
-   and `gaze` (the eyes on the finger).
+1. `src/input/pointer.ts` turns mouse and touch into `pointer-move`,
+   `pointer-leave` and `tap` events.
+2. `src/app/main.ts` asks the view where the pointer meets the glass and in
+   which direction the viewer is looking, and passes both to the
+   simulation (`setFinger`, `tap`, `dropFood`).
+3. `src/sim/gesture.ts` follows the finger across the glass and measures
+   its speed and how much it turns. Circles turn steadily one way;
+   scribbles turn a lot, but back and forth.
+4. `src/sim/play.ts` keeps, for each fish, how hypnotized, dizzy or tickled
+   it is, and turns that into wishes (heading, height, speed, tail) and
+   posture (roll, wriggle, eyes), like an activity does.
 
-Everything in steps 3 to 5 is pure simulation code: no DOM, no GPU, seeded
-randomness. Tests draw circles and scribbles as lists of points and check
-what the fish do.
+All of this is plain simulation code: no browser, no GPU. Tests draw
+circles and scribbles as lists of points.
 
-## Adding an interaction
+To add a new way to play:
 
-A new way to play follows the same path:
-
-1. **Input.** If it needs a new source (a phone, a camera, a key), write
-   it in `src/input/` and have it emit events on the event bus. Adding a
-   source must not require changes in `sim`.
-2. **Recognize.** Turn the raw input into something meaningful in tank
-   terms with a pure, tested function, as `sim/gesture.ts` does for
-   circles and scribbles. Test it with drawn paths, including a slow event
-   rate.
-3. **React.** Keep any per-fish state with the fish (like `PlayState`) and
-   express the reaction as wishes and posture: heading, height, speed,
-   response, tail thrust, mouth, steep dives, roll, bend, gaze. Prefer
-   these to moving fish directly: the steering keeps them out of the rock
-   and inside the tank.
-4. **Rank it.** Decide where it goes in [Who wins](#who-wins) and whether it
-   calls off activities.
-5. **Show it.** Add its state to the `A` overlay (`fishLabel`,
-   `fishDetails` in `src/ui/activityOverlay.ts`), so it can be seen and
-   tuned.
-6. **Document it** here, in both languages.
+1. If it needs a new input (a phone, a camera), put it in `src/input/` and
+   have it send events. Nothing in `sim` should change for that.
+2. Turn the raw input into something meaningful with a small, tested
+   function, like `gesture.ts` does.
+3. Express the reaction as wishes and posture, and let the steering do the
+   moving: it keeps fish out of the rock and inside the tank.
+4. Decide where it goes in [Who wins](#who-wins).
+5. Show it in the `A` overlay (`src/ui/activityOverlay.ts`).
+6. Describe it here, in both languages.
 
 ### Ideas for later
 
-- **Follow the leader**: drag the finger slowly and a school follows it.
-- **Training**: a double tap always followed by food; after a while the
-  fish come to the double tap alone.
-- **A favourite**: press and hold on a fish and it follows the pointer
-  until you let go.
-- **Bubbles**: hold the button to blow a stream of bubbles that fish swim
-  through or shy away from.
-- From the roadmap: a **phone as a remote**, **presence** in front of the
-  screen seen by a webcam, **head tracking** for parallax.
+- Drag the finger slowly and a school follows it.
+- A double tap always followed by food: after a while the fish come to the
+  double tap alone.
+- Hold on a fish and it follows the mouse until you let go.
+- Hold the button to blow bubbles.
+- A phone as a remote, or a webcam that notices people in front of the
+  screen.

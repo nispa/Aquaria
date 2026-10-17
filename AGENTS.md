@@ -174,7 +174,8 @@ Shaders:
 
 ## Scenes and species
 
-- A scene is a JSON file in `public/scenes/`, validated by `src/scene/schema.ts`.
+- A scene is a JSON file in `public/scenes/`, validated by `src/scene/schema.ts`;
+  every field is explained in `docs/SCENES.md`.
 - A species is an entry in `public/species.json`. It has a built-in
   procedural body (always, the light fallback) and optionally a 3D model: a
   folder in `public/assets/species/<id>/` with a glTF file and a
@@ -239,6 +240,9 @@ Shaders:
 ## Documentation
 
 - Code, comments, commit messages and docs are in **English**.
+- The guides in `docs/` also have an Italian version, linked at the top of
+  each; change both. Write them plainly, for a person: short sentences,
+  real examples taken from the repository, no sales talk.
 - Comment the _why_, not the _what_. Public functions in `core`, `scene` and
   `sim` have TSDoc comments.
 - Update `README.md` and this file when commands, architecture or conventions

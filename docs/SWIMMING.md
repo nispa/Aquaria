@@ -2,184 +2,141 @@
 
 _Italian version: [NUOTO.md](NUOTO.md)._
 
-A fish in Aquaria does not follow a scripted path. Every frame it is pushed
-by a handful of steering forces (keep apart, stay with the school, stay in
-the habitat, keep off the sand), and its **swimming style** adds the one
-thing that makes a species recognisable: _how_ it moves when nothing else
-calls for its attention. A tang cruises in long laps, a damsel darts and
-glides, a clownfish hovers on the spot, an angelfish drifts in slow figure
-eights.
-
-Styles are pure data from the point of view of a species: you pick one in
-`public/species.json` and tune it there. No code changes are needed to give
-a species a different style, or to tune one.
+Each species moves in its own way. A tang swims long laps, a damsel darts
+and glides, a clownfish stays over its anemone, a shrimp walks on the
+bottom. This page explains how to choose and tune that, and what fish do
+with their day.
 
 ![Paths of three fish per style seen from above, glass at the top, and the tail effort of one of them over a minute](swimming-styles.png)
 
-<sub>A minute of each style, seen from above (glass at the top). Below each
-tank, the tail effort of the red fish: steady while cruising, spikes and
-stillness in burst-coast, gentle for hover and glide. Redrawn by
-`pnpm docs:gallery` from the simulation itself.</sub>
+<sub>One minute of each style seen from above, glass at the top. Under each
+tank, how hard the red fish's tail is working. Remade by
+`pnpm docs:gallery`.</sub>
 
-## Choosing a style for a species
+## Picking a style
 
-Add a `swim` entry to the species in `public/species.json`:
+In `public/species.json`, give the species a `swim` entry:
 
 ```json
-{
-  "id": "three-bar-damsel",
-  "swim": { "style": "burst-coast", "burstSpeed": 2, "coastSeconds": [1, 3] }
-}
+"swim": { "style": "burst-coast", "burstSpeed": 2, "coastSeconds": [1, 3] }
 ```
 
-- `style` is required and picks one of the six styles below.
-- Every other field is optional; a missing one takes the default listed in
-  the tables below, the look the style was tuned for.
-- A species with no `swim` entry cruises (`{ "style": "cruise" }`).
-- The file is validated when it loads. An unknown style, a parameter that
-  belongs to another style, or a range written backwards (`[3, 1]`) stops
-  the aquarium with a message naming the field.
+Only `style` is required. Every other value has a default, and the defaults
+are the look each style was tuned for, so start without them. A species
+with no `swim` entry uses `cruise`.
 
-### Units
+Values are relative, so the same numbers work for a small fish and a large
+one:
 
-All parameters are relative, so one style suits a 3 cm tetra and a 70 cm
-barramundi alike:
+- speeds are a share of the species' cruise speed (1 = its usual pace);
+- distances are in body lengths;
+- angles are in radians (3.14 is a U-turn);
+- times are in seconds; a pair like `[1, 3]` means "somewhere between 1
+  and 3, at random each time".
 
-| Kind      | Unit                                                       |
-| --------- | ---------------------------------------------------------- |
-| Speeds    | Share of the species' `speed.cruise` (1 = cruise speed)    |
-| Distances | Body lengths of the individual                             |
-| Angles    | Radians (π ≈ 3.14 is a U-turn)                             |
-| Durations | Seconds; `[min, max]` pairs are drawn at random in between |
+A fish never goes faster than its species' `speed.max`.
 
-A fish never goes faster than its species' `speed.max`, whatever a style
-asks for.
-
-## The six styles
+## The styles
 
 ### `cruise`: long, smooth laps
 
-Tangs, schooling fish, open-water swimmers. The heading wanders gently, the
-speed drifts slowly around cruise speed (between 55% and 145% of it), and
-every so often the fish settles at a new height somewhere in its habitat.
+Tangs, sardines, tetras. The heading wanders gently, the pace drifts a
+little, and now and then the fish moves to a new height.
 
-| Parameter             | Default | Meaning                                                |
-| --------------------- | ------- | ------------------------------------------------------ |
-| `speedVariation`      | 0.15    | Typical spread of the speed around cruise speed        |
-| `turnJitter`          | 0.5     | How restless the heading is, radians per √second       |
-| `heightChangeSeconds` | 12      | Average time between changes of the height it swims at |
+| Value                 | Default | What it is                         |
+| --------------------- | ------- | ---------------------------------- |
+| `speedVariation`      | 0.15    | How much the pace changes          |
+| `turnJitter`          | 0.5     | How restless the heading is        |
+| `heightChangeSeconds` | 12      | How often it moves to a new height |
 
-### `burst-coast`: dart, glide, slow down
+### `burst-coast`: dart and glide
 
-Damsels, guppies, platies, many small reef fish. The fish alternates two
-phases:
+Damsels, guppies, platies. A short burst in a new direction with the tail
+beating hard, then a long glide with the tail almost still, slowing down.
+Fish in a group are never in step.
 
-1. **Burst**: it turns to a new heading and accelerates hard, tail beating
-   at full strength.
-2. **Coast**: the tail goes almost still and the fish glides, losing speed
-   to drag, drifting a little off course.
+| Value                 | Default    | What it is                         |
+| --------------------- | ---------- | ---------------------------------- |
+| `burstSpeed`          | 2.2        | Pace during a burst                |
+| `burstSeconds`        | 0.35       | How long a burst lasts             |
+| `coastSpeed`          | 0.35       | Pace it slows down to              |
+| `coastSeconds`        | [1.2, 3.5] | How long a glide lasts             |
+| `burstTurn`           | 0.9        | How much it turns at each burst    |
+| `heightChangeSeconds` | 6          | How often it moves to a new height |
 
-Each fish starts at a random point of its cycle, so a group never darts in
-step.
+### `hover`: staying in one spot
 
-| Parameter             | Default    | Meaning                                          |
-| --------------------- | ---------- | ------------------------------------------------ |
-| `burstSpeed`          | 2.2        | Speed wanted in a burst                          |
-| `burstSeconds`        | 0.35       | Length of a burst                                |
-| `coastSpeed`          | 0.35       | Speed the fish slows towards while coasting      |
-| `coastSeconds`        | [1.2, 3.5] | Length of a coast, drawn at random each time     |
-| `burstTurn`           | 0.9        | Typical change of heading at each burst, radians |
-| `heightChangeSeconds` | 6          | Average time between changes of height           |
+Clownfish, grammas, gouramis. The fish stays near one spot: it drifts
+slowly, turns on the spot every few seconds, and goes back if it strays. If
+something carries it away (food, a scare), it swims home afterwards.
 
-### `hover`: station keeping
+With `home`, the spot is a plant or object instead, the nearest one with
+that tag. A clownfish with `"home": "anemone"` stays over the nearest
+anemone, even if the anemone is lower than where clownfish usually swim. If
+the scene has no anemone, it stays where it started.
 
-Clownfish, grammas, gouramis. The fish remembers the spot where it started
-swimming freely and keeps station there: it drifts slowly, makes small
-corrections, and every few seconds turns on the spot. As soon as it drifts
-out of its spot it turns back; if something carried it far away (food, a
-fright, its school) it swims home at cruise speed, circling down or up when
-home is far below or above. Its height wanders a little around the spot.
-
-With `home`, the spot is a **place in the scenery** instead: the nearest
-plant or object with that tag (see [Places and tags](#places-and-tags)). A
-clownfish with `"home": "anemone"` keeps station just above the nearest
-anemone, even when the anemone is lower than its habitat; its soft walls
-widen to let it stay there. If the scene has no anemone, it keeps station
-where it started. When the scenery changes (an anemone added or removed
-from the panel, the window resized), it chooses again.
-
-| Parameter             | Default  | Meaning                                                 |
-| --------------------- | -------- | ------------------------------------------------------- |
-| `speed`               | 0.2      | Drifting speed (each turn sets off at 70–130% of it)    |
-| `turnSeconds`         | [1.5, 5] | Time between turns                                      |
-| `turnAngle`           | 2.2      | Largest turn on the spot, radians (the smallest is 0.4) |
-| `roamBodyLengths`     | 4        | How far it strays from its spot before heading back     |
-| `heightChangeSeconds` | 10       | Average time between small changes of height            |
-| `home`                | none     | Tag of the place to keep station over, e.g. `anemone`   |
+| Value                 | Default  | What it is                            |
+| --------------------- | -------- | ------------------------------------- |
+| `speed`               | 0.2      | Drifting pace                         |
+| `turnSeconds`         | [1.5, 5] | Time between turns                    |
+| `turnAngle`           | 2.2      | Largest turn                          |
+| `roamBodyLengths`     | 4        | How far it strays before going back   |
+| `heightChangeSeconds` | 10       | How often its height changes a little |
+| `home`                | none     | Tag of the place to stay over         |
 
 ### `glide`: slow figure eights
 
-Angelfish, moorish idols, other tall, long-finned fish. The fish turns
-steadily one way through a full loop, eases into a turn the other way for
-the next loop, and so on: a figure eight. At the same time it rises and
-sinks through its habitat in a long, slow wave. The tail works lazily.
+Angelfish, moorish idols. The fish swims a slow figure eight while rising
+and sinking in a long wave. The tail barely works.
 
-| Parameter             | Default | Meaning                                                  |
-| --------------------- | ------- | -------------------------------------------------------- |
-| `speed`               | 0.7     | Gliding speed                                            |
-| `turnRate`            | 0.35    | Turn rate through each loop, radians per second          |
-| `heightSwing`         | 0.6     | How much of the habitat's height one rise and fall spans |
-| `heightPeriodSeconds` | 24      | Time of one rise and fall                                |
+| Value                 | Default | What it is                                   |
+| --------------------- | ------- | -------------------------------------------- |
+| `speed`               | 0.7     | Pace                                         |
+| `turnRate`            | 0.35    | How fast it turns through each loop          |
+| `heightSwing`         | 0.6     | How much of its height range one wave covers |
+| `heightPeriodSeconds` | 24      | How long one rise and fall takes             |
 
-The size of a loop follows from speed and turn rate: radius = speed ÷ turn
-rate. A slower fish or a faster turn makes tighter loops.
+Slower fish, or faster turns, make tighter loops.
 
-### `patrol`: laps around a home spot
+### `patrol`: laps around a spot
 
-Territorial fish: butterflyfish, a barramundi in its corner. The fish picks
-a home spot where its whole lap fits in the habitat and circles it, steering
-back onto the circle when it is off it. Now and then it changes the way
-round. It swims at the height of its home.
+Butterflyfish, the barramundi. The fish picks a spot and circles it,
+changing direction now and then.
 
-| Parameter           | Default  | Meaning                                           |
-| ------------------- | -------- | ------------------------------------------------- |
-| `speed`             | 0.8      | Patrolling speed                                  |
-| `radiusBodyLengths` | 6        | Radius of the lap; shrunk to fit a narrow habitat |
-| `reverseSeconds`    | [15, 40] | Time between changes of direction                 |
+| Value               | Default  | What it is                        |
+| ------------------- | -------- | --------------------------------- |
+| `speed`             | 0.8      | Pace                              |
+| `radiusBodyLengths` | 6        | Size of the lap                   |
+| `reverseSeconds`    | [15, 40] | Time between changes of direction |
 
-### `crawl`: walking on the floor
+### `crawl`: walking on the bottom
 
-Shrimps, crabs. The animal walks on the seabed instead of swimming: it
-stops to pick at the ground, then walks off in a new direction. Its height
-range does not matter while it walks; the simulation keeps it on the floor,
-following its rise and fall (rockwork included), and holds it there against
-the current. It leaves the ground only when called away: a fright, food, a
-finger on the glass, hiding, or an activity at a place higher than its body
-length (a plant top). A place lower than that, like a shell, it pecks on
-foot. Off the ground, it sinks back once it is free to walk again.
+Shrimps, crabs, hermit crabs. The animal walks on the sand and over the
+rock, stops to pick at the ground, then sets off another way. The current
+does not move it.
 
-| Parameter     | Default | Meaning                                         |
-| ------------- | ------- | ----------------------------------------------- |
-| `speed`       | 0.5     | Walking speed                                   |
-| `walkSeconds` | [2, 6]  | How long it walks between stops                 |
-| `stopSeconds` | [1, 4]  | How long it stands still, picking at the ground |
-| `turnAngle`   | 1.2     | Spread of the change of heading after a stop    |
-| `turnJitter`  | 0.3     | Heading jitter while walking                    |
-| `rideHeight`  | 0.12    | Body lengths from the body's middle to its feet |
-| `sideways`    | false   | Walks sideways, its body across its way (crabs) |
-| `swims`       | true    | false: never leaves the ground (crabs)          |
-| `fright`      | "flee"  | "shell": withdraws into its shell (hermit crab) |
+A shrimp still swims when it has a reason: to get away from a tap, to reach
+food, to climb to the top of a plant. A low place, like a shell, it pecks on
+foot.
 
-A crab (`"sideways": true, "swims": false`) does everything on foot: it
-runs from a tap along the floor, walks to the nearest shelter if it is one
-of the species' hiding individuals, and waits under falling food rather
-than swimming up to it. Its legs step any way at once, so it reverses
-without turning round; its body turns slowly to keep across its way. A
-hermit crab (`"fright": "shell"` too) does not run: tapped, it withdraws
-into its shell where it stands and stays perfectly still until it feels
-safe again. Every walker stands perfectly still while it stops.
+| Value         | Default  | What it is                                        |
+| ------------- | -------- | ------------------------------------------------- |
+| `speed`       | 0.5      | Walking pace                                      |
+| `walkSeconds` | [2, 6]   | How long it walks between stops                   |
+| `stopSeconds` | [1, 4]   | How long it stands still                          |
+| `turnAngle`   | 1.2      | How much it turns after a stop                    |
+| `turnJitter`  | 0.3      | How much it wanders while walking                 |
+| `rideHeight`  | 0.12     | How high its body is off the ground, body lengths |
+| `sideways`    | false    | Walks sideways, like a crab                       |
+| `swims`       | true     | `false`: never leaves the ground                  |
+| `fright`      | `"flee"` | `"shell"`: hides in its shell instead of running  |
 
-## What the bundled species do
+A crab is `"sideways": true, "swims": false`: it runs, hides and eats on
+foot, and backs up without turning round. A hermit crab is
+`"swims": false, "fright": "shell"`: when scared it pulls into its shell
+where it stands and stays still until it calms down.
+
+### Who does what
 
 | Style         | Species                                                                               |
 | ------------- | ------------------------------------------------------------------------------------- |
@@ -190,20 +147,20 @@ safe again. Every walker stands perfectly still while it stops.
 | `patrol`      | butterflyfish, barramundi                                                             |
 | `crawl`       | red cherry shrimp, freshwater crab, hermit crab                                       |
 
-## Activities: what a fish is doing
+## What fish do all day
 
-A style says _how_ a fish swims; an **activity** says _what it is doing_.
-Every fish has one at a time, with a duration; when it ends, the next one
-is drawn. Three exist:
+The style is _how_ a fish swims. On top of it, every fish is always doing
+something, its **activity**:
 
-| Activity  | What the fish does                                                                                                          |
-| --------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `wander`  | Swims about in its own style. The default.                                                                                  |
-| `inspect` | Swims up to a place, circles it or hovers facing it for a few seconds, then swims off.                                      |
-| `peck`    | Comes down a slope onto a place and picks at it: lines up just short of it, darts in with the mouth open, backs off, again. |
-| `rest`    | In its hours of rest: settles beside a shelter, halfway up, or near the bottom of its habitat, barely moving.               |
+| Activity  | What the fish does                                                           |
+| --------- | ---------------------------------------------------------------------------- |
+| `wander`  | Just swims about in its style                                                |
+| `inspect` | Goes to look at a place for a few seconds                                    |
+| `peck`    | Goes down to a place and picks at it, mouth open, a few times                |
+| `rest`    | At its time of rest, settles by a shelter or near the bottom and keeps still |
 
-Declare them in the species' `activities` entry:
+When one activity ends, the next is drawn at random. Give a species its
+activities in `activities`:
 
 ```json
 "activities": {
@@ -213,213 +170,100 @@ Declare them in the species' `activities` entry:
 }
 ```
 
-- `weight`: how often the activity is chosen, relative to the others.
-  `wander` defaults to 1, the others to 0, so a species that declares
-  nothing only wanders and behaves exactly as without activities.
-- `tags`: for activities at a place, how much each tag interests the
-  species, 0 to 1 (see [Places and tags](#places-and-tags)).
-- `wander.seconds`: how long a fish wanders before choosing again.
-- `inspect.seconds` (default `[4, 10]`): time spent looking;
-  `inspect.distanceBodyLengths` (default 2): how far from the place it
-  looks from.
-- `peck.pecks` (default `[3, 7]`): pecks before leaving.
-- `rest` (weight 1, tags `{ "shelter": 1 }`, `seconds` `[40, 90]` by
-  default): how much and where the species rests. It only rests in its
-  hours of rest, and only in realistic mode (below).
+- `weight` is how often it is chosen compared with the others. A species
+  with no `activities` only wanders.
+- `tags` says which places interest it, from 0 to 1 (see below). A fish
+  only goes to places in its own depth bands, but any height: a tang that
+  swims high still comes down to graze the rocks.
+- `wander.seconds`: how long it wanders before choosing again.
+- `inspect.seconds` (`[4, 10]`) and `inspect.distanceBodyLengths` (2): how
+  long it looks, and from how far.
+- `peck.pecks` (`[3, 7]`): how many pecks before it leaves.
+- `rest` (weight 1, tags `{ "shelter": 1 }`, `seconds` `[40, 90]`): how
+  much and where it rests.
 
-**Choosing.** When an activity ends, each activity at a place looks for a
-place nearby (12 body lengths, at least 0.6 m) with a tag that interests
-the species, favouring the most interesting and the closest. The place
-must lie in the species' depth bands; height does not matter, so a
-mid-water tang still dives to graze the rocks. Activities with no such
-place drop out, and the next one is drawn among the rest by weight, with
-the seeded generator.
+A tap on the glass, food or your finger on the glass interrupt any
+activity.
 
-**Taking over from the style.** The style keeps running and the activity
-overrides its wishes: heading, height, speed, tail. It can also open the
-mouth and dive steeply, head down, which a style never does. While a fish
-heads for a place, its soft walls widen around it.
+**Day and night.** With **Realistic** on in the panel, fish keep their
+species' hours, set by `behavior.active`: `day` (the default), `night` or
+`always`. As their time of rest comes, they choose `rest` more and more
+often. A reef calms down at night while the barramundi wakes up. Without
+Realistic nobody sleeps.
 
-**Called off.** A tap on the glass, food or a finger on the glass end any
-activity: the fish goes back to wandering. So does a change of scenery,
-since the place may be gone.
+Press `A` to see the activity of every fish, with a line to the place it is
+about.
 
-**Day and night (realistic mode).** With _Realistic_ on in the panel's
-Fauna section, fish keep the hours of their species. `behavior.active`
-says when a species is up: `day` (the default), `night` (the barramundi)
-or `always`. How much it wants to rest follows the daylight of the light
-cycle, from 0 in its active hours to 1 in the middle of its hours of
-rest. That draws it to `rest` (ten times its weight at full restfulness)
-and damps its other activities, so a reef quiets down at night while a
-nocturnal hunter wakes. Outside realistic mode nobody sleeps.
+## Places and tags
 
-**Seeing it.** Press **A**: every fish shows its activity (`wander 12s`,
-`peck ×3`, `inspect`), with a line to the place it is about (see
-[Playing with the fish](INTERACTION.md#seeing-what-goes-on-a)).
-
-Activities live in `src/sim/behaviors/` next to the styles (`wander.ts`,
-`inspect.ts`, `peck.ts`, the chooser in `choose.ts`), registered in
-`ACTIVITIES` in `activities.ts`; their parameters are declared in
-[`src/scene/activities.ts`](../src/scene/activities.ts). Adding one
-follows the same steps as adding a style.
-
-## How it works
-
-### A style only says what the fish wants
-
-A style never moves a fish itself. Each step it fills in a small record,
-the fish's `SwimState` ([`src/sim/behaviors/types.ts`](../src/sim/behaviors/types.ts)):
-
-| Field      | Meaning                                                          |
-| ---------- | ---------------------------------------------------------------- |
-| `yaw`      | Wanted heading seen from above (0 = +x, π/2 = towards the glass) |
-| `height`   | Wanted height above the floor, m                                 |
-| `speed`    | Wanted speed, share of cruise speed                              |
-| `response` | How quickly the fish reaches that speed (a burst is fast)        |
-| `thrust`   | How hard the tail works: 0 still (gliding) … 1 full beat         |
-
-plus a few counters the style keeps for itself (timers, a clock, the way
-round, the home spot).
-
-### The simulation turns wishes into motion
-
-```mermaid
-flowchart LR
-  S[Swimming style] -->|yaw, height| F[Steering forces]
-  B[Boids: separation, school, habitat walls, seabed] --> F
-  O[Collisions: rocks, corals, other fish] --> F
-  R[Reactions: fear, food, curiosity] -->|override speed| V
-  S -->|speed, response| V[Speed control]
-  F --> M[Velocity]
-  V --> M
-  S -->|thrust| P[Posture: tail effort]
-  M --> P
-```
-
-Every step, for every fish ([`src/sim/simulation.ts`](../src/sim/simulation.ts)):
-
-1. **The style steps** and updates the fish's wishes.
-2. **Heading.** A force turns the fish towards `yaw`
-   ([`addHeading`](../src/sim/steering.ts)). It acts _across_ the
-   velocity only, so it turns the fish without speeding it up. That is
-   what lets a hovering fish turn on the spot: at low speed the same
-   sideways force swings it round much faster.
-3. **Height.** A vertical pull towards `height`, at full strength from
-   0.3 m away. Fish still climb and dive gently (their vertical speed is
-   capped), so a change of height looks like a slow slope, not a lift.
-4. **Everything else** adds its force as before: separation, schooling,
-   the soft walls of the habitat, clearance over sand and rock, and the
-   collisions below.
-5. **Speed.** The fish speeds up or slows down towards `speed` at the rate
-   `response`. If it is reacting to something (fleeing a tap, going for
-   food, inspecting a finger on the glass), the reaction sets the pace
-   instead and the tail works fully.
-6. **Posture.** The tail's effort grows with speed and acceleration
-   ([`tailEffort`](../src/sim/posture.ts)) and is multiplied by `thrust`,
-   so a burst beats hard and a coast is still. The body still bends into
-   every turn.
-
-### Where styles start
-
-A fish already in the tank when the scene opens starts its style where it
-is. A fish that swims in through a side wall starts its style at a random
-spot of its habitat once inside. Otherwise every newcomer would hover or
-patrol right next to the wall it came through.
-
-### Places and tags
-
-Every plant and object of a scene has **tags** that say what it is to a
-fish. Each kind has its own ([`src/scene/tags.ts`](../src/scene/tags.ts)):
-anemones are `anemone` and `shelter`, rocks `rock` and `algae`, branch and
-table corals `coral` and `shelter`, and so on. A scene entry can replace
-them with its own `tags`, e.g. to make one rock pile a hiding place:
+Fish do not look for "the anemone" or "that rock": they look for **tags**.
+Every plant and object has a few: an anemone is `anemone` and `shelter`, a
+rock is `rock` and `algae`, a table coral is `coral` and `shelter`. They
+are set in the object's folder (see [Plants and objects](OBJECTS.md#tags-what-it-is-to-a-fish)),
+and a scene entry can change them:
 
 ```json
 { "kind": "rock", "count": 3, "color": "#7d7468", "tags": ["rock", "shelter"] }
 ```
 
-Laid out in the tank, plants and objects with tags become **places**
-([`src/sim/places.ts`](../src/sim/places.ts)): a position, the height of
-their top and their tags. The view hands them to the simulation the same
-way as the seabed, and styles look them up by tag: a fish asks for "the
-nearest `anemone`", never for a kind, so retagging data is enough to give a
-species a new home.
+Now those three rocks are a place to hide. Changing tags is enough to give
+a species a new home or a new favourite food.
 
-### The room
+## Fish and obstacles
 
-Styles work in the fish's **room**: its habitat (depth bands and height
-range) less the soft walls that push fish back inside. Heights and home
-spots are always picked inside it, so a style never asks a fish to fight
-its own habitat. The one exception is a home at a place (`hover` with
-`home`): the fish's soft walls then widen around that place.
+Fish swim around rocks, corals and wood, and around each other.
 
-### Collisions
+- Each object has a rough collision shape. A fish looks a little ahead and
+  swerves round what is in the way without slowing down. With `A` on, `C`
+  draws these shapes.
+- Plants are soft: fish swim through kelp and snuggle into anemones.
+- A fish going to a place (to peck, rest or hide) comes right up to it.
+- A fish stuck in a corner of the rock for a couple of seconds looks for
+  the most open way out.
+- Bigger fish push smaller ones aside, not the other way round.
 
-Fish swim around the solid scenery and around each other
-([`src/sim/obstacles.ts`](../src/sim/obstacles.ts),
-[`src/sim/crowd.ts`](../src/sim/crowd.ts)).
+## For developers
 
-- **Rocks, corals, wood.** Every kind of object has a rough collision
-  shape, an ellipsoid sized from its mesh (`PROP_SHAPES`; a render test
-  keeps the two in step). A table coral's is raised on its stalk, so fish
-  swim under the plate. A fish looks ahead along its course (0.6 s of
-  swimming, at least 1.5 body lengths): an object there turns it aside,
-  across its course, so it swerves without slowing, and the inertia keeps
-  the swerve a curve. It keeps a body length off objects beside it, and a
-  hard gap of 0.4 body lengths slides out the rare one that still dives
-  in. Within four body lengths of the place it is pecking, resting or
-  hiding at, a fish stops looking ahead and comes right up to it; on the
-  way there it swims around what is in between. Plants are soft: fish
-  swim through kelp and nestle in anemones.
-- **The rockwork.** The sand and the rockwork are the seabed, as before;
-  besides, a fish looks ahead for the rock rising along its course and
-  climbs in time to clear a rock face.
-- **Places out of reach.** A place whose top lies inside an obstacle (a
-  plant grown under driftwood) is left out: no fish is sent there.
-- **Shelters are porous.** A startled fish that hides slips into its
-  coral or driftwood, among the branches or under the plate, once within
-  four body lengths of its refuge or the size of the shelter; fish swimming
-  by still go around.
-- **Pockets.** A fish that spends two seconds touching the rocks without
-  getting a body length further is caught in a dead end: for two seconds
-  it heads for the most open way around it, whatever its style wants.
-- **Other fish.** Schools space their own members. Besides, every fish
-  has a personal space of half a body length: fish of other species in it
-  push it away, the larger pushing harder, so a tetra gives way to an
-  angelfish rather than the other way round. Any two bodies that still
-  overlap, of any species, are pulled apart, the smaller moving more.
+### What a style does
 
-Both look only at what is near: obstacles and fish are sorted into grids
-of cells seen from above. With `A` on, `C` outlines every collision
-shape. A new kind of object needs its shape in `PROP_SHAPES`.
+A style never moves a fish. Each step it only says what the fish would
+like: a heading, a height, a pace, how fast to reach it and how hard the
+tail works (`SwimState`, in `src/sim/behaviors/types.ts`). The simulation
+(`src/sim/simulation.ts`) mixes that with everything else:
 
-### Determinism
+1. the style updates its wishes;
+2. a force turns the fish towards the wanted heading, and a gentle pull
+   moves it towards the wanted height;
+3. the other forces add up: neighbours, school, the edges of its part of
+   the tank, sand and rock, obstacles;
+4. the pace moves towards the wanted one, unless a reaction (fear, food,
+   curiosity) sets it instead;
+5. the tail effort follows speed and acceleration, scaled by the style's
+   `thrust`, so a glide really looks like a glide.
 
-All randomness comes from the simulation's seeded generator. The same seed
-gives the same fish doing the same things, which keeps tests and visual
-snapshots reproducible.
+Activities work the same way: each step they may overwrite the style's
+wishes. They can also open the mouth and dive steeply, which a style never
+does.
 
-## Adding a style
+Walkers (`crawl`) are the exception: the simulation keeps them on the
+ground at `rideHeight` and their body turns on its own (`Fish.facing`), so
+a crab can walk sideways.
 
-1. **Declare its parameters** in [`src/scene/swimming.ts`](../src/scene/swimming.ts):
-   a `z.strictObject` with a `style` literal and a default for every
-   parameter, added to `swimSchema`.
-2. **Write it** in a file of its own in `src/sim/behaviors/`, implementing
-   `SwimStyle<"your-id">` with two methods:
-   - `start(state, params, context)` sets up a fish that starts swimming
-     freely (pick a home, a phase, a first height…).
-   - `step(state, params, context, deltaSeconds)` updates the wishes. It
-     runs for every fish at 60 fps: no allocations.
-3. **Register it** in `SWIM_STYLES` in
-   [`src/sim/behaviors/index.ts`](../src/sim/behaviors/index.ts). The
-   table's type lists every declared id, so TypeScript reports a style
-   declared but not registered.
-4. **Test it** next to it (`yourStyle.test.ts`). The harness in
-   [`src/sim/behaviors/harness.ts`](../src/sim/behaviors/harness.ts) runs
-   a style on its own, in a fixed room with a seeded generator, so a test
-   can check e.g. that the speed varies or the fish turns back home.
-5. **Document it** here.
+Everything random comes from the seeded generator, so the same seed gives
+the same fish doing the same things. Tests and screenshots rely on it.
 
-Helpers shared by styles (random durations and heights, heading jitter,
-heading towards a point) are in
-[`src/sim/behaviors/shared.ts`](../src/sim/behaviors/shared.ts).
+### Adding a style
+
+1. Declare its values in `src/scene/swimming.ts`, each with a default, and
+   add it to `swimSchema`.
+2. Write it in its own file in `src/sim/behaviors/`, with `start` (set up a
+   fish) and `step` (update its wishes; it runs for every fish every
+   frame, so no allocations).
+3. Register it in `SWIM_STYLES` in `src/sim/behaviors/index.ts`. TypeScript
+   complains if you forget.
+4. Test it next to its file. `harness.ts` runs a style on its own, in a
+   fixed room with a seeded generator.
+5. Add it to this page.
+
+Activities live in the same folder and are added the same way (`ACTIVITIES`,
+values in `src/scene/activities.ts`).

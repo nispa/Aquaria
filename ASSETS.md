@@ -58,18 +58,20 @@ listed here).
 | Hermit crab              | `public/assets/species/hermit-crab/`              | https://sketchfab.com/3d-models/hermit-crab-7e71ce922fd44ab8b9221737e9618361                                 | kenchoo                   | CC-BY 4.0 |
 | Freshwater crab          | `public/assets/species/freshwater-crab/`          | https://sketchfab.com/3d-models/cc0-japanese-freshwater-crab-35559c2236d04c1a80ccbe08cae863c6                | ffish.asia / floraZia.com | CC0       |
 
-All were optimized with glTF Transform (meshopt geometry, KTX2 textures at
-1024 px; see README, "3D fish models"). The seabream went through
-`scripts/blender/seabream.py` first: its jaw bones' widest-open pose became
-a MouthOpen shape key, and Blender converted its specular-glossiness
-material. The barramundi, with no bones, had its protrusible mouth
-shaped by `scripts/blender/barramundi.py` (jaw swinging down, upper jaw
-sliding forward, a dark throat). The hermit crab's walk and the pose it hides in
-come from `scripts/blender/hermit_crab.py`, in place of its idle clip. The crabs, a few
-pixels tall on the bottom, have 512 px textures, and the freshwater crab
-scan, drawn unlit, is lit like the other bodies. Skeletons and swim
-animations are not used: the rest pose is baked and the engine swims the
-model.
+All of them were compressed with glTF Transform (meshopt geometry, KTX2
+textures, 1024 px, or 512 px for the crabs, which are small on the bottom;
+see [docs/FISH_MODELS.md](docs/FISH_MODELS.md)). Some were changed first, by
+scripts in `scripts/blender/`:
+
+- seabream (`seabream.py`): the widest-open pose of its jaw animation became
+  a `MouthOpen` shape key, and its specular-glossiness material was
+  converted;
+- barramundi (`barramundi.py`): an open, protruding mouth shaped by hand;
+- hermit crab (`hermit_crab.py`): a new walk and a pose for hiding in the
+  shell, in place of its idle animation.
+
+Fish are drawn in their rest pose and bent by the engine; only the animals
+that walk (shrimps, crabs) play animations.
 
 Credits for the CC-BY models, as their licenses ask:
 

@@ -1,307 +1,151 @@
-# Aquaria — Guida all'Uso e ai Meccanismi Architetturali
-
-Questa guida completa illustra come utilizzare, configurare ed estendere **Aquaria**, oltre a spiegare in dettaglio i meccanismi tecnici e le scelte architetturali adottate: _"Ho fatto questo per questo motivo"_, giustificando la semplicità del sistema e l'assenza di motori pesanti come Unity o Unreal Engine.
-
----
-
-## Indice
-
-1. [Parte 1: Guida Operativa all'Uso](#parte-1-guida-operativa-alluso)
-   - [Requisiti e Avvio Rapido](#requisiti-e-avvio-rapido)
-   - [Scorciatoie da Tastiera e Controlli](#scorciatoie-da-tastiera-e-controlli)
-   - [Il Pannello di Controllo (`H`)](#il-pannello-di-controllo-h)
-   - [Illuminazione Spettrale e Ciclo Giorno/Notte](#illuminazione-spettrale-e-ciclo-giornonotte)
-   - [Qualità Grafica, Risoluzione ed Effetti Post-Processing](#qualità-grafica-risoluzione-ed-effetti-post-processing)
-   - [L'editor della scena](#leditor-della-scena)
-   - [Parametri URL per Automazione e Schermi Pubblici](#parametri-url-per-automazione-e-schermi-pubblici)
-   - [Installazione su Pareti LED e Schermi 4K (Modalità Kiosk)](#installazione-su-pareti-led-e-schermi-4k-modalità-kiosk)
-2. [Parte 2: Guida all'Apprendimento — "Ho fatto questo per questo motivo"](#parte-2-guida-allapprendimento--ho-fatto-questo-per-questo-motivo)
-   - [Perché il Web (TypeScript + Three.js) e non Unity o Unreal Engine?](#perché-il-web-typescript--threejs-e-non-unity-o-unreal-engine)
-   - [Architettura a Livelli Rigidi (Clean Architecture Unidirezionale)](#architettura-a-livelli-rigidi-clean-architecture-unidirezionale)
-   - [TDD Puro e Test senza Browser/GPU (Vitest & Node.js)](#tdd-puro-e-test-senza-browsergpu-vitest--nodejs)
-   - [Zero Allocazioni per Frame (Il Problema del Garbage Collector)](#zero-allocazioni-per-frame-il-problema-del-garbage-collector)
-   - [Comportamento Biologico (Boids con Fasce di Profondità) vs Fisica Rigida](#comportamento-biologico-boids-con-fasce-di-profondità-vs-fisica-rigida)
-   - [Illuminazione Fotobiologica a 4 Canali e Fluorescenza dei Coralli](#illuminazione-fotobiologica-a-4-canali-e-fluorescenza-dei-coralli)
-   - [Formato Dati Dichiarativo e Validazione Stretta con Zod](#formato-dati-dichiarativo-e-validazione-stretta-con-zod)
-   - [Texture Compresse KTX2 per la Memoria VRAM a 4K](#texture-compresse-ktx2-per-la-memoria-vram-a-4k)
-   - [Pipeline di Post-Processing Modulare](#pipeline-di-post-processing-modulare)
-
----
-
-# Parte 1: Guida Operativa all'Uso
-
-### Requisiti e Avvio Rapido
-
-- **Prerequisiti**: Node.js (versione 22 o superiore) e il gestore pacchetti `pnpm`.
-- **Installazione ed esecuzione in locale**:
-  ```bash
-  pnpm install
-  pnpm dev
-  ```
-  Apri nel browser l'indirizzo mostrato a terminale (normalmente `http://localhost:5173`).
-
----
-
-### Scorciatoie da Tastiera e Controlli
-
-| Tasto / Gesto                       | Azione                 | Descrizione                                                                                                                                 |
-| :---------------------------------- | :--------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ |
-| **`H`**                             | Apri / Chiudi Pannello | Mostra o nasconde la barra laterale di controllo.                                                                                           |
-| **`F`**                             | Schermo Intero         | Attiva o disattiva la modalità fullscreen (senza barre del browser).                                                                        |
-| **`Spazio`**                        | Dai da mangiare        | Lascia cadere un pizzico di fiocchi, sopra il puntatore se è sulla vasca (anche col pulsante d'angolo del cibo).                            |
-| **Puntatore fermo sulla vasca**     | Dito sul vetro         | Gli individui curiosi di ogni specie vengono a guardare; dopo 8 s senza movimento il dito conta come tolto.                                 |
-| **Click sulla vasca**               | Colpo sul vetro        | I pesci vicini scappano di scatto; le specie timide fuggono da più lontano. Si calmano in pochi secondi.                                    |
-| **Cerchi veloci vicino a un pesce** | Ipnosi                 | Si ferma, galleggia, gira e si avvita coi tuoi cerchi; quando smetti se ne va stordito.                                                     |
-| **Scarabocchio sopra un pesce**     | Solletico              | Si contorce a pancia in su, poi scappa a zig-zag.                                                                                           |
-| **`A`**                             | Cosa fanno i pesci     | Etichette su ogni pesce e una scheda per quello più vicino al puntatore. Vedi [Giocare con i pesci](INTERAZIONE.md).                        |
-| **`C`** (con `A` acceso)            | Forme di collisione    | Disegna le forme attorno a cui nuotano i pesci: rocce, coralli, legni.                                                                      |
-| **`T`**                             | Torcia                 | Il puntatore proietta un fascio nella vasca; alcune specie vi si radunano, le timide scappano. Meglio di notte.                             |
-| **`Z`**                             | Lente                  | Una lente rotonda sopra il puntatore mostra la vasca tre volte più grande: per guardare i pesci da vicino.                                  |
-| **`M`**                             | Suono                  | Accende o spegne i suoni: il ribollio leggero, il tonfo dei tocchi, il cibo, la torcia e la lente. Volume nella sezione Sound del pannello. |
-| **Pulsanti d'angolo**               | Torcia, Cibo, Pannello | Compaiono muovendo il mouse o toccando lo schermo, grandi abbastanza per un dito, e poi svaniscono.                                         |
-| **Movimento Mouse**                 | Mostra Icona Menu      | Muovendo il cursore appare un pulsante d'angolo temporaneo che svanisce dopo 2,5 secondi per prevenire il burn-in dei pixel sui display.    |
-
----
-
-### Il Pannello di Controllo (`H`)
-
-Il pannello, gestito da [`createPanel`](file:///F:/progetti/Aquaria/src/ui/panel.ts#L102), offre il pieno controllo in tempo reale:
-
-1. **Scene**:
-   - Una scheda quadrata con l'immagine di ogni ambientazione (_Aquaria_, _Tropical reef_, _Home reef_, _Planted tank_, _Iwagumi_), seguite da quelle salvate dall'utente; quella aperta è evidenziata.
-   - L'ultima scheda, **Editor**, apre l'editor della scena (anche con `E`).
-   - In cima al pannello, l'icona ⓘ mostra versione, autore, licenza e il link al codice.
-
-2. **Popolazione della Fauna**:
-   - Ciascuna specie di pesce definita nel catalogo [`public/species.json`](file:///F:/progetti/Aquaria/public/species.json) ha una scheda con l'immagine del pesce, disegnata dal vivo, e un cursore per il numero di individui. Le specie presenti in vasca compaiono per prime.
-   - Quando si riduce o aumenta il numero, **i pesci non spariscono né compaiono nel nulla**: nuotano verso l'esterno o entrano gradualmente dai lati della vasca.
-
-3. **Elementi di Arredo (Scenery)**:
-   - Una scheda per elemento, con la sua immagine e un cursore per aumentare o diminuire la quantità di piante acquatiche, gorgonie, anemoni, rocce e coralli. L'aggiunta di elementi preserva la posizione di quelli già esistenti.
-
-#### Le scene incluse
-
-Le quattro scene incluse sono esempi di ciò che si può costruire: ognuna è modificabile con l'editor della scena o direttamente nel suo file JSON.
-
-| Scena         | Tipo di acquario                                            |
-| ------------- | ----------------------------------------------------------- |
-| Tropical reef | Mare aperto, barriera corallina tropicale (acqua salata)    |
-| Home reef     | Acquario marino di barriera (acqua salata)                  |
-| Planted tank  | Acquario di comunità piantumato (acqua dolce)               |
-| Iwagumi       | Aquascape Iwagumi, rocce e piante tappezzanti (acqua dolce) |
-
-![Tropical reef](scenes/reef.jpg)
-![Home reef](scenes/home-reef.jpg)
-![Planted tank](scenes/planted-tank.jpg)
-![Iwagumi](scenes/iwagumi.jpg)
-
----
-
-### Illuminazione Spettrale e Ciclo Giorno/Notte
-
-Aquaria riproduce fedelmente l'illuminazione professionale per acquari marini e barriere coralline su 4 canali:
-
-- **White (Bianco)**: Luce solare a spettro pieno.
-- **Actinic Blue (450 nm)**: Luce blu attinica ad alta penetrazione che stimola i pigmenti biologici.
-- **Violet / UV (420 nm)**: Radiazione a lunghezza d'onda corta che accende la fluorescenza naturale di coralli e anemoni.
-- **Accent e Luna**: Tinta personalizzata e soffusa luce lunare notturna.
-
-**Modalità del Ciclo Solare**:
-
-- **Hour at Start** (predefinita): Mantiene l'ora in cui l'acquario è stato avviato, così la luce corrisponde alla stanza e poi resta ferma.
-- **Fixed Hour**: Fissa l'ora dell'acquario (da 0.0 a 24.0) per esposizioni o fotografie.
-- **Real Clock**: Sincronizza l'illuminazione con l'ora reale del computer.
-- **Accelerated Day**: Comprime un ciclo completo di 24 ore in pochi minuti configurabili (es. 10 minuti).
+# Guida all'uso
 
----
+_English version: [USER_GUIDE.md](USER_GUIDE.md)._
 
-### Qualità Grafica, Risoluzione ed Effetti Post-Processing
-
-Nel menu _Quality_, integrato con la lista modulare [`EFFECTS`](file:///F:/progetti/Aquaria/src/render/effects/index.ts#L14):
-
-- **Slider di Risoluzione**: Permette di impostare la risoluzione interna di rendering da 540p fino a 4K effettivo (2160p), svincolata dal fattore di scala del sistema operativo.
-- **Risoluzione automatica** (attiva di default): quando la GPU non tiene il passo, l'acquario disegna meno pixel e risale quando c'è margine, così non occupa mai tutta la GPU e non blocca lo schermo. Lo slider fissa il massimo, e non si disegnano mai più pixel di quelli dello schermo; spenta, si disegna esattamente la risoluzione dello slider. Il contatore FPS mostra l'altezza effettiva.
-- **Limite di fotogrammi**: 30 o 60 al secondo (30 di default), oppure nessuno. Un limite lascia la GPU libera per il resto del computer e risparmia batteria.
-- **Adatta gli effetti a questo schermo** (_Fit effects to this screen_): all'avvio l'acquario parte da un aspetto leggero e aggiunge ombre, riflessi, bolle, luce volumetrica, bloom e vignetta uno alla volta finché la GPU sta dentro il limite di fotogrammi; la riga sotto il pulsante dice cosa ha aggiunto. Gli interruttori che cambi tu restano come li hai messi. Il pulsante li dimentica e rifà l'adattamento, per esempio dopo aver cambiato il limite di fotogrammi.
-- **Anti-Aliasing**: Supporto per MSAA nativo (Disattivo, 2x, 4x, 8x) e filtro aggiuntivo SMAA per rifinire dettagli sottilissimi come pinne e fili d'erba.
-- **Interruttori Effetti**:
-  - _Caustics_: Rete dinamica di onde di luce rifratte sul fondo, rocce e pesci.
-  - _Shadows_: Ombre proiettate della luce solare da pesci, kelp e formazioni rocciose.
-  - _Volumetric Light_: Raggi crepuscolari (God rays) attraverso la colonna d'acqua occlusi da flora e fauna.
-  - _Ambient Occlusion (SSAO)_: Occlusione ambientale negli anfratti e alla base delle rocce (pesante sulla GPU).
-  - _Depth of Field_: Profondità di campo ottica con sfocatura progressiva.
-  - _Bloom e Dither_: Bagliore morbido sui riflessi e dithering per eliminare il banding sui gradienti scuri tipici dei pannelli LED.
-- **Monitor GPU ed FPS**: Segnala il framerate istantaneo e avvisa l'utente se il browser sta erroneamente usando la GPU integrata a basso consumo.
-
----
-
-### L'editor della scena
-
-`E` (o la scheda **Editor**) trasforma la finestra in una vista isometrica
-della vasca, senza acqua, pesci ed effetti:
-
-1. **Roccia a blocchi**: aggiungi (`＋`) o togli (`－`) blocchi con un
-   pennello di dimensione regolabile, taglia gli strati alti per lavorare
-   dentro le grotte, guarda l'anteprima della roccia lisciata; la scheda
-   **Rocks** della palette sceglie il materiale della roccia.
-2. **Piante e oggetti**: scegline uno nella palette e tocca la sabbia o un
-   blocco per appoggiarlo, oppure dipingilo col pennello (🖌) con la
-   densità che vuoi; selezionane uno (☝) per spostarlo, ruotarlo,
-   ridimensionarlo, ricolorarlo o eliminarlo.
-3. **Scheda Scene**: prendi l'ambiente di un bioma (una qualsiasi scena
-   inclusa), poi regola seme, dimensioni della vasca, acqua, torbidità,
-   fondo, sfondo, roccia, luce e corrente; converti in blocchi una vecchia
-   cresta procedurale; esporta, importa o elimina la scena.
-4. **Annulla / ripeti** (`Ctrl+Z`, `Ctrl+Y`), il nome della scena nella
-   barra, **Save** / **Save as new** (salvata nel browser sotto _My scenes_,
-   con un'immagine della vasca sulla sua scheda) ed **Exit** (`Esc`).
-
----
-
-### Parametri URL per Automazione e Schermi Pubblici
-
-Puoi avviare l'acquario preconfigurato inserendo parametri nella barra degli indirizzi:
-
-| Parametro | Esempio                     | Funzione                                                                                  |
-| :-------- | :-------------------------- | :---------------------------------------------------------------------------------------- |
-| `scene`   | `?scene=planted-tank`       | Carica direttamente la scena specificata da `public/scenes/<id>.json`.                    |
-| `seed`    | `?seed=9876`                | Fissa il seed casuale per ottenere una disposizione geometrica identica.                  |
-| `hour`    | `?hour=20.5`                | Imposta l'orario fisso (es. 20:30 per illuminazione crepuscolare blu).                    |
-| `effects` | `?effects=caustics,shadows` | Attiva selettivamente solo gli effetti indicati (`?effects=none` per disattivarli tutti). |
-| `frozen`  | `?frozen=10`                | Esegue 10 secondi di simulazione e blocca la scena su un fotogramma statico.              |
-
----
-
-### Installazione su Pareti LED e Schermi 4K (Modalità Kiosk)
-
-Per installazioni museali, fiere o grandi pareti LED:
-
-1. **Compilazione ed esecuzione statica**:
-   ```bash
-   pnpm build
-   pnpm preview --host
-   ```
-2. **Avvio in modalità Kiosk (senza barre né cornici)**:
-   ```bash
-   chrome --kiosk --autoplay-policy=no-user-gesture-required http://localhost:4173
-   ```
-3. **Forzare la GPU Dedicata (Windows)**:
-   - Apri _Impostazioni di Windows → Sistema → Schermo → Grafica_.
-   - Aggiungi il file eseguibile di Chrome o Edge e imposta **Prestazioni elevate** (High Performance).
-   - In `chrome://settings/system`, verifica che l'opzione _Usa accelerazione grafica se disponibile_ sia attiva.
-
----
-
-# Parte 2: Guida all'Apprendimento — "Ho fatto questo per questo motivo"
-
-### Perché il Web (TypeScript + Three.js) e non Unity o Unreal Engine?
-
-Quando si deve realizzare un'applicazione grafica 3D fotorealistica per grandi display, la prima tentazione è usare Unity o Unreal Engine. **Aquaria sceglie intenzionalmente di non usarli, e il motivo è profondo**:
-
-1. **Deployment a Ingombro Zero e Affidabilità Kiosk**:
-   - _Il Motivo_: Una build standalone di Unreal o Unity pesa da 2 a 15 Gigabyte, richiede runtime C++, DirectX/Vulkan complessi, driver grafici specifici, e installer con privilegi di amministratore. Aggiornare un totem pubblico o una parete LED con un eseguibile monolitico è rischioso e pesante.
-   - _Cosa è stato fatto_: Aquaria genera un pacchetto statico leggero (HTML/JS/KTX2) servibile via web. Qualsiasi computer (anche un Mini PC o NUC) può avviarlo a schermo intero tramite una finestra browser Chrome/Edge in modalità Kiosk, senza bisogno di alcuna installazione software e con aggiornamenti istantanei via rete.
-
-2. **Nessun "Engine Bloat" e Nessun Garbage Collector Imprevedibile**:
-   - _Il Motivo_: I grandi motori generici portano con sé milioni di righe di codice che non servono per un acquario (motori di fisica complessi come PhysX/Chaos, audio engine, gestione collisioni complesse, moduli multiplayer). In Unity, il Garbage Collector del runtime C# (.NET) tende ad attivarsi periodicamente a sorpresa, generando micro-blocchi ("stuttering") inaccettabili su display a 60 FPS continui.
-   - _Cosa è stato fatto_: Aquaria contiene **solo ed esclusivamente** ciò che serve per il moto dei banchi di pesci, la fluidodinamica ottica e gli shader subacquei.
-
-3. **Velocità di Sviluppo ed Esecuzione Immediata**:
-   - Con Vite e TypeScript, modificare uno shader o una formula di nuoto aggiorna il visualizzatore in pochi millisecondi. Non si attendono lunghi tempi di compilazione C++ o bake di scene.
-
-4. **Dati Aperti e Ispezionabili (JSON Umano)**:
-   - Le scene non sono blob binari proprietari (`.unity`, `.umap`), ma file JSON trasparenti versionabili con Git e modificabili con qualsiasi editor o con l'editor della scena integrato.
-
----
-
-### Architettura a Livelli Rigidi (Clean Architecture Unidirezionale)
-
-Il codice sorgente è organizzato in strati con dipendenze rigorosamente discendenti:
-
-```
-src/core     → Utilità pure: RNG con seed, clock fisso, matematica, event bus.
-src/scene    → Descrittori JSON, catalogo specie, schemi Zod, validazione.
-src/sim      → Simulazione boids, steering, habitat, corrente marina.
-src/render   → Adattatori Three.js, geometrie procedurali, materiali, shader GLSL.
-src/ui       → Pannello di controllo, barra e palette dell'editor, controlli DOM.
-src/app      → Composition root che istanzia i moduli e guida il loop principale.
-```
-
-- **Ho fatto questo per questo motivo**:
-  - Se il codice di movimento dei pesci in `src/sim/` importasse una `Mesh` di Three.js o elementi del DOM, non sarebbe possibile testarlo in modo rapido e isolato senza un browser o una GPU.
-  - Impedendo l'importazione di Three.js e del DOM in `core`, `scene` e `sim` (regola formalmente garantita dal linter in [`eslint.config.mjs`](file:///F:/progetti/Aquaria/eslint.config.mjs)), la logica vive come codice matematico puro e indipendente dal motore di rendering. Se domani Three.js venisse sostituito da un renderer WebGPU nativo, il 100% della simulazione e dei dati rimarrebbe intatto.
-
----
-
-### TDD Puro e Test senza Browser/GPU (Vitest & Node.js)
-
-- **Il Motivo**: Le applicazioni 3D soffrono spesso della "sindrome da test manuale": gli sviluppatori passano ore ad avviare la grafica per verificare se una regola numerica funziona.
-- **Cosa è stato fatto**:
-  - Ogni regola (allontanamento dal fondale, fasce di profondità, calcolo della corrente, curve di transizione giorno/notte) è scritta con la metodologia TDD (Red-Green-Refactor).
-  - Usando un generatore casuale deterministico con seed ([`src/core/rng.ts`](file:///F:/progetti/Aquaria/src/core/rng.ts)) e un clock iniettabile ([`src/core/clock.ts`](file:///F:/progetti/Aquaria/src/core/clock.ts)), i test non soffrono di instabilità dovute a `Math.random()` o `Date.now()`.
-  - Tutti i **382 test unitari** vengono eseguiti in ambiente Node in appena **~600 ms**, garantendo affidabilità immediata ad ogni modifica.
-
----
-
-### Zero Allocazioni per Frame (Il Problema del Garbage Collector)
-
-- **Il Motivo**: In JavaScript, se si crea un nuovo vettore `new Vector3()` o un nuovo array ad ogni fotogramma per ciascuno dei 300 pesci, la memoria Heap del browser si satura rapidamente. Quando il Garbage Collector (GC) interviene per liberarla, il rendering si arresta per 10-30 ms, causando vistosi scatti visivi ("hiccups").
-- **Cosa è stato fatto**:
-  - Nel ciclo principale di [`src/sim/simulation.ts`](file:///F:/progetti/Aquaria/src/sim/simulation.ts) e [`src/sim/steering.ts`](file:///F:/progetti/Aquaria/src/sim/steering.ts) **non viene mai istanziato alcun oggetto o array a runtime**.
-  - Si riutilizzano vettori di appoggio ("scratch variables") preallocati e si modificano i dati sul posto (_in-place_). Il Garbage Collector rimane completamente inerte anche durante settimane di funzionamento continuo su un maxischermo.
-
----
-
-### Comportamento Biologico (Boids con Fasce di Profondità) vs Fisica Rigida
-
-- **Il Motivo**: Nei motori generici i corpi sono solidi rigidi soggetti a gravità e collisioni cinematiche. I pesci reali, al contrario, non rimbalzano: percepiscono i compagni e i confini e deviano dolcemente la propria rotta.
-- **Cosa è stato fatto**:
-  - I pesci seguono un modello ad agenti (Boids di Craig Reynolds) potenziato con vincoli biologici:
-    1. **Separazione**: Evitano di urtare i compagni vicini.
-    2. **Allineamento**: Si sintonizzano sulla direzione media del banco.
-    3. **Coesione**: Mantengono unito il gruppo.
-    4. **Fasce di Profondità (Depth Bands)**: 5 fasce orizzontali (da 0 vicino al vetro a 4 sul fondo) per rispettare le abitudini di specie diverse.
-    5. **Seabed Clearance**: Una forza repulsiva progressiva che allontana il pesce dalla superficie rocciosa e sabbiosa prima che possa compenetrarla.
-    6. **Saccadi dello Sguardo ([`src/sim/gaze.ts`](file:///F:/progetti/Aquaria/src/sim/gaze.ts))**: Gli occhi anticipano la virata ruotando prima che l'intero corpo compia la curva, conferendo un senso di vita naturale.
-    7. **Reazioni**, in ordine di urgenza: paura di un colpo sul vetro, fame per i fiocchi di cibo ([`src/sim/food.ts`](file:///F:/progetti/Aquaria/src/sim/food.ts)), curiosità per un dito sul vetro. Ogni specie le regola con `behavior.appetite`, `curiosity` e `shyness` in `species.json`.
-    8. **Stili di nuoto**: quando niente richiede la sua attenzione, ogni specie nuota a modo suo (`cruise`, `burst-coast`, `hover`, `glide`, `patrol`), scelto e regolato con `swim` in `species.json`. Vedi [Stili di nuoto](NUOTO.md).
-  - **Un "rig" procedurale al posto dello scheletro**: la simulazione calcola per ogni pesce alcuni valori che fanno da articolazioni e lo shader deforma il corpo di conseguenza ([`src/sim/posture.ts`](file:///F:/progetti/Aquaria/src/sim/posture.ts)): `bend` piega la parte posteriore del corpo lungo l'arco che il pesce percorre (curvatura per lunghezza del corpo, fino alla "C" della fuga), `effort` scala il colpo di coda con velocità e accelerazione, `mouth` abbassa la mandibola prima del morso. Quando arriveranno i pesci glTF, gli stessi canali guideranno le loro animazioni.
-  - I pesci entrano ed escono dalle pareti laterali virtuali, donando la sensazione di una finestra aperta su un mare infinito anziché di una gabbia chiusa.
-
----
-
-### Illuminazione Fotobiologica a 4 Canali e Fluorescenza dei Coralli
-
-- **Il Motivo**: Le luci convenzionali nei motori grafici (una luce direzionale gialla o bianca) non rendono giustizia all'ambiente marino. I coralli e gli anemoni vivi contengono proteine fluorescenti (GFP/RFP) che reagiscono fisicamente a precise frequenze elettromagnetiche.
-- **Cosa è stato fatto**:
-  - Abbiamo sviluppato un modello a 4 canali LED (Bianco, Attinico 450nm, Viola 420nm, Accento) con intensità spettrali calibrate.
-  - Uno shader GLSL dedicato ([`src/render/shaders/fluorescencePatch.ts`](file:///F:/progetti/Aquaria/src/render/shaders/fluorescencePatch.ts)) calcola quanta radiazione blu e viola colpisce ciascun corallo, facendolo risplendere al crepuscolo con i tipici toni luminescenti delle barriere coralline tropicali.
-  - All'alba, il canale blu si accende prima del bianco; al tramonto, il bianco si spegne per primo lasciando spazio alla luce attinica, esattamente come avviene nei moderni sistemi di acquariofilia avanzata.
-
----
-
-### Formato Dati Dichiarativo e Validazione Stretta con Zod
-
-- **Il Motivo**: I file di configurazione scritti a mano o importati dall'utente spesso contengono errori (es. colori esadecimali errati, numeri negativi, nomi mancanti) che in runtime causano crash silenziosi o shader neri senza spiegazione.
-- **Cosa è stato fatto**:
-  - Ogni elemento è validato tramite schemi [Zod](https://zod.dev) al momento del caricamento ([`src/scene/schema.ts`](file:///F:/progetti/Aquaria/src/scene/schema.ts)).
-  - Se un parametro non è valido, l'applicazione non crasha: segnala con estrema precisione il campo, il valore atteso e il motivo dell'errore (sia nella console che nella barra dell'editor della scena).
-
----
-
-### Texture Compresse KTX2 per la Memoria VRAM a 4K
-
-- **Il Motivo**: Una normale immagine PNG o JPEG a risoluzione 4K (3840×2160) o 2K viene decompressa dal browser per essere caricata in memoria video come bitmap RGBA grezza, occupando fino a 60-80 MB di memoria VRAM per ogni singola texture. Moltiplicando per dozzine di rocce, fondali e piante, la memoria video della GPU si esaurisce in fretta.
-- **Cosa è stato fatto**:
-  - Tutte le texture fotografiche ([`public/assets/materials/`](file:///F:/progetti/Aquaria/public/assets/materials/)) sono salvate in formato KTX2 con compressione Basis Universal / UASTC.
-  - Le texture KTX2 rimangono compresse **direttamente all'interno della VRAM della GPU** e vengono decompresse in tempo reale dai chip hardware della scheda grafica. Questo riduce l'occupazione di memoria di circa il 75% e velocizza notevolmente i tempi di caricamento.
-
----
-
-### Pipeline di Post-Processing Modulare
-
-- **Il Motivo**: In molti motori, aggiungere un effetto di post-processing (come SSAO o Depth of Field) richiede di modificare complesse pipeline centralizzate o shader monolitici difficili da manutenere.
-- **Cosa è stato fatto**:
-  - Ogni effetto è incapsulato in un modulo autonomo che implementa l'interfaccia [`EffectDefinition`](file:///F:/progetti/Aquaria/src/render/effects/types.ts).
-  - L'effetto dichiara lo stadio di rendering (prima o dopo la mappatura tonale), il suo schema di parametri Zod con valori predefiniti, la logica di cleanup e il suo interruttore per il pannello utente.
-  - Tutti gli effetti sono registrati in un unico array in [`src/render/effects/index.ts`](file:///F:/progetti/Aquaria/src/render/effects/index.ts#L14). L'aggiunta di un nuovo effetto richiede solo la creazione del suo file e il suo inserimento nella lista, senza modificare il resto dell'engine.
+Questa pagina spiega il pannello di controllo e l'editor delle scene. I
+tasti e come avviare Aquaria sono nel [README](../README.md); quello che
+si può fare con i pesci è in [Giocare con i pesci](INTERAZIONE.md).
+
+## Il pannello di controllo
+
+Premi `H`, oppure il pulsante tondo che compare nell'angolo quando muovi il
+mouse. Ogni sezione si apre e si chiude dal titolo, e il pannello ricorda
+quali hai lasciato aperte. Tutto quello che cambi viene salvato nel
+browser.
+
+### Scene
+
+Una scheda per ogni scena, poi le tue sotto **My scenes**. Clicca per
+aprirne una. L'ultima scheda, **Editor**, apre l'[editor delle scene](#leditor-delle-scene).
+
+La ⓘ accanto al nome della scena mostra versione, autore e licenza.
+
+### Fauna
+
+Una scheda per ogni specie, con l'immagine del pesce disegnata dal vivo e
+un cursore per quanti ce ne sono. Le specie già in vasca vengono prima.
+Quando aggiungi pesci entrano nuotando dai lati; quando ne togli, se ne
+vanno nuotando.
+
+- Il bollino **3D** sull'immagine vuol dire che la specie ha un modello 3D.
+  Cliccalo per passare dal modello al pesce disegnato da Aquaria, più
+  leggero. **All 3D** e **None 3D** lo fanno per tutte le specie. Su un
+  computer lento, meno modelli aiutano.
+- **Fish size** ingrandisce i pesci piccoli e rimpicciolisce quelli grandi,
+  così si vedono tutti. A 0% le misure sono vere; a 100% tutte le specie
+  sono grandi uguali. Di partenza è 60%.
+- **Realistic** spegne i giochi (ipnosi, solletico) e fa rispettare ai
+  pesci i loro orari: i pesci diurni la notte riposano, quelli notturni si
+  svegliano.
+
+### Scenery
+
+Una scheda per ogni gruppo di piante e oggetti della scena, con un cursore
+per quanti sono. Aggiungerne non sposta quelli che ci sono già.
+
+### Time e Lights
+
+La vasca è illuminata come un acquario di barriera: quattro canali LED
+(bianco, blu, viola e un colore libero) e una debole luce lunare blu di
+notte. Con la luce blu e viola coralli e anemoni diventano fluorescenti.
+
+Le due sezioni partono su **Recommended**, l'impostazione suggerita dalla
+scena. Appena tocchi un comando passano a **Custom**.
+
+**Time** decide che ora è nella vasca:
+
+- _Hour at start_ (di partenza): l'ora in cui hai aperto l'acquario, poi
+  resta ferma.
+- _Fixed hour_: sempre l'ora che scegli.
+- _Real clock_: segue l'orologio del computer.
+- _Accelerated day_: una giornata intera nei minuti che scegli.
+
+Puoi anche regolare alba, tramonto e quanto durano. Il blu si accende un
+po' prima del bianco e si spegne un po' dopo, come sulle barriere vere.
+
+**Lights** sceglie la lampada (il cielo aperto, oppure una fila di faretti
+LED sopra l'acqua, e quanti), il colore e l'intensità di ogni canale, e la
+luce lunare.
+
+### Lighting e Post-processing
+
+Ogni effetto ha il suo interruttore, così decidi tu dove spende il tempo la
+scheda grafica.
+
+| Interruttore          | Cosa fa                                                     | All'avvio    |
+| --------------------- | ----------------------------------------------------------- | ------------ |
+| Caustics              | La rete di luce che si muove su sabbia, rocce e pesci       | acceso       |
+| Shadows               | Le ombre di pesci, rocce e piante                           | se c'è posto |
+| Water reflections     | La luce dell'acqua intorno alla vasca                       | se c'è posto |
+| Surface waves (alpha) | La superficie mossa con il sole che filtra (non finito)     | spento       |
+| Refractive bubbles    | Bolle che piegano la luce come il vetro                     | se c'è posto |
+| Light shaft planes    | Raggi di luce economici; inutili con la luce volumetrica    | spento       |
+| Coral fluorescence    | Coralli e anemoni brillano con il blu e il viola            | acceso       |
+| Ambient occlusion     | Pieghe e angoli più scuri                                   | spento       |
+| Volumetric light      | Raggi di luce nell'acqua, interrotti da pesci e alghe       | se c'è posto |
+| Depth of field        | Sfoca quello che è fuori fuoco                              | spento       |
+| Bloom                 | Un alone morbido attorno ai punti più luminosi              | se c'è posto |
+| SMAA anti-aliasing    | Bordi sottili più puliti (erba, pinne)                      | spento       |
+| Vignette and dither   | Angoli più scuri, e niente bande di colore sulle pareti LED | se c'è posto |
+
+"Se c'è posto" vuol dire che Aquaria lo prova all'avvio. Per una quindicina
+di secondi accende questi effetti uno alla volta e tiene ognuno solo se la
+scheda grafica ce la fa ancora. Un interruttore che tocchi tu non viene più
+cambiato.
+
+L'ambient occlusion è di gran lunga il più pesante, e la profondità di
+campo su una parete vista da lontano sembra solo sfocatura: restano spenti
+finché non li accendi tu.
+
+### Quality
+
+- **Resolution**: da 540p a 4K. Con **Automatic resolution** accesa (di
+  partenza) Aquaria la abbassa quando la scheda grafica fatica e la rialza
+  quando c'è margine, mai oltre il cursore. Così non si prende mai tutta la
+  scheda grafica e lo schermo non si blocca.
+- **Frame limit**: 30 (di partenza) o 60 fotogrammi al secondo, oppure
+  nessun limite. Un limite lascia la scheda grafica libera per il resto del
+  computer e fa durare di più la batteria.
+- **Anti-aliasing**: MSAA spento, 2×, 4× o 8×.
+- **Fit effects to this screen**: dimentica gli interruttori degli effetti
+  che hai cambiato e li adatta di nuovo alla scheda grafica. Utile dopo
+  aver cambiato il limite di fotogrammi.
+- **Show FPS**: fotogrammi al secondo e risoluzione davvero disegnata.
+- La scheda grafica in uso, con un avviso se è quella integrata, la più
+  debole. Il README spiega [come sistemarlo](../README.md#use-the-dedicated-gpu).
+
+### Sound
+
+Acceso o spento (anche `M`), e il volume: il gorgoglio, il colpo sul
+vetro, il cibo, la torcia e la lente.
+
+## L'editor delle scene
+
+Premi `E`, o clicca la scheda **Editor**. La vasca si vede dall'alto, di
+sbieco, senza acqua, pesci ed effetti. Funziona con il mouse o con un dito.
+
+- **Muoversi**: trascina con il tasto destro (o due dita) per spostare la
+  vista, usa la rotella (o pizzica) per lo zoom, ⟲ ⟳ per ruotare di un
+  quarto di giro.
+- **Roccia**: `＋` aggiunge blocchi dove punti, `－` li toglie. **Brush**
+  decide quanti alla volta. **Layers** nasconde gli strati più alti, per
+  lavorare dentro una grotta. **Smooth** mostra la roccia come sarà in
+  vasca. La scheda **Rocks** della tavolozza sceglie la pietra.
+- **Piante e oggetti**: scegline uno nella scheda **Plants** o **Objects**
+  e tocca la sabbia o una roccia per posarlo. 🖌 ne dipinge tanti insieme
+  (un prato, un ciuffo, sassolini sparsi); **Density** decide quanto fitti.
+  ☝ seleziona un elemento per spostarlo, ruotarlo (↺ ↻), ridimensionarlo
+  (▫ ▢), cambiargli colore o cancellarlo (🗑 o `Canc`). Se togli la roccia
+  sotto qualcosa, quello scende su ciò che sta sotto.
+- **Scheda Scene**: parti dall'acqua, dal fondo, dalla luce e dalla
+  corrente di una delle scene incluse, poi cambia le misure della vasca,
+  l'acqua e quanto è torbida, il fondo, lo sfondo, la luce e la corrente.
+  Esporta la scena in JSON, importane una, o cancella una delle tue.
+- `Ctrl+Z` e `Ctrl+Y` annullano e ripetono. Scrivi un nome nella barra,
+  poi **Save** (o **Save as new**). `Esc` esce senza salvare.
+
+Le tue scene restano in questo browser, sotto **My scenes**. La prima volta
+che una viene mostrata, la sua scheda prende una foto della vasca.
+
+Per includere una scena in Aquaria, vedi
+[Scrivere scene e specie](SCRIVERE_SCENE.md#dove-stanno-le-cose).

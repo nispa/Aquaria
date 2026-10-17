@@ -2,217 +2,144 @@
 
 _English version: [INTERACTION.md](INTERACTION.md)._
 
-Guardare è metà del divertimento di un acquario; l'altra metà è giocare con
-i pesci. In Aquaria il mouse (o un dito su uno schermo touch) è un dito sul
-vetro, e i pesci reagiscono a quello che fa: alcuni vengono a guardare,
-altri scappano, e qualche gesto fa cose che nessun pesce vero farebbe.
+Il mouse, o il dito su uno schermo touch, è un dito appoggiato al vetro. I
+pesci se ne accorgono.
 
 ## Cosa puoi fare
 
-| Tu…                                         | I pesci…                                                                                                                             |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| **Appoggi il puntatore sulla vasca**        | I curiosi vengono a guardare: si avvicinano dietro il vetro e lì rallentano. Dopo 8 s di puntatore fermo il dito conta come tolto.   |
-| **Clicchi (tocchi) la vasca**               | Quelli vicini scappano di scatto, o corrono a nascondersi nel rifugio più vicino; un banco spaventato si stringe. Si calmano presto. |
-| **Premi `Spazio`** (o _Feed the fish_)      | Scendono fiocchi sopra il puntatore. I pesci affamati salgono ad azzannarli a bocca spalancata; quelli sazi perdono interesse.       |
-| **Disegni cerchi veloci vicino a un pesce** | Resta **ipnotizzato**: si ferma, galleggia, segue il dito con gli occhi, gira nel verso dei tuoi cerchi e si avvita su se stesso.    |
-| **…poi smetti**                             | Si risveglia **stordito** e per qualche secondo nuota a cavatappi, barcollando.                                                      |
-| **Scarabocchi proprio sopra un pesce**      | Gli fai il **solletico**: si contorce, si gira a pancia in su, poi scappa a zig-zag.                                                 |
-| **Premi `A`**                               | Mostra cosa sta facendo ogni pesce, e una scheda con i dettagli del pesce più vicino al puntatore.                                   |
-| **Premi `T`** (o il pulsante della torcia)  | Il puntatore diventa una **torcia**: i pesci che amano la luce si radunano nel fascio, i timidi scappano. Meglio di notte.           |
-| **Premi `Z`** (o il pulsante della lente)   | Una **lente** rotonda sopra il puntatore mostra la vasca tre volte più grande: per guardare un pesce da vicino.                      |
-| **Premi `M`**                               | Suoni sì o no: l'acqua ribolle piano, un tocco fa un tonfo sul vetro, il cibo crepita, la torcia scatta e la lente tintinna.         |
+| Tu…                                     | I pesci…                                                                                |
+| --------------------------------------- | --------------------------------------------------------------------------------------- |
+| Lasci il mouse fermo sulla vasca        | I curiosi vengono a guardarti da dietro il vetro                                        |
+| Clicchi sulla vasca                     | Quelli vicini scappano, alcuni vanno a nascondersi; un branco si stringe                |
+| Premi `Spazio`                          | Cade del cibo sopra il mouse; i pesci affamati salgono ad azzannarlo                    |
+| Disegni cerchi veloci vicino a un pesce | Il pesce è **ipnotizzato**: si ferma, gira con i tuoi cerchi e si rotola                |
+| …poi ti fermi                           | Si riprende **stordito**, barcollando per qualche secondo                               |
+| Scarabocchi proprio sopra un pesce      | Gli fai il **solletico**: si contorce a pancia in su, poi scappa a zigzag               |
+| Premi `T`                               | Il mouse diventa una **torcia**: alcuni pesci si radunano nella luce, i timidi scappano |
+| Premi `Z`                               | Una **lente d'ingrandimento** segue il mouse                                            |
+| Premi `A`                               | Vedi cosa sta facendo ogni pesce                                                        |
+| Premi `M`                               | Suono acceso o spento                                                                   |
 
-Muovendo il mouse o toccando lo schermo compaiono in alto a destra dei
-pulsanti, grandi abbastanza per un dito: **indica**, la **torcia**, la
-**lente**, il **cibo** (un pizzico di fiocchi) e il **pannello di
-controllo**. Svaniscono dopo pochi secondi, così sullo schermo non resta
-niente di fisso.
+Quando muovi il mouse o tocchi lo schermo compaiono dei pulsanti tondi
+nell'angolo in alto a destra: punta, torcia, lente, cibo e pannello. Sono
+grandi abbastanza per un dito e spariscono dopo qualche secondo.
 
-Su uno schermo touch (tablet, telefono, LIM) il dito non può "stare sopra"
-senza toccare: ogni tocco è un colpetto sul vetro. Con **Indica** acceso
-(`P`) il tocco indica invece, come il mouse appoggiato: i pesci curiosi
-vengono a guardare, cerchi e scarabocchi funzionano senza spaventare
-nessuno, e il punto resta dove si alza il dito. Torcia e lente indicano da
-sole finché sono accese, così il dito le punta.
+**Su uno schermo touch** ogni tocco batte sul vetro, perché un dito non
+può restare sospeso. Accendi **Point** (`P`) e un tocco punta, come il
+mouse fermo: i curiosi si avvicinano, cerchi e scarabocchi funzionano, e
+nessuno si spaventa. La torcia e la lente puntano sempre.
 
-Ipnosi e solletico sono volutamente surreali: sono giochi, non biologia.
-Attiva _Realistic_ nella sezione Fauna del pannello e si spengono, mentre i
-pesci seguono gli orari della loro specie e di notte riposano (vedi
-[Stili di nuoto](NUOTO.md)). Tutto il resto di questa pagina vale in
-entrambe le modalità.
+Ipnosi e solletico sono giochi, non biologia. Accendi **Realistic** nella
+sezione Fauna del pannello e spariscono, mentre i pesci rispettano i loro
+orari e di notte riposano. Tutto il resto funziona in entrambi i modi.
 
-### Chi reagisce, e quanto
+## Chi reagisce, e quanto
 
-Ogni specie regola le sue reazioni in `public/species.json`, sotto
-`behavior`, da 0 a 1:
+Ogni specie decide il suo carattere in `public/species.json`, sotto
+`behavior`, con valori da 0 a 1:
 
-- `curiosity`: la quota dei suoi individui che vengono a guardare un dito
-  (sempre gli stessi, così una vasca ha i suoi spettatori abituali).
-  Arrivano da 3 m al massimo e guardano da due lunghezze del corpo dietro
-  il vetro.
-- `shyness`: da quanto lontano la spaventa un tocco, dal 30% di 2,5 m per
-  una specie audace ai 2,5 m interi per una timida.
-- `appetite`: quanto è golosa. I pesci notano i fiocchi entro 3 m ed escono
-  dal loro habitat fino a 0,5 m per raggiungerli. Ogni fiocco sazia un pesce
-  del 15%; sopra l'80% ignora il cibo, e un pesce sazio si svuota del tutto
-  in cinque minuti.
-- `hiding`: la quota dei suoi individui (sempre gli stessi) che, spaventati,
-  corrono al rifugio più vicino entro 15 lunghezze del corpo (almeno 1 m)
-  invece di scappare soltanto, e ci restano nascosti per sei secondi. I
-  rifugi sono piante e oggetti col tag `shelter`: anemoni, coralli
-  ramificati e a tavola, kelp, legni, piante fitte. Un pesce pagliaccio si
-  nasconde sempre nel suo anemone.
-- `torch`, da -1 a 1: come prende la torcia. Sopra 0 è attirata dal
-  fascio fino a 3 m di distanza e ci gira dentro piano (sardine, tetra, il
-  barramundi); sotto 0 scappa dal fascio e, se si nasconde, si nasconde
-  per quattro secondi (grammi, damigelle, gourami). A 0 non le importa.
+- `curiosity`: quanti vengono a guardare il tuo dito. Sono sempre gli
+  stessi individui, quindi una vasca ha i suoi spettatori fissi.
+- `shyness`: da quanto lontano lo spaventa un colpo sul vetro. Un pesce
+  audace nota solo i colpi vicini; uno timido, anche quelli dall'altra
+  parte della vasca.
+- `appetite`: quanto gli piace il cibo. Un pesce sazio ignora il cibo per
+  qualche minuto.
+- `hiding`: quanti di loro, quando si spaventano, corrono al riparo più
+  vicino e ci restano qualche secondo, invece di scappare e basta. I
+  ripari sono piante e oggetti con l'etichetta `shelter`: anemoni, coralli,
+  alghe, legni. Il pesce pagliaccio si nasconde sempre nel suo anemone.
+- `torch`, da -1 a 1: sopra 0 il pesce ama la torcia e si raduna nel
+  fascio; sotto 0 la fugge. La torcia rende meglio di notte.
 
-Un pesce spaventato allarma anche il suo banco: tutto il banco si stringe,
-e si riallarga man mano che lo spavento passa.
+Un pesce spaventato mette in allarme anche il suo branco, che si stringe
+per un po'.
 
-Ipnosi e solletico funzionano allo stesso modo su tutte le specie.
+## I giochi nel dettaglio
 
-### Gli incantesimi nel dettaglio
+**Ipnosi.** I cerchi devono essere veloci e regolari, circa mezzo giro al
+secondo o più. Ogni pesce vicino alla linea che va dal tuo occhio al dito
+cade nell'incantesimo in un secondo: quasi si ferma, galleggia, gira con i
+tuoi cerchi, si rotola e tiene gli occhi sul tuo dito. Quando ti fermi, un
+pesce ipnotizzato a fondo resta stordito per qualche secondo.
 
-**Ipnosi.** I cerchi contano quando sono veloci (il dito si muove sul vetro
-ad almeno 0,4 m/s) e regolari (girano da una parte sola ad almeno 3 rad/s,
-circa mezzo giro al secondo). Ogni pesce entro 0,6 m dalla tua linea di
-vista attraverso il dito cade sotto l'incantesimo, del tutto in 1,2 s.
-Rallenta a un ventesimo della sua velocità di crociera, galleggia alla sua
-quota, continua a girare nel verso dei cerchi, rolla attorno alla sua
-lunghezza e tiene gli occhi sul dito. Quando i cerchi finiscono,
-l'incantesimo svanisce in 0,6 s; un pesce che era ipnotizzato a fondo (80%
-o più) resta poi stordito per 4 s: ondeggia la rotta, sale e scende,
-rolla da un lato all'altro, sempre meno man mano che si riprende.
+**Solletico.** Scarabocchia veloce, avanti e indietro, proprio sopra il
+pesce. Dopo un attimo si contorce a pancia in su per un secondo, poi
+schizza via a zigzag.
 
-**Solletico.** Lo scarabocchio conta quando il dito va veloce (almeno 0,6
-m/s) e gira molto, ma di qua e di là invece che in tondo. Deve essere
-proprio sopra il pesce: entro 0,7 lunghezze del corpo (almeno 5 cm), visto
-attraverso il dito. Dopo 0,4 s il pesce ha il solletico per 2,6 s: un
-secondo contorcendosi a pancia in su, poi uno scatto a zig-zag a 2,2 volte
-la sua velocità di crociera, e di nuovo dritto.
+**La torcia.** Un fascio caldo parte dal tuo occhio, passa il vetro ed
+entra nella vasca. Mentre è accesa il mouse è una torcia e non un dito:
+nessuno viene a guardare, e i cerchi non fanno niente. Colpi e cibo
+funzionano come sempre.
 
-### La lente: `Z`
+**La lente.** Una lente rotonda mostra quello che c'è sotto il mouse tre
+volte più grande. Il mouse resta un dito, quindi i curiosi vengono a
+guardarti attraverso la lente.
 
-Con la lente accesa (`Z` o il suo pulsante d'angolo), una lente rotonda
-segue il puntatore e mostra ciò che c'è sotto tre volte più grande, visto
-dal tuo occhio come il resto della vasca. Il puntatore resta un dito sul
-vetro, così i pesci curiosi vengono a guardarti attraverso la lente.
+## Vedere cosa succede: `A`
 
-### La torcia: `T`
+`A` scrive sopra ogni pesce cosa sta facendo (`wander 12s`, `peck ×3`,
+`inspect`) o sotto quale incantesimo è (`hypnotized 80%`, `dizzy 3s`), con
+una linea verso il posto dove sta andando. Il pesce più vicino al mouse ha
+una scheda: specie, misura, stile di nuoto, attività, velocità, quanto è
+sazio, quanto è spaventato. Una riga in alto dice cosa sta disegnando il
+tuo dito.
 
-Con la torcia accesa (`T` o il suo pulsante d'angolo, che si illumina
-finché è accesa), il puntatore proietta un fascio dal tuo occhio,
-attraverso il vetro, dentro la vasca: una luce calda che si allarga con la
-profondità. I pesci reagiscono come dice il `torch` della loro specie, in
-pieno di notte e per circa un terzo di giorno, quando una torcia quasi non
-si vede. Finché è accesa il puntatore è una torcia e non un dito: i
-curiosi non vengono a guardare, e cerchi e scarabocchi non fanno
-incantesimi. Tocchi e cibo funzionano come sempre.
-
-### Vedere cosa succede: `A`
-
-`A` mostra sopra ogni pesce cosa sta facendo (`wander 12s`, `peck ×3`,
-`inspect`) o l'incantesimo in cui si trova (`hypnotized 80%`, `dizzy 3s`,
-`tickled!`), con una linea verso il luogo di cui si occupa un'attività. Il
-pesce più vicino al puntatore ha una scheda: specie e misura, stile di nuoto
-e attività, velocità rispetto alla crociera, quanto è sazio e quanto è
-spaventato. In alto una riga dice cosa sta disegnando il dito
-(`circles ↺`, `circles ↻`, `scribbling`). Premi di nuovo `A` per
-nascondere tutto. Con l'overlay acceso, `C` disegna il contorno delle
-forme di collisione di rocce, coralli e legni (vedi
-[Stili di nuoto](NUOTO.md#collisioni)).
+Con `A` acceso, `C` disegna le forme che i pesci evitano.
 
 ## Chi vince
 
-Più cose possono richiedere l'attenzione di un pesce nello stesso momento.
-Si valutano in quest'ordine, e la prima che vale impone il ritmo:
+Quando più cose chiamano un pesce insieme, vince la prima di questa
+lista:
 
-1. **Lo spavento** dopo un tocco: scappa, qualunque cosa stia succedendo.
-2. **Il cibo** vicino, se ha fame.
-3. **Un incantesimo**: ipnotizzato, stordito o col solletico.
-4. **La torcia**, finché è accesa; altrimenti **la curiosità** per un dito
-   sul vetro.
-5. **La sua attività**: ispezionare o becchettare un luogo.
-6. **Il suo stile di nuoto**: come nuota quando nient'altro conta.
+1. la paura, dopo un colpo sul vetro;
+2. il cibo, se ha fame;
+3. un incantesimo: ipnosi, stordimento, solletico;
+4. la torcia, oppure la curiosità per il tuo dito;
+5. la sua attività (beccare, guardare, riposare);
+6. il suo stile di nuoto.
 
-Qualunque cosa da 1 a 4 interrompe un'attività; il pesce torna a vagare
-quando è finita. Attività e stili sono descritti in
-[Stili di nuoto](NUOTO.md).
+Le prime quattro interrompono l'attività che il pesce stava facendo.
 
-## Come funziona
+## Per chi sviluppa
 
-```mermaid
-flowchart LR
-  P[Eventi del puntatore<br/>input/pointer.ts] --> B[Event bus]
-  B --> A[app/main.ts]
-  A -->|punto sul vetro + linea di vista| S[Simulation.setFinger]
-  S --> G[Gesto<br/>sim/gesture.ts]
-  G --> Y[Gioco per pesce<br/>sim/play.ts]
-  Y -->|desideri, rollio, curvatura, sguardo| F[Pesce]
-  F --> R[Renderer]
-```
+Come un gesto arriva ai pesci:
 
-1. **Input.** `input/pointer.ts` trasforma gli eventi del puntatore in
-   `pointer-move`, `pointer-leave` e `tap` sull'event bus. Niente sotto
-   `app` conosce il DOM.
-2. **Dentro la vasca.** L'app chiede alla vista dove il puntatore incontra
-   il vetro frontale, in coordinate della vasca, e la direzione della linea
-   di vista attraverso quel punto, e passa entrambi alla simulazione
-   (`setFinger`). I tocchi diventano `tap(point)`; il cibo è
-   `dropFood(x, z)`.
-3. **Leggere il gesto.** A ogni passo della simulazione `sim/gesture.ts`
-   segue il dito sul vetro e tiene misure smussate: la sua velocità, quanto
-   il percorso gira da una parte (`spin`) e quanto gira in tutto. Le
-   inversioni brusche (oltre 150°) contano come svolte ma non come giro,
-   perché il loro segno lo decide un tremolio: è questo che distingue gli
-   scarabocchi dai cerchi. Le misure restano valide tra un evento e
-   l'altro, così pochi eventi al secondo non sembrano una sosta.
-4. **Chi tocca.** La simulazione misura la distanza di ogni pesce dalla
-   linea di vista: entro 0,6 m sente i cerchi, entro 0,7 lunghezze del
-   corpo sente gli scarabocchi.
-5. **L'incantesimo.** `sim/play.ts` tiene, per ogni pesce, quanto è
-   ipnotizzato e per quanto resta stordito o col solletico, e lo traduce in
-   desideri (direzione, quota, velocità, coda) che sostituiscono quelli di
-   stile e attività, come fanno le attività. Muove anche tre canali di
-   postura che il renderer disegna: `roll` attorno alla lunghezza del
-   corpo, `bend` (il contorcersi) e `gaze` (gli occhi sul dito).
+1. `src/input/pointer.ts` trasforma mouse e tocco negli eventi
+   `pointer-move`, `pointer-leave` e `tap`.
+2. `src/app/main.ts` chiede alla vista dove il puntatore tocca il vetro e
+   in che direzione guarda chi osserva, e passa tutto alla simulazione
+   (`setFinger`, `tap`, `dropFood`).
+3. `src/sim/gesture.ts` segue il dito sul vetro e misura quanto è veloce e
+   quanto gira. I cerchi girano sempre nello stesso verso; gli scarabocchi
+   girano molto, ma avanti e indietro.
+4. `src/sim/play.ts` tiene, per ogni pesce, quanto è ipnotizzato, stordito
+   o solleticato, e lo trasforma in desideri (direzione, altezza,
+   andatura, coda) e postura (rollio, contorsione, occhi), come fa
+   un'attività.
 
-Tutto dal punto 3 al 5 è codice di simulazione puro: niente DOM, niente
-GPU, casualità con seme. I test disegnano cerchi e scarabocchi come liste
-di punti e verificano cosa fanno i pesci.
+È tutto codice di simulazione puro: niente browser, niente scheda grafica.
+I test disegnano cerchi e scarabocchi come liste di punti.
 
-## Aggiungere un'interazione
+Per aggiungere un nuovo modo di giocare:
 
-Un nuovo modo di giocare segue la stessa strada:
+1. Se serve un nuovo ingresso (un telefono, una webcam), mettilo in
+   `src/input/` e fagli mandare eventi. Niente in `sim` dovrebbe cambiare
+   per questo.
+2. Trasforma l'ingresso grezzo in qualcosa di significativo con una
+   piccola funzione testata, come fa `gesture.ts`.
+3. Esprimi la reazione come desideri e postura, e lascia che sia la guida
+   a muovere il pesce: così resta fuori dalla roccia e dentro la vasca.
+4. Decidi dove sta in [Chi vince](#chi-vince).
+5. Mostralo nella sovrimpressione di `A` (`src/ui/activityOverlay.ts`).
+6. Descrivilo qui, in tutte e due le lingue.
 
-1. **Input.** Se serve una nuova sorgente (un telefono, una webcam, un
-   tasto), scrivila in `src/input/` e falle emettere eventi sull'event bus.
-   Aggiungere una sorgente non deve richiedere modifiche in `sim`.
-2. **Riconoscere.** Trasforma l'input grezzo in qualcosa di significativo in
-   termini di vasca con una funzione pura e testata, come fa
-   `sim/gesture.ts` per cerchi e scarabocchi. Testala con percorsi
-   disegnati, anche con pochi eventi al secondo.
-3. **Reagire.** Tieni l'eventuale stato per pesce con il pesce (come
-   `PlayState`) ed esprimi la reazione come desideri e postura: direzione,
-   quota, velocità, prontezza, spinta della coda, bocca, picchiate, rollio,
-   curvatura, sguardo. Preferiscili allo spostare i pesci direttamente: la
-   guida li tiene fuori dalla roccia e dentro la vasca.
-4. **Darle un posto.** Decidi dove va in [Chi vince](#chi-vince) e se
-   interrompe le attività.
-5. **Mostrarla.** Aggiungi il suo stato all'overlay della `A` (`fishLabel`,
-   `fishDetails` in `src/ui/activityOverlay.ts`), così si vede e si può
-   tarare.
-6. **Documentarla** qui, nelle due lingue.
+### Idee per dopo
 
-### Idee per il futuro
-
-- **Segui il capo**: trascini il dito piano e un banco lo segue.
-- **Addestramento**: un doppio tocco seguito sempre dal cibo; dopo un po' i
-  pesci accorrono al solo doppio tocco.
-- **Il preferito**: tieni premuto su un pesce e lui segue il puntatore
-  finché non lasci.
-- **Bolle**: tenendo premuto soffi una scia di bolle che i pesci
-  attraversano o evitano.
-- Dalla roadmap: il **telefono come telecomando**, la **presenza** davanti
-  allo schermo vista da una webcam, l'**head tracking** per la parallasse.
+- Trascini il dito piano e un branco lo segue.
+- Un doppio tocco sempre seguito dal cibo: dopo un po' i pesci arrivano al
+  doppio tocco anche senza cibo.
+- Tieni premuto su un pesce e ti segue finché non lasci.
+- Tieni premuto il tasto per soffiare bolle.
+- Un telefono come telecomando, o una webcam che si accorge delle persone
+  davanti allo schermo.
