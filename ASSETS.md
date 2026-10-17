@@ -62,7 +62,9 @@ All were optimized with glTF Transform (meshopt geometry, KTX2 textures at
 1024 px; see README, "3D fish models"). The seabream went through
 `scripts/blender/seabream.py` first: its jaw bones' widest-open pose became
 a MouthOpen shape key, and Blender converted its specular-glossiness
-material. The crabs, a few
+material. The barramundi, with no bones, had its protrusible mouth
+shaped by `scripts/blender/barramundi.py` (jaw swinging down, upper jaw
+sliding forward, a dark throat). The crabs, a few
 pixels tall on the bottom, have 512 px textures, and the freshwater crab
 scan, drawn unlit, is lit like the other bodies. Skeletons and swim
 animations are not used: the rest pose is baked and the engine swims the

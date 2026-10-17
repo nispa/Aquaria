@@ -4,6 +4,9 @@
   "forward": "+z",
   "up": "+y",
   "swimAmplitude": 0.06,
+  "mouth": {
+    "morphTarget": "MouthOpen"
+  },
   "eyes": {
     "painted": {
       "center": [0.447, -0.031],
