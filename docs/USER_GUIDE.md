@@ -58,6 +58,7 @@ This guide covers everything needed to operate, customize, and understand the de
 | **`T`**                          | Torch                     | The pointer shines a beam into the tank; some species gather in it, shy ones flee. Best at night.                                  |
 | **`Z`**                          | Magnifier                 | A round lens over the pointer shows the tank three times larger: look at the fish up close.                                        |
 | **`M`**                          | Sound                     | Switches the sounds on or off: the soft bubbling, a thud for taps, food, torch and magnifier. Volume in the panel's Sound section. |
+| **`E`**                          | Scene Editor              | Builds rock from blocks in an isometric view: add, remove, brush size, layers, smooth preview, save. `Esc` leaves without saving.  |
 | **Corner buttons**               | Torch, Feed, Panel        | Appear on a mouse move or a touch, big enough for a finger, and fade again.                                                        |
 | **Mouse Move**                   | Reveal Panel Button       | A discreet corner toggle button appears for 2.5s and fades away to avoid screen burn-in.                                           |
 

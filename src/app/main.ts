@@ -10,6 +10,7 @@ import { consoleSink, createLogger } from "../core/logger";
 import { createRng } from "../core/rng";
 import { versionLabel } from "../core/version";
 import { createAquariumView, type AquariumView } from "../render/aquariumView";
+import { openSceneEditor, type SceneEditor } from "./sceneEditor";
 import { drawFishPortraits, type FishPortraitRequest } from "../render/fishPortraits";
 import { drawSceneryPortraits, type SceneryPortraitRequest } from "../render/sceneryPortraits";
 import { EFFECTS } from "../render/effects";
@@ -375,6 +376,8 @@ async function start(): Promise<void> {
   const pointerAt = new Vector2();
   let shownScene = scene;
   let { simulation, view } = mountScene(scene);
+  /** The scene editor while editing: it draws instead of the tank, and the simulation stops. */
+  let editor: SceneEditor | undefined;
   const feedRng = createRng((options.seed ?? scene.seed) + FEED_SEED_OFFSET);
   // The pointer is a finger on the glass: curious fish come to look, a tap
   // startles them, and food falls where it points.
@@ -385,6 +388,7 @@ async function start(): Promise<void> {
   const tapPoint = new Vector3();
   let fingerOnGlass = false;
   input.on("pointer-move", ({ x, y }) => {
+    if (editor !== undefined) return;
     pointerAt.set(x, y);
     if (lensOn) view.aimLens(pointerAt);
     fingerOnGlass = view.glassPoint(x, y, finger, sight);
@@ -392,12 +396,14 @@ async function start(): Promise<void> {
     if (torchOn) view.aimTorch(fingerOnGlass ? finger : undefined);
   });
   input.on("pointer-leave", () => {
+    if (editor !== undefined) return;
     fingerOnGlass = false;
     simulation.setFinger(undefined);
     view.aimTorch(undefined);
     view.aimLens(undefined);
   });
   input.on("tap", ({ x, y }) => {
+    if (editor !== undefined) return;
     if (!view.glassPoint(x, y, tapPoint)) return;
     simulation.tap(tapPoint);
     sounds.play("tap");
@@ -416,6 +422,10 @@ async function start(): Promise<void> {
     );
   };
   window.addEventListener("resize", () => {
+    if (editor !== undefined) {
+      editor.resize(window.innerWidth, window.innerHeight);
+      return;
+    }
     view.resize(window.innerWidth, window.innerHeight);
     governor.setMax(highestHeight());
   });
@@ -544,14 +554,8 @@ async function start(): Promise<void> {
       onSizeBalanceChange(balance) {
         update({ sizeBalance: balance });
         // Fish keep their sizes for life: rebuild the tank, keeping the counts and scenery.
-        const counts = catalog.species.map(
-          (species) => [species.id, simulation.targetCount(species.id)] as const,
-        );
         view.dispose();
-        ({ simulation, view } = mountScene(shownScene));
-        for (const [id, count] of counts) simulation.setCount(id, count);
-        // A designer preview shows its own scenery; the scene shows the viewer's.
-        if (shownScene === scene) scheduleSceneryRebuild();
+        remount();
       },
       onSceneryChange(key, count) {
         sceneryCounts = { ...sceneryCounts, [key]: count };
@@ -568,6 +572,9 @@ async function start(): Promise<void> {
       },
       onOpenDesigner() {
         designer.toggle();
+      },
+      onOpenEditor() {
+        openEditor();
       },
       onRenderHeightChange(height) {
         update({ renderHeight: height });
@@ -648,13 +655,16 @@ async function start(): Promise<void> {
     maxDeltaSeconds: MAX_FRAME_SECONDS,
   });
 
-  const saveScene = (draft: Scene, id: string): void => {
+  /**
+   * Validates and stores a scene, then opens it (with the designer when
+   * `reopenDesigner`). Returns why it could not be saved, or undefined.
+   */
+  const saveScene = (draft: Scene, id: string, reopenDesigner = true): string | undefined => {
     let valid: Scene;
     try {
       valid = { ...parseScene({ ...draft, id }, catalog), id };
     } catch (error) {
-      designer.showError(error instanceof SceneValidationError ? error.message : String(error));
-      return;
+      return error instanceof SceneValidationError ? error.message : String(error);
     }
     storeCustomScenes((stored) => writeCustomScene(stored, valid));
     // The saved scene holds its own counts: panel overrides would hide them.
@@ -665,7 +675,11 @@ async function start(): Promise<void> {
       counts: otherScenes(settings.counts),
       scenery: otherScenes(settings.scenery ?? {}),
     });
-    openScene(id, true);
+    openScene(id, reopenDesigner);
+    return undefined;
+  };
+  const showSaveError = (message: string | undefined): void => {
+    if (message !== undefined) designer.showError(message);
   };
   const designer: Designer = createDesigner(
     document.body,
@@ -691,7 +705,7 @@ async function start(): Promise<void> {
       },
       onSave(draft, asNew) {
         const taken = Object.keys(customScenes);
-        saveScene(draft, asNew ? customSceneId(draft.name, taken) : sceneId);
+        showSaveError(saveScene(draft, asNew ? customSceneId(draft.name, taken) : sceneId));
       },
       onExport(draft) {
         try {
@@ -707,7 +721,7 @@ async function start(): Promise<void> {
           .text()
           .then((json) => {
             const imported = importScene(json, catalog, Object.keys(customScenes));
-            saveScene(imported.scene, imported.id);
+            showSaveError(saveScene(imported.scene, imported.id));
           })
           .catch((error: unknown) => {
             designer.showError(error instanceof Error ? error.message : String(error));
@@ -721,6 +735,42 @@ async function start(): Promise<void> {
     },
   );
   if (options.designer === true) designer.open();
+
+  /** Rebuilds the tank on the canvas, keeping the fish counts and the viewer's scenery. */
+  const remount = (): void => {
+    const counts = catalog.species.map(
+      (species) => [species.id, simulation.targetCount(species.id)] as const,
+    );
+    ({ simulation, view } = mountScene(shownScene));
+    for (const [id, count] of counts) simulation.setCount(id, count);
+    // A designer preview shows its own scenery; the scene shows the viewer's.
+    if (shownScene === scene) scheduleSceneryRebuild();
+  };
+
+  /** Editing mode: the tank gives way to the scene editor until saved or left. */
+  const openEditor = (): void => {
+    if (editor !== undefined) return;
+    designer.close();
+    panel.setSuspended(true);
+    view.dispose();
+    editor = openSceneEditor({
+      canvas,
+      root: document.body,
+      scene: { ...scene, id: sceneId, lights: settings.lights ?? scene.lights },
+      canSave: isCustomSceneId(sceneId),
+      onSave(draft, asNew) {
+        const id = asNew ? customSceneId(draft.name, Object.keys(customScenes)) : sceneId;
+        return saveScene(draft, id, false);
+      },
+      onExit() {
+        editor?.dispose();
+        editor = undefined;
+        panel.setSuspended(false);
+        remount();
+      },
+    });
+    editor.resize(window.innerWidth, window.innerHeight);
+  };
 
   if (options.frozenSeconds !== undefined) {
     // Deterministic still frame for visual tests: no animation loop.
@@ -743,6 +793,11 @@ async function start(): Promise<void> {
   let drawnHeight = 0;
   const frame = (now: number): void => {
     window.requestAnimationFrame(frame);
+    if (editor !== undefined) {
+      editor.render();
+      previous = undefined;
+      return;
+    }
     const delta = previous === undefined ? 0 : (now - previous) / MS_PER_SECOND;
     previous = now;
     const steps = clock.advance(delta);

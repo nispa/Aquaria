@@ -538,3 +538,39 @@ test.describe("scene designer", () => {
     await expect(designer(page).locator(".panel__warning")).toContainText("Invalid scene");
   });
 });
+
+test.describe("scene editor", () => {
+  test("builds rock from blocks and saves it as a new scene", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto("/?scene=iwagumi&effects=none");
+    await waitForState(page);
+
+    await page.keyboard.press("e");
+    const bar = page.getByRole("toolbar", { name: "Scene editor" });
+    await expect(bar).toBeVisible();
+    const canvas = page.locator("#aquarium");
+    const box = await canvas.boundingBox();
+    if (box === null) throw new Error("No canvas.");
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height * 0.7);
+    await bar.getByRole("button", { name: "Save as a new scene" }).click();
+
+    await expect(page).toHaveURL(/scene=my-iwagumi/);
+    await waitForState(page);
+    const stored = await page.evaluate(() => localStorage.getItem("aquaria.customScenes"));
+    expect(stored).toContain('"blocks"');
+    expect(errors).toEqual([]);
+  });
+
+  test("leaves without saving and brings the tank back", async ({ page }) => {
+    await page.goto("/?scene=iwagumi&effects=none");
+    await waitForState(page);
+
+    await page.keyboard.press("e");
+    await page.getByRole("button", { name: "Leave without saving" }).click();
+
+    await expect(page.getByRole("toolbar", { name: "Scene editor" })).toHaveCount(0);
+    const stored = await page.evaluate(() => localStorage.getItem("aquaria.customScenes"));
+    expect(stored).toBeNull();
+  });
+});

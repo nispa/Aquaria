@@ -109,12 +109,12 @@ scene.
 
 ### C2. Editing mode and voxels
 
-- [ ] Editing view: isometric orthographic camera, 90° rotation steps, zoom
+- [x] Editing view: isometric orthographic camera, 90° rotation steps, zoom
       and pan, floor grid.
-- [ ] Voxel tools: add on the clicked face, remove, 3D brush with selectable
+- [x] Voxel tools: add on the clicked face, remove, 3D brush with selectable
       size, slicing by layer; blocky preview with a "smooth" switch.
-- [ ] Mouse and touch (tap, drag, release) through pointer events.
-- [ ] Save, save as new, exit without saving.
+- [x] Mouse and touch (tap, drag, release) through pointer events.
+- [x] Save, save as new, exit without saving.
 
 ### C3. Palette and placement
 

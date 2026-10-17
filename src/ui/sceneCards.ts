@@ -57,12 +57,41 @@ const DESIGNER_ICON =
   '<path d="M3 15l4-4 3 3 3-4 4 5"/>' +
   '<path d="M15 13l6-6 2 2-6 6-3 1z" fill="currentColor" stroke="none"/></svg>';
 
+/** Stacked cubes: the scene editor card's icon. */
+const EDITOR_ICON =
+  '<svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true" fill="none" ' +
+  'stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">' +
+  '<path d="M12 3l5 2.5v5L12 13l-5-2.5v-5z"/><path d="M7 10.5l5 2.5v5L7 20.5 2 18v-5z"/>' +
+  '<path d="M17 10.5l5 2.5v5l-5 2.5-5-2.5v-5z"/></svg>';
+
+/** A card that opens a tool instead of a scene. */
+function actionCard(
+  action: string,
+  iconMarkup: string,
+  name: string,
+  label: string,
+  title: string,
+  onClick: () => void,
+): HTMLButtonElement {
+  const card = element("button", "scene-card scene-card--designer");
+  card.type = "button";
+  card.dataset.action = action;
+  const icon = element("span", "scene-card__picture scene-card__icon");
+  icon.innerHTML = iconMarkup;
+  card.setAttribute("aria-label", label);
+  card.title = title;
+  card.append(icon, element("span", "scene-card__name", name));
+  card.addEventListener("click", onClick);
+  return card;
+}
+
 export interface SceneCardsOptions {
   readonly groups: readonly SceneCardChoiceGroup[];
   readonly selected: string;
   readonly pictureOf: (id: string) => string | undefined;
   onSelect(sceneId: string): void;
   onOpenDesigner(): void;
+  onOpenEditor(): void;
 }
 
 /** The cards in one grid, ready to go in the panel. */
@@ -93,17 +122,27 @@ export function createSceneCards(options: SceneCardsOptions): HTMLElement {
     });
     grid.append(button);
   }
-  const designer = element("button", "scene-card scene-card--designer");
-  designer.type = "button";
-  designer.dataset.action = "designer";
-  const icon = element("span", "scene-card__picture scene-card__icon");
-  icon.innerHTML = DESIGNER_ICON;
-  designer.setAttribute("aria-label", "Scene designer");
-  designer.title = "Scene designer: build and edit scenes";
-  designer.append(icon, element("span", "scene-card__name", "Designer"));
-  designer.addEventListener("click", () => {
-    options.onOpenDesigner();
-  });
-  grid.append(designer);
+  grid.append(
+    actionCard(
+      "designer",
+      DESIGNER_ICON,
+      "Designer",
+      "Scene designer",
+      "Scene designer: build and edit scenes",
+      () => {
+        options.onOpenDesigner();
+      },
+    ),
+    actionCard(
+      "editor",
+      EDITOR_ICON,
+      "Rock",
+      "Scene editor",
+      "Scene editor: build rock from blocks (E)",
+      () => {
+        options.onOpenEditor();
+      },
+    ),
+  );
   return grid;
 }

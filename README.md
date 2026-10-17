@@ -82,8 +82,17 @@ Controls:
 | `T`                          | Torch: the pointer lights the tank, fish react to the beam      |
 | `Z`                          | Magnifier: a lens over the pointer shows the fish up close      |
 | `M`                          | Sound on or off (bubbling, taps, food, torch and magnifier)     |
+| `E`                          | Scene editor: build rock from blocks (also a card in Scenes)    |
 | Corner buttons               | Torch, feed, control panel (shown on a mouse move or a touch)   |
 | Move the mouse               | Shows the panel button for a moment                             |
+
+In the scene editor the tank is seen from above at an angle. Click or drag
+with one finger to add blocks (`＋`) or remove them (`－`); the brush sets how
+many at once and Layers slices off the top ones to reach inside. Drag with
+the right button or two fingers to move the view, use the wheel or pinch to
+zoom, ⟲ ⟳ to turn it. Smooth shows the rock as it will look. Save keeps a
+scene of your own (bundled scenes are saved as new ones); Exit or `Esc`
+leaves without saving.
 
 All the ways to play with the fish, and how to add more:
 [Playing with the fish](docs/INTERACTION.md).

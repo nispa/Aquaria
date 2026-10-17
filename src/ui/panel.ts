@@ -99,6 +99,8 @@ export interface About {
 export interface PanelCallbacks {
   onSceneChange(sceneId: string): void;
   onOpenDesigner(): void;
+  /** Opens the scene editor (building rock from blocks) in place of the tank. */
+  onOpenEditor(): void;
   onCountChange(speciesId: string, count: number): void;
   /** Called when the slider is released: the tank is rebuilt with the new sizes. */
   onSizeBalanceChange(balance: number): void;
@@ -138,6 +140,8 @@ export interface Panel {
   setLens(on: boolean): void;
   /** Shows whether the sound is on (it may be switched with M). */
   setSound(on: boolean): void;
+  /** While editing, the panel and the corner buttons hide and keys do nothing. */
+  setSuspended(suspended: boolean): void;
   dispose(): void;
 }
 
@@ -254,6 +258,9 @@ export function createPanel(
       },
       onOpenDesigner: () => {
         callbacks.onOpenDesigner();
+      },
+      onOpenEditor: () => {
+        callbacks.onOpenEditor();
       },
     }),
   );
@@ -473,7 +480,9 @@ export function createPanel(
   corner.append(torchButton, lensButton, cornerFeed, opener);
 
   let idleTimer: number | undefined;
+  let suspended = false;
   const onPointerMove = (): void => {
+    if (suspended) return;
     corner.hidden = false;
     window.clearTimeout(idleTimer);
     idleTimer = window.setTimeout(() => {
@@ -488,7 +497,9 @@ export function createPanel(
   };
   opener.addEventListener("click", toggle);
   const onKey = (event: KeyboardEvent): void => {
+    if (suspended) return;
     if (event.target instanceof HTMLInputElement && event.target.type !== "range") return;
+    if (event.key === "e" || event.key === "E") callbacks.onOpenEditor();
     if (event.key === "h" || event.key === "H") toggle();
     if (event.key === "f" || event.key === "F") callbacks.onFullscreen();
     if (event.key === "t" || event.key === "T") callbacks.onTorchToggle();
@@ -521,6 +532,13 @@ export function createPanel(
     },
     setLens(on) {
       lensButton.setAttribute("aria-pressed", String(on));
+    },
+    setSuspended(next) {
+      suspended = next;
+      if (next) {
+        panel.hidden = true;
+        corner.hidden = true;
+      }
     },
     setSound(on) {
       if (soundInput !== null) soundInput.checked = on;

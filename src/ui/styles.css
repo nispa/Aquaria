@@ -630,3 +630,77 @@ optgroup {
   background-color: #0b2433;
   color: var(--text);
 }
+
+/* The scene editor's tool bar: along the top, wrapping on narrow screens. */
+.editor-bar {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  font-size: 14px;
+}
+
+.editor-bar__title {
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.editor-bar__button {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.editor-bar__button[aria-pressed="true"] {
+  color: #04161f;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.editor-bar__button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.editor-bar__field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+}
+
+.editor-bar__field .panel__slider {
+  width: 96px;
+}
+
+.editor-bar__check {
+  width: 20px;
+  height: 20px;
+}
+
+.editor-bar__status {
+  flex: 1;
+  min-width: 0;
+  color: #ffb3a7;
+  text-align: right;
+}
+
+#aquarium.editing {
+  touch-action: none;
+}
