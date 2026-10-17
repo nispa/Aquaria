@@ -4,13 +4,16 @@
 
 Writes model.glb to the output folder (by default
 public/assets/species/freshwater-angelfish). Everything is generated here,
-so the model is the project's own work (CC0, like the code that made it):
+so the model is the project's own work (CC0, like the code that made it).
+It is an albino angelfish, after photographs of the Altum form:
 
-- a tall, flat disc of a body with a steep forehead and a small mouth;
-- sail-like dorsal and anal fins swept back, a caudal fin with long lobes,
-  clear pectoral fins and the two long pelvic filaments;
-- silver skin with the four black bars (one through the eye) running on into
-  the fins, and red eyes, painted as vertex colors;
+- a flat, rhomboid body: a small pointed snout set high, a steep concave
+  forehead up to the dorsal fin, the belly sloping down to the anal fin;
+- huge sickle-shaped dorsal and anal fins swept far back, a fan of a caudal
+  fin with long lobes, all see-through between fine white rays; clear
+  pectoral fins and the two long pelvic filaments;
+- pearly white skin with a faint pink blush at the gills and a hint of
+  scales, and red eyes, painted as vertex colors;
 - an armature: "Root" holds the body, "Eye.L" and "Eye.R" hold the eyeballs
   (their heads at the eyeballs' centres), so Aquaria can turn the eyes;
 - a "MouthOpen" shape key that drops the lower jaw.
@@ -30,28 +33,50 @@ from mathutils import Vector
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DEFAULT_OUTPUT = os.path.join(ROOT, "public", "assets", "species", "freshwater-angelfish")
 
-# Body: snout at SNOUT_X, caudal peduncle at PEDUNCLE_X.
 SNOUT_X = 0.36
-PEDUNCLE_X = -0.26
-BODY_TOP = 0.40
-BODY_BOTTOM = 0.36
-HALF_THICKNESS = 0.075
-BODY_STEPS = 96
-BODY_AROUND = 48
+PEDUNCLE_X = -0.27
+HALF_THICKNESS = 0.06
+BODY_STEPS = 120
+BODY_AROUND = 64
 
-EYE_X = 0.255
-EYE_Z = 0.075
+EYE = Vector((0.205, 0.0, 0.16))
 EYE_RADIUS = 0.04
 
 # Colors, sRGB.
-SILVER = "#d9dee0"
-BACK = "#a9a68a"
-BELLY = "#f2f4f2"
-BAR = "#17181a"
-FIN = "#c9ced0"
-FIN_EDGE = "#f4f6f6"
-IRIS = "#c4281c"
-PUPIL = "#050505"
+PEARL = "#f3f1ec"
+SHADE = "#ddd9d2"
+BLUSH = "#f0cfc8"
+FIN_RAY = "#fbfbf8"
+FIN_WEB = "#e8ecee"
+IRIS = "#d0221c"
+PUPIL = "#5a0a08"
+
+# The body's outline, traced from photographs: (x, height) along the top and
+# along the bottom, from the snout to the caudal peduncle.
+TOP = [
+    (0.36, 0.165),
+    (0.33, 0.21),
+    (0.27, 0.27),
+    (0.18, 0.34),
+    (0.08, 0.40),
+    (0.0, 0.42),
+    (-0.08, 0.38),
+    (-0.16, 0.25),
+    (-0.22, 0.12),
+    (-0.27, 0.055),
+]
+BOTTOM = [
+    (0.36, 0.135),
+    (0.33, 0.09),
+    (0.27, 0.02),
+    (0.18, -0.09),
+    (0.08, -0.22),
+    (0.0, -0.31),
+    (-0.06, -0.33),
+    (-0.14, -0.24),
+    (-0.21, -0.11),
+    (-0.27, -0.05),
+]
 
 
 def linear(hex_color, alpha=1.0):
@@ -70,41 +95,50 @@ def smoothstep(edge0, edge1, x):
     return t * t * (3 - 2 * t)
 
 
-# The four bars, by x: through the eye, the middle, the rear and the peduncle.
-BARS = [(0.255, 0.035), (0.075, 0.05), (-0.115, 0.045), (-0.26, 0.03)]
-
-
-def bar_amount(x):
-    """How dark a point is from the bars at this x, 0..1 (soft-edged bands)."""
-    return max(1.0 - smoothstep(width * 0.6, width * 1.25, abs(x - centre)) for centre, width in BARS)
-
-
-# --- Body profile -----------------------------------------------------------
-
-
-def hump(s, rise, fall):
-    """s^rise (1-s)^fall scaled to peak at 1: rises fast for a small rise, falls slowly for a small fall."""
-    peak = rise / (rise + fall)
-    return (s**rise) * ((1 - s) ** fall) / ((peak**rise) * ((1 - peak) ** fall))
-
-
-def profile(s):
-    """Half-heights above and below the midline, the midline and the half-thickness at s (0 snout .. 1 peduncle)."""
-    # A disc with a steep forehead: rises fast behind the snout, tapers to the peduncle.
-    top = BODY_TOP * hump(s, 0.8, 0.85)
-    bottom = BODY_BOTTOM * hump(s, 0.85, 0.85)
-    peduncle = smoothstep(0.75, 1.0, s)
-    top = max(top, 0.045 * peduncle)
-    bottom = max(bottom, 0.04 * peduncle)
-    # The mouth sits a little above the middle of the snout.
-    middle = 0.03 * (1 - smoothstep(0.0, 0.35, s))
-    thickness = HALF_THICKNESS * hump(s, 0.45, 0.55)
-    thickness = max(thickness, 0.012 * peduncle)
-    return top, bottom, middle, thickness
+def curve(points, x):
+    """The height of a traced outline at x: a smooth (Catmull-Rom) curve through its points."""
+    xs = [p[0] for p in points]
+    for i in range(len(points) - 1):
+        if xs[i] >= x >= xs[i + 1]:
+            p0 = points[max(i - 1, 0)][1]
+            p1, p2 = points[i][1], points[i + 1][1]
+            p3 = points[min(i + 2, len(points) - 1)][1]
+            t = (xs[i] - x) / (xs[i] - xs[i + 1])
+            return 0.5 * (
+                2 * p1
+                + (-p0 + p2) * t
+                + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t
+                + (-p0 + 3 * p1 - 3 * p2 + p3) * t * t * t
+            )
+    return points[-1][1] if x < xs[-1] else points[0][1]
 
 
 def body_x(s):
     return SNOUT_X + (PEDUNCLE_X - SNOUT_X) * s
+
+
+def profile(s):
+    """The top, the bottom and the half-thickness of the body at s (0 snout .. 1 peduncle)."""
+    x = body_x(s)
+    top, bottom = curve(TOP, x), curve(BOTTOM, x)
+    # Thickest just behind the head, thin as a leaf towards the fins' bases.
+    thickness = HALF_THICKNESS * (min(s / 0.22, 1.0) ** 0.5) * (1 - 0.75 * smoothstep(0.25, 1.0, s))
+    return top, bottom, max(thickness, 0.006)
+
+
+# --- Body -------------------------------------------------------------------
+
+
+def body_color(x, z, top, bottom):
+    height = (z - (top + bottom) / 2) / max((top - bottom) / 2, 1e-4)
+    color = mix(linear(PEARL), linear(SHADE), smoothstep(0.55, 1.0, abs(height)) * 0.6)
+    # A faint blush where the blood shows through: behind the gill cover and at the throat.
+    gill = 1.0 - smoothstep(0.0, 0.05, abs(x - (0.155 - 0.05 * height * height)))
+    throat = smoothstep(0.1, 0.32, x) * smoothstep(-0.2, -0.75, height)
+    color = mix(color, linear(BLUSH), max(gill * 0.55, throat * 0.45))
+    # A hint of scales: a fine diamond lattice, barely there, behind the head.
+    scales = math.sin(x * 160 + z * 90) * math.sin(x * 160 - z * 90)
+    return mix(color, linear(SHADE), max(scales, 0.0) * 0.18 * smoothstep(0.2, 0.0, x - 0.1))
 
 
 def build_body():
@@ -112,47 +146,37 @@ def build_body():
     rings = []
     for i in range(1, BODY_STEPS + 1):
         s = i / BODY_STEPS
-        top, bottom, middle, thickness = profile(s)
+        x = body_x(s)
+        top, bottom, thickness = profile(s)
+        middle = (top + bottom) / 2
+        half = (top - bottom) / 2
         ring = []
         for j in range(BODY_AROUND):
             angle = 2 * math.pi * j / BODY_AROUND
-            up = math.sin(angle)
-            side = math.cos(angle)
-            z = middle + (top if up > 0 else bottom) * up
-            y = thickness * math.copysign(abs(side) ** 0.75, side)
-            x = body_x(s)
+            up, side = math.sin(angle), math.cos(angle)
+            z = middle + half * up
+            # A lens: full at the middle, sharp at the back and the belly.
+            y = thickness * math.copysign(abs(side) ** 1.4, side)
             ring.append(len(verts))
             verts.append((x, y, z))
-            colors.append(body_color(x, z, middle, top, bottom, s))
+            colors.append(body_color(x, z, top, bottom))
         rings.append(ring)
     snout = len(verts)
-    verts.append((SNOUT_X + 0.004, 0.0, profile(0.0)[2] + 0.03))
-    colors.append(body_color(SNOUT_X, 0.03, 0.03, 0.01, 0.01, 0.0))
+    tip = (curve(TOP, SNOUT_X) + curve(BOTTOM, SNOUT_X)) / 2
+    verts.append((SNOUT_X + 0.008, 0.0, tip))
+    colors.append(linear(BLUSH))
     for j in range(BODY_AROUND):
-        k = (j + 1) % BODY_AROUND
-        faces.append((snout, rings[0][k], rings[0][j]))
+        faces.append((snout, rings[0][(j + 1) % BODY_AROUND], rings[0][j]))
     for a, b in zip(rings, rings[1:]):
         for j in range(BODY_AROUND):
             k = (j + 1) % BODY_AROUND
             faces.append((a[j], a[k], b[k], b[j]))
     tail = len(verts)
-    verts.append((PEDUNCLE_X - 0.004, 0.0, profile(1.0)[2]))
-    colors.append(linear(BAR))
-    last = rings[-1]
+    verts.append((PEDUNCLE_X - 0.004, 0.0, 0.0))
+    colors.append(linear(PEARL))
     for j in range(BODY_AROUND):
-        k = (j + 1) % BODY_AROUND
-        faces.append((tail, last[j], last[k]))
+        faces.append((tail, rings[-1][j], rings[-1][(j + 1) % BODY_AROUND]))
     return verts, faces, colors
-
-
-def body_color(x, z, middle, top, bottom, s):
-    height = (z - middle) / (top if z > middle else max(bottom, 1e-4))
-    base = mix(linear(SILVER), linear(BACK), smoothstep(0.35, 1.0, height))
-    base = mix(base, linear(BELLY), smoothstep(-0.2, -0.9, height))
-    # The gill cover's edge: a faint darker arc behind the eye.
-    gill = 1.0 - smoothstep(0.0, 0.012, abs(x - (0.205 - 0.04 * height * height)))
-    base = mix(base, linear(BACK), gill * 0.5 * (1 - smoothstep(0.7, 1.0, abs(height))))
-    return mix(base, linear(BAR), bar_amount(x) * 0.92)
 
 
 # --- Fins -------------------------------------------------------------------
@@ -161,8 +185,7 @@ def body_color(x, z, middle, top, bottom, s):
 def polyline_point(points, t):
     """A point at share t of the way along a polyline (by length)."""
     lengths = [(Vector(b) - Vector(a)).length for a, b in zip(points, points[1:])]
-    total = sum(lengths)
-    goal = t * total
+    goal = t * sum(lengths)
     last = len(lengths) - 1
     for index, ((a, b), length) in enumerate(zip(zip(points, points[1:]), lengths)):
         if goal <= length or index == last:
@@ -172,8 +195,20 @@ def polyline_point(points, t):
     return Vector(points[-1])
 
 
-def membrane(base, edge, steps_u=48, steps_v=32, color=None):
-    """A fin: a sheet between a base curve and its outer edge, both functions of u in 0..1."""
+def rounded(points, passes=3):
+    """Chaikin's corner cutting: a smooth outline through the corners, ends kept."""
+    for _ in range(passes):
+        smooth = [points[0]]
+        for a, b in zip(points, points[1:]):
+            a, b = Vector(a), Vector(b)
+            smooth += [tuple(a.lerp(b, 0.25)), tuple(a.lerp(b, 0.75))]
+        smooth.append(points[-1])
+        points = smooth
+    return points
+
+
+def membrane(base, edge, color, steps_u=240, steps_v=24, bulge=0.0):
+    """A fin: a sheet from a base curve out to its edge, both functions of u in 0..1; v runs along the rays."""
     verts, faces, colors = [], [], []
     for i in range(steps_u + 1):
         u = i / steps_u
@@ -181,8 +216,10 @@ def membrane(base, edge, steps_u=48, steps_v=32, color=None):
         for j in range(steps_v + 1):
             v = j / steps_v
             p = a.lerp(b, v)
+            # Fins are not flat: a slight wave across the rays.
+            p.y += bulge * math.sin(u * math.pi * 3) * v
             verts.append((p.x, p.y, p.z))
-            colors.append(color(p, u, v))
+            colors.append(color(u, v))
     row = steps_v + 1
     for i in range(steps_u):
         for j in range(steps_v):
@@ -191,110 +228,110 @@ def membrane(base, edge, steps_u=48, steps_v=32, color=None):
     return verts, faces, colors
 
 
-def fin_color(p, u, v, rays=14):
-    base = mix(linear(FIN, 0.55), linear(FIN_EDGE, 0.35), smoothstep(0.75, 1.0, v))
-    ray = 0.5 + 0.5 * math.cos(u * rays * 2 * math.pi)
-    base = mix(base, linear(BACK, 0.7), ray**6 * 0.12)
-    return mix(base, linear(BAR, 0.8), bar_amount(p.x) * 0.85 * (1 - smoothstep(0.8, 1.0, v)))
+def rayed(rays):
+    """Milky, see-through fins, more so towards the edge, with soft white rays.
+
+    The rays stay faint: fine, high-contrast stripes flicker into a moire
+    pattern once the fish is small on screen.
+    """
+
+    def color(u, v):
+        ray = (0.5 + 0.5 * math.cos(u * rays * 2 * math.pi)) ** 3
+        web = mix(linear(FIN_WEB, 0.72), linear(FIN_WEB, 0.42), smoothstep(0.35, 1.0, v))
+        return mix(web, linear(FIN_RAY, 0.85 - 0.25 * v), ray * 0.35)
+
+    return color
 
 
-def body_edge(s, upper):
-    top, bottom, middle, _ = profile(s)
-    return Vector((body_x(s), 0.0, middle + (top if upper else -bottom) * 0.97))
+def body_edge(x, upper):
+    s = (SNOUT_X - x) / (SNOUT_X - PEDUNCLE_X)
+    top, bottom, _ = profile(s)
+    return Vector((x, 0.0, (top if upper else bottom) - (0.006 if upper else -0.006)))
 
 
-def dorsal(upper):
-    sign = 1 if upper else -1
-    start, end = (0.26, 0.97) if upper else (0.32, 0.97)
-    reach = 0.88 if upper else 0.82
-    # A long sickle: a steep leading edge up to the tip, swept back, and a
-    # concave trailing edge down to the peduncle.
-    outline = [
-        (body_x(start), 0, sign * 0.0),
-        (0.02, 0, sign * 0.52),
-        (-0.24, 0, sign * (reach - 0.06)),
-        (-0.42, 0, sign * reach),
-        (-0.45, 0, sign * (reach - 0.1)),
-        (-0.36, 0, sign * 0.45),
-        (-0.29, 0, sign * 0.18),
-        (body_x(end), 0, sign * 0.06),
-    ]
-    outline[0] = tuple(body_edge(start, upper))
-    outline[-1] = tuple(body_edge(end, upper))
+def sickle(upper):
+    """The dorsal (upper) or anal fin: a long sickle swept far back past the tail."""
+    if upper:
+        start_x = 0.03
+        outline = [(-0.10, 0.52), (-0.30, 0.62), (-0.50, 0.68), (-0.66, 0.70), (-0.52, 0.52), (-0.40, 0.33), (-0.31, 0.14)]
+    else:
+        start_x = 0.0
+        outline = [(-0.12, -0.44), (-0.30, -0.54), (-0.46, -0.60), (-0.60, -0.63), (-0.48, -0.45), (-0.37, -0.27), (-0.30, -0.11)]
+    end_x = PEDUNCLE_X + 0.01
+    points = rounded(
+        [tuple(body_edge(start_x, upper))] + [(x, 0.0, z) for x, z in outline] + [tuple(body_edge(end_x, upper))]
+    )
 
     def base(u):
-        return body_edge(start + (end - start) * u, upper)
+        return body_edge(start_x + (end_x - start_x) * u, upper)
 
     def edge(u):
-        return polyline_point(outline, u)
+        return polyline_point(points, u)
 
-    return membrane(base, edge, steps_u=96, color=fin_color)
+    return membrane(base, edge, rayed(26), bulge=0.006)
 
 
 def caudal():
-    centre = Vector((PEDUNCLE_X + 0.005, 0, profile(1.0)[2]))
-    outline = [
-        (PEDUNCLE_X - 0.02, 0, 0.13),
-        (-0.48, 0, 0.30),
-        (-0.66, 0, 0.36),
-        (-0.52, 0, 0.12),
-        (-0.50, 0, 0.0),
-        (-0.52, 0, -0.12),
-        (-0.66, 0, -0.36),
-        (-0.48, 0, -0.30),
-        (PEDUNCLE_X - 0.02, 0, -0.13),
-    ]
+    root = Vector((PEDUNCLE_X + 0.006, 0, 0))
+    points = rounded([
+        (PEDUNCLE_X - 0.01, 0, 0.06),
+        (-0.42, 0, 0.22),
+        (-0.60, 0, 0.26),
+        (-0.55, 0, 0.10),
+        (-0.56, 0, 0.0),
+        (-0.55, 0, -0.10),
+        (-0.60, 0, -0.26),
+        (-0.42, 0, -0.22),
+        (PEDUNCLE_X - 0.01, 0, -0.06),
+    ])
 
     def base(u):
-        return centre + Vector((0, 0, (0.5 - u) * 0.1))
+        return root + Vector((0, 0, (0.5 - u) * 0.09))
 
     def edge(u):
-        return polyline_point(outline, u)
+        return polyline_point(points, u)
 
-    return membrane(base, edge, steps_u=56, steps_v=14, color=lambda p, u, v: fin_color(p, u, v, rays=18))
+    return membrane(base, edge, rayed(22), steps_u=200, bulge=0.004)
 
 
-def pelvic(side):
+def pelvic(side, length):
     """A long, thin filament hanging from the throat, one on each side."""
-    root = Vector((0.15, side * 0.03, -0.27))
-    path = [root, Vector((0.10, side * 0.05, -0.55)), Vector((0.0, side * 0.06, -0.86)), Vector((-0.08, side * 0.06, -1.02))]
+    root = Vector((0.14, side * 0.025, -0.15))
+    path = rounded(
+        [tuple(root), (0.135, side * 0.04, -0.40), (0.11, side * 0.05, -0.40 - length * 0.5), (0.06, side * 0.05, -0.40 - length)]
+    )
 
     def base(u):
-        return polyline_point([tuple(p) for p in path], u)
+        return polyline_point(path, u)
 
     def edge(u):
-        width = 0.03 * (1 - u) + 0.004
-        return base(u) + Vector((-width, 0, 0))
+        return base(u) + Vector((-(0.022 * (1 - u) + 0.004), 0, 0))
 
-    def color(p, u, v):
-        return mix(linear(FIN, 0.8), linear(FIN_EDGE, 0.6), u)
-
-    return membrane(base, edge, steps_u=32, steps_v=2, color=color)
+    return membrane(base, edge, lambda u, v: linear(FIN_RAY, 0.85 - 0.3 * u), steps_u=40, steps_v=2)
 
 
 def pectoral(side):
-    root = Vector((0.17, side * 0.06, -0.05))
+    root = Vector((0.15, side * 0.045, -0.02))
 
     def base(u):
-        return root + Vector((-0.01 * u, 0, 0.07 * (u - 0.5)))
+        return root + Vector((-0.008 * u, 0, 0.06 * (u - 0.5)))
 
     def edge(u):
-        return root + Vector((-0.13, side * 0.035, 0.09 * (u - 0.5) - 0.02))
+        return root + Vector((-0.12, side * 0.03, 0.08 * (u - 0.5) - 0.025))
 
-    return membrane(base, edge, steps_u=12, steps_v=6, color=lambda p, u, v: linear(FIN_EDGE, 0.25))
+    return membrane(base, edge, rayed(10), steps_u=40, steps_v=8)
 
 
 # --- Eyes -------------------------------------------------------------------
 
 
 def eye_centre(side):
-    s = (SNOUT_X - EYE_X) / (SNOUT_X - PEDUNCLE_X)
-    thickness = profile(s)[3]
-    return Vector((EYE_X, side * (thickness * 0.8), EYE_Z))
+    s = (SNOUT_X - EYE.x) / (SNOUT_X - PEDUNCLE_X)
+    return Vector((EYE.x, side * profile(s)[2] * 0.72, EYE.z))
 
 
 def eyeball(side):
-    """A sphere with a red iris and a black pupil looking out to its side."""
+    """A sphere, red all over as in an albino, darker at the pupil, looking out to its side."""
     centre = eye_centre(side)
     verts, faces, colors = [], [], []
     rings, segments = 16, 24
@@ -302,16 +339,12 @@ def eyeball(side):
         theta = math.pi * i / rings
         for j in range(segments):
             phi = 2 * math.pi * j / segments
-            # The pole (theta = 0) looks out to the side.
-            local = Vector((math.sin(theta) * math.cos(phi), math.cos(theta), math.sin(theta) * math.sin(phi)))
-            local.y *= side
+            local = Vector((math.sin(theta) * math.cos(phi), side * math.cos(theta), math.sin(theta) * math.sin(phi)))
             p = centre + local * EYE_RADIUS
             verts.append((p.x, p.y, p.z))
             out = math.degrees(theta)
-            color = linear(SILVER)
-            color = mix(color, linear(IRIS), 1 - smoothstep(48, 58, out))
-            color = mix(color, linear(PUPIL), 1 - smoothstep(22, 28, out))
-            colors.append(color)
+            color = mix(linear(PEARL), linear(IRIS), 1 - smoothstep(55, 70, out))
+            colors.append(mix(color, linear(PUPIL), 1 - smoothstep(20, 30, out)))
     for i in range(rings):
         for j in range(segments):
             k = (j + 1) % segments
@@ -364,7 +397,7 @@ def material(name, roughness, metallic, blend):
 
 
 def bind(obj, armature, groups):
-    """Weights the whole object to one bone, or each vertex range to its bone."""
+    """Weights each range of vertices fully to its bone."""
     for name, indices in groups:
         group = obj.vertex_groups.get(name) or obj.vertex_groups.new(name=name)
         group.add(indices, 1.0, "REPLACE")
@@ -374,16 +407,16 @@ def bind(obj, armature, groups):
 
 
 def mouth_shape_key(obj):
-    """MouthOpen: the lower lip and chin drop, most at the tip of the snout."""
+    """MouthOpen: the lower jaw drops, most at the tip of the snout."""
     obj.shape_key_add(name="Basis")
     key = obj.shape_key_add(name="MouthOpen")
-    _, _, middle, _ = profile(0.0)
+    middle = (curve(TOP, SNOUT_X) + curve(BOTTOM, SNOUT_X)) / 2
     for index, vertex in enumerate(obj.data.vertices):
-        x, _, z = vertex.co
-        s = (SNOUT_X - x) / (SNOUT_X - PEDUNCLE_X)
-        if s < 0.09 and z < middle + 0.03:
-            drop = 0.035 * (1 - s / 0.09)
-            key.data[index].co = Vector((x - drop * 0.3, vertex.co.y, z - drop))
+        x, y, z = vertex.co
+        reach = (x - (SNOUT_X - 0.06)) / 0.06
+        if reach > 0 and z < middle + 0.005:
+            drop = 0.03 * min(reach, 1.0)
+            key.data[index].co = Vector((x - drop * 0.4, y, z - drop))
 
 
 def main():
@@ -392,17 +425,16 @@ def main():
     os.makedirs(output, exist_ok=True)
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
-    skin = material("Skin", 0.32, 0.25, False)
-    fins = material("Fins", 0.45, 0.0, True)
-    eyes = material("Eyes", 0.08, 0.0, False)
+    skin = material("Skin", 0.28, 0.12, False)
+    fins = material("Fins", 0.35, 0.0, True)
+    eyes = material("Eyes", 0.06, 0.0, False)
 
     body = make_object("Body", [build_body()], skin)
     mouth_shape_key(body)
-    fin_parts = [dorsal(True), dorsal(False), caudal(), pelvic(1), pelvic(-1), pectoral(1), pectoral(-1)]
+    fin_parts = [sickle(True), sickle(False), caudal(), pelvic(1, 0.42), pelvic(-1, 0.34), pectoral(1), pectoral(-1)]
     fin_object = make_object("Fins", fin_parts, fins)
 
-    left = eyeball(1)
-    right = eyeball(-1)
+    left, right = eyeball(1), eyeball(-1)
     eye_object = make_object("Eyes", [left[:3], right[:3]], eyes)
     left_count = len(left[0])
 
