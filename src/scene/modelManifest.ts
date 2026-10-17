@@ -10,6 +10,8 @@ import { hexColor, type SpeciesCatalog } from "./schema";
  */
 export const SPECIES_MODELS_FOLDER = "assets/species";
 export const MODEL_MANIFEST_FILE = "model.json";
+/** Animals that are not fish (visitors, crabs) keep their models here, in the same format. */
+export const ANIMAL_MODELS_FOLDER = "assets/animals";
 
 /**
  * Licenses that let anyone reuse, change and redistribute the model, also
@@ -49,6 +51,9 @@ const DEFAULT_GILL_RATE = 1.1;
  * on a side view of the model; docs/FISH_MODELS.md shows how.
  */
 const bodyLengths = z.number().min(-0.6).max(0.6);
+
+/** Body lengths a second at which an animated model's clips play at their own pace, unless the manifest says. */
+const DEFAULT_ANIMATION_SPEED = 0.3;
 
 const axis = z.enum(["+x", "-x", "+y", "-y", "+z", "-z"]);
 
@@ -138,6 +143,26 @@ export const modelManifestSchema = z
       })
       .refine((gills) => gills.top > gills.bottom, { message: "top must be above bottom." })
       .optional(),
+    /**
+     * The skeletal clips of an animated model (not a fish: a turtle, a
+     * crab), played as it moves: `swim`, `walk` and `idle` name glTF
+     * animations; `speed` is how fast it goes, in body lengths a second,
+     * when a clip plays at its own pace (faster or slower, the clip follows);
+     * `inPlace` pins bones a clip carries away, since Aquaria moves the
+     * animal itself.
+     */
+    animations: z
+      .object({
+        swim: z.string().min(1).optional(),
+        walk: z.string().min(1).optional(),
+        idle: z.string().min(1).optional(),
+        speed: z.number().positive().max(10).default(DEFAULT_ANIMATION_SPEED),
+        inPlace: z.boolean().default(true),
+      })
+      .refine((clips) => [clips.swim, clips.walk, clips.idle].some((clip) => clip !== undefined), {
+        message: "Name at least one clip: swim, walk or idle.",
+      })
+      .optional(),
     credit: z.object({
       author: z.string().min(1),
       source: z.url(),
@@ -161,14 +186,18 @@ export function parseModelManifest(input: unknown, id: string): ModelManifest {
   return result.data;
 }
 
-/** Folder of a model, relative to the site root. */
-export function modelFolderUrl(id: string): string {
-  return `${SPECIES_MODELS_FOLDER}/${id}`;
+/** Folder of a model, relative to the site root: a fish's unless another folder is given. */
+export function modelFolderUrl(id: string, folder: string = SPECIES_MODELS_FOLDER): string {
+  return `${folder}/${id}`;
 }
 
 /** The glTF file of a model, relative to the site root. */
-export function modelFileUrl(id: string, manifest: ModelManifest): string {
-  return `${modelFolderUrl(id)}/${manifest.file}`;
+export function modelFileUrl(
+  id: string,
+  manifest: ModelManifest,
+  folder: string = SPECIES_MODELS_FOLDER,
+): string {
+  return `${modelFolderUrl(id, folder)}/${manifest.file}`;
 }
 
 /** The model folders the catalog's species use, each once. */

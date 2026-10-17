@@ -1,0 +1,12 @@
+{
+  "name": "Sea turtle",
+  "file": "model.glb",
+  "forward": "-z",
+  "up": "+y",
+  "animations": { "swim": "Armature|Tortue Anim", "speed": 0.35 },
+  "credit": {
+    "author": "Eloi",
+    "source": "https://sketchfab.com/3d-models/sea-turtle-23dcb315dea44f5082b020b04710bd31",
+    "license": "CC-BY-4.0"
+  }
+}

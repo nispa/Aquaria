@@ -29,6 +29,7 @@ import {
 } from "../scene/customScenes";
 import { DEFAULT_SIZE_BALANCE, displayCatalog } from "../scene/displaySize";
 import {
+  ANIMAL_MODELS_FOLDER,
   MODEL_MANIFEST_FILE,
   modelFolderUrl,
   modelIdsOf,
@@ -381,6 +382,14 @@ async function loadFileEffects(): Promise<readonly EffectDefinition[]> {
   return loaded.filter((effect) => effect !== undefined);
 }
 
+/** The manifest of an animal's model (a visitor, a crab), from public/assets/animals. */
+async function animalManifest(id: string): Promise<ModelManifest> {
+  const data = await fetchJson(
+    `${modelFolderUrl(id, ANIMAL_MODELS_FOLDER)}/${MODEL_MANIFEST_FILE}`,
+  );
+  return parseModelManifest(data, id);
+}
+
 /** A custom scene saved in this browser, or a clear error if it is gone. */
 function customSceneData(custom: Readonly<Record<string, Scene>>, id: string): Scene {
   const scene = custom[id];
@@ -486,6 +495,7 @@ async function start(): Promise<void> {
       catalog,
       objects,
       modelManifests,
+      animalManifest,
       fishModelEnabled,
       simulation: nextSimulation,
       rng: rng.fork(),

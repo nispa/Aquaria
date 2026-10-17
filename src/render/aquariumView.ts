@@ -25,7 +25,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import type { Logger } from "../core/logger";
 import { pixelRatioForHeight } from "../core/resolution";
 import { createRng, type Rng } from "../core/rng";
-import type { ModelManifest } from "../scene/modelManifest";
+import { ANIMAL_MODELS_FOLDER, modelFileUrl, type ModelManifest } from "../scene/modelManifest";
 import type { ObjectCatalog } from "../scene/objectCatalog";
 import { centerSquare } from "../scene/scenePictures";
 import type { Scene, SpeciesCatalog } from "../scene/schema";
@@ -42,6 +42,7 @@ import type { ObstacleField } from "../sim/obstacles";
 import { createRockwork, LOOSE_ROCK, type Rockwork } from "../sim/rockwork";
 import { floorHeight } from "../sim/terrain";
 import type { Simulation } from "../sim/simulation";
+import { createVisitorRenderer } from "./visitorRenderer";
 import type { EffectDefinition, EffectInstance } from "./effects/types";
 import { createEnvironment } from "./environment";
 import { createWaterEnvironment } from "./environmentLight";
@@ -87,6 +88,8 @@ export interface AquariumViewOptions {
   readonly objects: ObjectCatalog;
   /** Manifests of the species' 3D models, by model folder. */
   readonly modelManifests: ReadonlyMap<string, ModelManifest>;
+  /** Loads the manifest of an animal's model (public/assets/animals), for the visitors. */
+  readonly animalManifest: (id: string) => Promise<ModelManifest>;
   /** Whether a species starts with its 3D model instead of its procedural body. */
   readonly fishModelEnabled: (speciesId: string) => boolean;
   readonly simulation: Simulation;
@@ -280,11 +283,29 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     options.fishModelEnabled,
   );
   const food = createFoodRenderer(simulation.food.pellets.length, water);
+  const visitors = createVisitorRenderer(
+    simulation.visitors,
+    async (id) => {
+      const manifest = await options.animalManifest(id);
+      const model = await loaders.loadAnimated(modelFileUrl(id, manifest, ANIMAL_MODELS_FOLDER));
+      return { manifest, ...model };
+    },
+    logger,
+  );
+  let visitorsTime = simulation.timeSeconds;
   // Stable containers: effects keep references to them across rebuilds.
   const floraGroup = new Group();
   const propGroup = new Group();
   const particleGroup = new Group();
-  world.add(environment.object, floraGroup, propGroup, fish.object, food.object, particleGroup);
+  world.add(
+    environment.object,
+    floraGroup,
+    propGroup,
+    fish.object,
+    food.object,
+    particleGroup,
+    visitors.object,
+  );
   const fixture = createFixtureRenderer(scene.tank, water);
   world.add(fixture.object);
   /** Under LED spots the sun stands straight overhead, so shadows fall down. */
@@ -501,9 +522,13 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
 
   return {
     ready: () =>
-      Promise.all([surfaces.settled(), fish.settled(), flora?.settled(), props?.settled()]).then(
-        () => undefined,
-      ),
+      Promise.all([
+        surfaces.settled(),
+        fish.settled(),
+        flora?.settled(),
+        props?.settled(),
+        visitors.settled(),
+      ]).then(() => undefined),
     setMsaa(samples) {
       msaaSamples = samples;
       buildPipeline(currentLook);
@@ -570,6 +595,8 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       props?.update(simulation.timeSeconds);
       fish.update(simulation.fish);
       food.update(simulation.food.pellets);
+      visitors.update(simulation.visitors, simulation.timeSeconds - visitorsTime);
+      visitorsTime = simulation.timeSeconds;
       particles?.update(simulation.timeSeconds);
       instances.forEach((instance) => {
         instance.update?.();
@@ -610,6 +637,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       blockRock?.dispose();
       fish.dispose();
       food.dispose();
+      visitors.dispose();
       particles?.dispose();
       environmentMap.dispose();
       fixture.dispose();

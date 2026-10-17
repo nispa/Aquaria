@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { catalogFixture } from "./fixtures";
-import { modelFileUrl, modelIdsOf, parseModelManifest } from "./modelManifest";
+import {
+  ANIMAL_MODELS_FOLDER,
+  modelFileUrl,
+  modelIdsOf,
+  parseModelManifest,
+} from "./modelManifest";
 import { parseCatalog, SceneValidationError } from "./parse";
 
 const credit = {
@@ -148,6 +153,22 @@ describe("parseModelManifest", () => {
     expect(() => parseModelManifest(input, "barramundi")).toThrow(/gills/);
   });
 
+  it("names the clips an animated model plays, in place and at its own pace", () => {
+    const input = { name: "Sea turtle", credit, animations: { swim: "Armature|Swim" } };
+
+    expect(parseModelManifest(input, "sea-turtle").animations).toEqual({
+      swim: "Armature|Swim",
+      speed: 0.3,
+      inPlace: true,
+    });
+  });
+
+  it("refuses animations that name no clip", () => {
+    const input = { name: "Sea turtle", credit, animations: { speed: 0.5 } };
+
+    expect(() => parseModelManifest(input, "sea-turtle")).toThrow(/animations/);
+  });
+
   it("names the model in its error messages", () => {
     expect(() => parseModelManifest({ credit }, "barramundi")).toThrow(/barramundi/);
   });
@@ -158,6 +179,14 @@ describe("modelFileUrl", () => {
     const manifest = parseModelManifest({ name: "Barramundi", credit }, "barramundi");
 
     expect(modelFileUrl("barramundi", manifest)).toBe("assets/species/barramundi/model.glb");
+  });
+
+  it("finds an animal's model in the animals' folder", () => {
+    const manifest = parseModelManifest({ name: "Sea turtle", credit }, "sea-turtle");
+
+    expect(modelFileUrl("sea-turtle", manifest, ANIMAL_MODELS_FOLDER)).toBe(
+      "assets/animals/sea-turtle/model.glb",
+    );
   });
 });
 

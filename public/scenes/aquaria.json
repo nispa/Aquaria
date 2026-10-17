@@ -185,5 +185,14 @@
       "species": "neon-tetra",
       "count": 18
     }
+  ],
+  "visitors": [
+    {
+      "model": "sea-turtle",
+      "count": 2,
+      "length": 1.1,
+      "distance": [1.5, 4],
+      "every": [40, 110]
+    }
   ]
 }

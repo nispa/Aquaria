@@ -52,6 +52,7 @@ listed here).
 | Freshwater angelfish     | `public/assets/species/freshwater-angelfish/`     | https://github.com/nispa/Aquaria/blob/main/scripts/blender/angelfish.py                                    | Aquaria       | CC0       |
 | Royal gramma             | `public/assets/species/royal-gramma/`             | https://github.com/nispa/Aquaria/blob/main/scripts/blender/royal_gramma.py                                  | Aquaria       | CC0       |
 | Sardine                  | `public/assets/species/sardine/`                  | https://github.com/nispa/Aquaria/blob/main/scripts/blender/sardine.py                                       | Aquaria       | CC0       |
+| Sea turtle               | `public/assets/animals/sea-turtle/`               | https://sketchfab.com/3d-models/sea-turtle-23dcb315dea44f5082b020b04710bd31                                  | Eloi          | CC-BY 4.0 |
 
 All were optimized with glTF Transform (meshopt geometry, KTX2 textures at
 1024 px; see README, "3D fish models"); the seabream's specular-glossiness
@@ -68,6 +69,9 @@ Credits for the CC-BY models, as their licenses ask:
 - "Bream Fish ( Dorade Royale)"
   (https://sketchfab.com/3d-models/bream-fish-dorade-royale-a3d0e1a597794a9bb74739a13cfc8b77)
   by BlueMesh (https://sketchfab.com/VapTor), licensed under CC-BY-4.0.
+- "Sea Turtle"
+  (https://sketchfab.com/3d-models/sea-turtle-23dcb315dea44f5082b020b04710bd31)
+  by Eloi (https://sketchfab.com/Eloiart), licensed under CC-BY-4.0.
 - "Small fish"
   (https://sketchfab.com/3d-models/small-fish-8f5de32946f347a0b6c8e55c6a66d46d)
   by The SpezX (https://sketchfab.com/SpezX), licensed under CC-BY-4.0.

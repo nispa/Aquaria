@@ -348,6 +348,32 @@ export const wavesSchema = z.object({
 export type Waves = z.output<typeof wavesSchema>;
 export const DEFAULT_WAVES: Waves = wavesSchema.parse({});
 
+/** The fewest seconds between two passes of a visitor: they are rare by nature. */
+const MIN_VISIT_INTERVAL = 10;
+
+/**
+ * Scenery fauna: animals that swim past far behind the tank now and then,
+ * in the haze, such as sea turtles. They have no card, cannot be tapped and
+ * take no notice of the fish. `model` is a folder in public/assets/animals.
+ */
+const visitor = z.object({
+  model: z.string().regex(/^[a-z0-9-]+$/),
+  /** How many of them, each coming on its own. */
+  count: z.number().int().min(1).max(4).default(1),
+  /** Body length, m. */
+  length: positive.max(3).default(1),
+  /** Cruising speed, m/s. */
+  speed: positive.max(2).default(0.35),
+  /** Seconds between passes, drawn in this range; never in the first seconds. */
+  every: orderedPair(z.number().min(MIN_VISIT_INTERVAL), "every").default([40, 120]),
+  /** How far behind the back of the tank they pass, m. */
+  distance: orderedPair(positive, "distance").default([4, 9]),
+  /** At what height, as a share of the tank height. */
+  height: heightRange.default([0.3, 0.8]),
+});
+
+export type Visitor = z.output<typeof visitor>;
+
 export const sceneSchema = z
   .object({
     id: z.string().min(1),
@@ -388,6 +414,7 @@ export const sceneSchema = z
     flora: z.array(flora).default([]),
     props: z.array(prop).default([]),
     fauna: z.array(fauna),
+    visitors: z.array(visitor).default([]),
   })
   .superRefine((scene, context) => {
     if (scene.blocks !== undefined) {

@@ -1,6 +1,6 @@
 import { Box3, Vector3 } from "three";
 import { clamp, lerp, smoothstep } from "../core/math";
-import { hashToUnit, type Rng } from "../core/rng";
+import { createRng, hashToUnit, type Rng } from "../core/rng";
 import type { Scene, Species, SpeciesCatalog } from "../scene/schema";
 import type { SwimSpec } from "../scene/swimming";
 import {
@@ -55,6 +55,7 @@ import {
   type SeabedHeight,
 } from "./steering";
 import { habitatBox } from "./tank";
+import { createVisitors, type VisitorState } from "./visitors";
 
 /** Default cap on fish alive at once, including those entering and leaving. */
 export const TOTAL_FISH_LIMIT = 300;
@@ -301,6 +302,9 @@ export function createUnstick(): Unstick {
   return { checkpoint: new Vector3(), checkSeconds: 0, touchSeconds: 0, escapeSeconds: 0, yaw: 0 };
 }
 
+/** Keeps the visitors' generator apart from the fish's. */
+const VISITOR_SEED_OFFSET = 4099;
+
 export interface SimulationOptions {
   readonly scene: Scene;
   readonly catalog: SpeciesCatalog;
@@ -315,6 +319,8 @@ export interface Simulation {
   /** Flakes in the water. */
   readonly food: Food;
   readonly timeSeconds: number;
+  /** Animals passing far behind the tank (the scene's visitors); see sim/visitors. */
+  readonly visitors: readonly VisitorState[];
   /** What the viewer's finger is drawing on the glass; see sim/gesture. */
   readonly gesture: Readonly<Gesture>;
   /** Advances the simulation by one fixed step. */
@@ -1119,6 +1125,13 @@ export function createSimulation(options: SimulationOptions): Simulation {
     return false;
   };
 
+  // Their own generator: inviting visitors must not change what the fish do.
+  const visitors = createVisitors(
+    scene.visitors,
+    scene.tank,
+    createRng(scene.seed + VISITOR_SEED_OFFSET),
+  );
+
   return {
     fish,
     current,
@@ -1126,6 +1139,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
     get timeSeconds() {
       return timeSeconds;
     },
+    visitors: visitors.all,
     gesture,
     step(deltaSeconds) {
       let removed = false;
@@ -1187,6 +1201,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
       if (removed) {
         for (const group of groups.values()) reconcile(group);
       }
+      visitors.step(deltaSeconds);
       timeSeconds += deltaSeconds;
     },
     dropFood(x, z) {

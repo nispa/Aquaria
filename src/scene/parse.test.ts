@@ -386,6 +386,36 @@ describe("water options", () => {
   });
 });
 
+describe("visitors", () => {
+  const catalog = parseCatalog(catalogFixture());
+
+  it("has no visitors unless the scene invites them", () => {
+    expect(parseScene(sceneFixture(), catalog).visitors).toEqual([]);
+  });
+
+  it("gives a visitor a slow, seldom pass far behind the tank unless told otherwise", () => {
+    const input = { ...sceneFixture(), visitors: [{ model: "sea-turtle" }] };
+
+    expect(parseScene(input, catalog).visitors).toEqual([
+      {
+        model: "sea-turtle",
+        count: 1,
+        length: 1,
+        speed: 0.35,
+        every: [40, 120],
+        distance: [4, 9],
+        height: [0.3, 0.8],
+      },
+    ]);
+  });
+
+  it("refuses a visitor coming more often than every few seconds", () => {
+    const input = { ...sceneFixture(), visitors: [{ model: "sea-turtle", every: [1, 5] }] };
+
+    expect(() => parseScene(input, catalog)).toThrow(/visitors\.0\.every/);
+  });
+});
+
 describe("species behavior", () => {
   it("gives species without a behavior a moderate appetite", () => {
     const catalog = parseCatalog(catalogFixture());

@@ -1,4 +1,4 @@
-import type { Object3D, WebGLRenderer } from "three";
+import type { AnimationClip, Object3D, WebGLRenderer } from "three";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
@@ -14,6 +14,10 @@ export interface AssetLoaders {
   readonly textures: KTX2Loader;
   /** glTF scenes with meshopt-compressed geometry and KTX2 textures. */
   readonly loadModel: (url: string) => Promise<Object3D>;
+  /** The same, with the model's animation clips. */
+  readonly loadAnimated: (
+    url: string,
+  ) => Promise<{ readonly root: Object3D; readonly clips: readonly AnimationClip[] }>;
   /** Stops the transcoder workers. */
   dispose(): void;
 }
@@ -26,6 +30,8 @@ export function createAssetLoaders(renderer: WebGLRenderer): AssetLoaders {
   return {
     textures,
     loadModel: (url) => models.loadAsync(url).then((gltf) => gltf.scene),
+    loadAnimated: (url) =>
+      models.loadAsync(url).then((gltf) => ({ root: gltf.scene, clips: gltf.animations })),
     dispose() {
       textures.dispose();
     },

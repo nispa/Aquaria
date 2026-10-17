@@ -31,6 +31,25 @@ function run(simulation: Simulation, seconds: number): void {
 const countOf = (simulation: Simulation, species: string) =>
   simulation.fish.filter((fish) => fish.species.id === species).length;
 
+describe("visitors", () => {
+  it("brings the scene's visitors, out of sight at first", () => {
+    const simulation = simulate({ visitors: [{ model: "sea-turtle", count: 2 }] });
+
+    expect(simulation.visitors.map((visitor) => [visitor.model, visitor.visible])).toEqual([
+      ["sea-turtle", false],
+      ["sea-turtle", false],
+    ]);
+  });
+
+  it("lets a visitor pass as the simulation runs", () => {
+    const simulation = simulate({ visitors: [{ model: "sea-turtle", every: [10, 12] }] });
+
+    run(simulation, 13);
+
+    expect(simulation.visitors[0]?.visible).toBe(true);
+  });
+});
+
 describe("createSimulation", () => {
   it("starts with the populations requested by the scene", () => {
     const simulation = simulate();
