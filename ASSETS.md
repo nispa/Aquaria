@@ -59,8 +59,10 @@ listed here).
 | Freshwater crab          | `public/assets/species/freshwater-crab/`          | https://sketchfab.com/3d-models/cc0-japanese-freshwater-crab-35559c2236d04c1a80ccbe08cae863c6                | ffish.asia / floraZia.com | CC0       |
 
 All were optimized with glTF Transform (meshopt geometry, KTX2 textures at
-1024 px; see README, "3D fish models"); the seabream's specular-glossiness
-material was first converted to metallic-roughness. The crabs, a few
+1024 px; see README, "3D fish models"). The seabream went through
+`scripts/blender/seabream.py` first: its jaw bones' widest-open pose became
+a MouthOpen shape key, and Blender converted its specular-glossiness
+material. The crabs, a few
 pixels tall on the bottom, have 512 px textures, and the freshwater crab
 scan, drawn unlit, is lit like the other bodies. Skeletons and swim
 animations are not used: the rest pose is baked and the engine swims the
