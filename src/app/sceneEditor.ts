@@ -15,6 +15,7 @@ import {
 } from "../scene/blockEditing";
 import { blockGrid, cellCount, decodeRuns, encodeRuns } from "../scene/blocks";
 import type { ObjectCatalog } from "../scene/objectCatalog";
+import type { ObjectManifest } from "../scene/objectManifest";
 import { paletteScene } from "../scene/objectEntries";
 import {
   moveItem,
@@ -79,6 +80,10 @@ const MIN_PICK_RADIUS = 0.03;
 const PLANT_SPREAD = 0.25;
 /** A plant set down grows at most this share of the tank's height: reef kelp would not fit a tank. */
 const MAX_PLANT_SHARE = 0.8;
+/** An object set down is at most this share of the tank's height across: a reef boulder would fill a small one. */
+const MAX_OBJECT_SHARE = 0.4;
+/** How far inside a block a tap on its side counts, m. */
+const SIDE_INSET = 0.001;
 /** Changes undo can go back over. */
 const UNDO_LIMIT = 100;
 /** Seeds of the editor's layout of entries drawn at random, after the scene's seed. */
@@ -99,6 +104,20 @@ const sameCell = (a: BlockCell | undefined, b: BlockCell): boolean =>
 
 const sameRef = (a: ItemRef, b: ItemRef | undefined): boolean =>
   a.section === b?.section && a.entry === b.entry && a.item === b.item;
+
+/**
+ * The height or size of an item set down, when the object's usual range does
+ * not fit the tank: the range's middle, shrunk in proportion. Nothing when it
+ * fits, so the item is drawn from its range like any other.
+ */
+function fitToTank(object: ObjectManifest, tankHeight: number): { height?: number; size?: number } {
+  const plant = object.category === "plant";
+  const range = plant ? object.traits.placement?.height : object.traits.placement?.size;
+  const limit = tankHeight * (plant ? MAX_PLANT_SHARE : MAX_OBJECT_SHARE);
+  if (range === undefined || range[1] <= limit) return {};
+  const fitted = (((range[0] + range[1]) / 2) * limit) / range[1];
+  return plant ? { height: fitted } : { size: fitted };
+}
 
 export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
   const { canvas, scene, objects } = options;
@@ -233,13 +252,24 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
     view.ray(spot.x, spot.y, origin, direction);
     return pickBlock(tank, grid, against, origin, direction, topLayer);
   };
-  /** Where an item goes for a tap: on the floor, or on a block's top (with its height). */
+  /**
+   * Where an item goes for a tap: on the floor, on a block's top (with its
+   * height), or, for a tap on a block's side, on the top of that column.
+   */
   const groundAt = (spot: ViewSpot): { x: number; z: number; y?: number } | undefined => {
     const pick = pickAt(spot);
-    if (pick?.up !== true) return undefined;
-    const { x, z } = pick.point;
-    if (pick.hit === undefined) return { x, z };
-    return { x, z, y: Math.max(pick.point.y - floorHeight(x, z), 0) };
+    if (pick === undefined) return undefined;
+    if (pick.hit === undefined) return pick.up ? { x: pick.point.x, z: pick.point.z } : undefined;
+    // Inside the block met, a hair from its faces, so a side's point is in its column.
+    const inside = (value: number, start: number, index: number): number =>
+      Math.min(
+        Math.max(value, start + index * size + SIDE_INSET),
+        start + (index + 1) * size - SIDE_INSET,
+      );
+    const x = inside(pick.point.x, -tank.width / 2, pick.hit.column);
+    const z = inside(pick.point.z, -tank.depth, pick.hit.row);
+    const top = pick.up ? pick.point.y : supportBelow(tank, grid, cells, x, z, Infinity);
+    return { x, z, y: Math.max(top - floorHeight(x, z), 0) };
   };
 
   const blockTarget = (spot: ViewSpot): BlockCell | undefined => {
@@ -276,13 +306,7 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
       const object = chosen === undefined ? undefined : objects.get(chosen);
       const ground = groundAt(spot);
       if (chosen === undefined || object === undefined || ground === undefined) return;
-      // A plant too tall for the tank: its usual range, shrunk to fit.
-      const range = object.traits.placement?.height;
-      const limit = tank.height * MAX_PLANT_SHARE;
-      const where =
-        object.category === "plant" && range !== undefined && range[1] > limit
-          ? { ...ground, height: (((range[0] + range[1]) / 2) * limit) / range[1] }
-          : ground;
+      const where = { ...ground, ...fitToTank(object, tank.height) };
       const placed = placeItem(scenery, chosen, object, where);
       editScenery(placed.scenery);
       select(placed.ref);
