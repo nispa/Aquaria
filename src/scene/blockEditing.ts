@@ -17,9 +17,13 @@ export interface BlockPick {
   readonly hit?: BlockCell;
   /** The empty cell where a new block goes: on the face met, or on the floor. */
   readonly place?: BlockCell;
+  /** Where the ray met the block's face or the floor, tank coordinates (m). */
+  readonly point: Point;
+  /** Whether that face looks up (a block's top, or the floor): things stand on it. */
+  readonly up: boolean;
 }
 
-interface Point {
+export interface Point {
   readonly x: number;
   readonly y: number;
   readonly z: number;
@@ -61,6 +65,8 @@ export function pickBlock(
   // Where the ray enters the grid's box (slab method).
   let enter = 0;
   let leave = Infinity;
+  /** The axis of the face the ray crossed last, or -1 when it starts inside. */
+  let crossed = -1;
   for (const axis of [0, 1, 2] as const) {
     if (way[axis] === 0) {
       if (start[axis] < 0 || start[axis] > bounds[axis]) return undefined;
@@ -68,6 +74,7 @@ export function pickBlock(
     }
     const near = (0 - start[axis]) / way[axis];
     const far = (bounds[axis] - start[axis]) / way[axis];
+    if (Math.min(near, far) > enter) crossed = axis;
     enter = Math.max(enter, Math.min(near, far));
     leave = Math.min(leave, Math.max(near, far));
   }
@@ -87,27 +94,44 @@ export function pickBlock(
   const delta: Triple = [across(wayX), across(wayY), across(wayZ)];
   /** The ray's distance to the next boundary of its cell along one axis. */
   const boundary = (index: number, from: number, value: number): number =>
-    value === 0 ? Infinity : enter + ((value > 0 ? index + 1 : index) - from) / value;
+    value === 0 ? Infinity : ((value > 0 ? index + 1 : index) - from) / value;
   const next: Triple = [
     boundary(cell[0], startX, wayX),
     boundary(cell[1], startY, wayY),
     boundary(cell[2], startZ, wayZ),
   ];
 
+  /** The point of the ray at parameter t (in blocks along `way`), m. */
+  const pointAt = (t: number): Point => ({
+    x: origin.x + direction.x * t * size,
+    y: origin.y + direction.y * t * size,
+    z: origin.z + direction.z * t * size,
+  });
+  /** Whether the face crossed along `axis` looks up: the ray came down through it. */
+  const upward = (axis: number): boolean => axis === 1 && stepOf[1] < 0;
+
   let previous: BlockCell | undefined;
+  let reached = enter;
   for (;;) {
     const here: BlockCell = { column: cell[0], layer: cell[1], row: cell[2] };
     if (cells[cellIndex(grid, here.column, here.layer, here.row)] === 1) {
-      return previous === undefined ? { hit: here } : { hit: here, place: previous };
+      const met = { point: pointAt(reached), up: upward(crossed) };
+      return previous === undefined
+        ? { hit: here, ...met }
+        : { hit: here, place: previous, ...met };
     }
     // Step across the nearest cell boundary.
     const axis = next[0] < next[1] ? (next[0] < next[2] ? 0 : 2) : next[1] < next[2] ? 1 : 2;
+    reached = next[axis];
+    crossed = axis;
     cell[axis] += stepOf[axis];
     next[axis] += delta[axis];
     previous = here;
     if (cell[axis] < 0 || cell[axis] >= bounds[axis]) {
       // Out through the floor: the last cell, on the floor, takes a block.
-      return axis === 1 && cell[axis] < 0 ? { place: here } : undefined;
+      return axis === 1 && cell[axis] < 0
+        ? { place: here, point: pointAt(reached), up: true }
+        : undefined;
     }
   }
 }

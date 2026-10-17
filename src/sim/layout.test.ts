@@ -351,6 +351,26 @@ describe("placement on rockwork", () => {
   });
 });
 
+describe("item sources", () => {
+  it("says which entry and which of its items each plant and prop is", () => {
+    const props = layoutProps(
+      objects,
+      tank,
+      [
+        { kind: "rock", count: 1, color: "#888888" },
+        { kind: "shell", count: 2, color: "#ffffff" },
+      ],
+      createRng(1),
+    );
+
+    expect(props.map((prop) => prop.source)).toEqual([
+      { section: "props", entry: 0, item: 0 },
+      { section: "props", entry: 1, item: 0 },
+      { section: "props", entry: 1, item: 1 },
+    ]);
+  });
+});
+
 describe("placement at chosen spots", () => {
   const fern: FloraSpec = {
     kind: "fern",

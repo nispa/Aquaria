@@ -19,7 +19,7 @@ describe("pickBlock", () => {
   it("offers the floor when nothing is in the way", () => {
     const pick = pickBlock(tank, grid, empty(), above(3, 4), down);
 
-    expect(pick).toEqual({ place: { column: 3, layer: 0, row: 4 } });
+    expect(pick).toMatchObject({ place: { column: 3, layer: 0, row: 4 } });
   });
 
   it("hits the block in the way and offers the cell on its face", () => {
@@ -28,7 +28,7 @@ describe("pickBlock", () => {
 
     const pick = pickBlock(tank, grid, cells, above(3, 4), down);
 
-    expect(pick).toEqual({
+    expect(pick).toMatchObject({
       hit: { column: 3, layer: 0, row: 4 },
       place: { column: 3, layer: 1, row: 4 },
     });
@@ -59,7 +59,36 @@ describe("pickBlock", () => {
 
     const pick = pickBlock(tank, grid, cells, above(3, 4), down, 1);
 
-    expect(pick).toEqual({ hit: { column: 3, layer: 1, row: 4 } });
+    expect([pick?.hit, pick?.place]).toEqual([{ column: 3, layer: 1, row: 4 }, undefined]);
+  });
+
+  it("tells where on the floor the ray landed, on a face looking up", () => {
+    const pick = pickBlock(tank, grid, empty(), { x: 0.123, y: 2, z: -0.456 }, down);
+
+    expect([pick?.point.x, pick?.point.y, pick?.point.z, pick?.up]).toEqual([
+      expect.closeTo(0.123, 9),
+      expect.closeTo(0, 9),
+      expect.closeTo(-0.456, 9),
+      true,
+    ]);
+  });
+
+  it("tells where on a block's top the ray landed", () => {
+    const cells = empty();
+    cells[cellIndex(grid, 3, 1, 4)] = 1;
+
+    const pick = pickBlock(tank, grid, cells, above(3, 4), down);
+
+    expect([pick?.point.y, pick?.up]).toEqual([expect.closeTo(0.2, 9), true]);
+  });
+
+  it("says when the face met is a side, not a top", () => {
+    const cells = empty();
+    cells[cellIndex(grid, 3, 0, 4)] = 1;
+
+    const pick = pickBlock(tank, grid, cells, { x: 2, y: 0.05, z: -0.55 }, { x: -1, y: 0, z: 0 });
+
+    expect([pick?.up, pick?.point.x]).toEqual([false, expect.closeTo(-0.1, 9)]);
   });
 
   it("finds nothing when the ray misses the tank", () => {

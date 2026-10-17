@@ -1,6 +1,7 @@
 import type { Rng } from "../core/rng";
 import type { ObjectCatalog } from "../scene/objectCatalog";
 import type { ObjectManifest } from "../scene/objectManifest";
+import type { ItemRef } from "../scene/sceneryEditing";
 import {
   PLANT_GENERATORS,
   PROP_GENERATORS,
@@ -29,6 +30,8 @@ export interface Plant {
   readonly generator: PlantGenerator;
   /** How far its tips sway, m (the `sway` trait); 0 when it does not. */
   readonly sway: number;
+  /** The scene entry it comes from, and which of its items it is. */
+  readonly source?: ItemRef;
   /** One color; a palette entry has already been resolved to one of its colors. */
   readonly color: string;
   readonly x: number;
@@ -57,6 +60,8 @@ export interface Prop {
   readonly shape: PropShape;
   /** Whether fish swim round it. */
   readonly solid: boolean;
+  /** The scene entry it comes from, and which of its items it is; none for a ridge's rocks. */
+  readonly source?: ItemRef;
   readonly color: string;
   readonly x: number;
   readonly z: number;
@@ -240,6 +245,7 @@ export function layoutFlora(
           : spotAt(chosen, rockwork);
       return {
         kind: spec.kind,
+        source: { section: "flora", entry: index, item },
         generator: plant.generator,
         sway: plant.sway,
         color: drawColor(spec.color, entryRng),
@@ -282,6 +288,7 @@ export function layoutProps(
           : spotAt(chosen, rockwork);
       return {
         kind: spec.kind,
+        source: { section: "props", entry: index, item },
         generator: traits.generator,
         shape: traits.shape,
         solid: traits.solid,
