@@ -4,8 +4,19 @@
   "forward": "+x",
   "up": "+y",
   "swimAmplitude": 0.07,
-  "mouth": { "morphTarget": "MouthOpen" },
-  "eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 20 },
+  "mouth": {
+    "morphTarget": "MouthOpen"
+  },
+  "eyes": {
+    "bones": ["Eye.L", "Eye.R"],
+    "turn": 20
+  },
+  "gills": {
+    "edge": 0.27,
+    "top": 0.12,
+    "bottom": -0.1,
+    "curve": 3
+  },
   "credit": {
     "author": "Aquaria (scripts/blender/royal_gramma.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/royal_gramma.py",

@@ -4,8 +4,19 @@
   "forward": "+x",
   "up": "+y",
   "swimAmplitude": 0.08,
-  "mouth": { "morphTarget": "MouthOpen" },
-  "eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 22 },
+  "mouth": {
+    "morphTarget": "MouthOpen"
+  },
+  "eyes": {
+    "bones": ["Eye.L", "Eye.R"],
+    "turn": 22
+  },
+  "gills": {
+    "edge": 0.32,
+    "top": 0.06,
+    "bottom": -0.06,
+    "curve": 4
+  },
   "credit": {
     "author": "Aquaria (scripts/blender/guppy.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/guppy.py",

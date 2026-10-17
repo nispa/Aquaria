@@ -4,8 +4,19 @@
   "forward": "+x",
   "up": "+y",
   "swimAmplitude": 0.04,
-  "mouth": { "morphTarget": "MouthOpen" },
-  "eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 22 },
+  "mouth": {
+    "morphTarget": "MouthOpen"
+  },
+  "eyes": {
+    "bones": ["Eye.L", "Eye.R"],
+    "turn": 22
+  },
+  "gills": {
+    "edge": 0.29,
+    "top": 0.33,
+    "bottom": 0.05,
+    "curve": 1.5
+  },
   "credit": {
     "author": "Aquaria (scripts/blender/angelfish.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/angelfish.py",

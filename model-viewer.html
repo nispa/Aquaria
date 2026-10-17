@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Aquaria model viewer</title>
+    <style>
+      body {
+        margin: 0;
+        background: #0b1a26;
+        color: #cfe3f0;
+        font:
+          13px system-ui,
+          sans-serif;
+      }
+      #stage {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      }
+      canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #help {
+        position: absolute;
+        left: 8px;
+        bottom: 8px;
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <canvas id="model"></canvas>
+      <canvas id="grid"></canvas>
+      <p id="help"></p>
+    </div>
+    <script type="module" src="/src/app/modelViewer.ts"></script>
+  </body>
+</html>

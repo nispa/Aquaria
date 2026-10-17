@@ -4,8 +4,19 @@
   "forward": "+x",
   "up": "+y",
   "swimAmplitude": 0.08,
-  "mouth": { "morphTarget": "MouthOpen" },
-  "eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 20 },
+  "mouth": {
+    "morphTarget": "MouthOpen"
+  },
+  "eyes": {
+    "bones": ["Eye.L", "Eye.R"],
+    "turn": 20
+  },
+  "gills": {
+    "edge": 0.3,
+    "top": 0.05,
+    "bottom": -0.06,
+    "curve": 4
+  },
   "credit": {
     "author": "Aquaria (scripts/blender/sardine.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/sardine.py",

@@ -18,10 +18,30 @@ modello com'è nella posa di riposo e fa il resto nei suoi shader:
 - lo gira, lo centra e lo scala alla lunghezza della specie;
 - piega la parte posteriore del corpo per nuotare e girare (`swimAmplitude`);
 - apre la bocca con uno shape key, quando il pesce mangia (`mouth`);
-- gira i bulbi oculari dove il pesce sta per girare (`eyes`).
+- gira i bulbi oculari dove il pesce sta per girare (`eyes`);
+- fa respirare gli opercoli delle branchie (`gills`).
 
 Un'armatura è benvenuta, per gli occhi e per gli altri programmi, ma non
-serve nessuna animazione.
+serve nessuna animazione. Anche un modello preso altrove, con gli occhi solo
+dipinti sulla texture e senza shape key, può fare tutto questo, senza
+Blender: vedi la sezione 7.
+
+## Il riferimento del pesce e il visore dei modelli
+
+I punti del pesce (un occhio, la bocca, gli opercoli) si danno nel
+**riferimento del pesce**, quello in cui Aquaria porta ogni modello: una
+lunghezza di corpo lungo x, dalla coda a -0,5 al muso a +0,5, la pinna
+dorsale in alto (+y), in lunghezze di corpo. Si leggono sul visore dei
+modelli: lancia `pnpm dev` e apri
+
+```
+http://localhost:5173/model-viewer.html?id=<cartella del modello>
+```
+
+Disegna il modello dal lato destro, come lo prepara Aquaria, con sopra la
+griglia del riferimento del pesce. Nell'URL si possono mettere anche `gaze`
+(-1..1), `mouth` (0..1), `breath` (0..1) e `zoom=x,y,mezzaLarghezza`, per
+guardare da vicino occhi, bocca e branchie nelle posizioni estreme.
 
 ## 1. Forma e dimensioni
 
@@ -124,6 +144,36 @@ sovrimpressione delle attività e guarda un pesce che gira: gli occhi
 guardano prima. Se gli occhi non si muovono, la console del browser non
 segnala errori e i nomi delle ossa sono giusti, controlla che i bulbi siano
 pesati sulle ossa degli occhi e non sulla radice.
+
+## 7. Un modello preso altrove
+
+Un modello scaricato ha spesso gli occhi dipinti sulla texture e nessuno
+shape key, e le sue texture possono essere in un formato che Blender non
+apre (KTX2). `model.json` può dargli comunque bocca, occhi e branchie, con
+punti del riferimento del pesce letti sul visore:
+
+```json
+"mouth": { "jaw": { "start": 0.43, "line": -0.01, "drop": 0.02 } },
+"eyes": { "painted": { "center": [0.37, 0.137], "radius": 0.024, "pupil": 0.72, "iris": "#d6dee6" } },
+"gills": { "edge": 0.28, "top": 0.17, "bottom": -0.06, "curve": 3 }
+```
+
+- `mouth.jaw`: quando il pesce mangia, i punti davanti a `start` e sotto la
+  `line` della bocca scendono fino a `drop` alla punta del muso; il labbro
+  superiore si alza un poco. Metti `line` dove si incontrano le labbra.
+- `eyes.painted`: un occhio dipinto sopra quello del modello, sui due lati:
+  il `center` (x, y), il `radius`, il colore dell'`iris` e la quota del
+  raggio occupata dalla `pupil` (0,65 se manca). La pupilla scorre con lo
+  sguardo. Fai combaciare il raggio con l'occhio dipinto, così la vecchia
+  pupilla resta coperta.
+- `gills`: il bordo posteriore dell'opercolo (`edge`, x), fin dove arriva
+  in alto e in basso (`top`, `bottom`) e come si piega il bordo (`curve`:
+  il bordo sta a `edge + curve * (y - metà)^2`, quindi una curva positiva
+  lo porta più indietro a metà altezza, come nella maggior parte dei
+  pesci). Si solleva fino a `open` lunghezze di corpo (0,006 se manca),
+  `rate` volte al secondo (1,1 se manca), ogni pesce nel suo momento, e
+  dietro si vede una fessura rosso scuro. I pesci fatti in Blender
+  prendono `gills` allo stesso modo.
 
 Per lanciare lo script dello scalare:
 

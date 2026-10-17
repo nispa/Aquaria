@@ -11,6 +11,7 @@ import {
   MeshPhysicalMaterial,
   Quaternion,
   Texture,
+  Vector2,
   Vector3,
   type BufferGeometry,
   type Material,
@@ -26,7 +27,10 @@ import { causticsPatch } from "./shaders/causticsPatch";
 import { fishMotionPatch } from "./shaders/fishMotionPatch";
 import { fishPatch, PATTERN_IDS } from "./shaders/fishPatch";
 import { fishEyesPatch } from "./shaders/fishEyesPatch";
-import { patchMaterial } from "./shaders/patch";
+import { fishGillsPatch } from "./shaders/fishGillsPatch";
+import { fishJawPatch } from "./shaders/fishJawPatch";
+import { fishPaintedEyesPatch } from "./shaders/fishPaintedEyesPatch";
+import { patchMaterial, type ShaderPatch } from "./shaders/patch";
 import type { WaterUniforms } from "./uniforms";
 
 /** Strength of the skin's rainbow sheen, 0..1. */
@@ -166,19 +170,63 @@ function proceduralMaterial(body: Species["body"], water: WaterUniforms): MeshPh
   );
 }
 
-/** The model's own material, made fadeable and taught to swim. */
-function modelMaterial(
+/** Eyes, jaw and gills a model's manifest asks for; none when it asks for nothing. */
+function facePatches(manifest: ModelManifest, water: WaterUniforms): ShaderPatch[] {
+  const patches: ShaderPatch[] = [];
+  const { eyes, mouth, gills } = manifest;
+  if (eyes?.bones !== undefined) {
+    patches.push(fishEyesPatch({ uEyeTurn: { value: MathUtils.degToRad(eyes.turn) } }));
+  }
+  if (eyes?.painted !== undefined) {
+    const { center, radius, pupil, iris } = eyes.painted;
+    patches.push(
+      fishPaintedEyesPatch({
+        uEyeCenter: { value: new Vector2(...center) },
+        uEyeRadius: { value: radius },
+        uPupilShare: { value: pupil },
+        uIrisColor: { value: new Color(iris) },
+      }),
+    );
+  }
+  if (mouth?.jaw !== undefined) {
+    const { start, line, drop } = mouth.jaw;
+    patches.push(
+      fishJawPatch({
+        uJawStart: { value: start },
+        uJawLine: { value: line },
+        uJawDrop: { value: drop },
+      }),
+    );
+  }
+  if (gills !== undefined) {
+    patches.push(
+      fishGillsPatch({
+        uTime: water.uTime,
+        uGillEdge: { value: gills.edge },
+        uGillTop: { value: gills.top },
+        uGillBottom: { value: gills.bottom },
+        uGillOpen: { value: gills.open },
+        uGillRate: { value: gills.rate },
+        uGillCurve: { value: gills.curve },
+      }),
+    );
+  }
+  return patches;
+}
+
+/**
+ * The model's own material, made fadeable and taught to swim, look, eat and
+ * breathe as its manifest says. Exported for the model viewer.
+ */
+export function modelMaterial(
   material: Material,
   manifest: ModelManifest,
   water: WaterUniforms,
 ): Material {
   const copy = material.clone();
   copy.transparent = true;
-  const eyes = manifest.eyes;
   return patchMaterial(copy, [
-    ...(eyes === undefined
-      ? []
-      : [fishEyesPatch({ uEyeTurn: { value: MathUtils.degToRad(eyes.turn) } })]),
+    ...facePatches(manifest, water),
     fishMotionPatch({ uSwimAmplitude: { value: manifest.swimAmplitude } }),
     causticsPatch(water),
   ]);

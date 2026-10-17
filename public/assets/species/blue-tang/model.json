@@ -4,6 +4,27 @@
   "forward": "+z",
   "up": "+y",
   "swimAmplitude": 0.06,
+  "mouth": {
+    "jaw": {
+      "start": 0.43,
+      "line": -0.01,
+      "drop": 0.02
+    }
+  },
+  "eyes": {
+    "painted": {
+      "center": [0.37, 0.137],
+      "radius": 0.024,
+      "pupil": 0.72,
+      "iris": "#d6dee6"
+    }
+  },
+  "gills": {
+    "edge": 0.28,
+    "top": 0.17,
+    "bottom": -0.06,
+    "curve": 3
+  },
   "credit": {
     "author": "LasquetiSpice",
     "source": "https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99",

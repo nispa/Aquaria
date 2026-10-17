@@ -78,6 +78,76 @@ describe("parseModelManifest", () => {
     expect(() => parseModelManifest(input, "barramundi")).toThrow(/eyes\.bones/);
   });
 
+  it("paints eyes over a model's own, where the manifest puts them", () => {
+    const input = {
+      name: "Barramundi",
+      credit,
+      eyes: { painted: { center: [0.37, 0.14], radius: 0.024, iris: "#d8dde0" } },
+    };
+
+    expect(parseModelManifest(input, "barramundi").eyes?.painted).toEqual({
+      center: [0.37, 0.14],
+      radius: 0.024,
+      pupil: 0.65,
+      iris: "#d8dde0",
+    });
+  });
+
+  it("refuses eyes that are both bones and painted", () => {
+    const input = {
+      name: "Barramundi",
+      credit,
+      eyes: { bones: ["Eye.L"], painted: { center: [0.3, 0], radius: 0.02, iris: "#ffffff" } },
+    };
+
+    expect(() => parseModelManifest(input, "barramundi")).toThrow(/eyes/);
+  });
+
+  it("drops a jaw below the mouth line, when the model has no mouth shape key", () => {
+    const input = { name: "Barramundi", credit, mouth: { jaw: { start: 0.43, line: -0.01 } } };
+
+    expect(parseModelManifest(input, "barramundi").mouth?.jaw).toEqual({
+      start: 0.43,
+      line: -0.01,
+      drop: 0.02,
+    });
+  });
+
+  it("refuses a mouth that is neither a shape key nor a jaw", () => {
+    const input = { name: "Barramundi", credit, mouth: {} };
+
+    expect(() => parseModelManifest(input, "barramundi")).toThrow(/mouth/);
+  });
+
+  it("lets the gill covers breathe, gently unless told otherwise", () => {
+    const input = { name: "Barramundi", credit, gills: { edge: 0.28, top: 0.17, bottom: -0.06 } };
+
+    expect(parseModelManifest(input, "barramundi").gills).toEqual({
+      edge: 0.28,
+      top: 0.17,
+      bottom: -0.06,
+      open: 0.006,
+      rate: 1.1,
+      curve: 0,
+    });
+  });
+
+  it("bends the gill cover's edge back in the middle, if the manifest says", () => {
+    const input = {
+      name: "Barramundi",
+      credit,
+      gills: { edge: 0.28, top: 0.17, bottom: -0.06, curve: 3 },
+    };
+
+    expect(parseModelManifest(input, "barramundi").gills?.curve).toBe(3);
+  });
+
+  it("refuses gills whose top is below their bottom", () => {
+    const input = { name: "Barramundi", credit, gills: { edge: 0.28, top: -0.1, bottom: 0.1 } };
+
+    expect(() => parseModelManifest(input, "barramundi")).toThrow(/gills/);
+  });
+
   it("names the model in its error messages", () => {
     expect(() => parseModelManifest({ credit }, "barramundi")).toThrow(/barramundi/);
   });

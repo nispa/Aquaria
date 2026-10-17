@@ -17,10 +17,30 @@ its rest pose and does the rest in its shaders:
 - it turns, centres and scales the model to the species' length;
 - it bends the rear of the body to swim and to turn (`swimAmplitude`);
 - it opens the mouth with a shape key, when the fish eats (`mouth`);
-- it turns the eyeballs the way the fish is about to turn (`eyes`).
+- it turns the eyeballs the way the fish is about to turn (`eyes`);
+- it lets the gill covers breathe (`gills`).
 
 An armature is welcome, for the eyes and for other programs, but no
-animation is needed.
+animation is needed. A model from elsewhere, with its eyes only painted on
+and no shape keys, can do all of it too, with no Blender at all: see
+section 7.
+
+## The fish frame and the model viewer
+
+Places on the fish (an eye, the mouth, the gill covers) are given in the
+**fish frame**, the one Aquaria brings every model to: one body length
+along x, from the tail at -0.5 to the snout at +0.5, the dorsal fin up
+(+y), in body lengths. Read them off the model viewer: run `pnpm dev` and
+open
+
+```
+http://localhost:5173/model-viewer.html?id=<model folder>
+```
+
+It draws the model from its right side, as Aquaria prepares it, with the
+fish frame's grid over it. Its URL can also hold `gaze` (-1..1), `mouth`
+(0..1), `breath` (0..1) and `zoom=x,y,halfWidth`, to look at the eyes,
+the mouth and the gills at their extremes, up close.
 
 ## 1. Shape and size
 
@@ -120,6 +140,34 @@ activity overlay and watch a fish turn: its eyes glance first. If the eyes
 do not move, the browser console says nothing is wrong, and the bones are
 named right, check that the eyeballs are weighted to the eye bones and not
 to the root.
+
+## 7. A model from elsewhere
+
+A downloaded model often has its eyes painted on its texture and no shape
+keys, and its textures may be in a format Blender cannot open (KTX2).
+`model.json` can still give it a mouth, eyes and gills, from places in the
+fish frame read off the model viewer:
+
+```json
+"mouth": { "jaw": { "start": 0.43, "line": -0.01, "drop": 0.02 } },
+"eyes": { "painted": { "center": [0.37, 0.137], "radius": 0.024, "pupil": 0.72, "iris": "#d6dee6" } },
+"gills": { "edge": 0.28, "top": 0.17, "bottom": -0.06, "curve": 3 }
+```
+
+- `mouth.jaw`: the points ahead of `start` and below the mouth's `line`
+  drop by up to `drop` at the tip of the snout when the fish eats; the
+  upper lip lifts a little. Put `line` where the lips meet.
+- `eyes.painted`: an eye painted over the model's own, on both sides: its
+  `center` (x, y), `radius`, `iris` color and the `pupil`'s share of the
+  radius (default 0.65). The pupil slides with the gaze. Match the radius
+  to the painted eye, so the old pupil is covered.
+- `gills`: the gill cover's rear `edge` (x), how far it reaches up and down
+  (`top`, `bottom`), and how its edge bends (`curve`: the edge lies at
+  `edge + curve * (y - middle)^2`, so a positive curve sets it furthest
+  back halfway up, as on most fish). It lifts by up to `open` body lengths
+  (default 0.006), `rate` times a second (default 1.1), each fish at its
+  own moment, and a dark red slit shows behind it. Fish made in Blender
+  take `gills` the same way.
 
 To run the angelfish script:
 
