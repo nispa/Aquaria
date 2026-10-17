@@ -204,3 +204,19 @@ still loads unchanged.
 - [ ] A `.glb` from elsewhere becomes an object by adding an
       `object.json`; with a model and a recipe, Aquaria draws the recipe's
       variants and the model is the fallback.
+
+## Ideas to discuss
+
+Raised by the user, not planned yet.
+
+- Tank sizes: preset sizes (nano to large); each species gets a smallest
+  tank from aquarium practice, so big fish cannot go in small tanks and
+  small fish are advised against in very large ones.
+- Predators: a big, hungry fish chases a much smaller one and may eat it;
+  limits (hunger, size ratio, short chase, escape to a shelter), whether
+  the prey is really removed, and a panel switch.
+- An evolving tank: a few individual fish, each with an id, a name and
+  unique marks (a spot on the back, a stunted fin...), driven by a small
+  neural network of its own, inherited with mutations (neuroevolution),
+  so they adapt and evolve like real species; needs birth, death and the
+  tank saved between sessions.
