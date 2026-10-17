@@ -1,6 +1,6 @@
 import type { Rng } from "../core/rng";
 import type { ObjectCatalog } from "../scene/objectCatalog";
-import type { ObjectManifest } from "../scene/objectManifest";
+import { objectModelUrl, type ObjectManifest } from "../scene/objectManifest";
 import type { ItemRef } from "../scene/sceneryEditing";
 import {
   PLANT_GENERATORS,
@@ -13,6 +13,7 @@ import {
 } from "../scene/schema";
 import { tagsOf } from "../scene/tags";
 import { TRAITS } from "../scene/traits";
+import { SWAY_ATTRIBUTE } from "../scene/traits/sway";
 import type { PropShape } from "./obstacles";
 import { bandDepthRange, type TankSize } from "./tank";
 
@@ -26,10 +27,16 @@ import { bandDepthRange, type TankSize } from "./tank";
 export interface Plant {
   /** The object it is (its folder in public/assets/objects). */
   readonly kind: string;
-  /** How it is drawn: one of Aquaria's plant generators. */
-  readonly generator: PlantGenerator;
+  /** How it is drawn: one of Aquaria's plant generators, when it has a recipe. */
+  readonly generator?: PlantGenerator;
+  /** Path under `public/` to its `.glb` 3D model, when it has one. */
+  readonly model?: string;
   /** How far its tips sway, m (the `sway` trait); 0 when it does not. */
   readonly sway: number;
+  /** Pace of the slow swaying (the `sway` trait's `speed`, when not 1). */
+  readonly swaySpeed?: number;
+  /** Per-vertex sway weight attribute in the model (when not `_SWAY`). */
+  readonly swayAttribute?: string;
   /** The scene entry it comes from, and which of its items it is. */
   readonly source?: ItemRef;
   /** One color; a palette entry has already been resolved to one of its colors. */
@@ -54,8 +61,10 @@ export interface Plant {
 export interface Prop {
   /** The object it is (its folder in public/assets/objects). */
   readonly kind: string;
-  /** How it is drawn: one of Aquaria's object generators. */
-  readonly generator: PropGenerator;
+  /** How it is drawn: one of Aquaria's object generators, when it has a recipe. */
+  readonly generator?: PropGenerator;
+  /** Path under `public/` to its `.glb` 3D model, when it has one. */
+  readonly model?: string;
   /** Its rough shape (the `collision` trait), relative to its size. */
   readonly shape: PropShape;
   /** Whether fish swim round it. */
@@ -94,34 +103,61 @@ const isPropGenerator = (id: string): id is PropGenerator =>
 
 interface PlantTraits {
   readonly object: ObjectManifest;
-  readonly generator: PlantGenerator;
+  readonly generator?: PlantGenerator;
+  readonly model?: string;
   readonly sway: number;
+  readonly swaySpeed?: number;
+  readonly swayAttribute?: string;
 }
 
-/** What the layout needs of a plant object; undefined when Aquaria cannot draw it yet. */
-function plantOf(object: ObjectManifest | undefined): PlantTraits | undefined {
-  const generator = object?.recipe?.generator;
-  if (object === undefined || generator === undefined || !isPlantGenerator(generator)) {
-    return undefined;
-  }
-  return { object, generator, sway: object.traits.sway?.amount ?? 0 };
+/** What the layout needs of a plant object; undefined when Aquaria cannot draw it. */
+function plantOf(id: string, object: ObjectManifest | undefined): PlantTraits | undefined {
+  if (object?.category !== "plant") return undefined;
+  const rawGenerator = object.recipe?.generator;
+  const generator =
+    rawGenerator !== undefined && isPlantGenerator(rawGenerator) ? rawGenerator : undefined;
+  const model = objectModelUrl(id, object);
+  if (generator === undefined && model === undefined) return undefined;
+  const sway = object.traits.sway;
+  return {
+    object,
+    ...(generator === undefined ? {} : { generator }),
+    ...(model === undefined ? {} : { model }),
+    sway: sway?.amount ?? 0,
+    ...(sway !== undefined && sway.speed !== 1 ? { swaySpeed: sway.speed } : {}),
+    ...(sway !== undefined && sway.attribute !== SWAY_ATTRIBUTE
+      ? { swayAttribute: sway.attribute }
+      : {}),
+  };
 }
 
 export interface PropTraits {
-  readonly generator: PropGenerator;
+  readonly generator?: PropGenerator;
+  readonly model?: string;
   readonly shape: PropShape;
   readonly solid: boolean;
   readonly tags: readonly string[];
 }
 
-/** What a prop of this object is to the rest of the engine; undefined when it cannot be drawn yet. */
-export function propTraitsOf(object: ObjectManifest | undefined): PropTraits | undefined {
-  const generator = object?.recipe?.generator;
-  if (object === undefined || generator === undefined || !isPropGenerator(generator)) {
-    return undefined;
-  }
+/** What a prop of this object is to the rest of the engine; undefined when it cannot be drawn. */
+export function propTraitsOf(
+  object: ObjectManifest | undefined,
+  id: string,
+): PropTraits | undefined {
+  if (object?.category !== "object") return undefined;
+  const rawGenerator = object.recipe?.generator;
+  const generator =
+    rawGenerator !== undefined && isPropGenerator(rawGenerator) ? rawGenerator : undefined;
+  const model = objectModelUrl(id, object);
+  if (generator === undefined && model === undefined) return undefined;
   const { solid, ...shape } = object.traits.collision ?? NO_COLLISION;
-  return { generator, shape, solid, tags: object.traits.tags ?? [] };
+  return {
+    ...(generator === undefined ? {} : { generator }),
+    ...(model === undefined ? {} : { model }),
+    shape,
+    solid,
+    tags: object.traits.tags ?? [],
+  };
 }
 
 /**
@@ -217,9 +253,8 @@ function drawColor(color: string | readonly string[], entryRng: Rng): string {
 }
 
 /**
- * Plants for the scene's flora entries. An entry whose object Aquaria cannot
- * draw (missing, or a model without a recipe) places nothing; the app warns
- * about it when the scene loads.
+ * Plants for the scene's flora entries. An entry whose object is missing from
+ * the catalog places nothing; the app warns about it when the scene loads.
  */
 export function layoutFlora(
   objects: ObjectCatalog,
@@ -232,7 +267,7 @@ export function layoutFlora(
   const generators = entryGenerators(rng, specs.length);
   return specs.flatMap((spec, index) => {
     const entryRng = generators[index] ?? rng;
-    const plant = plantOf(objects.get(spec.kind));
+    const plant = plantOf(spec.kind, objects.get(spec.kind));
     if (plant === undefined) return [];
     const depth = bandDepthRange(tank, spec.bands);
     const surface = spec.on === "rockwork" ? rockwork : undefined;
@@ -246,8 +281,11 @@ export function layoutFlora(
       return {
         kind: spec.kind,
         source: { section: "flora", entry: index, item },
-        generator: plant.generator,
+        ...(plant.generator === undefined ? {} : { generator: plant.generator }),
+        ...(plant.model === undefined ? {} : { model: plant.model }),
         sway: plant.sway,
+        ...(plant.swaySpeed === undefined ? {} : { swaySpeed: plant.swaySpeed }),
+        ...(plant.swayAttribute === undefined ? {} : { swayAttribute: plant.swayAttribute }),
         color: drawColor(spec.color, entryRng),
         ...spot,
         height: chosen?.height ?? entryRng.range(spec.height[0], spec.height[1]),
@@ -274,7 +312,7 @@ export function layoutProps(
   return specs.flatMap((spec, index) => {
     const entryRng = generators[index] ?? rng;
     const object = objects.get(spec.kind);
-    const traits = propTraitsOf(object);
+    const traits = propTraitsOf(object, spec.kind);
     if (traits === undefined) return [];
     const placement = TRAITS.placement.schema.parse(object?.traits.placement ?? {});
     const depth = bandDepthRange(tank, spec.bands ?? placement.bands);
@@ -289,7 +327,8 @@ export function layoutProps(
       return {
         kind: spec.kind,
         source: { section: "props", entry: index, item },
-        generator: traits.generator,
+        ...(traits.generator === undefined ? {} : { generator: traits.generator }),
+        ...(traits.model === undefined ? {} : { model: traits.model }),
         shape: traits.shape,
         solid: traits.solid,
         color: drawColor(spec.color, entryRng),

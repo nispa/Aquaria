@@ -132,3 +132,10 @@ export function objectMaterialUrl(id: string, manifest: ObjectManifest): string 
     ? undefined
     : resolveAssetPath(objectFolderUrl(id), manifest.material.file);
 }
+
+/** The object's 3D model file from the site root, when it has one. */
+export function objectModelUrl(id: string, manifest: ObjectManifest): string | undefined {
+  return manifest.model === undefined
+    ? undefined
+    : resolveAssetPath(objectFolderUrl(id), manifest.model);
+}

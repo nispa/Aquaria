@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "../core/rng";
 import { sceneFixture } from "../scene/fixtures";
+import { createObjectCatalog } from "../scene/objectCatalog";
 import { bundledObjects } from "../scene/objectFixtures";
+import { parseObjectManifest } from "../scene/objectManifest";
 import type { FloraSpec, PropSpec } from "../scene/schema";
 import { layoutFlora, layoutProps } from "./layout";
 import { createRockwork } from "./rockwork";
@@ -509,5 +511,95 @@ describe("tags", () => {
     const props = layoutProps(objects, tank, [rocks], createRng(1));
 
     expect(props[0]?.tags).toEqual(["shelter"]);
+  });
+});
+
+describe("model objects", () => {
+  const credit = {
+    author: "A. Modeller",
+    source: "https://example.com/model",
+    license: "CC0-1.0",
+  };
+
+  it("places a plant made of a 3D model alone, with its sway settings", () => {
+    const { manifest } = parseObjectManifest(
+      {
+        name: "Vallisneria",
+        category: "plant",
+        model: "model.glb",
+        traits: { sway: { amount: 0.12, speed: 1.5, attribute: "_BEND" }, tags: ["plant"] },
+        credit,
+      },
+      "vallisneria",
+    );
+    const catalog = createObjectCatalog([["vallisneria", manifest]]);
+
+    const [plant] = layoutFlora(
+      catalog,
+      tank,
+      [{ kind: "vallisneria", count: 1, bands: [1, 3], height: [0.3, 0.5], color: "#4a8a3a" }],
+      createRng(1),
+    );
+
+    expect([
+      plant?.generator,
+      plant?.model,
+      plant?.sway,
+      plant?.swaySpeed,
+      plant?.swayAttribute,
+      plant?.tags,
+    ]).toEqual([undefined, "assets/objects/vallisneria/model.glb", 0.12, 1.5, "_BEND", ["plant"]]);
+  });
+
+  it("places an object made of a 3D model alone, with its collision shape and tags", () => {
+    const { manifest } = parseObjectManifest(
+      {
+        name: "Amphora",
+        category: "object",
+        model: "model.glb",
+        traits: { collision: { across: 0.4, up: 0.6, along: 0.4 }, tags: ["shelter"] },
+        credit,
+      },
+      "amphora",
+    );
+    const catalog = createObjectCatalog([["amphora", manifest]]);
+
+    const [prop] = layoutProps(
+      catalog,
+      tank,
+      [{ kind: "amphora", count: 1, color: "#b87a52" }],
+      createRng(1),
+    );
+
+    expect([prop?.generator, prop?.model, prop?.shape.up, prop?.solid, prop?.tags]).toEqual([
+      undefined,
+      "assets/objects/amphora/model.glb",
+      0.6,
+      true,
+      ["shelter"],
+    ]);
+  });
+
+  it("keeps both the recipe generator and the fallback model when an object has both", () => {
+    const { manifest } = parseObjectManifest(
+      {
+        name: "Kelp",
+        category: "plant",
+        model: "model.glb",
+        recipe: { generator: "kelp" },
+        credit,
+      },
+      "kelp",
+    );
+    const catalog = createObjectCatalog([["kelp", manifest]]);
+
+    const [plant] = layoutFlora(
+      catalog,
+      tank,
+      [{ kind: "kelp", count: 1, bands: [1, 3], height: [1, 2], color: "#4a8a3a" }],
+      createRng(1),
+    );
+
+    expect([plant?.generator, plant?.model]).toEqual(["kelp", "assets/objects/kelp/model.glb"]);
   });
 });

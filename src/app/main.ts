@@ -304,9 +304,6 @@ async function loadObjects(): Promise<ObjectCatalog> {
       }
       const { manifest, warnings } = parseObjectManifest(data, id);
       for (const warning of warnings) logger.warn(warning);
-      if (manifest.recipe === undefined) {
-        logger.warn("Objects drawn from a model alone are not shown yet", { object: id });
-      }
       return [id, manifest];
     }),
   );

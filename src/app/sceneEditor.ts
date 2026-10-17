@@ -539,7 +539,7 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
       spec,
       createRng(settings.seed + RIDGE_SEED_OFFSET),
       () => tank.width / 2,
-      propTraitsOf(objects.get(LOOSE_ROCK)),
+      propTraitsOf(objects.get(LOOSE_ROCK), LOOSE_ROCK),
     );
     ridgeCells(tank, grid, ridge).forEach((cell, index) => {
       if (cell === 1) cells[index] = 1;

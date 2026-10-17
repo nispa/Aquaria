@@ -14,14 +14,17 @@ const TIP_START = 0.55;
 
 /**
  * Sways plants with the water current plus a slow oscillation. The bend grows
- * with the square of the height along the blade, so the base stays planted.
+ * with the square of the sway weight (`aSway`, 0 at the base to 1 at the tips,
+ * from `_SWAY` or height), so the base stays planted.
  * Leaves get procedural detail: a midrib and parallel veins, a slightly
  * different tone per blade, and thin-tissue translucency at grazing angles.
  *
  * Instance attributes: aSwayPhase (radians), aHeight (m).
- * Vertex attribute: aAcross (0..1 across a blade, 0.5 on the midrib).
+ * Vertex attributes: aAcross (0..1 across a blade, 0.5 on the midrib),
+ * aSway (0..1 per-vertex sway weight, from `_SWAY` or height).
  * Uniforms: uTime, uCurrent, uLightColor (from WaterUniforms);
- * uSwayAmount (m, 0..0.5); uVeins (count, 0..12); uVeinStrength (0..1);
+ * uSwayAmount (m, 0..0.5); uSwaySpeed (pace multiplier, > 0, default 1);
+ * uVeins (count, 0..12); uVeinStrength (0..1);
  * uTipColor (linear RGB) and uTipAmount (0..1): leaves turn to this color near the top.
  * The blade geometry spans y = 0..1 before instance scaling.
  */
@@ -30,12 +33,14 @@ export function plantPatch(
   uSwayAmount: { value: number },
   leaf: LeafStyle,
   tipColor?: Color,
+  swaySpeed = 1,
 ): ShaderPatch {
   return {
     name: "plant",
     uniforms: {
       ...water,
       uSwayAmount,
+      uSwaySpeed: { value: swaySpeed },
       uVeins: { value: leaf.veins },
       uVeinStrength: { value: leaf.veinStrength },
       uTipColor: { value: tipColor ?? new Color() },
@@ -45,9 +50,11 @@ export function plantPatch(
       attribute float aSwayPhase;
       attribute float aHeight;
       attribute float aAcross;
+      attribute float aSway;
       uniform float uTime;
       uniform vec3 uCurrent;
       uniform float uSwayAmount;
+      uniform float uSwaySpeed;
       varying float vAlongBlade;
       varying float vAcrossBlade;
       varying float vBladeTone;
@@ -65,13 +72,14 @@ export function plantPatch(
           mvPosition = instanceMatrix * mvPosition;
         #endif
         {
-          float bend = position.y * position.y * aHeight;
+          float bend = aSway * aSway * aHeight;
+          float phase = uTime * uSwaySpeed;
           vec2 oscillation = vec2(
-            sin(uTime * 0.7 + aSwayPhase + position.y * 1.5),
-            cos(uTime * 0.53 + aSwayPhase * 1.7)
+            sin(phase * 0.7 + aSwayPhase + aSway * 1.5),
+            cos(phase * 0.53 + aSwayPhase * 1.7)
           );
           mvPosition.xz += (uCurrent.xz * 4.0 + oscillation * uSwayAmount) * bend;
-          mvPosition.y -= length(uCurrent.xz) * 1.5 * bend * position.y;
+          mvPosition.y -= length(uCurrent.xz) * 1.5 * bend * aSway;
         }
         mvPosition = modelViewMatrix * mvPosition;
         gl_Position = projectionMatrix * mvPosition;

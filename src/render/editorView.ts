@@ -286,8 +286,8 @@ export function createEditorView(options: EditorViewOptions): EditorView {
     setScenery(plants, items) {
       flora?.dispose();
       props?.dispose();
-      flora = createFloraRenderer(plants, water);
-      props = createPropRenderer(items, water, surfaces);
+      flora = createFloraRenderer(plants, water, loaders.loadModel, options.logger);
+      props = createPropRenderer(items, water, surfaces, loaders.loadModel, options.logger);
       sceneryGroup.clear();
       sceneryGroup.add(flora.object, props.object);
     },

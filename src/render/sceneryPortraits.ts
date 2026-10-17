@@ -94,17 +94,24 @@ export async function drawSceneryPortraits(
     const flora = createFloraRenderer(
       layoutFlora(objects, scene.tank, alone.flora, createRng(PORTRAIT_SEED)).map(centered),
       water,
+      loaders.loadModel,
+      logger,
     );
     const props = createPropRenderer(
       layoutProps(objects, scene.tank, alone.props, createRng(PORTRAIT_SEED)).map(centered),
       water,
       surfaces,
+      loaders.loadModel,
+      logger,
     );
     return { request, flora, props };
   });
 
   try {
-    await surfaces.settled();
+    await Promise.all([
+      surfaces.settled(),
+      ...sitters.flatMap(({ flora, props }) => [flora.settled(), props.settled()]),
+    ]);
     for (const { request, flora, props } of sitters) {
       const context = request.canvas.getContext("2d");
       if (context === null) continue;

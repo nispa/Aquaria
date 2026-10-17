@@ -10,10 +10,18 @@ import {
   Vector3,
   type BufferGeometry,
 } from "three";
+import type { Logger } from "../core/logger";
 import { createRng, type Rng } from "../core/rng";
 import type { PropGenerator } from "../scene/schema";
 import type { Prop } from "../sim/layout";
 import { floorHeight } from "../sim/terrain";
+import {
+  disposeLoadedObjectModel,
+  modelMaterial,
+  prepareObjectModel,
+  type ObjectModelLoader,
+  type ObjectModelVariant,
+} from "./objectModel";
 import {
   branchCoralGeometry,
   brainCoralGeometry,
@@ -183,23 +191,34 @@ export interface PropRenderer {
   readonly object: Group;
   /** Turns the starfish, very slowly. Allocation-free. */
   update(timeSeconds: number): void;
+  /** Resolves when every model-only prop has loaded or failed. */
+  settled(): Promise<void>;
   dispose(): void;
 }
 
 interface Placed {
   readonly prop: Prop;
+  readonly generator: PropGenerator;
   readonly variant: number;
 }
 
-/** Rocks, starfish, shells and corals: one instanced draw call per kind, color and shape. */
+const surfaceKey = (material: Prop["material"]): string =>
+  material === undefined ? "plain" : `${material.id}|${material.tileSize}|${material.displacement}`;
+
+/** Rocks, starfish, shells, corals and 3D model props: instanced by kind, color and shape. */
 export function createPropRenderer(
   items: readonly Prop[],
   water: WaterUniforms,
   surfaces: SurfaceLibrary,
+  loadModel?: ObjectModelLoader,
+  logger?: Logger,
 ): PropRenderer {
   const object = new Group();
   object.name = "props";
   const disposables: { dispose(): void }[] = [];
+  const loading: Promise<void>[] = [];
+  let disposed = false;
+
   const geometries = new Map<string, BufferGeometry>();
   const geometryFor = (generator: PropGenerator, variant: number): BufferGeometry => {
     const key = `${generator}|${variant}`;
@@ -212,15 +231,18 @@ export function createPropRenderer(
   };
 
   const groups = new Map<string, Placed[]>();
+  const modelGroups = new Map<string, Prop[]>();
   for (const prop of items) {
+    if (prop.generator === undefined) {
+      if (prop.model !== undefined) {
+        const key = `${prop.kind}|${prop.color}|${surfaceKey(prop.material)}`;
+        modelGroups.set(key, [...(modelGroups.get(key) ?? []), prop]);
+      }
+      continue;
+    }
     const variant = createRng(prop.seed).int(0, PROP_STYLES[prop.generator].variants - 1);
-    const material = prop.material;
-    const surface =
-      material === undefined
-        ? "plain"
-        : `${material.id}|${material.tileSize}|${material.displacement}`;
-    const key = `${prop.kind}|${prop.color}|${variant}|${surface}`;
-    groups.set(key, [...(groups.get(key) ?? []), { prop, variant }]);
+    const key = `${prop.kind}|${prop.color}|${variant}|${surfaceKey(prop.material)}`;
+    groups.set(key, [...(groups.get(key) ?? []), { prop, generator: prop.generator, variant }]);
   }
 
   const matrix = new Matrix4();
@@ -239,10 +261,45 @@ export function createPropRenderer(
     mesh.setMatrixAt(index, matrix);
   };
 
+  const buildModelGroup = (
+    members: readonly Prop[],
+    variants: readonly ObjectModelVariant[],
+  ): void => {
+    const first = members[0];
+    if (first === undefined || variants.length === 0) return;
+    const byVariant = new Map<number, Prop[]>();
+    for (const prop of members) {
+      const variantIndex = createRng(prop.seed).int(0, variants.length - 1);
+      byVariant.set(variantIndex, [...(byVariant.get(variantIndex) ?? []), prop]);
+    }
+    const surface = first.material;
+    const patches: ShaderPatch[] =
+      surface === undefined
+        ? [causticsPatch(water)]
+        : [surfacePatch(surfaces.get(surface.id), "triplanar", surface), causticsPatch(water)];
+    for (const [variantIndex, variantMembers] of byVariant) {
+      const variant = variants[variantIndex];
+      if (variant === undefined) continue;
+      for (const part of variant.parts) {
+        const geometry = part.geometry.clone();
+        const material = modelMaterial(part.material, patches);
+        const mesh = new InstancedMesh(geometry, material, variantMembers.length);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        variantMembers.forEach((prop, index) => {
+          place(mesh, index, prop, 0);
+        });
+        mesh.computeBoundingSphere();
+        object.add(mesh);
+        disposables.push(geometry, ...(Array.isArray(material) ? material : [material]), mesh);
+      }
+    }
+  };
+
   for (const members of groups.values()) {
     const first = members[0];
     if (first === undefined) continue;
-    const style = PROP_STYLES[first.prop.generator];
+    const style = PROP_STYLES[first.generator];
     const surface = first.prop.material;
     const patches: ShaderPatch[] =
       surface === undefined
@@ -260,7 +317,7 @@ export function createPropRenderer(
       patches,
     );
     const mesh = new InstancedMesh(
-      geometryFor(first.prop.generator, first.variant),
+      geometryFor(first.generator, first.variant),
       material,
       members.length,
     );
@@ -270,11 +327,42 @@ export function createPropRenderer(
       place(mesh, index, prop, 0);
     });
     mesh.computeBoundingSphere();
-    if (first.prop.generator === "starfish") {
+    if (first.generator === "starfish") {
       starfish.push({ mesh, props: members.map(({ prop }) => prop) });
     }
     object.add(mesh);
     disposables.push(material, mesh);
+  }
+
+  for (const members of modelGroups.values()) {
+    const first = members[0];
+    if (first?.model === undefined || loadModel === undefined) continue;
+    const url = first.model;
+    const done = loadModel(url)
+      .then((root) => {
+        const variants = prepareObjectModel(root, "object");
+        const loadedTextures = disposeLoadedObjectModel(root);
+        if (disposed) {
+          for (const variant of variants) {
+            for (const part of variant.parts) part.geometry.dispose();
+          }
+          for (const texture of loadedTextures) texture.dispose();
+          return;
+        }
+        disposables.push(...loadedTextures);
+        buildModelGroup(members, variants);
+        for (const variant of variants) {
+          for (const part of variant.parts) part.geometry.dispose();
+        }
+      })
+      .catch((error: unknown) => {
+        logger?.warn("Object model could not be loaded", {
+          object: first.kind,
+          url,
+          error: String(error),
+        });
+      });
+    loading.push(done);
   }
 
   return {
@@ -289,7 +377,9 @@ export function createPropRenderer(
         group.mesh.instanceMatrix.needsUpdate = true;
       }
     },
+    settled: () => Promise.all(loading).then(() => undefined),
     dispose() {
+      disposed = true;
       disposables.forEach((item) => {
         item.dispose();
       });

@@ -367,7 +367,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
             scene.rockwork,
             createRng(scenerySeeds.props + ROCKWORK_SEED_OFFSET),
             halfWidthAt,
-            propTraitsOf(options.objects.get(LOOSE_ROCK)),
+            propTraitsOf(options.objects.get(LOOSE_ROCK), LOOSE_ROCK),
           );
     const plants = layoutFlora(
       options.objects,
@@ -387,8 +387,14 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     );
     places = placesOf(plants, [...(ridge?.rocks ?? []), ...items]);
     obstacles = obstaclesOf([...(ridge?.rocks ?? []), ...items]);
-    flora = createFloraRenderer(plants, water);
-    props = createPropRenderer([...(ridge?.rocks ?? []), ...items], water, surfaces);
+    flora = createFloraRenderer(plants, water, loaders.loadModel, logger);
+    props = createPropRenderer(
+      [...(ridge?.rocks ?? []), ...items],
+      water,
+      surfaces,
+      loaders.loadModel,
+      logger,
+    );
     if (ridge !== undefined && scene.rockwork !== undefined) {
       rockwork = createRockworkRenderer(ridge, scene.rockwork, water, surfaces);
       propGroup.add(rockwork.object);
@@ -491,7 +497,10 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   setLook(options.look);
 
   return {
-    ready: () => Promise.all([surfaces.settled(), fish.settled()]).then(() => undefined),
+    ready: () =>
+      Promise.all([surfaces.settled(), fish.settled(), flora?.settled(), props?.settled()]).then(
+        () => undefined,
+      ),
     setMsaa(samples) {
       msaaSamples = samples;
       buildPipeline(currentLook);

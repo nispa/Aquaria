@@ -13,10 +13,19 @@ import {
   Vector3,
   type BufferGeometry,
 } from "three";
+import type { Logger } from "../core/logger";
 import { createRng } from "../core/rng";
 import type { PlantGenerator } from "../scene/schema";
 import type { Plant } from "../sim/layout";
 import { floorHeight } from "../sim/terrain";
+import {
+  disposeLoadedObjectModel,
+  modelMaterial,
+  prepareObjectModel,
+  swayAttribute,
+  type ObjectModelLoader,
+  type ObjectModelVariant,
+} from "./objectModel";
 import {
   algaeBushGeometry,
   anemoneTentacleGeometry,
@@ -29,7 +38,7 @@ import { patchMaterial } from "./shaders/patch";
 import { plantPatch, type LeafStyle } from "./shaders/plantPatch";
 import type { WaterUniforms } from "./uniforms";
 
-interface BladeStyle {
+export interface BladeStyle {
   /** Blades per plant. */
   readonly blades: number;
   /** Blade width in meters. */
@@ -46,7 +55,7 @@ interface BladeStyle {
   readonly fluorescent: boolean;
 }
 
-const STYLES: Readonly<Record<PlantGenerator, BladeStyle>> = {
+export const FLORA_STYLES: Readonly<Record<PlantGenerator, BladeStyle>> = {
   kelp: {
     blades: 3,
     width: 0.22,
@@ -137,23 +146,23 @@ function bladeGeometry(segments: number): BufferGeometry {
 }
 
 /** Spreads blades and tentacles evenly around a plant, radians. */
-const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+export const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
 /** Seeds the bush shape, so it looks the same whatever the scene holds. */
 const BUSH_SEED = 4231;
 
-function shapeGeometry(style: BladeStyle): BufferGeometry {
+export function plantShapeGeometry(style: BladeStyle, seed = BUSH_SEED): BufferGeometry {
   switch (style.shape) {
     case "blade":
       return bladeGeometry(style.segments);
     case "tentacle":
       return anemoneTentacleGeometry();
     case "bush":
-      return algaeBushGeometry(createRng(BUSH_SEED));
+      return algaeBushGeometry(createRng(seed));
     case "frond":
-      return fernFrondGeometry(createRng(BUSH_SEED));
+      return fernFrondGeometry(createRng(seed));
     case "stem":
-      return stemPlantGeometry(createRng(BUSH_SEED));
+      return stemPlantGeometry(createRng(seed));
   }
 }
 
@@ -168,17 +177,28 @@ function acrossAttribute(geometry: BufferGeometry, shape: BladeStyle["shape"]): 
 }
 
 const MIDRIB = 0.5;
+const MODEL_LEAF: LeafStyle = { veins: 0, veinStrength: 0 };
 
 export interface FloraRenderer {
   readonly object: Group;
+  /** Resolves when every model-only plant has loaded or failed. */
+  settled(): Promise<void>;
   dispose(): void;
 }
 
-/** Instanced kelp, seagrass and anemones, one draw call per plant kind and color. */
-export function createFloraRenderer(plants: readonly Plant[], water: WaterUniforms): FloraRenderer {
+/** Instanced kelp, seagrass, anemones and 3D model plants, grouped by kind and color. */
+export function createFloraRenderer(
+  plants: readonly Plant[],
+  water: WaterUniforms,
+  loadModel?: ObjectModelLoader,
+  logger?: Logger,
+): FloraRenderer {
   const object = new Group();
   object.name = "flora";
   const disposables: { dispose(): void }[] = [];
+  const loading: Promise<void>[] = [];
+  let disposed = false;
+
   const groups = new Map<string, Plant[]>();
   for (const plant of plants) {
     const key = `${plant.kind}|${plant.color}|${plant.tipColor ?? ""}`;
@@ -191,13 +211,98 @@ export function createFloraRenderer(plants: readonly Plant[], water: WaterUnifor
   const position = new Vector3();
   const scale = new Vector3();
 
+  const buildModelGroup = (
+    members: readonly Plant[],
+    variants: readonly ObjectModelVariant[],
+  ): void => {
+    const first = members[0];
+    if (first === undefined || variants.length === 0) return;
+    const byVariant = new Map<number, Plant[]>();
+    for (const plant of members) {
+      const variantIndex = createRng(plant.seed).int(0, variants.length - 1);
+      byVariant.set(variantIndex, [...(byVariant.get(variantIndex) ?? []), plant]);
+    }
+    for (const [variantIndex, variantMembers] of byVariant) {
+      const variant = variants[variantIndex];
+      if (variant === undefined) continue;
+      for (const part of variant.parts) {
+        const geometry = part.geometry.clone();
+        const count = variantMembers.length;
+        const swayPhase = new Float32Array(count);
+        const heights = new Float32Array(count);
+        geometry.setAttribute("aSwayPhase", new InstancedBufferAttribute(swayPhase, 1));
+        geometry.setAttribute("aHeight", new InstancedBufferAttribute(heights, 1));
+        const material = modelMaterial(part.material, [
+          plantPatch(
+            water,
+            { value: first.sway },
+            MODEL_LEAF,
+            first.tipColor === undefined ? undefined : new Color(first.tipColor),
+            first.swaySpeed,
+          ),
+          causticsPatch(water),
+        ]);
+        const mesh = new InstancedMesh(geometry, material, count);
+        mesh.frustumCulled = false;
+        mesh.receiveShadow = true;
+        variantMembers.forEach((plant, instance) => {
+          position.set(
+            plant.x,
+            floorHeight(plant.x, plant.z) + (plant.elevation ?? 0) - 0.02,
+            plant.z,
+          );
+          rotation.setFromEuler(euler.set(0, plant.rotation, 0));
+          scale.setScalar(plant.height);
+          matrix.compose(position, rotation, scale);
+          mesh.setMatrixAt(instance, matrix);
+          swayPhase[instance] = plant.swayPhase;
+          heights[instance] = plant.height;
+        });
+        object.add(mesh);
+        disposables.push(geometry, ...(Array.isArray(material) ? material : [material]), mesh);
+      }
+    }
+  };
+
   for (const members of groups.values()) {
     const first = members[0];
     if (first === undefined) continue;
-    const style = STYLES[first.generator];
+    if (first.generator === undefined) {
+      if (first.model !== undefined && loadModel !== undefined) {
+        const url = first.model;
+        const done = loadModel(url)
+          .then((root) => {
+            const variants = prepareObjectModel(root, "plant", first.swayAttribute);
+            const loadedTextures = disposeLoadedObjectModel(root);
+            if (disposed) {
+              for (const variant of variants) {
+                for (const part of variant.parts) part.geometry.dispose();
+              }
+              for (const texture of loadedTextures) texture.dispose();
+              return;
+            }
+            disposables.push(...loadedTextures);
+            buildModelGroup(members, variants);
+            for (const variant of variants) {
+              for (const part of variant.parts) part.geometry.dispose();
+            }
+          })
+          .catch((error: unknown) => {
+            logger?.warn("Plant model could not be loaded", {
+              object: first.kind,
+              url,
+              error: String(error),
+            });
+          });
+        loading.push(done);
+      }
+      continue;
+    }
+    const style = FLORA_STYLES[first.generator];
     const count = members.length * style.blades;
-    const geometry = shapeGeometry(style);
+    const geometry = plantShapeGeometry(style);
     geometry.setAttribute("aAcross", acrossAttribute(geometry, style.shape));
+    geometry.setAttribute("aSway", swayAttribute(geometry, first.swayAttribute));
     const swayPhase = new Float32Array(count);
     const heights = new Float32Array(count);
     geometry.setAttribute("aSwayPhase", new InstancedBufferAttribute(swayPhase, 1));
@@ -214,6 +319,7 @@ export function createFloraRenderer(plants: readonly Plant[], water: WaterUnifor
           { value: first.sway },
           style.leaf,
           first.tipColor === undefined ? undefined : new Color(first.tipColor),
+          first.swaySpeed,
         ),
         causticsPatch(water),
         ...(style.fluorescent ? [fluorescencePatch(water)] : []),
@@ -258,7 +364,9 @@ export function createFloraRenderer(plants: readonly Plant[], water: WaterUnifor
 
   return {
     object,
+    settled: () => Promise.all(loading).then(() => undefined),
     dispose() {
+      disposed = true;
       disposables.forEach((item) => {
         item.dispose();
       });

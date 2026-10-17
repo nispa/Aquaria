@@ -16,7 +16,7 @@ const objects = bundledObjects();
 
 /** The traits of a bundled object, as the layout reads them. */
 function traitsOf(kind: string): PropTraits {
-  const traits = propTraitsOf(objects.get(kind));
+  const traits = propTraitsOf(objects.get(kind), kind);
   if (traits === undefined) throw new Error(`No object "${kind}".`);
   return traits;
 }

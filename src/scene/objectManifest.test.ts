@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { objectMaterialUrl, parseObjectManifest, resolveAssetPath } from "./objectManifest";
+import {
+  objectMaterialUrl,
+  objectModelUrl,
+  parseObjectManifest,
+  resolveAssetPath,
+} from "./objectManifest";
 
 const credit = {
   author: "A. Modeller",
@@ -99,5 +104,25 @@ describe("objectMaterialUrl", () => {
     );
 
     expect(objectMaterialUrl("rock", manifest)).toBe("assets/materials/reef-rock/material.json");
+  });
+});
+
+describe("objectModelUrl", () => {
+  it("is the object's model file, from the site root", () => {
+    const { manifest } = parseObjectManifest(
+      { name: "Stone", category: "object", model: "model.glb", credit },
+      "stone",
+    );
+
+    expect(objectModelUrl("stone", manifest)).toBe("assets/objects/stone/model.glb");
+  });
+
+  it("is undefined when the object has no model", () => {
+    const { manifest } = parseObjectManifest(
+      { name: "Rock", category: "object", recipe: { generator: "rock" } },
+      "rock",
+    );
+
+    expect(objectModelUrl("rock", manifest)).toBeUndefined();
   });
 });
