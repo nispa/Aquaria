@@ -1,6 +1,6 @@
 # Aquaria
 
-_Versione italiana: [README.it.md](README.it.md)._
+<p align="center"><b>English</b> · <a href="README.it.md">Italiano</a></p>
 
 [![Aquaria, a real-time 3D aquarium for the browser](docs/hero.jpg)](https://nispa.github.io/Aquaria/)
 
