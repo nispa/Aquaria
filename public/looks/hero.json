@@ -1,11 +1,7 @@
 {
   "name": "Hero",
   "exposure": 0.72,
-  "sun": [
-    0.02,
-    0.62,
-    -1
-  ],
+  "sun": [0.02, 0.62, -1],
   "features": {
     "waves": true,
     "frame": true
@@ -13,11 +9,7 @@
   "effects": {
     "underwater": {
       "strength": 1,
-      "absorption": [
-        0.36,
-        0.2,
-        0.17
-      ],
+      "absorption": [0.36, 0.2, 0.17],
       "deep": "#010b10",
       "horizon": "#08404c",
       "surface": "#2a8c98",

@@ -98,7 +98,10 @@ describe("choosing and tweaking a look", () => {
   });
 
   it("uses the plain look for a scene without one", () => {
-    expect(chooseLook(undefined, undefined, looks)).toEqual({ id: PLAIN_LOOK_ID, look: PLAIN_LOOK });
+    expect(chooseLook(undefined, undefined, looks)).toEqual({
+      id: PLAIN_LOOK_ID,
+      look: PLAIN_LOOK,
+    });
   });
 
   it("uses the look the viewer chose over the scene's", () => {
@@ -128,11 +131,7 @@ describe("choosing and tweaking a look", () => {
 
 describe("sun angles", () => {
   it("puts a sun of height 90 degrees straight overhead", () => {
-    expect(sunFromAngles(90, 0)).toEqual([
-      expect.closeTo(0),
-      expect.closeTo(1),
-      expect.closeTo(0),
-    ]);
+    expect(sunFromAngles(90, 0)).toEqual([expect.closeTo(0), expect.closeTo(1), expect.closeTo(0)]);
   });
 
   it("puts a sun of turn 0 behind the tank", () => {

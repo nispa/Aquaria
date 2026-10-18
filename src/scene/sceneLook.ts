@@ -140,7 +140,9 @@ export function parseSceneLook(input: unknown, id: string): SceneLook {
 }
 
 const lookIndexSchema = z.object({
-  looks: z.array(z.string().regex(/^[a-z0-9-]+$/, "Look ids are file names: lowercase, digits, dashes.")),
+  looks: z.array(
+    z.string().regex(/^[a-z0-9-]+$/, "Look ids are file names: lowercase, digits, dashes."),
+  ),
 });
 
 /** Validates `public/looks/index.json`: the looks offered in the panel. */
@@ -192,7 +194,11 @@ export function switchLookFeatures(
 ): Look {
   const next = new Set(current);
   for (const id of Object.keys(before.features)) {
-    if (saved[id] === undefined && after.features[id] === undefined && before.features[id] === true) {
+    if (
+      saved[id] === undefined &&
+      after.features[id] === undefined &&
+      before.features[id] === true
+    ) {
       next.delete(id);
     }
   }

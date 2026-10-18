@@ -408,10 +408,7 @@ async function loadFileEffects(): Promise<readonly EffectDefinition[]> {
  * parameters an effect refuses stop the start, effects nobody provides are
  * only a warning (an effect folder may have been left out).
  */
-async function loadSceneLook(
-  id: string,
-  effects: readonly EffectDefinition[],
-): Promise<SceneLook> {
+async function loadSceneLook(id: string, effects: readonly EffectDefinition[]): Promise<SceneLook> {
   const sceneLook = parseSceneLook(await fetchJson(sceneLookUrl(id)), id);
   const issues = lookParamIssues(sceneLook, effects);
   if (issues.invalid.length > 0) {
