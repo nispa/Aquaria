@@ -67,6 +67,28 @@ describe("selectSceneId", () => {
     expect(selectSceneId(index, undefined, "deleted-scene")).toBe("reef");
   });
 
+  it("opens the index's phone scene on a phone when nothing else is chosen", () => {
+    const withPhone = parseSceneIndex({ ...groups, phone: "iwagumi" });
+
+    expect(selectSceneId(withPhone, undefined, undefined, true)).toBe("iwagumi");
+  });
+
+  it("keeps the default scene off phones", () => {
+    const withPhone = parseSceneIndex({ ...groups, phone: "iwagumi" });
+
+    expect(selectSceneId(withPhone, undefined, undefined, false)).toBe("reef");
+  });
+
+  it("keeps a phone's saved choice over the phone scene", () => {
+    const withPhone = parseSceneIndex({ ...groups, phone: "iwagumi" });
+
+    expect(selectSceneId(withPhone, undefined, "home-reef", true)).toBe("home-reef");
+  });
+
+  it("rejects a phone scene that is not listed", () => {
+    expect(() => parseSceneIndex({ ...groups, phone: "nano" })).toThrow(/phone/);
+  });
+
   it("still opens an unlisted scene named in the URL, for scenes in progress", () => {
     expect(selectSceneId(index, "draft", undefined)).toBe("draft");
   });

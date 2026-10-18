@@ -16,6 +16,7 @@ interface SceneFile {
 /** The kind of aquarium each bundled scene shows, for the caption. */
 const KINDS: Readonly<Record<string, string>> = {
   hero: "Demo · open water under a midday sun, as on the Aquaria poster",
+  "nano-reef": "Demo · a small reef for phones: a pink anemone and a pair of clownfish",
   aquaria: "Demo · the Aquaria showcase tank (a fantasy mix of sea and fresh water)",
   reef: "Open sea · tropical coral reef (saltwater)",
   "home-reef": "Aquarium · marine reef tank (saltwater)",

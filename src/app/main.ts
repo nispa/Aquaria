@@ -1,6 +1,7 @@
 import "../ui/styles.css";
 import { Vector2, Vector3 } from "three";
 import { createFixedStepClock } from "../core/clock";
+import { isPhone } from "../core/device";
 import { createEventBus } from "../core/eventBus";
 import { createFpsMeter } from "../core/fps";
 import { createFeatureCalibration, type FeatureCalibration } from "../core/featureCalibration";
@@ -470,6 +471,16 @@ function customSceneData(custom: Readonly<Record<string, Scene>>, id: string): S
   return scene;
 }
 
+/** Whether this is a phone: it opens the index's phone scene, a tank it draws well. */
+function onPhone(): boolean {
+  const hints = navigator as Navigator & { readonly userAgentData?: { readonly mobile?: boolean } };
+  return isPhone({
+    coarsePointer: window.matchMedia("(pointer: coarse)").matches,
+    shortSide: Math.min(window.screen.width, window.screen.height),
+    mobileHint: hints.userAgentData?.mobile,
+  });
+}
+
 async function start(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>("#aquarium");
   if (canvas === null) throw new Error('Missing <canvas id="aquarium">.');
@@ -495,7 +506,7 @@ async function start(): Promise<void> {
     MY_SCENES_GROUP,
     Object.keys(customScenes),
   );
-  const sceneId = selectSceneId(sceneIndex, options.scene, settings.scene);
+  const sceneId = selectSceneId(sceneIndex, options.scene, settings.scene, onPhone());
   const [sceneData, sceneChoices] = await Promise.all([
     isCustomSceneId(sceneId)
       ? customSceneData(customScenes, sceneId)

@@ -1,6 +1,12 @@
-"""Builds Aquaria's bubble-tip anemone, the clownfish's host.
+"""Builds Aquaria's anemones, the clownfish's hosts.
 
-The bubble-tip anemone (Entacmaea quadricolor) is a short column flaring
+Two species, one object each:
+
+- the magnificent anemone (Heteractis magnifica): a tall column, often
+  pink or magenta, and long, slender, finger-like tentacles that flow in
+  the current, sparse enough for a clownfish to swim through;
+
+- the bubble-tip anemone (Entacmaea quadricolor): a short column flaring
 into an oral disc crowded with tentacles; each tentacle swells into a
 bulb below its tip when the anemone is healthy and fed. The column is
 orange to red, the tentacles come in colour morphs: green with pink tips,
@@ -12,8 +18,8 @@ Run with Blender 5.2 in the background, from the repository root:
 
     blender --background --python scripts/blender/anemone.py
 
-then compress public/assets/objects/bubble-tip-anemone/model.glb with glTF
-Transform (meshopt, --join false --flatten false).
+then compress each model.glb with glTF Transform (meshopt, --join false
+--flatten false).
 """
 
 import math
@@ -28,22 +34,52 @@ from mathutils import Vector
 sys.path.insert(0, os.path.dirname(__file__))
 from plantkit import VARIANT_SPACING, export, leaf_material, linear, mix, plant_object, ramp  # noqa: E402
 
-OUTPUT = "public/assets/objects/bubble-tip-anemone/model.glb"
 SEED = 20261018
 # Sizes in disc radii; Aquaria scales the anemone to its height in the scene.
 COLUMN_RADIUS = 0.36
-COLUMN_HEIGHT = 0.16
 DISC_RADIUS = 0.55
-TENTACLES = 90
 TENTACLE_SIDES = 8
 TENTACLE_SEGMENTS = 12
 # Where along a tentacle its end starts to round off.
 ROUNDING = 0.82
-# The colour morphs, one variant each: column, tentacle base, bulb, tip.
-MORPHS = [
-    ("#c4472f", "#7d8a4a", "#9aa65a", "#e46aa0"),
-    ("#b8342e", "#c46a7c", "#e08a9a", "#f2b2c4"),
-    ("#c85a2a", "#7a6040", "#94784a", "#9ccf5a"),
+
+# Each species: where it goes, how its tentacles grow (length, thickness at
+# the root and swelling of the bulb as ranges; how far the outer ones lean
+# out, how much they rise and curl up, how much they wave), and its colour
+# morphs, one variant each: column, tentacle base, middle (the bulb), tip.
+SPECIES = [
+    {
+        "output": "public/assets/objects/bubble-tip-anemone/model.glb",
+        "column_height": 0.16,
+        "tentacles": 90,
+        "length": (0.38, 0.6),
+        "thickness": (0.045, 0.058),
+        "bulb": (1.45, 1.8),
+        "lean": (0.5, 1.1),
+        "rise": (0.7, 0.2),
+        "wave": 0.0,
+        "morphs": [
+            ("#c4472f", "#7d8a4a", "#9aa65a", "#e46aa0"),
+            ("#b8342e", "#c46a7c", "#e08a9a", "#f2b2c4"),
+            ("#c85a2a", "#7a6040", "#94784a", "#9ccf5a"),
+        ],
+    },
+    {
+        "output": "public/assets/objects/magnificent-anemone/model.glb",
+        "column_height": 0.34,
+        "tentacles": 120,
+        "length": (0.95, 1.4),
+        "thickness": (0.022, 0.03),
+        "bulb": (1.0, 1.08),
+        "lean": (0.35, 0.95),
+        "rise": (1.0, 0.3),
+        "wave": 0.35,
+        "morphs": [
+            ("#c0386e", "#e08aa4", "#f0a0b8", "#ffe0ea"),
+            ("#a8205a", "#e6b0b8", "#f2c4c8", "#fff0e8"),
+            ("#b02860", "#f094b0", "#f8b0c8", "#fff4f0"),
+        ],
+    },
 ]
 
 
@@ -65,17 +101,17 @@ def bridge(mesh, lower, upper):
         mesh.faces.new((lower[k], lower[(k + 1) % count], upper[(k + 1) % count], upper[k]))
 
 
-def column_and_disc(mesh, colors, sway, morph):
+def column_and_disc(mesh, colors, sway, morph, column_height):
     """The column flaring into the oral disc, with the mouth in the middle."""
     column = linear(morph[0])
     disc = mix(linear(morph[1]), column, 0.35)
     profile = [
         (0.0, COLUMN_RADIUS, column),
-        (COLUMN_HEIGHT * 0.6, COLUMN_RADIUS * 0.92, column),
-        (COLUMN_HEIGHT, DISC_RADIUS * 0.85, mix(column, disc, 0.5)),
-        (COLUMN_HEIGHT * 1.05, DISC_RADIUS, disc),
-        (COLUMN_HEIGHT * 1.08, DISC_RADIUS * 0.5, disc),
-        (COLUMN_HEIGHT * 1.02, 0.06, column),
+        (column_height * 0.6, COLUMN_RADIUS * 0.92, column),
+        (column_height, DISC_RADIUS * 0.85, mix(column, disc, 0.5)),
+        (column_height * 1.05, DISC_RADIUS, disc),
+        (column_height * 1.08, DISC_RADIUS * 0.5, disc),
+        (column_height * 1.02, 0.06, column),
     ]
     rings = []
     for height, radius, color in profile:
@@ -88,26 +124,34 @@ def column_and_disc(mesh, colors, sway, morph):
         bridge(mesh, lower, upper)
 
 
-def tentacle(mesh, colors, sway, rng, morph, root, out):
-    """A tapering tube, swollen into a bulb below its tip, curving up and out."""
+def tentacle(mesh, colors, sway, rng, species, morph, root, out):
+    """A tapering tube, swollen into a bulb below its tip (if any), curving up and out."""
     stops = [
         (0.0, linear(morph[1])),
         (0.6, linear(morph[2])),
         (0.82, linear(morph[2])),
         (1.0, linear(morph[3])),
     ]
-    length = rng.uniform(0.38, 0.6)
-    base_radius = rng.uniform(0.045, 0.058)
-    bulb = rng.uniform(1.45, 1.8)
+    length = rng.uniform(*species["length"])
+    base_radius = rng.uniform(*species["thickness"])
+    bulb = rng.uniform(*species["bulb"])
     # Outer tentacles lean further out; all of them curl up towards the light.
-    lean = 0.5 + 1.1 * out
+    lean = species["lean"][0] + species["lean"][1] * out
+    rise, curl = species["rise"]
     wiggle = Vector((rng.uniform(-0.2, 0.2), rng.uniform(-0.2, 0.2), 0))
+    wave = species["wave"]
+    phase = rng.uniform(0, math.tau) if wave > 0 else 0.0
+    side = Vector((-root.y, root.x, 0)).normalized() if root.length > 1e-6 else Vector((0, 1, 0))
     direction = Vector((root.x, root.y, 0)).normalized() if root.length > 1e-6 else Vector((1, 0, 0))
     previous = None
     position = root.copy()
     for i in range(TENTACLE_SEGMENTS + 1):
         t = i / TENTACLE_SEGMENTS
-        heading = (direction * lean * (1 - 0.6 * t) + Vector((0, 0, 1)) * (0.7 + 0.2 * t) + wiggle * t).normalized()
+        # Long tentacles wave gently from side to side along their length.
+        waving = side * (wave * math.sin(t * 5.0 + phase) * t)
+        heading = (
+            direction * lean * (1 - 0.6 * t) + Vector((0, 0, 1)) * (rise + curl * t) + wiggle * t + waving
+        ).normalized()
         # Slim at the root, a bulb around 75 %, then a rounded, blunt end.
         swell = 1 + (bulb - 1) * math.exp(-(((t - 0.75) / 0.12) ** 2))
         end = math.sqrt(max(1 - ((t - ROUNDING) / (1 - ROUNDING)) ** 2, 0.0)) if t > ROUNDING else 1.0
@@ -128,32 +172,36 @@ def tentacle(mesh, colors, sway, rng, morph, root, out):
         mesh.faces.new((previous[k], previous[(k + 1) % TENTACLE_SIDES], cap))
 
 
-def build_anemone(rng, offset, morph, material):
+def build_anemone(rng, offset, species, morph, material, name):
     mesh = bmesh.new()
     colors = {}
     sway = {}
-    column_and_disc(mesh, colors, sway, morph)
-    for index in range(TENTACLES):
+    column_height = species["column_height"]
+    column_and_disc(mesh, colors, sway, morph, column_height)
+    count = species["tentacles"]
+    for index in range(count):
         # Spread over the disc like sunflower seeds, leaving the mouth bare.
-        share = (index + 0.5) / TENTACLES
+        share = (index + 0.5) / count
         distance = DISC_RADIUS * (0.25 + 0.72 * math.sqrt(share))
         angle = index * 2.39996 + rng.uniform(-0.1, 0.1)
-        root = Vector((math.cos(angle) * distance, math.sin(angle) * distance, COLUMN_HEIGHT * 1.05))
-        tentacle(mesh, colors, sway, rng, morph, root, out=math.sqrt(share))
+        root = Vector((math.cos(angle) * distance, math.sin(angle) * distance, column_height * 1.05))
+        tentacle(mesh, colors, sway, rng, species, morph, root, out=math.sqrt(share))
     bmesh.ops.translate(mesh, verts=mesh.verts, vec=Vector((offset, 0, 0)))
-    anemone = plant_object("bubble-tip-anemone", mesh, colors, sway, material)
+    anemone = plant_object(name, mesh, colors, sway, material)
     mesh.free()
     return anemone
 
 
 def main():
-    bpy.ops.wm.read_factory_settings(use_empty=True)
-    rng = random.Random(SEED)
-    material = leaf_material("bubble-tip-anemone", 0.35)
-    for index, morph in enumerate(MORPHS):
-        build_anemone(rng, index * VARIANT_SPACING, morph, material)
-    export(OUTPUT)
-    print("ANEMONE written", OUTPUT)
+    for species in SPECIES:
+        bpy.ops.wm.read_factory_settings(use_empty=True)
+        name = os.path.basename(os.path.dirname(species["output"]))
+        rng = random.Random(SEED)
+        material = leaf_material(name, 0.35)
+        for index, morph in enumerate(species["morphs"]):
+            build_anemone(rng, index * VARIANT_SPACING, species, morph, material, name)
+        export(species["output"])
+        print("ANEMONE written", species["output"])
 
 
 main()

@@ -21,6 +21,10 @@ stops and tells you which field, in which file.
 | `public/assets/materials/<id>/` | A surface texture: sand, rock, wood                    |
 | `public/looks/<id>.json`        | A look: exposure, sun, effect settings ([Look](#look)) |
 
+On a phone, Aquaria opens the scene named `phone` in `index.json` (the
+Nano reef, a small tank a phone draws well) unless the URL or the viewer's
+last choice names another.
+
 A scene you save in the editor lives in the browser, not in these files.
 To ship it, use **Export JSON** in the editor's Scene tab, copy the file to
 `public/scenes/` and add its id to `index.json`.

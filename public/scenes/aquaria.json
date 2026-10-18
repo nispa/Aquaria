@@ -2,6 +2,7 @@
   "id": "aquaria",
   "name": "Aquaria",
   "seed": 20261016,
+  "look": "hero",
   "tank": {
     "width": 6,
     "height": 3.2,

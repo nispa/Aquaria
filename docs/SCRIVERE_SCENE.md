@@ -22,6 +22,10 @@ l'acquario si ferma e ti dice quale campo, in quale file.
 | `public/assets/materials/<id>/` | Una texture di superficie: sabbia, roccia, legno                       |
 | `public/looks/<id>.json`        | Un look: esposizione, sole, impostazioni degli effetti ([Look](#look)) |
 
+Su un telefono Aquaria apre la scena indicata da `phone` in `index.json`
+(il Nano reef, una vasca piccola che un telefono disegna bene), a meno che
+l'URL o l'ultima scelta di chi guarda non ne indichino un'altra.
+
 Una scena salvata nell'editor resta nel browser, non in questi file. Per
 includerla, usa **Export JSON** nella scheda Scene dell'editor, copia il
 file in `public/scenes/` e aggiungi il suo id a `index.json`.

@@ -1,0 +1,160 @@
+{
+  "id": "nano-reef",
+  "name": "Nano reef",
+  "seed": 20261019,
+  "look": "lagoon",
+  "tank": {
+    "width": 1.0,
+    "height": 0.75,
+    "depth": 0.7
+  },
+  "water": {
+    "color": "#0a4c5a",
+    "fogDensity": 0.02,
+    "surface": 1,
+    "bubbles": true
+  },
+  "light": {
+    "color": "#fff1d6",
+    "intensity": 1.25,
+    "caustics": {
+      "intensity": 1.1,
+      "scale": 4.0
+    }
+  },
+  "current": {
+    "direction": [1, 0, 0.15],
+    "strength": 0.01,
+    "turbulence": 0.3
+  },
+  "backdrop": {
+    "type": "gradient",
+    "top": "#1f8c9c",
+    "bottom": "#01121a"
+  },
+  "floor": {
+    "color": "#857f6a",
+    "material": {
+      "id": "fine-sand",
+      "tileSize": 1.2
+    }
+  },
+  "lights": {
+    "channels": {
+      "white": {
+        "level": 1
+      },
+      "blue": {
+        "level": 0.3
+      },
+      "violet": {
+        "level": 0.05
+      }
+    },
+    "moon": 0.05
+  },
+  "rockwork": {
+    "bands": [3, 4],
+    "height": [0.08, 0.2],
+    "coverage": 0.55,
+    "thickness": 0.28,
+    "rocks": 4,
+    "color": "#6f7468",
+    "material": {
+      "id": "reef-rock",
+      "tileSize": 0.25,
+      "displacement": 0.008
+    },
+    "growth": {
+      "patch": 0.12
+    }
+  },
+  "flora": [
+    {
+      "kind": "magnificent-anemone",
+      "name": "Anemone",
+      "count": 1,
+      "bands": [0, 1],
+      "height": [0.16, 0.16],
+      "color": ["#ffffff"],
+      "at": [
+        {
+          "x": 0.0,
+          "z": -0.2
+        }
+      ]
+    },
+    {
+      "kind": "turtle-grass",
+      "name": "Seagrass",
+      "count": 8,
+      "bands": [1, 2],
+      "height": [0.08, 0.14],
+      "color": ["#5e9a34"]
+    },
+    {
+      "kind": "sea-lettuce",
+      "name": "Sea lettuce",
+      "count": 4,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "height": [0.04, 0.06],
+      "color": ["#5fae2e"]
+    }
+  ],
+  "props": [
+    {
+      "kind": "cauliflower-coral",
+      "count": 2,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "color": ["#e88aa0", "#ffb07a"],
+      "size": [0.09, 0.13]
+    },
+    {
+      "kind": "maze-coral",
+      "count": 1,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "color": ["#c9a070"],
+      "size": [0.1, 0.1]
+    },
+    {
+      "kind": "staghorn-coral",
+      "count": 2,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "color": ["#ff8a3c"],
+      "size": [0.12, 0.16]
+    },
+    {
+      "kind": "sheet-coral",
+      "count": 1,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "color": ["#e0a868"],
+      "size": [0.1, 0.1]
+    },
+    {
+      "kind": "glove-sponge",
+      "count": 1,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "color": ["#6f7fd8"],
+      "size": [0.08, 0.08]
+    },
+    {
+      "kind": "shell",
+      "count": 2,
+      "color": ["#f3e6d4"],
+      "bands": [0, 1],
+      "size": [0.025, 0.04]
+    }
+  ],
+  "fauna": [
+    {
+      "species": "clownfish",
+      "count": 2
+    }
+  ]
+}

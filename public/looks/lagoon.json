@@ -1,0 +1,38 @@
+{
+  "name": "Clownfish lagoon",
+  "exposure": 0.9,
+  "sun": [0.15, 0.75, -1],
+  "features": {
+    "waves": true,
+    "frame": false
+  },
+  "effects": {
+    "underwater": {
+      "strength": 1,
+      "absorption": [0.36, 0.2, 0.17],
+      "deep": "#032029",
+      "horizon": "#0a5462",
+      "surface": "#35b6c2",
+      "brightness": 1,
+      "sunColor": "#fff2d6",
+      "sunGlow": 3,
+      "sunFocus": 120,
+      "shafts": 0.75,
+      "shaftCount": 44,
+      "clearWater": 0.4,
+      "depthDarkening": 0.05
+    },
+    "volumetric-light": {
+      "exposure": 0.8,
+      "threshold": 1.0,
+      "density": 1.1,
+      "decay": 0.98
+    },
+    "finish": {
+      "vignette": 0.45,
+      "contrast": 1.1,
+      "saturation": 1.25,
+      "tint": "#f4fdff"
+    }
+  }
+}

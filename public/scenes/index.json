@@ -1,7 +1,17 @@
 {
   "groups": [
-    { "name": "Demo", "scenes": ["aquaria", "hero"] },
-    { "name": "Open sea", "scenes": ["reef"] },
-    { "name": "Aquariums", "scenes": ["home-reef", "planted-tank", "iwagumi"] }
-  ]
+    {
+      "name": "Demo",
+      "scenes": ["aquaria", "hero", "nano-reef"]
+    },
+    {
+      "name": "Open sea",
+      "scenes": ["reef"]
+    },
+    {
+      "name": "Aquariums",
+      "scenes": ["home-reef", "planted-tank", "iwagumi"]
+    }
+  ],
+  "phone": "nano-reef"
 }
