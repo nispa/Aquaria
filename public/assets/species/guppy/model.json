@@ -17,6 +17,21 @@
     "bottom": -0.06,
     "curve": 4
   },
+  "fins": {
+    "pectoral": {
+      "root": [
+        [0.309, -0.013],
+        [0.298, -0.058]
+      ],
+      "side": 0.064,
+      "front": 0.342,
+      "back": 0.252,
+      "top": -0.002,
+      "bottom": -0.076,
+      "rest": 30,
+      "sweep": 35
+    }
+  },
   "credit": {
     "author": "Aquaria (scripts/blender/guppy.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/guppy.py",

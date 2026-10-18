@@ -151,7 +151,10 @@ Controlla sul visore con **Pectoral spread** a -1 (la pinna deve
 appoggiarsi al corpo senza attraversarlo) e a 1. Il corpo disegnato ha le
 sue pettorali, che si muovono allo stesso modo. Un modello fatto in Blender
 le può avere come lastre separate dal corpo: il riquadro le trova lo
-stesso.
+stesso. La lastra deve partire dalla pelle, non da dentro, o `side` non
+la distingue dal fianco: `pectoral_fin` in `scripts/blender/fishkit.py`
+appoggia la base sulla pelle e la inclina in fuori di 30 gradi, come sul
+gramma reale.
 
 Un pesce che allunga la bocca in avanti quando la apre, come l'orata o il
 barramundi, con `jaw` viene male. Gli serve una vera posa a bocca aperta

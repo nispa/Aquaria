@@ -17,6 +17,21 @@
     "bottom": 0.05,
     "curve": 1.5
   },
+  "fins": {
+    "pectoral": {
+      "root": [
+        [0.244, 0.071],
+        [0.235, 0.001]
+      ],
+      "side": 0.068,
+      "front": 0.285,
+      "back": 0.151,
+      "top": 0.083,
+      "bottom": -0.029,
+      "rest": 30,
+      "sweep": 35
+    }
+  },
   "credit": {
     "author": "Aquaria (scripts/blender/angelfish.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/angelfish.py",

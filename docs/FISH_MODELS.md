@@ -149,7 +149,10 @@ Check it on the viewer with **Pectoral spread** at -1 (the fin should lie
 on the body without going through it) and at 1. The drawn body has
 pectoral fins of its own, moving the same way. A model made in Blender
 can have them as sheets apart from the body: the box finds them all the
-same.
+same. The sheet must start on the skin, not inside it, or `side` cannot
+tell it from the flank: `pectoral_fin` in `scripts/blender/fishkit.py`
+sets its base on the skin and leans it out by 30 degrees, as on the
+royal gramma.
 
 A fish whose mouth pushes forward when it opens, like the seabream or the
 barramundi, looks wrong with `jaw`. It needs a real open-mouth pose made in

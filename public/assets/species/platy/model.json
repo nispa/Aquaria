@@ -17,6 +17,21 @@
     "bottom": -0.08,
     "curve": 4
   },
+  "fins": {
+    "pectoral": {
+      "root": [
+        [0.298, -0.059],
+        [0.285, -0.122]
+      ],
+      "side": 0.098,
+      "front": 0.34,
+      "back": 0.228,
+      "top": -0.045,
+      "bottom": -0.142,
+      "rest": 30,
+      "sweep": 35
+    }
+  },
   "credit": {
     "author": "Aquaria (scripts/blender/platy.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/platy.py",

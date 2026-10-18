@@ -40,6 +40,7 @@ from fishkit import (  # noqa: E402
     material,
     membrane,
     mix,
+    pectoral_fin,
     polyline_point,
     rig,
     rounded,
@@ -96,6 +97,8 @@ def thickness(s):
     return max(HALF_THICKNESS * (min(s / 0.22, 1.0) ** 0.5) * (1 - 0.75 * smoothstep(0.25, 1.0, s)), 0.006)
 
 
+# How round the body's cross-section is (Body.mesh); the pectoral fins sit on its skin.
+ROUNDNESS = 1.4
 BODY = Body(TOP, BOTTOM, thickness, linear(BLUSH), linear(PEARL))
 PEDUNCLE_X = BODY.peduncle_x
 
@@ -170,15 +173,15 @@ def pelvic(side, length):
 
 
 def pectoral(side):
-    root = Vector((0.15, side * 0.045, -0.02))
+    root = Vector((0.15, 0, -0.02))
 
     def base(u):
         return root + Vector((-0.008 * u, 0, 0.06 * (u - 0.5)))
 
     def edge(u):
-        return root + Vector((-0.12, side * 0.03, 0.08 * (u - 0.5) - 0.025))
+        return root + Vector((-0.12, 0, 0.08 * (u - 0.5) - 0.025))
 
-    return membrane(base, edge, rayed(10), steps_u=40, steps_v=8)
+    return pectoral_fin(BODY, ROUNDNESS, side, base, edge, rayed(10), steps_u=40, steps_v=8)
 
 
 def eye_centre(side):
@@ -196,7 +199,7 @@ def main():
     output = os.path.abspath(args[0]) if args else DEFAULT_OUTPUT
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
-    body = make_object("Body", [BODY.mesh(skin)], material("Skin", 0.28, 0.12, False))
+    body = make_object("Body", [BODY.mesh(skin, roundness=ROUNDNESS)], material("Skin", 0.28, 0.12, False))
     BODY.mouth_shape_key(body)
     fin_parts = [sickle(True), sickle(False), caudal(), pelvic(1, 0.42), pelvic(-1, 0.34), pectoral(1), pectoral(-1)]
     fins = make_object("Fins", fin_parts, material("Fins", 0.35, 0.0, True))

@@ -17,6 +17,21 @@
     "bottom": -0.1,
     "curve": 3
   },
+  "fins": {
+    "pectoral": {
+      "root": [
+        [0.27, 0.025],
+        [0.275, -0.04]
+      ],
+      "side": 0.1,
+      "front": 0.3,
+      "back": 0.165,
+      "top": 0.035,
+      "bottom": -0.075,
+      "rest": 30,
+      "sweep": 35
+    }
+  },
   "credit": {
     "author": "Aquaria (scripts/blender/royal_gramma.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/royal_gramma.py",

@@ -12,6 +12,8 @@ import os
 import bpy
 from mathutils import Vector
 
+# How far outside the skin a pectoral fin's base sits, body lengths: enough not to flicker through it.
+SKIN_GAP = 0.002
 
 def linear(hex_color, alpha=1.0):
     """An sRGB hex color as linear RGBA, as vertex colors are stored."""
@@ -99,6 +101,13 @@ class Body:
         top, bottom, _ = self.profile(self.s(x))
         return Vector((x, 0.0, (top if upper else bottom) - (0.006 if upper else -0.006)))
 
+    def skin(self, x, z, roundness):
+        """How far out from the middle (y) the skin is at x and height z, on mesh's lens of that roundness."""
+        top, bottom, thickness = self.profile(self.s(x))
+        middle, half = (top + bottom) / 2, (top - bottom) / 2
+        up = max(-1.0, min(1.0, (z - middle) / half))
+        return thickness * math.sqrt(1 - up * up) ** roundness
+
     def mesh(self, color, steps=120, around=64, roundness=1.4):
         """Rings of vertices from snout to peduncle; color(x, z, top, bottom) paints them."""
         verts, faces, colors = [], [], []
@@ -169,6 +178,26 @@ def membrane(base, edge, color, steps_u=240, steps_v=24, bulge=0.0):
             q = i * row + j
             faces.append((q, q + row, q + row + 1, q + 1))
     return verts, faces, colors
+
+
+def pectoral_fin(body, roundness, side, base, edge, color, lean=30, steps_u=24, steps_v=6):
+    """A pectoral fin (side 1 left, -1 right) from base(u) back to edge(u), both giving x and z.
+
+    Its base sits on the skin, where Aquaria's pectoralWeights can tell it
+    from the flank, and it stands out from the body by `lean` degrees (the
+    model.json `rest`), so folded it lies on the flank instead of in it.
+    """
+    outward = math.tan(math.radians(lean))
+
+    def on_skin(u):
+        point = base(u)
+        return Vector((point.x, side * (body.skin(point.x, point.z, roundness) + SKIN_GAP), point.z))
+
+    def out(u):
+        root, tip = on_skin(u), edge(u)
+        return Vector((tip.x, root.y + side * outward * abs(root.x - tip.x), tip.z))
+
+    return membrane(on_skin, out, color, steps_u=steps_u, steps_v=steps_v)
 
 
 def body_fin(body, start_x, end_x, outline, upper, color, steps_u=240, bulge=0.006):
