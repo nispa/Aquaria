@@ -16,7 +16,7 @@ import { createSimulation } from "../src/sim/simulation";
 
 /** A bundled species for each style, as assigned in public/species.json. */
 const EXAMPLES: readonly (readonly [SwimStyleId, string])[] = [
-  ["cruise", "blue-tang"],
+  ["cruise", "sardine"],
   ["burst-coast", "three-bar-damsel"],
   ["hover", "royal-gramma"],
   ["glide", "moorish-idol"],
