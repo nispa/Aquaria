@@ -120,6 +120,8 @@ export interface PanelCallbacks {
   onLookTweak(change: LookTweak): void;
   /** Forgets the viewer's changes to the current look. */
   onLookReset(): void;
+  /** Forgets the settings, drops the caches and reloads everything. */
+  onResetEverything(): void;
   onRenderHeightChange(height: number): void;
   onFrameLimitChange(limit: number): void;
   onAutoResolutionChange(enabled: boolean): void;
@@ -200,8 +202,38 @@ function featureSections(
   });
 }
 
+/** Seconds the reset button waits for its second click. */
+const RESET_CONFIRM_MS = 4000;
+
+/**
+ * Starts Aquaria afresh, for a browser that keeps showing old models after
+ * an update. Two clicks, so a stray one does nothing.
+ */
+function resetButton(onReset: () => void): HTMLButtonElement {
+  const label = "Reset Aquaria";
+  const button = element("button", "panel__button panel__button--wide", label);
+  button.type = "button";
+  button.name = "reset-everything";
+  button.title =
+    "Forgets your settings and downloads every model and texture again; your own scenes stay.";
+  let armed: number | undefined;
+  button.addEventListener("click", () => {
+    if (armed === undefined) {
+      button.textContent = "Click again to reset everything";
+      armed = window.setTimeout(() => {
+        armed = undefined;
+        button.textContent = label;
+      }, RESET_CONFIRM_MS);
+      return;
+    }
+    window.clearTimeout(armed);
+    onReset();
+  });
+  return button;
+}
+
 /** Version, author, copyright, license and a link to the code, opened from the ⓘ. */
-function aboutBox(version: string, about: About): HTMLElement {
+function aboutBox(version: string, about: About, onReset: () => void): HTMLElement {
   const box = element("div", "panel__about");
   box.hidden = true;
   const link = element("a", "panel__link", about.repository.replace(/^https:\/\//, ""));
@@ -215,6 +247,7 @@ function aboutBox(version: string, about: About): HTMLElement {
     element("p", "panel__about-line", `By ${about.author}`),
     element("p", "panel__about-line", `${about.copyright} · ${about.license}`),
     repository,
+    resetButton(onReset),
   );
   return box;
 }
@@ -273,7 +306,9 @@ export function createPanel(
   infoButton.type = "button";
   infoButton.setAttribute("aria-label", "About Aquaria");
   infoButton.setAttribute("aria-expanded", "false");
-  const about = aboutBox(state.version, state.about);
+  const about = aboutBox(state.version, state.about, () => {
+    callbacks.onResetEverything();
+  });
   infoButton.addEventListener("click", () => {
     about.hidden = !about.hidden;
     infoButton.setAttribute("aria-expanded", String(!about.hidden));

@@ -13,6 +13,11 @@ mouse. Ogni sezione si apre e si chiude dal titolo, e il pannello ricorda
 quali hai lasciato aperte. Tutto quello che cambi viene salvato nel
 browser.
 
+La ⓘ accanto al titolo mostra la versione e **Reset Aquaria**: due clic
+dimenticano le tue impostazioni e riscaricano tutti i modelli e le texture.
+Usalo se un browser continua a mostrare qualcosa di vecchio dopo un
+aggiornamento; le tue scene restano.
+
 ### Scene
 
 Una scheda per ogni scena, poi le tue sotto **My scenes**. Clicca per

@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import type { Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vitest/config";
+import { assetCacheName } from "./src/core/assetCache";
 
 /**
  * Serves (dev) and emits (build) Three.js' Basis transcoder under basis/, so
@@ -63,9 +64,13 @@ function appCommit(): string {
   }
 }
 
+/** The build's name for caches: its commit, or its version outside git. */
+const BUILD = appCommit() || appVersion();
+
 /**
  * Installable web app that keeps working offline: the app itself is cached on
- * the first visit, textures and models once they have been shown.
+ * the first visit, textures and models once they have been shown, in a cache
+ * of this build (see core/assetCache) so a new build never serves old models.
  */
 function installableApp(): Plugin[] {
   return VitePWA({
@@ -97,7 +102,7 @@ function installableApp(): Plugin[] {
           urlPattern: ({ url, sameOrigin }) =>
             sameOrigin && /\.(?:ktx2|glb|gltf|bin|png|jpe?g|webp)$/.test(url.pathname),
           handler: "CacheFirst",
-          options: { cacheName: "aquaria-assets" },
+          options: { cacheName: assetCacheName(BUILD) },
         },
       ],
     },
@@ -109,6 +114,7 @@ export default defineConfig({
   define: {
     "import.meta.env.APP_VERSION": JSON.stringify(appVersion()),
     "import.meta.env.APP_COMMIT": JSON.stringify(appCommit()),
+    "import.meta.env.APP_ASSET_CACHE": JSON.stringify(assetCacheName(BUILD)),
   },
   plugins: [basisTranscoder(), installableApp()],
   build: {

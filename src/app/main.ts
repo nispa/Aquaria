@@ -1,6 +1,7 @@
 import "../ui/styles.css";
 import { Vector2, Vector3 } from "three";
 import { createFixedStepClock } from "../core/clock";
+import { staleAssetCaches } from "../core/assetCache";
 import { isPhone } from "../core/device";
 import { createEventBus } from "../core/eventBus";
 import { createFpsMeter } from "../core/fps";
@@ -471,6 +472,35 @@ function customSceneData(custom: Readonly<Record<string, Scene>>, id: string): S
   return scene;
 }
 
+/** Drops the caches of models and textures left by earlier builds. */
+async function dropStaleAssetCaches(): Promise<void> {
+  if (!("caches" in window)) return;
+  const stale = staleAssetCaches(await caches.keys(), import.meta.env.APP_ASSET_CACHE);
+  await Promise.all(stale.map((name) => caches.delete(name)));
+}
+
+/**
+ * Starts afresh: forgets the settings, drops every cache and the installed
+ * app's service worker, and reloads, so everything is downloaded anew. The
+ * viewer's own scenes and their pictures are kept.
+ */
+async function resetEverything(): Promise<void> {
+  try {
+    window.localStorage.removeItem(SETTINGS_KEY);
+  } catch {
+    logger.warn("Settings could not be cleared in this browser.");
+  }
+  if ("caches" in window) {
+    const names = await caches.keys();
+    await Promise.all(names.map((name) => caches.delete(name)));
+  }
+  if ("serviceWorker" in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((registration) => registration.unregister()));
+  }
+  window.location.reload();
+}
+
 /** Whether this is a phone: it opens the index's phone scene, a tank it draws well. */
 function onPhone(): boolean {
   const hints = navigator as Navigator & { readonly userAgentData?: { readonly mobile?: boolean } };
@@ -482,6 +512,9 @@ function onPhone(): boolean {
 }
 
 async function start(): Promise<void> {
+  dropStaleAssetCaches().catch((error: unknown) => {
+    logger.warn("Old caches could not be dropped", { error: String(error) });
+  });
   const canvas = document.querySelector<HTMLCanvasElement>("#aquarium");
   if (canvas === null) throw new Error('Missing <canvas id="aquarium">.');
   const loading = createLoadingScreen(document.getElementById("loading"));
@@ -853,6 +886,11 @@ async function start(): Promise<void> {
         update({ lookTweaks: { ...settings.lookTweaks, [id]: mergeTweaks(shownTweak, change) } });
         sceneLook = drawnLook();
         scheduleLookRebuild();
+      },
+      onResetEverything() {
+        resetEverything().catch((error: unknown) => {
+          logger.warn("Aquaria could not be reset", { error: String(error) });
+        });
       },
       onLookReset() {
         const { id } = lookChoice();

@@ -431,6 +431,34 @@ test("chooses the Hero look from the panel, tunes it and remembers both", async 
   expect(errors).toEqual([]);
 });
 
+test("resets Aquaria from the About box, forgetting the settings", async ({ page }) => {
+  await page.addInitScript(() => {
+    if (
+      localStorage.getItem("aquaria.settings") === null &&
+      sessionStorage.getItem("seeded") === null
+    ) {
+      sessionStorage.setItem("seeded", "yes");
+      localStorage.setItem(
+        "aquaria.settings",
+        JSON.stringify({ renderHeight: 540, showFps: true }),
+      );
+    }
+  });
+  await page.goto("/?effects=none");
+  await waitForState(page);
+  await page.keyboard.press("h");
+  await page.locator(".panel__info").click();
+
+  await page.locator('button[name="reset-everything"]').click();
+  const reloaded = page.waitForEvent("load");
+  await page.locator('button[name="reset-everything"]').click();
+  await reloaded;
+  await waitForState(page);
+
+  const saved = await page.evaluate(() => localStorage.getItem("aquaria.settings") ?? "{}");
+  expect(JSON.parse(saved)).toMatchObject({ showFps: false });
+});
+
 test("goes back to the recommended lights", async ({ page }) => {
   await openLive(page);
   await waitForState(page);

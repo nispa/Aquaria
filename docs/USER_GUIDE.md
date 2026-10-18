@@ -13,6 +13,11 @@ mouse. Each section opens and closes from its title, and the panel
 remembers which ones you left open. Everything you change is saved in the
 browser.
 
+The ⓘ next to the title shows the version and **Reset Aquaria**: two
+clicks forget your settings and download every model and texture again.
+Use it if a browser keeps showing something old after an update; your own
+scenes stay.
+
 ### Scenes
 
 A card for each scene, then your own scenes under **My scenes**. Click one

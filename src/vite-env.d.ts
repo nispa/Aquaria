@@ -10,4 +10,6 @@ interface ImportMetaEnv {
   readonly APP_VERSION: string;
   /** Short hash of the commit the build was made from; empty when unknown. */
   readonly APP_COMMIT: string;
+  /** Name of this build's cache of models and textures (core/assetCache). */
+  readonly APP_ASSET_CACHE: string;
 }
