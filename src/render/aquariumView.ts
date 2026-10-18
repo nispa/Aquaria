@@ -58,6 +58,7 @@ import { createSurfaceLibrary } from "./surfaceLibrary";
 import { createPropRenderer, type PropRenderer } from "./propRenderer";
 import { createBlockworkRenderer } from "./blockworkRenderer";
 import { createRockworkRenderer, type RockworkRenderer } from "./rockworkRenderer";
+import type { ShapeSource } from "./sceneryShapes";
 import { createWaterUniforms } from "./uniforms";
 import { createTorchLight } from "./torchLight";
 
@@ -108,6 +109,8 @@ export interface AquariumViewOptions {
   readonly look: Look;
   /** Registered post-processing effects; the look enables them by id. */
   readonly effects: readonly EffectDefinition[];
+  /** Where the generated plant and object shapes come from (render/shapeLibrary). */
+  readonly shapes?: ShapeSource;
   /** LED channels and daily cycle. */
   readonly lights: Lights;
   /** Multisample anti-aliasing samples (0 = off), capped by what the GPU supports. */
@@ -430,13 +433,14 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     );
     places = placesOf(plants, [...(ridge?.rocks ?? []), ...items]);
     obstacles = obstaclesOf([...(ridge?.rocks ?? []), ...items]);
-    flora = createFloraRenderer(plants, water, loaders.loadModel, logger);
+    flora = createFloraRenderer(plants, water, loaders.loadModel, logger, options.shapes);
     props = createPropRenderer(
       [...(ridge?.rocks ?? []), ...items],
       water,
       surfaces,
       loaders.loadModel,
       logger,
+      options.shapes,
     );
     if (ridge !== undefined && scene.rockwork !== undefined) {
       rockwork = createRockworkRenderer(ridge, scene.rockwork, water, surfaces);

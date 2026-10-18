@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import { createLogger, type LogEntry } from "../core/logger";
 import type { Plant } from "../sim/layout";
 import { createFloraRenderer } from "./floraRenderer";
+import type { ShapeRequest } from "./sceneryShapes";
 import { neutralWaterUniforms } from "./uniforms";
 
 function modelLeaf(customAttr = "_SWAY"): Group {
@@ -148,6 +149,45 @@ describe("createFloraRenderer", () => {
     await renderer.settled();
 
     expect([renderer.object.children.length, entries[0]?.level]).toEqual([0, "warn"]);
+    renderer.dispose();
+  });
+});
+
+describe("plant shapes", () => {
+  it("takes the shape of a generated plant from the given source", () => {
+    const asked: ShapeRequest[] = [];
+    const plants: Plant[] = [
+      {
+        kind: "kelp",
+        generator: "kelp",
+        sway: 0.12,
+        color: "#3a9a58",
+        x: 0,
+        z: -1,
+        height: 0.8,
+        rotation: 0,
+        swayPhase: 0.5,
+        seed: 7,
+        tags: ["plant"],
+      },
+    ];
+
+    const renderer = createFloraRenderer(
+      plants,
+      neutralWaterUniforms(),
+      undefined,
+      undefined,
+      (request) => {
+        asked.push(request);
+        return new BoxGeometry(3, 3, 3);
+      },
+    );
+
+    const mesh = renderer.object.children[0] as InstancedMesh | undefined;
+    expect([asked[0], mesh?.geometry.getAttribute("position").count]).toEqual([
+      { kind: "plant", generator: "kelp" },
+      new BoxGeometry(3, 3, 3).getAttribute("position").count,
+    ]);
     renderer.dispose();
   });
 });

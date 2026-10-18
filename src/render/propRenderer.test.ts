@@ -14,6 +14,7 @@ import { bundledObjects } from "../scene/objectFixtures";
 import { PROP_GENERATORS, type PropGenerator } from "../scene/schema";
 import { propTraitsOf, type Prop } from "../sim/layout";
 import { createPropRenderer, PROP_STYLES, propGeometry } from "./propRenderer";
+import type { ShapeRequest } from "./sceneryShapes";
 import { createSurfaceLibrary } from "./surfaceLibrary";
 import { neutralWaterUniforms } from "./uniforms";
 
@@ -214,6 +215,53 @@ describe("createPropRenderer with 3D models", () => {
     await renderer.settled();
 
     expect([renderer.object.children.length, entries[0]?.level]).toEqual([0, "warn"]);
+    renderer.dispose();
+    surfaces.dispose();
+  });
+});
+
+describe("prop shapes", () => {
+  it("takes the shape of a generated prop from the given source", () => {
+    const asked: ShapeRequest[] = [];
+    const surfaces = createSurfaceLibrary(
+      () => Promise.resolve(new Texture()),
+      createLogger("render", () => undefined),
+    );
+    const items: Prop[] = [
+      {
+        kind: "rock",
+        generator: "rock",
+        shape: { across: 0.5, up: 0.5, along: 0.5, sink: 0, lift: 0 },
+        solid: true,
+        color: "#8a8178",
+        x: 0,
+        z: -1,
+        size: 0.4,
+        rotation: 0,
+        seed: 3,
+        tags: [],
+      },
+    ];
+
+    const renderer = createPropRenderer(
+      items,
+      neutralWaterUniforms(),
+      surfaces,
+      undefined,
+      undefined,
+      (request) => {
+        asked.push(request);
+        return new BoxGeometry(3, 3, 3);
+      },
+    );
+
+    const mesh = renderer.object.children[0] as InstancedMesh | undefined;
+    mesh?.geometry.computeBoundingBox();
+    expect([asked[0]?.kind, asked[0]?.generator, mesh?.geometry.boundingBox?.max.x]).toEqual([
+      "prop",
+      "rock",
+      1.5,
+    ]);
     renderer.dispose();
     surfaces.dispose();
   });

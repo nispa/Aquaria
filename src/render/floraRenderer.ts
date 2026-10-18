@@ -26,6 +26,7 @@ import {
   type ObjectModelLoader,
   type ObjectModelVariant,
 } from "./objectModel";
+import type { ShapeSource } from "./sceneryShapes";
 import {
   algaeBushGeometry,
   anemoneTentacleGeometry,
@@ -192,6 +193,8 @@ export function createFloraRenderer(
   water: WaterUniforms,
   loadModel?: ObjectModelLoader,
   logger?: Logger,
+  /** Where generated shapes come from (render/shapeLibrary); built here by default. */
+  shapes?: ShapeSource,
 ): FloraRenderer {
   const object = new Group();
   object.name = "flora";
@@ -300,7 +303,8 @@ export function createFloraRenderer(
     }
     const style = FLORA_STYLES[first.generator];
     const count = members.length * style.blades;
-    const geometry = plantShapeGeometry(style);
+    const geometry =
+      shapes?.({ kind: "plant", generator: first.generator }) ?? plantShapeGeometry(style);
     geometry.setAttribute("aAcross", acrossAttribute(geometry, style.shape));
     geometry.setAttribute("aSway", swayAttribute(geometry, first.swayAttribute));
     const swayPhase = new Float32Array(count);

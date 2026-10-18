@@ -22,6 +22,7 @@ import {
   type ObjectModelLoader,
   type ObjectModelVariant,
 } from "./objectModel";
+import type { ShapeSource } from "./sceneryShapes";
 import {
   branchCoralGeometry,
   brainCoralGeometry,
@@ -212,6 +213,8 @@ export function createPropRenderer(
   surfaces: SurfaceLibrary,
   loadModel?: ObjectModelLoader,
   logger?: Logger,
+  /** Where generated shapes come from (render/shapeLibrary); built here by default. */
+  shapes?: ShapeSource,
 ): PropRenderer {
   const object = new Group();
   object.name = "props";
@@ -224,7 +227,8 @@ export function createPropRenderer(
     const key = `${generator}|${variant}`;
     const existing = geometries.get(key);
     if (existing !== undefined) return existing;
-    const geometry = propGeometry(generator, variant);
+    const geometry =
+      shapes?.({ kind: "prop", generator, variant }) ?? propGeometry(generator, variant);
     geometries.set(key, geometry);
     disposables.push(geometry);
     return geometry;

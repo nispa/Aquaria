@@ -14,6 +14,7 @@ import { createAquariumView, type AquariumView } from "../render/aquariumView";
 import { openSceneEditor, type SceneEditor } from "./sceneEditor";
 import { drawFishPortraits, type FishPortraitRequest } from "../render/fishPortraits";
 import { afterPaint, createLoadingScreen } from "../ui/loadingScreen";
+import { createShapeLibrary } from "../render/shapeLibrary";
 import { drawSceneryPortraits, type SceneryPortraitRequest } from "../render/sceneryPortraits";
 import { EFFECTS } from "../render/effects";
 import { createFileEffect, fileEffectFragment } from "../render/effects/fileEffect";
@@ -478,6 +479,9 @@ async function start(): Promise<void> {
   window.addEventListener("pointerdown", unlockSound);
   window.addEventListener("keydown", unlockSound);
 
+  // Shapes are kept for the whole visit: scenery rebuilds and scene switches reuse them.
+  const shapes = createShapeLibrary();
+
   /**
    * Builds the simulation and the view for a scene; called again after the
    * scene editor or a size change: the old view is disposed and the new one
@@ -510,6 +514,7 @@ async function start(): Promise<void> {
       renderHeight: settings.renderHeight,
       look,
       effects,
+      shapes: shapes.geometry,
       lights: effectiveLights(settings.lights),
       msaaSamples: settings.msaaSamples ?? DEFAULT_MSAA_SAMPLES,
       clockHour: () => clockHour,
