@@ -6,7 +6,7 @@
 
 <h3 align="center">▶ <a href="https://nispa.github.io/Aquaria/">Try it in your browser</a></h3>
 
-<p align="center">Nothing to install: it runs in any recent desktop browser.</p>
+<p align="center">Nothing to install: it runs in any recent browser, on a phone too.</p>
 
 Aquaria is a 3D aquarium that runs in the browser. It was made for big
 screens, from a Full HD monitor to a 4K LED wall, but it works on a laptop
@@ -17,17 +17,26 @@ plants, the rocks and the fish. You can change it by hand or with the
 built-in editor. The fish are not on rails: each one decides where to go,
 swims in its species' own way, eats, hides, rests at night and reacts to you.
 
-![The open reef with most effects on](docs/screenshot-realistic.jpg)
+On a phone Aquaria opens a small reef of its own, light enough for the
+phone to draw smoothly.
 
-<sub>The open reef with most effects on.</sub>
+![The Aquaria show tank in the Hero look](docs/screenshot-realistic.jpg)
+
+<sub>Aquaria, the show tank: sea and fresh water fish together, in the Hero look.</sub>
 
 ![A reef tank with the A overlay on](docs/screenshot.jpg)
 
 <sub>Press `A` to see what every fish is doing.</sub>
 
-| [![Aquaria](docs/scenes/aquaria.jpg)](#the-scenes) | [![Tropical reef](docs/scenes/reef.jpg)](#the-scenes) | [![Home reef](docs/scenes/home-reef.jpg)](#the-scenes) | [![Planted tank](docs/scenes/planted-tank.jpg)](#the-scenes) | [![Iwagumi](docs/scenes/iwagumi.jpg)](#the-scenes) |
-| :------------------------------------------------: | :---------------------------------------------------: | :----------------------------------------------------: | :----------------------------------------------------------: | :------------------------------------------------: |
-|                      Aquaria                       |                     Tropical reef                     |                       Home reef                        |                         Planted tank                         |                      Iwagumi                       |
+<p align="center">
+  <img src="docs/nano-phone.jpg" alt="The Nano reef on a phone" width="300" />
+  <br>
+  <sub>On a phone: the Nano reef, an anemone and a pair of clownfish.</sub>
+</p>
+
+| [![Hero](docs/scenes/hero.jpg)](public/scenes/hero.json) | [![Aquaria](docs/scenes/aquaria.jpg)](public/scenes/aquaria.json) | [![Nano reef](docs/scenes/nano-reef.jpg)](public/scenes/nano-reef.json) | [![Tropical reef](docs/scenes/reef.jpg)](public/scenes/reef.json) | [![Home reef](docs/scenes/home-reef.jpg)](public/scenes/home-reef.json) | [![Planted tank](docs/scenes/planted-tank.jpg)](public/scenes/planted-tank.json) | [![Iwagumi](docs/scenes/iwagumi.jpg)](public/scenes/iwagumi.json) |
+| :------------------------------------------------------: | :---------------------------------------------------------------: | :---------------------------------------------------------------------: | :---------------------------------------------------------------: | :---------------------------------------------------------------------: | :------------------------------------------------------------------------------: | :---------------------------------------------------------------: |
+|                           Hero                           |                              Aquaria                              |                                Nano reef                                |                           Tropical reef                           |                                Home reef                                |                                   Planted tank                                   |                              Iwagumi                              |
 
 ## Things to try
 
@@ -88,12 +97,15 @@ Whatever you change in the panel is remembered by the browser.
 
 ## The scenes
 
-Five scenes come with Aquaria. They are examples: open any of them in the
-editor (`E`), change it and save it as your own.
+Seven scenes come with Aquaria. They are examples: open any of them in the
+editor (`E`), change it and save it as your own. The panel (`H`) switches
+scene and look.
 
 | Scene                         | What it is                                         | Tank (w × h × d) |
 | ----------------------------- | -------------------------------------------------- | ---------------- |
-| Aquaria (`aquaria`, default)  | A show tank, sea and fresh water mixed for the fun | 6 × 3.2 × 3.2 m  |
+| Hero (`hero`, default)        | Open water: reef pillars, corals, kelp and schools | 6 × 3.2 × 3.2 m  |
+| Aquaria (`aquaria`)           | A show tank, sea and fresh water mixed for the fun | 6 × 3.2 × 3.2 m  |
+| Nano reef (`nano-reef`)       | A small reef with an anemone; phones open this one | 1 × 0.75 × 0.7 m |
 | Tropical reef (`reef`)        | Open sea, a coral reef                             | 5.4 × 3 × 4 m    |
 | Home reef (`home-reef`)       | A marine reef aquarium                             | 6 × 2.6 × 2.4 m  |
 | Planted tank (`planted-tank`) | A freshwater tank with plants, shrimps and a crab  | 2.4 × 1.1 × 1 m  |

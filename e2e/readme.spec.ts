@@ -2,27 +2,13 @@ import { test } from "@playwright/test";
 
 /**
  * Renders the pictures at the top of the README (`pnpm docs:gallery`): the
- * open reef with most effects on, and a reef tank with the `A` overlay
- * showing what every fish is doing. Not a test; it runs on demand like the
- * visual project.
+ * Hero banner and the Aquaria tank, each in its own look, the Nano reef on a
+ * phone-sized screen, and a reef tank with the `A` overlay showing what every
+ * fish is doing. Not a test; it runs on demand like the visual project.
  */
 
 const SIZE = { width: 1600, height: 900 };
 const JPEG_QUALITY = 85;
-/** Most effects: the look the README's first picture shows off. */
-const RICH_LOOK = [
-  "caustics",
-  "shadows",
-  "reflections",
-  "refractive-bubbles",
-  "fluorescence",
-  "ambient-occlusion",
-  "volumetric-light",
-  "depth-of-field",
-  "bloom",
-  "finish",
-  "smaa",
-].join(",");
 /** Lets the fish settle into what they do before the overlay is shown, ms. */
 const SETTLE_MS = 8000;
 
@@ -38,12 +24,31 @@ test.beforeEach(async ({ page }) => {
   }, SIZE.height);
 });
 
-test("README picture: the open reef with most effects on", async ({ page }) => {
-  await page.goto(`/?scene=reef&frozen=10&hour=12&effects=${RICH_LOOK}`);
+test("README banner: the Hero scene in its own look", async ({ page }) => {
+  await page.goto("/?scene=hero&frozen=8&hour=12");
+  await page.waitForFunction(() => document.body.dataset.state === "ready");
+
+  await page.screenshot({ path: "docs/hero.jpg", type: "jpeg", quality: JPEG_QUALITY });
+});
+
+test("README picture: the Aquaria show tank in its own look", async ({ page }) => {
+  await page.goto("/?scene=aquaria&frozen=10&hour=12");
   await page.waitForFunction(() => document.body.dataset.state === "ready");
 
   await page.screenshot({
     path: "docs/screenshot-realistic.jpg",
+    type: "jpeg",
+    quality: JPEG_QUALITY,
+  });
+});
+
+test("README picture: the Nano reef on a phone", async ({ page }) => {
+  await page.setViewportSize({ width: 420, height: 860 });
+  await page.goto("/?scene=nano-reef&frozen=8&hour=12");
+  await page.waitForFunction(() => document.body.dataset.state === "ready");
+
+  await page.screenshot({
+    path: "docs/nano-phone.jpg",
     type: "jpeg",
     quality: JPEG_QUALITY,
   });

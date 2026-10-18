@@ -6,7 +6,7 @@
 
 <h3 align="center">▶ <a href="https://nispa.github.io/Aquaria/">Provalo nel browser</a></h3>
 
-<p align="center">Niente da installare: funziona in qualsiasi browser recente per computer.</p>
+<p align="center">Niente da installare: funziona in qualsiasi browser recente, anche sul telefono.</p>
 
 Aquaria è un acquario 3D che gira nel browser. È nato per gli schermi
 grandi, da un monitor Full HD a una parete LED 4K, ma va bene anche su un
@@ -17,17 +17,26 @@ e i pesci. Puoi cambiarla a mano o con l'editor incluso. I pesci non
 seguono binari: ognuno decide dove andare, nuota come la sua specie,
 mangia, si nasconde, di notte riposa e reagisce a te.
 
-![La barriera aperta con quasi tutti gli effetti accesi](docs/screenshot-realistic.jpg)
+Sul telefono Aquaria apre una piccola barriera tutta sua, leggera quanto
+basta perché il telefono la disegni fluida.
 
-<sub>La barriera aperta con quasi tutti gli effetti accesi.</sub>
+![La vasca da esposizione Aquaria con il look Hero](docs/screenshot-realistic.jpg)
+
+<sub>Aquaria, la vasca da esposizione: pesci di mare e d'acqua dolce insieme, con il look Hero.</sub>
 
 ![Un acquario di barriera con la sovrimpressione di A](docs/screenshot.jpg)
 
 <sub>Premi `A` per vedere cosa sta facendo ogni pesce.</sub>
 
-| [![Aquaria](docs/scenes/aquaria.jpg)](#le-scene) | [![Tropical reef](docs/scenes/reef.jpg)](#le-scene) | [![Home reef](docs/scenes/home-reef.jpg)](#le-scene) | [![Planted tank](docs/scenes/planted-tank.jpg)](#le-scene) | [![Iwagumi](docs/scenes/iwagumi.jpg)](#le-scene) |
-| :----------------------------------------------: | :-------------------------------------------------: | :--------------------------------------------------: | :--------------------------------------------------------: | :----------------------------------------------: |
-|                     Aquaria                      |                    Tropical reef                    |                      Home reef                       |                        Planted tank                        |                     Iwagumi                      |
+<p align="center">
+  <img src="docs/nano-phone.jpg" alt="Il Nano reef su un telefono" width="300" />
+  <br>
+  <sub>Sul telefono: il Nano reef, un anemone e una coppia di pesci pagliaccio.</sub>
+</p>
+
+| [![Hero](docs/scenes/hero.jpg)](public/scenes/hero.json) | [![Aquaria](docs/scenes/aquaria.jpg)](public/scenes/aquaria.json) | [![Nano reef](docs/scenes/nano-reef.jpg)](public/scenes/nano-reef.json) | [![Tropical reef](docs/scenes/reef.jpg)](public/scenes/reef.json) | [![Home reef](docs/scenes/home-reef.jpg)](public/scenes/home-reef.json) | [![Planted tank](docs/scenes/planted-tank.jpg)](public/scenes/planted-tank.json) | [![Iwagumi](docs/scenes/iwagumi.jpg)](public/scenes/iwagumi.json) |
+| :------------------------------------------------------: | :---------------------------------------------------------------: | :---------------------------------------------------------------------: | :---------------------------------------------------------------: | :---------------------------------------------------------------------: | :------------------------------------------------------------------------------: | :---------------------------------------------------------------: |
+|                           Hero                           |                              Aquaria                              |                                Nano reef                                |                           Tropical reef                           |                                Home reef                                |                                   Planted tank                                   |                              Iwagumi                              |
 
 ## Cose da provare
 
@@ -89,12 +98,14 @@ Quello che cambi nel pannello viene ricordato dal browser.
 
 ## Le scene
 
-Con Aquaria arrivano cinque scene. Sono esempi: aprine una nell'editor
-(`E`), cambiala e salvala come tua.
+Con Aquaria arrivano sette scene. Sono esempi: aprine una nell'editor
+(`E`), cambiala e salvala come tua. Dal pannello (`H`) cambi scena e look.
 
 | Scena                         | Cos'è                                                          | Vasca (l × a × p) |
 | ----------------------------- | -------------------------------------------------------------- | ----------------- |
-| Aquaria (`aquaria`, iniziale) | Una vasca da esposizione, mare e acqua dolce per gioco         | 6 × 3,2 × 3,2 m   |
+| Hero (`hero`, iniziale)       | Mare aperto: pinnacoli di roccia, coralli, kelp e banchi       | 6 × 3,2 × 3,2 m   |
+| Aquaria (`aquaria`)           | Una vasca da esposizione, mare e acqua dolce per gioco         | 6 × 3,2 × 3,2 m   |
+| Nano reef (`nano-reef`)       | Una piccola barriera con un anemone; i telefoni aprono questa  | 1 × 0,75 × 0,7 m  |
 | Tropical reef (`reef`)        | Mare aperto, una barriera corallina                            | 5,4 × 3 × 4 m     |
 | Home reef (`home-reef`)       | Un acquario di barriera marino                                 | 6 × 2,6 × 2,4 m   |
 | Planted tank (`planted-tank`) | Un acquario d'acqua dolce con piante, gamberetti e un granchio | 2,4 × 1,1 × 1 m   |
