@@ -52,6 +52,14 @@ Aquaria tints it with the object's color (the `tint` trait).
 | Table coral (Madrepora cytherea, scan)                | `public/assets/objects/tabletop-coral/`      | https://n2t.net/ark:/65665/36558b63e-105b-4818-9190-760802a9abc3 | Smithsonian Institution, NMNH | CC0     |
 | Glove sponge (Spongia graminea tampa, scan)           | `public/assets/objects/glove-sponge/`        | https://n2t.net/ark:/65665/369d11867-94df-4e5c-810d-28cd7fb5b2e7 | Smithsonian Institution, NMNH | CC0     |
 
+## Plant models
+
+Made in code with Blender by the scripts in `scripts/blender/`.
+
+| Model       | Path                                 | Source                                                             | Author  | License |
+| ----------- | ------------------------------------ | ------------------------------------------------------------------ | ------- | ------- |
+| Ribbon kelp | `public/assets/objects/ribbon-kelp/` | https://github.com/nispa/Aquaria/blob/main/scripts/blender/kelp.py | Aquaria | CC0     |
+
 ## Fish models
 
 Each model is a folder in `public/assets/species/` whose `model.json` repeats

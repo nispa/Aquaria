@@ -162,6 +162,9 @@ scena può mettere il suo. Come farne una nuova:
 3. Esporta in glTF Binary (`.glb`), con Data → Mesh → _Attributes_
    spuntato, così `_SWAY` viene salvato.
 4. Crea la cartella, mettici il `.glb` e scrivi `object.json`.
+5. Per comprimerlo, `npx @gltf-transform/cli optimize model.glb model.glb
+--compress meshopt --join false --flatten false`: senza le ultime due
+   opzioni le varianti affiancate si fondono in un'unica pianta larghissima.
 
 ## Trasformare in file gli oggetti generati
 

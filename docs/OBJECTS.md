@@ -155,6 +155,9 @@ set its own. How to make a new one: [Making a new texture](SCENES.md#making-a-ne
 3. Export as glTF Binary (`.glb`), with Data → Mesh → _Attributes_ ticked
    so `_SWAY` is saved.
 4. Make the folder, put the `.glb` in it and write `object.json`.
+5. To compress it, `npx @gltf-transform/cli optimize model.glb model.glb
+--compress meshopt --join false --flatten false`: without the last two,
+   the variants side by side are merged into one wide plant.
 
 ## Turning generated objects into files
 

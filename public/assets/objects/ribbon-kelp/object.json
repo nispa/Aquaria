@@ -1,0 +1,25 @@
+{
+  "name": "Ribbon kelp",
+  "category": "plant",
+  "model": "model.glb",
+  "traits": {
+    "sway": {
+      "amount": 0.22,
+      "speed": 0.8
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["plant", "shelter"],
+    "placement": {
+      "on": ["sand"],
+      "bands": [2, 4],
+      "height": [1.2, 2.6]
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/kelp.py",
+    "license": "CC0-1.0"
+  }
+}
