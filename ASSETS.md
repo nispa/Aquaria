@@ -56,11 +56,12 @@ Aquaria tints it with the object's color (the `tint` trait).
 
 Made in code with Blender by the scripts in `scripts/blender/`.
 
-| Model        | Path                                  | Source                                                                    | Author  | License |
-| ------------ | ------------------------------------- | ------------------------------------------------------------------------- | ------- | ------- |
-| Ribbon kelp  | `public/assets/objects/ribbon-kelp/`  | https://github.com/nispa/Aquaria/blob/main/scripts/blender/kelp.py        | Aquaria | CC0     |
-| Turtle grass | `public/assets/objects/turtle-grass/` | https://github.com/nispa/Aquaria/blob/main/scripts/blender/seagrass.py    | Aquaria | CC0     |
-| Sea lettuce  | `public/assets/objects/sea-lettuce/`  | https://github.com/nispa/Aquaria/blob/main/scripts/blender/sea_lettuce.py | Aquaria | CC0     |
+| Model              | Path                                        | Source                                                                    | Author  | License |
+| ------------------ | ------------------------------------------- | ------------------------------------------------------------------------- | ------- | ------- |
+| Ribbon kelp        | `public/assets/objects/ribbon-kelp/`        | https://github.com/nispa/Aquaria/blob/main/scripts/blender/kelp.py        | Aquaria | CC0     |
+| Turtle grass       | `public/assets/objects/turtle-grass/`       | https://github.com/nispa/Aquaria/blob/main/scripts/blender/seagrass.py    | Aquaria | CC0     |
+| Sea lettuce        | `public/assets/objects/sea-lettuce/`        | https://github.com/nispa/Aquaria/blob/main/scripts/blender/sea_lettuce.py | Aquaria | CC0     |
+| Bubble-tip anemone | `public/assets/objects/bubble-tip-anemone/` | https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py     | Aquaria | CC0     |
 
 ## Fish models
 

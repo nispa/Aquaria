@@ -1,0 +1,24 @@
+{
+  "name": "Bubble-tip anemone",
+  "category": "plant",
+  "model": "model.glb",
+  "traits": {
+    "sway": {
+      "amount": 0.04,
+      "speed": 1.2
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["anemone", "shelter"],
+    "placement": {
+      "on": ["sand", "rock"],
+      "height": [0.14, 0.24]
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py",
+    "license": "CC0-1.0"
+  }
+}
