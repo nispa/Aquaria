@@ -24,9 +24,9 @@ basta perché il telefono la disegni fluida.
 
 <sub>Aquaria, la vasca da esposizione: pesci di mare e d'acqua dolce insieme, con il look Hero.</sub>
 
-![Un acquario di barriera con la sovrimpressione di A](docs/screenshot.jpg)
+![Un acquario di barriera con la sovrimpressione di A e le forme di C](docs/screenshot.jpg)
 
-<sub>Premi `A` per vedere cosa sta facendo ogni pesce.</sub>
+<sub>Premi `A` per vedere cosa sta facendo ogni pesce, e `C` per le forme che i pesci aggirano.</sub>
 
 <p align="center">
   <img src="docs/nano-phone.jpg" alt="Il Nano reef su un telefono" width="300" />
@@ -34,9 +34,9 @@ basta perché il telefono la disegni fluida.
   <sub>Sul telefono: il Nano reef, un anemone e una coppia di pesci pagliaccio.</sub>
 </p>
 
-| [![Hero](docs/scenes/hero.jpg)](public/scenes/hero.json) | [![Aquaria](docs/scenes/aquaria.jpg)](public/scenes/aquaria.json) | [![Nano reef](docs/scenes/nano-reef.jpg)](public/scenes/nano-reef.json) | [![Tropical reef](docs/scenes/reef.jpg)](public/scenes/reef.json) | [![Home reef](docs/scenes/home-reef.jpg)](public/scenes/home-reef.json) | [![Planted tank](docs/scenes/planted-tank.jpg)](public/scenes/planted-tank.json) | [![Iwagumi](docs/scenes/iwagumi.jpg)](public/scenes/iwagumi.json) |
-| :------------------------------------------------------: | :---------------------------------------------------------------: | :---------------------------------------------------------------------: | :---------------------------------------------------------------: | :---------------------------------------------------------------------: | :------------------------------------------------------------------------------: | :---------------------------------------------------------------: |
-|                           Hero                           |                              Aquaria                              |                                Nano reef                                |                           Tropical reef                           |                                Home reef                                |                                   Planted tank                                   |                              Iwagumi                              |
+| [![Hero](docs/scenes/hero.jpg)](docs/scenes/hero.jpg) | [![Aquaria](docs/scenes/aquaria.jpg)](docs/scenes/aquaria.jpg) | [![Nano reef](docs/scenes/nano-reef.jpg)](docs/scenes/nano-reef.jpg) | [![Tropical reef](docs/scenes/reef.jpg)](docs/scenes/reef.jpg) | [![Home reef](docs/scenes/home-reef.jpg)](docs/scenes/home-reef.jpg) | [![Planted tank](docs/scenes/planted-tank.jpg)](docs/scenes/planted-tank.jpg) | [![Iwagumi](docs/scenes/iwagumi.jpg)](docs/scenes/iwagumi.jpg) |
+| :---------------------------------------------------: | :------------------------------------------------------------: | :------------------------------------------------------------------: | :------------------------------------------------------------: | :------------------------------------------------------------------: | :---------------------------------------------------------------------------: | :------------------------------------------------------------: |
+|                         Hero                          |                            Aquaria                             |                              Nano reef                               |                         Tropical reef                          |                              Home reef                               |                                 Planted tank                                  |                            Iwagumi                             |
 
 ## Cose da provare
 

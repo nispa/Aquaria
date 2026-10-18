@@ -2,9 +2,10 @@ import { test } from "@playwright/test";
 
 /**
  * Renders the pictures at the top of the README (`pnpm docs:gallery`): the
- * Hero banner and the Aquaria tank, each in its own look, the Nano reef on a
- * phone-sized screen, and a reef tank with the `A` overlay showing what every
- * fish is doing. Not a test; it runs on demand like the visual project.
+ * Aquaria tank in its own look, the Nano reef on a phone-sized screen, and a
+ * reef tank with the `A` overlay and the `C` collision shapes showing what
+ * every fish is doing. The banner, `docs/hero.jpg`, is a drawn picture and
+ * is not made here. Not a test; it runs on demand like the visual project.
  */
 
 const SIZE = { width: 1600, height: 900 };
@@ -22,13 +23,6 @@ test.beforeEach(async ({ page }) => {
       JSON.stringify({ renderHeight: height, autoResolution: false }),
     );
   }, SIZE.height);
-});
-
-test("README banner: the Hero scene in its own look", async ({ page }) => {
-  await page.goto("/?scene=hero&frozen=8&hour=12");
-  await page.waitForFunction(() => document.body.dataset.state === "ready");
-
-  await page.screenshot({ path: "docs/hero.jpg", type: "jpeg", quality: JPEG_QUALITY });
 });
 
 test("README picture: the Aquaria show tank in its own look", async ({ page }) => {
@@ -54,13 +48,14 @@ test("README picture: the Nano reef on a phone", async ({ page }) => {
   });
 });
 
-test("README picture: what the fish are doing, with A", async ({ page }) => {
+test("README picture: what the fish are doing, with A and C", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/?scene=home-reef&hour=12");
   await page.waitForFunction(() => document.body.dataset.state === "ready");
   await page.waitForTimeout(SETTLE_MS);
 
   await page.keyboard.press("a");
+  await page.keyboard.press("c");
   // The card goes to the fish nearest the pointer.
   await page.mouse.move(SIZE.width * 0.45, SIZE.height * 0.42);
   await page.waitForTimeout(1500);
