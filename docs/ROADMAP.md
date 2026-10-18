@@ -333,13 +333,90 @@ species with no coloring looks as today.
 - [ ] Fauna cards show the species' first coloring; docs in
       `docs/FISH_MODELS.md`: how to paint a coloring in Blender.
 
+## I. Ready-made aquariums
+
+Asked on 2026-10-18, after the Hero scene: aquariums ready to show, from a
+small one on a desk to a large public tank, each realistic and each with
+a look of its own. One of them is a clownfish lagoon: soft anemones
+swaying in the current and clownfish living in them, as in the films
+everyone remembers (no names or marks of the film, as AGENTS.md says).
+Everything stays data: sizes, looks and scenes are JSON; code only where
+the engine lacks something (soft tentacles, fish inside them).
+
+### I1. Tank sizes
+
+- [ ] Preset sizes with their real measures, e.g. nano 60 × 35 × 35 cm,
+      home 120 × 50 × 55 cm, large 250 × 70 × 70 cm, public 6 × 3.2 ×
+      3.2 m; the camera, the scale of the sand and the bubbles follow.
+- [ ] Each species gets a smallest tank from aquarium practice (e.g. a
+      blue tang needs a large one); a scene or the panel that puts it in a
+      smaller one gets a clear warning, and the fauna cards say why.
+- [ ] Fish sizes in a small tank: real sizes stay true; the size balance
+      of the panel works as today.
+
+### I2. Four realistic looks
+
+Each a file in `public/looks/`, listed in the panel's Look section and
+tuned against reference photographs, with every parameter a slider.
+
+- [ ] Reef under LEDs: crystal clear water, little absorption, white and
+      actinic blue spots, coral fluorescence, no surface waves.
+- [ ] Planted freshwater: warm, slightly green water, light from a lamp
+      above, tiny oxygen bubbles on the leaves.
+- [ ] Open sea: the Hero look as it is.
+- [ ] Clownfish lagoon: shallow, sunny turquoise water, bright caustics on
+      the sand, warm sun, soft sunbeams.
+- [ ] Night tank (optional fifth): moonlight blue, fluorescence, the
+      fish resting.
+
+### I3. Soft anemones
+
+- [ ] Tentacles that move one by one, not the whole anemone: each its own
+      phase and rhythm (a per-tentacle attribute baked by
+      `scripts/blender/anemone.py`), bending along all its length, softer
+      at the tips, with a slow pulse of the whole anemone.
+- [ ] They part around a fish passing through and close behind it
+      (positions of the nearest fish as shader uniforms, no allocations).
+- [ ] Long-tentacle morphs besides the bubble tip (e.g. a carpet and a
+      long-tentacle anemone), from the same script; the clownfish host in
+      all of them by the `anemone` tag.
+
+### I4. Clownfish living in their anemone
+
+- [ ] A host fish dips into its anemone, rubs along the tentacles and
+      comes out a little way to look around, then goes back (the `hover`
+      style around its home, with a dive into it).
+- [ ] A pair shares an anemone, the larger one keeping close to it;
+      startled, they hide deep among the tentacles.
+- [ ] Drawn among the tentacles, partly hidden by them, without popping
+      in front or behind.
+
+### I5. The aquariums
+
+- [ ] Nano reef (60 cm): a clownfish pair in a bubble-tip anemone, live
+      rock, a few corals; Reef under LEDs.
+- [ ] Clownfish lagoon (120 cm): the soft anemones of I3 and the clownfish
+      of I4 in front, coral garden and sand; Clownfish lagoon look.
+- [ ] Planted tank (120 cm) and Iwagumi: today's scenes moved to the new
+      plants and the Planted freshwater look.
+- [ ] Home reef (250 cm): today's scene with the coral scans and live
+      rock.
+- [ ] Hero (public, 6 m) replaces Aquaria as the starting scene.
+- [ ] Each with its caption, gallery picture, card picture and visual
+      baseline, grouped by size in the panel.
+
+### I6. Light enough for phones
+
+- [ ] Lighter versions where phones need them: coral scans at a few
+      thousand triangles further away (levels of detail), coarser block
+      rock, fewer seagrass tufts; measured on the Redmi Note 14 Pro.
+- [ ] The Hero scene runs at a usable frame rate on that phone; state the
+      numbers before and after.
+
 ## Ideas to discuss
 
 Raised by the user, not planned yet.
 
-- Tank sizes: preset sizes (nano to large); each species gets a smallest
-  tank from aquarium practice, so big fish cannot go in small tanks and
-  small fish are advised against in very large ones.
 - A catfish (model in `downloads/catfish-3d-model.zip`, license to check),
   with a swimming style of its own: a bottom dweller that rests on the
   sand, glides along it whiskers first and sifts it for food.
