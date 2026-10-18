@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import type { Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vitest/config";
-import { assetCacheName } from "./src/core/assetCache";
+import { assetCacheName, HASHED_BUILD_FILE } from "./src/core/assetCache";
 
 /**
  * Serves (dev) and emits (build) Three.js' Basis transcoder under basis/, so
@@ -94,6 +94,14 @@ function installableApp(): Plugin[] {
     workbox: {
       // The app shell, plus every scene, species and model manifest (all small JSON).
       globPatterns: ["**/*.{js,css,html,json,wasm,svg}"],
+      // By default every file under assets/ counts as named after its content
+      // and is never updated: the object and fish lists there would stay old.
+      dontCacheBustURLsMatching: HASHED_BUILD_FILE,
+      // A new build takes over at once: a screen left on for days never closes
+      // its tabs, and the new worker would otherwise wait for that forever.
+      // The page reloads when it does (app/main reloadOnNewBuild).
+      skipWaiting: true,
+      clientsClaim: true,
       // Textures and models (~50 MB) are cached on first use, not on install:
       // visitors download only what they see. The pattern must be inline: this
       // function is copied as text into the service worker.

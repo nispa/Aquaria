@@ -480,6 +480,22 @@ async function dropStaleAssetCaches(): Promise<void> {
 }
 
 /**
+ * Reloads the page when a new build's service worker takes it over from an
+ * older one. The page was started by the old build, and its files and the new
+ * build's would mix (a new scene asking for objects the old list lacks).
+ * On a first visit there is no older worker, and nothing to reload.
+ */
+function reloadOnNewBuild(): void {
+  if (!("serviceWorker" in navigator) || navigator.serviceWorker.controller === null) return;
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (reloading) return;
+    reloading = true;
+    window.location.reload();
+  });
+}
+
+/**
  * Starts afresh: forgets the settings, drops every cache and the installed
  * app's service worker, and reloads, so everything is downloaded anew. The
  * viewer's own scenes and their pictures are kept.
@@ -512,6 +528,7 @@ function onPhone(): boolean {
 }
 
 async function start(): Promise<void> {
+  reloadOnNewBuild();
   dropStaleAssetCaches().catch((error: unknown) => {
     logger.warn("Old caches could not be dropped", { error: String(error) });
   });

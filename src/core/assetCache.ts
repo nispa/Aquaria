@@ -15,3 +15,12 @@ export function assetCacheName(build: string): string {
 export function staleAssetCaches(names: readonly string[], current: string): string[] {
   return names.filter((name) => name.startsWith(ASSET_CACHE_PREFIX) && name !== current);
 }
+
+/**
+ * Files of the build named after their content (`assets/index-BkUS6P5J.js`):
+ * the installed app trusts their name and never checks them again. Only the
+ * bundles directly in `assets/` are; the lists and manifests in its folders
+ * (`assets/objects/index.json`) keep their name when they change, and must
+ * be checked against each new build.
+ */
+export const HASHED_BUILD_FILE = /^assets\/[^/]+-[\w-]{8}\.\w+$/;
