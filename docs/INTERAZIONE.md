@@ -143,3 +143,6 @@ Per aggiungere un nuovo modo di giocare:
 - Tieni premuto il tasto per soffiare bolle.
 - Un telefono come telecomando, o una webcam che si accorge delle persone
   davanti allo schermo.
+- Sul telefono, i suoi sensori di movimento: lo inclini e la vista gira un
+  poco, come da una piccola finestra; una scossa rapida di lato bussa sulla
+  vasca e i pesci scappano a nascondersi.

@@ -422,6 +422,15 @@ Raised by the user, not planned yet.
   spells) and watch grow up over days; its state saved in the browser,
   gentle reminders, nothing that punishes a missed day too hard. No names
   or marks of existing toys.
+- The phone's own sensors, for the small reef:
+  - Tilt the phone and the view turns with it (gyroscope), so the reef
+    shows its depth as if seen through a small window; the camera moves a
+    little and slowly, never far enough to leave the tank.
+  - A quick sideways shake knocks on the tank like a nudge to a pinball
+    table: the fish startle and dart to cover, then come back out; too
+    many shakes in a row and they hide longer.
+  - Both read through `src/input/` as events, as INTERACTION.md asks;
+    iOS needs the viewer's permission for motion sensors, asked on a tap.
 
 - A catfish (model in `downloads/catfish-3d-model.zip`, license to check),
   with a swimming style of its own: a bottom dweller that rests on the

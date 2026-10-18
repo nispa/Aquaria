@@ -136,3 +136,6 @@ To add a new way to play:
 - Hold the button to blow bubbles.
 - A phone as a remote, or a webcam that notices people in front of the
   screen.
+- On a phone, its motion sensors: tilt it and the view turns a little, as
+  through a small window; a quick sideways shake knocks on the tank and the
+  fish dart to cover.
