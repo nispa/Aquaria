@@ -2,7 +2,7 @@
   "groups": [
     {
       "name": "Demo",
-      "scenes": ["aquaria", "hero", "nano-reef"]
+      "scenes": ["hero", "aquaria", "nano-reef"]
     },
     {
       "name": "Open sea",

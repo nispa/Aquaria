@@ -91,6 +91,20 @@
         "speed": 0.3,
         "roamBodyLengths": 1.5,
         "home": "anemone"
+      },
+      "activities": {
+        "inspect": {
+          "weight": 0.5,
+          "tags": {
+            "anemone": 1
+          }
+        },
+        "peck": {
+          "weight": 0.4,
+          "tags": {
+            "anemone": 1
+          }
+        }
       }
     },
     {
