@@ -246,7 +246,11 @@ mescola questo con tutto il resto:
 4. l'andatura va verso quella voluta, a meno che una reazione (paura,
    cibo, curiosità) non la decida al suo posto;
 5. lo sforzo della coda segue velocità e accelerazione, moltiplicato per
-   il `thrust` dello stile, così una planata sembra davvero una planata.
+   il `thrust` dello stile, così una planata sembra davvero una planata;
+6. le pinne pettorali seguono la stessa spinta (`src/sim/pectoralFins.ts`):
+   un pesce con poco `thrust` (`hover`) sta fermo battendole una dopo
+   l'altra; uno che nuota le fa remare piano; uno scatto le chiude, e
+   frenare o girare le apre (vedi [MODELLI_PESCI.md](MODELLI_PESCI.md#le-pinne-pettorali)).
 
 Le attività funzionano allo stesso modo: a ogni passo possono
 sovrascrivere i desideri dello stile. Possono anche aprire la bocca e

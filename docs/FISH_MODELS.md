@@ -47,7 +47,7 @@ The platy's, for example:
   length, so any size and orientation will do.
 - `swimAmplitude`: how far the tail sweeps, in body lengths (default 0.07).
   The model needs no swimming animation: Aquaria bends it.
-- `mouth`, `eyes`, `gills`: optional, see below. Without them the mouth
+- `mouth`, `eyes`, `gills`, `fins`: optional, see below. Without them the mouth
   stays shut, the eyes stay still and the gills do not move.
 - `credit`: who made it, where it comes from, and the license. Only
   licenses that allow reuse, changes and commercial use are accepted:
@@ -69,8 +69,12 @@ turn, the tail and the swimming. Tick **auto** and a slider moves back and
 forth on its own. The **3D** box switches between the model and the drawn
 body.
 
-This is where you read the positions that `mouth.jaw`, `eyes.painted` and
-`gills` ask for.
+This is where you read the positions that `mouth.jaw`, `eyes.painted`,
+`gills` and `fins.pectoral` ask for. Two sliders move the pectoral fins:
+**Pectoral spread** folds them (-1) and spreads them (1), **Pectoral
+beats/s** makes them beat. With `&view=top` in the address the fish is
+seen from above, and the grid's horizontal lines read z: that is where you
+measure how far the fin stands out from the body.
 
 ## A model you found
 
@@ -104,6 +108,48 @@ grid:
   goes (`top`, `bottom`), and how curved it is (`curve`, 0 is straight). It
   lifts by `open` (default 0.006) about once a second (`rate`), each fish
   at its own moment.
+
+### Pectoral fins
+
+The pectoral fins are the ones behind the gills. A clownfish hovering over
+its anemone beats them one after the other, three or four times a second;
+swimming, it pushes with its tail and the pectoral fins row along together,
+more gently; in a dash it folds them against its body; to brake it spreads
+both, and in a turn it spreads the one on the inside. This holds for every
+fish: the same shader moves the fins of every model and every drawn body.
+A model only has to say where they are, like the clownfish:
+
+```json
+"fins": {
+  "pectoral": {
+    "root": [[0.14, 0.11], [0.155, -0.1]],
+    "side": 0.1,
+    "front": 0.17,
+    "back": -0.08,
+    "top": 0.14,
+    "bottom": -0.13,
+    "rest": 35,
+    "sweep": 35
+  }
+}
+```
+
+- `front`, `back`, `top`, `bottom`: a box on the side (x and y) that holds
+  the whole fin and no other.
+- `side`: how far from the middle of the body (z, on the view from above)
+  the fin starts. In the box only what stands out beyond it moves: the
+  flank stays still. Set it just outside the skin.
+- `root`: the top and bottom ends of the fin's base, the line it swings
+  about.
+- `rest`: how many degrees the model's fin stands out from the body
+  (default 30); folded, it swings back by that much and lies on the flank.
+- `sweep`: how many degrees it swings in a full beat (default 35).
+
+Check it on the viewer with **Pectoral spread** at -1 (the fin should lie
+on the body without going through it) and at 1. The drawn body has
+pectoral fins of its own, moving the same way. A model made in Blender
+can have them as sheets apart from the body: the box finds them all the
+same.
 
 A fish whose mouth pushes forward when it opens, like the seabream or the
 barramundi, looks wrong with `jaw`. It needs a real open-mouth pose made in

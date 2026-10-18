@@ -49,7 +49,7 @@ Quello del platy, per esempio:
 - `swimAmplitude`: quanto si muove la coda, in lunghezze del corpo (di
   partenza 0.07). Il modello non ha bisogno di un'animazione di nuoto: lo
   piega Aquaria.
-- `mouth`, `eyes`, `gills`: facoltativi, vedi sotto. Senza, la bocca resta
+- `mouth`, `eyes`, `gills`, `fins`: facoltativi, vedi sotto. Senza, la bocca resta
   chiusa, gli occhi fermi e le branchie immobili.
 - `credit`: chi l'ha fatto, da dove viene e la licenza. Sono accettate solo
   licenze che permettono riuso, modifiche e uso commerciale: `CC0-1.0`,
@@ -70,8 +70,12 @@ I cursori di lato muovono occhi, bocca, branchie, la piega della virata,
 la coda e il nuoto. Spunta **auto** e il cursore va avanti e indietro da
 solo. La casella **3D** passa dal modello al corpo disegnato.
 
-È qui che leggi le posizioni che chiedono `mouth.jaw`, `eyes.painted` e
-`gills`.
+È qui che leggi le posizioni che chiedono `mouth.jaw`, `eyes.painted`,
+`gills` e `fins.pectoral`. Due cursori muovono le pinne pettorali:
+**Pectoral spread** le chiude (-1) e le apre (1), **Pectoral beats/s** le fa
+battere. Con `&view=top` nell'indirizzo il pesce si vede dall'alto, e le
+righe orizzontali della griglia leggono z: lì si misura quanto la pinna
+sporge dal fianco.
 
 ## Un modello trovato in giro
 
@@ -106,6 +110,48 @@ posizioni lette sulla griglia:
   scende (`top`, `bottom`), e quanto è curvo (`curve`, 0 è dritto). Si
   solleva di `open` (di partenza 0.006) circa una volta al secondo
   (`rate`), ogni pesce per conto suo.
+
+### Le pinne pettorali
+
+Le pettorali sono le pinne dietro le branchie. Un pesce pagliaccio fermo
+sopra l'anemone le batte una dopo l'altra, tre o quattro volte al secondo;
+quando nuota spinge con la coda e le pettorali remano insieme, più piano;
+in uno scatto le chiude contro il corpo; per frenare le apre tutte e due,
+e in virata apre quella all'interno della curva. Questo vale per tutti i
+pesci: lo stesso shader muove le pinne di ogni modello e di ogni corpo
+disegnato. A un modello basta dire dove sono, come il pesce pagliaccio:
+
+```json
+"fins": {
+  "pectoral": {
+    "root": [[0.14, 0.11], [0.155, -0.1]],
+    "side": 0.1,
+    "front": 0.17,
+    "back": -0.08,
+    "top": 0.14,
+    "bottom": -0.13,
+    "rest": 35,
+    "sweep": 35
+  }
+}
+```
+
+- `front`, `back`, `top`, `bottom`: un riquadro sul fianco (x e y) che
+  contiene tutta la pinna e nessun'altra.
+- `side`: quanto lontano dal centro del corpo (z, dalla vista dall'alto)
+  comincia la pinna. Nel riquadro si muove solo quello che sporge oltre:
+  il fianco resta fermo. Mettilo appena fuori dalla pelle.
+- `root`: l'estremità alta e quella bassa della base della pinna, la linea
+  attorno a cui ruota.
+- `rest`: di quanti gradi la pinna del modello si stacca dal corpo
+  (di partenza 30); chiusa, ruota indietro di tanto e si appoggia al fianco.
+- `sweep`: di quanti gradi oscilla in un battito pieno (di partenza 35).
+
+Controlla sul visore con **Pectoral spread** a -1 (la pinna deve
+appoggiarsi al corpo senza attraversarlo) e a 1. Il corpo disegnato ha le
+sue pettorali, che si muovono allo stesso modo. Un modello fatto in Blender
+le può avere come lastre separate dal corpo: il riquadro le trova lo
+stesso.
 
 Un pesce che allunga la bocca in avanti quando la apre, come l'orata o il
 barramundi, con `jaw` viene male. Gli serve una vera posa a bocca aperta

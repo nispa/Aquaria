@@ -239,7 +239,11 @@ tail works (`SwimState`, in `src/sim/behaviors/types.ts`). The simulation
 4. the pace moves towards the wanted one, unless a reaction (fear, food,
    curiosity) sets it instead;
 5. the tail effort follows speed and acceleration, scaled by the style's
-   `thrust`, so a glide really looks like a glide.
+   `thrust`, so a glide really looks like a glide;
+6. the pectoral fins follow the same push (`src/sim/pectoralFins.ts`): a
+   fish with little thrust (`hover`) keeps station on them, beating them
+   in turn; a cruising one rows them along gently; a dash folds them, and
+   braking or turning spreads them (see [FISH_MODELS.md](FISH_MODELS.md#pectoral-fins)).
 
 Activities work the same way: each step they may overwrite the style's
 wishes. They can also open the mouth and dive steeply, which a style never
