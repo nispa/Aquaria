@@ -76,6 +76,14 @@ describe("createFishRenderer", () => {
     expect(shown()).toContain(id);
   });
 
+  it("does not build the body of a species with no fish in the tank", () => {
+    const { id, renderer } = setup();
+
+    renderer.update([]);
+
+    expect(renderer.object.getObjectByName(id)).toBeUndefined();
+  });
+
   it("does not download the model of a species with no fish in the tank", () => {
     const { loads, renderer } = setup();
 

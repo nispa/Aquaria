@@ -442,9 +442,9 @@ export function createFishRenderer(
     loading.push(done);
   };
 
-  for (const entry of catalog.species) {
-    const instances = createInstances(entry, modelEnabled(entry.id));
-    species.set(entry.id, instances);
+  /** The procedural body, built when the first fish of the species is drawn. */
+  const buildBody = (instances: SpeciesInstances): void => {
+    const { species: entry } = instances;
     const geometry =
       entry.body.category === "crustacean"
         ? createCrustaceanGeometry(entry.body.shape)
@@ -457,6 +457,11 @@ export function createFishRenderer(
       instances.procedural,
       createInstancedMesh(entry.id, geometry, material, instances),
     );
+    showBody(instances);
+  };
+
+  for (const entry of catalog.species) {
+    species.set(entry.id, createInstances(entry, modelEnabled(entry.id)));
   }
 
   const matrix = new Matrix4();
@@ -502,8 +507,9 @@ export function createFishRenderer(
         if (instances.walking !== undefined) instances.walkers.push(individual);
       }
       for (const instances of species.values()) {
-        // A model is prepared on the main thread, which stalls a phone for a
-        // second per species: only species in the tank pay for theirs.
+        // Bodies are built and models prepared on the main thread, which
+        // stalls a phone: only species in the tank pay for theirs.
+        if (instances.count > 0 && instances.procedural.length === 0) buildBody(instances);
         if (instances.count > 0 && instances.wantModel) loadModel(instances);
         for (const mesh of instances.procedural) mesh.count = instances.count;
         for (const mesh of instances.model) mesh.count = instances.count;
