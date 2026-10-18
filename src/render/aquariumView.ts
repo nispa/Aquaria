@@ -82,6 +82,13 @@ const RELAYOUT_ASPECT_CHANGE = 0.02;
 
 export interface AquariumViewOptions {
   readonly canvas: HTMLCanvasElement;
+  /**
+   * The size the canvas is drawn at, CSS pixels. Given up front because the
+   * scenery is laid out for it: on phones the canvas' own box (100vh) is
+   * taller than the window, and laying out for it meant building twice.
+   */
+  readonly width: number;
+  readonly height: number;
   readonly scene: Scene;
   readonly catalog: SpeciesCatalog;
   /** The plants and objects the scene's entries name. */
@@ -207,8 +214,8 @@ function forEachMaterial(root: Object3D, visit: (material: Material) => void): v
 export function createAquariumView(options: AquariumViewOptions): AquariumView {
   const { canvas, scene, catalog, simulation, rng, logger, effects } = options;
   let renderHeight = options.renderHeight;
-  let cssWidth = canvas.clientWidth || 1;
-  let cssHeight = canvas.clientHeight || 1;
+  let cssWidth = Math.max(options.width, 1);
+  let cssHeight = Math.max(options.height, 1);
 
   const renderer = new WebGLRenderer({
     canvas,

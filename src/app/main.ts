@@ -496,6 +496,8 @@ async function start(): Promise<void> {
     shownScene = shown;
     const nextView = createAquariumView({
       canvas,
+      width: window.innerWidth,
+      height: window.innerHeight,
       scene: shown,
       catalog,
       objects,
