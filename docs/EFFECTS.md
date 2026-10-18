@@ -98,14 +98,14 @@ void main() {
 A scene's [look](SCENES.md#look) can change the settings of Aquaria's own
 effects too. These are their ids and settings; every setting has a default.
 
-| Id                  | Settings                                                                                                                                                                                   |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `underwater`        | `strength` (0 = off), `absorption` (red, green, blue fade per meter), `farDistance`, `deep`, `horizon`, `surface`, `brightness`, `sunColor`, `sunGlow`, `sunFocus`, `shafts`, `shaftCount` |
-| `ambient-occlusion` | `radius`, `intensity`, `samples`, `thickness`                                                                                                                                              |
-| `volumetric-light`  | `density`, `decay`, `weight`, `exposure`, `threshold`, `samples`                                                                                                                           |
-| `depth-of-field`    | `focus`, `aperture`, `maxBlur`                                                                                                                                                             |
-| `bloom`             | `strength`, `radius`, `threshold`                                                                                                                                                          |
-| `finish`            | `vignette`, `dither`, `contrast`, `saturation`, `tint`                                                                                                                                     |
+| Id                  | Settings                                                                                                                                                                                                                   |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `underwater`        | `strength` (0 = off), `absorption` (red, green, blue fade per meter), `farDistance`, `clearWater`, `depthDarkening`, `deep`, `horizon`, `surface`, `brightness`, `sunColor`, `sunGlow`, `sunFocus`, `shafts`, `shaftCount` |
+| `ambient-occlusion` | `radius`, `intensity`, `samples`, `thickness`                                                                                                                                                                              |
+| `volumetric-light`  | `density`, `decay`, `weight`, `exposure`, `threshold`, `samples`                                                                                                                                                           |
+| `depth-of-field`    | `focus`, `aperture`, `maxBlur`                                                                                                                                                                                             |
+| `bloom`             | `strength`, `radius`, `threshold`                                                                                                                                                                                          |
+| `finish`            | `vignette`, `dither`, `contrast`, `saturation`, `tint`                                                                                                                                                                     |
 
 `underwater` reads the depth of the picture, so it always runs first. It
 costs one full-screen pass: about 4 ms out of 112 ms at 3840×2160 on an

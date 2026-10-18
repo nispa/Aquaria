@@ -17,7 +17,7 @@ import { objectMaterialUrl, objectModelUrl } from "./objectManifest";
 import { MODEL_MANIFEST_FILE, modelIdsOf, parseModelManifest } from "./modelManifest";
 import { parseCatalog, parseScene } from "./parse";
 import { parseSceneIndex } from "./sceneIndex";
-import { parseSceneLook, sceneLookUrl } from "./sceneLook";
+import { parseLookIndex, parseSceneLook, sceneLookUrl } from "./sceneLook";
 
 const SCENES = new URL("../../public/scenes/", import.meta.url);
 const sceneFiles = readdirSync(SCENES).filter(
@@ -69,6 +69,13 @@ describe("bundled data files", () => {
       checkSceneObjects(scene, objects);
     }).not.toThrow();
   });
+
+  it.each(parseLookIndex(readJson("../../public/looks/index.json")))(
+    "ships a valid %s look for the panel's list",
+    (id) => {
+      expect(() => parseSceneLook(readJson(`../../public/${sceneLookUrl(id)}`), id)).not.toThrow();
+    },
+  );
 
   it.each(sceneFiles)("names a valid look in %s, if any", (file) => {
     const catalog = parseCatalog(readJson("../../public/species.json"));

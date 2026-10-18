@@ -206,6 +206,9 @@ settings of the effects. The Hero scene uses `public/looks/hero.json`:
 - `effects`: settings by effect id. What is left out keeps its default.
   The [effects](EFFECTS.md) list their settings.
 
+The looks listed in `public/looks/index.json` can also be chosen in the
+panel's Look section for any scene, with a slider for every setting.
+
 The `underwater` effect is what makes open water: red fades first, far
 things melt into the water's own light, and sunbeams fan out from the sun.
 It stays off unless a look sets its `strength`.

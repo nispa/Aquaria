@@ -16,7 +16,8 @@ async function openLive(page: Page, query = "?effects=none"): Promise<void> {
 async function openSection(page: Page, id: string): Promise<void> {
   const section = page.locator(`details[data-section="${id}"]`);
   const open = await section.evaluate((node) => (node as HTMLDetailsElement).open);
-  if (!open) await section.locator("summary").click();
+  // Its own summary, not those of the groups inside it.
+  if (!open) await section.locator(":scope > summary").click();
 }
 
 async function waitForState(page: Page): Promise<string | undefined> {
@@ -402,6 +403,31 @@ test("customizes the LED lights and cycle from the panel", async ({ page }) => {
 
   await expect(page.locator('select[name="light-setup"]')).toHaveValue("custom");
   await expect(page.locator('[data-channel="accent"] output')).toHaveText("60%");
+  expect(errors).toEqual([]);
+});
+
+test("chooses the Hero look from the panel, tunes it and remembers both", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    if (localStorage.getItem("aquaria.settings") === null) {
+      localStorage.setItem("aquaria.settings", JSON.stringify({ renderHeight: 540 }));
+    }
+  });
+  await page.goto("/?effects=none");
+  await waitForState(page);
+  await page.keyboard.press("h");
+  await openSection(page, "look");
+
+  await page.locator('select[name="look-choice"]').selectOption("hero");
+  await page.locator('input[name="look-exposure"]').fill("1.2");
+  await page.reload();
+  await waitForState(page);
+  await page.keyboard.press("h");
+  await openSection(page, "look");
+
+  await expect(page.locator('select[name="look-choice"]')).toHaveValue("hero");
+  await expect(page.locator('input[name="look-exposure"]')).toHaveValue("1.2");
   expect(errors).toEqual([]);
 });
 

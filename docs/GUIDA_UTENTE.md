@@ -67,6 +67,22 @@ po' prima del bianco e si spegne un po' dopo, come sulle barriere vere.
 LED sopra l'acqua, e quanti), il colore e l'intensità di ogni canale, e la
 luce lunare.
 
+### Look
+
+Il look è la composizione di acqua e luce: quanto è luminosa l'immagine,
+dove sta il sole, come l'acqua spegne i colori con la distanza, i raggi, il
+contrasto e i colori. **Look** lo sceglie: quello della scena, **Hero**
+(il mare aperto del manifesto, con le onde in superficie e la cornice della
+vasca) o **None** (ogni effetto al suo valore predefinito).
+
+Sotto ci sono gli slider per tutto: esposizione, altezza e direzione del
+sole, poi un gruppo per effetto con ogni sua impostazione. Il gruppo Deep
+water light contiene l'acqua stessa: quanto in fretta svaniscono rosso,
+verde e blu, quanta acqua dietro il vetro resta limpida prima che inizi il
+velo, quanto si scurisce scendendo in profondità, la luce diffusa guardando
+in basso, di fronte e in alto, l'alone del sole e i raggi. Le tue modifiche
+restano per ogni look; **Reset this look** le dimentica.
+
 ### Lighting e Post-processing
 
 Ogni effetto ha il suo interruttore, così decidi tu dove spende il tempo la
@@ -81,6 +97,7 @@ scheda grafica.
 | Refractive bubbles    | Bolle che piegano la luce come il vetro                     | se c'è posto |
 | Light shaft planes    | Raggi di luce economici; inutili con la luce volumetrica    | spento       |
 | Coral fluorescence    | Coralli e anemoni brillano con il blu e il viola            | acceso       |
+| Tank frame            | Montanti scuri ai lati e il mobile sotto il vetro           | spento       |
 | Ambient occlusion     | Pieghe e angoli più scuri                                   | spento       |
 | Volumetric light      | Raggi di luce nell'acqua, interrotti da pesci e alghe       | se c'è posto |
 | Depth of field        | Sfoca quello che è fuori fuoco                              | spento       |

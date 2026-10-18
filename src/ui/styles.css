@@ -724,3 +724,19 @@ optgroup {
   color: var(--text);
   font: inherit;
 }
+
+/* Look section: a group of sliders per effect, opened by its name. */
+.panel__group {
+  margin: 8px 0;
+  padding: 6px 8px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+}
+
+.panel__subheading {
+  margin: 2px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}

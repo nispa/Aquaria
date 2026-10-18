@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { customLightsSchema } from "./lights";
+import { lookTweakSchema } from "./sceneLook";
 import { FULL_HD_HEIGHT, UHD_HEIGHT } from "../core/resolution";
 import {
   MAX_FLORA_PER_ENTRY,
@@ -50,6 +51,16 @@ export const settingsSchema = z.object({
   msaaSamples: z.union(MSAA_SAMPLE_CHOICES.map((samples) => z.literal(samples))).optional(),
   /** On/off choice per look feature id; features not listed use their default. */
   look: z.record(z.string(), z.boolean()).optional(),
+  /**
+   * The look the viewer chose in the panel (a file in looks/, or "none"); the
+   * scene's own look when absent.
+   */
+  lookChoice: z
+    .string()
+    .regex(/^[a-z0-9-]+$/)
+    .optional(),
+  /** The viewer's changes to each look, by look id (see scene/sceneLook). */
+  lookTweaks: z.record(z.string(), lookTweakSchema).optional(),
   /** The scene chosen last in the panel. */
   scene: z
     .string()

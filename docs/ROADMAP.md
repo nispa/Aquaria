@@ -285,7 +285,7 @@ later, from trusted sources only.
 - [x] Loaded at startup next to the built-in `EFFECTS`, which stay as
       they are; each one is a switch in the panel. First one: _Water
       shimmer_.
-- [ ] Sliders in the panel for every effect's parameters, built-in or
+- [x] Sliders in the panel for every effect's parameters, built-in or
       made of files.
 - [ ] Depth of the scene for effects made of files (fog, focus): needs a
       depth pass, so only when an effect asks for it.

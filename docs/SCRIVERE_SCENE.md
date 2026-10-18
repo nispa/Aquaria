@@ -210,6 +210,10 @@ le impostazioni degli effetti. La scena Hero usa `public/looks/hero.json`:
 - `effects`: impostazioni per id dell'effetto. Quello che manca resta al
   valore predefinito. Gli [effetti](EFFETTI.md) elencano le loro impostazioni.
 
+I look elencati in `public/looks/index.json` si possono anche scegliere
+nella sezione Look del pannello, per qualunque scena, con uno slider per
+ogni impostazione.
+
 L'effetto `underwater` è quello che fa il mare aperto: il rosso sparisce
 per primo, le cose lontane si sciolgono nella luce dell'acqua e i raggi del
 sole si aprono a ventaglio. Resta spento finché un look non ne imposta la

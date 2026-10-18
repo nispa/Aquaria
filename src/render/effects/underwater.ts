@@ -26,6 +26,10 @@ export const underwaterEffect = defineEffect({
     absorption: z.tuple([absorption, absorption, absorption]).default([0.45, 0.14, 0.09]),
     /** Distance given to open water, where nothing stands, m. */
     farDistance: z.number().positive().max(80).default(40),
+    /** Water behind the glass that stays clear before the haze begins, m. */
+    clearWater: z.number().min(0).max(5).default(0),
+    /** Light lost per meter below the surface: deeper things are darker. */
+    depthDarkening: z.number().min(0).max(1).default(0),
     /** Scattered light looking down, level and up. */
     deep: hexColor.default("#021219"),
     horizon: hexColor.default("#0b4f5c"),
@@ -51,6 +55,9 @@ export const underwaterEffect = defineEffect({
       uCameraWorld: { value: new Matrix4() },
       uAbsorption: { value: new Vector3(...params.absorption) },
       uFarDistance: { value: params.farDistance },
+      uClearWater: { value: params.clearWater },
+      uDepthDarkening: { value: params.depthDarkening },
+      uSurfaceY: context.water.uSurfaceY,
       uDeep: { value: linear(params.deep, params.brightness) },
       uHorizon: { value: linear(params.horizon, params.brightness) },
       uSurface: { value: linear(params.surface, params.brightness) },

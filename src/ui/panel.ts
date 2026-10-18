@@ -5,6 +5,8 @@ import type { Look, LookFeature, LookFeatureKind } from "../scene/look";
 import { checkbox, collapsible, element, select, slider } from "./controls";
 import { createFishCards, type DrawPortraits } from "./fishCards";
 import { createLightsSection, type LightsSectionState } from "./lightsSection";
+import { createLookSection, type LookSectionState } from "./lookSection";
+import type { LookTweak } from "../scene/sceneLook";
 import { createSceneCards } from "./sceneCards";
 import { createSceneryCards, type DrawSceneryPortraits } from "./sceneryCards";
 import type { SceneryEntry } from "../scene/scenery";
@@ -55,6 +57,8 @@ export interface PanelState {
   readonly gpu: { readonly name: string; readonly kind: GpuKind };
   /** LED setup and cycle. */
   readonly lights: LightsSectionState;
+  /** The composition of water and light, and its parameters. */
+  readonly lookSection: LookSectionState;
   /** Plants, rocks, corals and shells with their current counts. */
   readonly scenery: readonly SceneryEntry[];
   readonly drawSceneryPortraits: DrawSceneryPortraits;
@@ -110,6 +114,12 @@ export interface PanelCallbacks {
   onSceneryChange(key: string, count: number): void;
   /** A custom setup, or undefined to go back to the recommended one. */
   onLightsChange(lights: Lights | undefined): void;
+  /** A look from looks/, "none", or undefined for the scene's own. */
+  onLookChoose(choice: string | undefined): void;
+  /** The viewer's changes to the current look since the section was last shown. */
+  onLookTweak(change: LookTweak): void;
+  /** Forgets the viewer's changes to the current look. */
+  onLookReset(): void;
   onRenderHeightChange(height: number): void;
   onFrameLimitChange(limit: number): void;
   onAutoResolutionChange(enabled: boolean): void;
@@ -153,6 +163,8 @@ export interface Panel {
   setSuspended(suspended: boolean): void;
   /** Shows which features are on, when something else than the viewer changed them. */
   setLook(look: Look): void;
+  /** Shows another look in the Look section, or the same one reset. */
+  setLookSection(state: LookSectionState): void;
   /** Shows whether the effects are being fitted to the screen, and which ones it added. */
   setLookFitting(running: boolean, chosen: readonly string[]): void;
   dispose(): void;
@@ -341,6 +353,20 @@ export function createPanel(
   const lights = section("lights", "Lights");
   lights.append(...lightsSection.lightRows);
 
+  const lookSection = createLookSection(state.lookSection, {
+    onChoose: (choice) => {
+      callbacks.onLookChoose(choice);
+    },
+    onTweak: (change) => {
+      callbacks.onLookTweak(change);
+    },
+    onReset: () => {
+      callbacks.onLookReset();
+    },
+  });
+  const lookBox = section("look", "Look");
+  lookBox.append(lookSection.root);
+
   const sound = section("sound", "Sound");
   const soundRow = checkbox("Sound (M)", state.sound, (checked) => {
     callbacks.onSoundChange(checked);
@@ -467,6 +493,7 @@ export function createPanel(
     fauna,
     time.section,
     lights,
+    lookBox,
     scenery,
     ...featureSections(
       state.features,
@@ -612,6 +639,9 @@ export function createPanel(
     },
     setLook(look) {
       for (const [id, input] of featureInputs) input.checked = look.has(id);
+    },
+    setLookSection(next) {
+      lookSection.update(next);
     },
     setLookFitting(running, chosen) {
       fit.disabled = running;

@@ -47,7 +47,8 @@ export type LightingFeatureId =
   | "waves"
   | "refractive-bubbles"
   | "light-shafts"
-  | "fluorescence";
+  | "fluorescence"
+  | "frame";
 
 /**
  * Lighting features, in the order the startup calibration tries them.
@@ -63,6 +64,8 @@ export const LIGHTING_FEATURES: readonly (LookFeature & { readonly id: LightingF
   { id: "refractive-bubbles", name: "Refractive bubbles", kind: "lighting", startup: "added" },
   { id: "light-shafts", name: "Light shaft planes", kind: "lighting", startup: "manual" },
   { id: "fluorescence", name: "Coral fluorescence", kind: "lighting", startup: "base" },
+  // The tank's frame, as on the poster; a look may start it on.
+  { id: "frame", name: "Tank frame", kind: "lighting", startup: "manual" },
 ];
 
 /** Ids of the enabled features. */

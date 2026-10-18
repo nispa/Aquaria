@@ -100,14 +100,14 @@ Il [look](SCRIVERE_SCENE.md#look) di una scena può cambiare anche le
 impostazioni degli effetti di Aquaria. Questi sono i loro id e le loro
 impostazioni; ognuna ha un valore predefinito.
 
-| Id                  | Impostazioni                                                                                                                                                                                                 |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `underwater`        | `strength` (0 = spento), `absorption` (quanto svaniscono rosso, verde e blu per metro), `farDistance`, `deep`, `horizon`, `surface`, `brightness`, `sunColor`, `sunGlow`, `sunFocus`, `shafts`, `shaftCount` |
-| `ambient-occlusion` | `radius`, `intensity`, `samples`, `thickness`                                                                                                                                                                |
-| `volumetric-light`  | `density`, `decay`, `weight`, `exposure`, `threshold`, `samples`                                                                                                                                             |
-| `depth-of-field`    | `focus`, `aperture`, `maxBlur`                                                                                                                                                                               |
-| `bloom`             | `strength`, `radius`, `threshold`                                                                                                                                                                            |
-| `finish`            | `vignette`, `dither`, `contrast`, `saturation`, `tint`                                                                                                                                                       |
+| Id                  | Impostazioni                                                                                                                                                                                                                                 |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `underwater`        | `strength` (0 = spento), `absorption` (quanto svaniscono rosso, verde e blu per metro), `farDistance`, `clearWater`, `depthDarkening`, `deep`, `horizon`, `surface`, `brightness`, `sunColor`, `sunGlow`, `sunFocus`, `shafts`, `shaftCount` |
+| `ambient-occlusion` | `radius`, `intensity`, `samples`, `thickness`                                                                                                                                                                                                |
+| `volumetric-light`  | `density`, `decay`, `weight`, `exposure`, `threshold`, `samples`                                                                                                                                                                             |
+| `depth-of-field`    | `focus`, `aperture`, `maxBlur`                                                                                                                                                                                                               |
+| `bloom`             | `strength`, `radius`, `threshold`                                                                                                                                                                                                            |
+| `finish`            | `vignette`, `dither`, `contrast`, `saturation`, `tint`                                                                                                                                                                                       |
 
 `underwater` legge la profondità dell'immagine, quindi va sempre per primo.
 Costa un passaggio a schermo intero: circa 4 ms su 112 ms a 3840×2160 su

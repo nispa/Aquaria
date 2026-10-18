@@ -22,6 +22,12 @@ describe("parseSettings", () => {
     expect(DEFAULT_SETTINGS.realistic).not.toBe(true);
   });
 
+  it("remembers the look the viewer chose and their tweaks to it", () => {
+    const saved = { lookChoice: "hero", lookTweaks: { hero: { exposure: 0.9 } } };
+
+    expect(parseSettings(saved).settings).toMatchObject(saved);
+  });
+
   it("remembers realistic mode", () => {
     expect(parseSettings({ realistic: true }).settings.realistic).toBe(true);
   });

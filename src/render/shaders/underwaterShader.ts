@@ -13,6 +13,11 @@
  * - uProjectionInverse, uCameraWorld: turn a pixel and its depth into a ray.
  * - uAbsorption (1/m per channel, 0..2): how fast red, green and blue fade.
  * - uFarDistance (m): water crossed by rays that meet no geometry (depth 1).
+ * - uClearWater (m, 0..5): water right behind the glass that is still clear:
+ *   the haze starts only past it, so the sand by the glass keeps its color.
+ * - uDepthDarkening (1/m, 0..1): light lost per meter below the surface;
+ *   the deeper a thing lies, the darker it is drawn.
+ * - uSurfaceY (m): height of the surface (shared water uniform).
  * Only the water behind the front glass (z = 0) counts: the camera stands in air.
  * - uDeep, uHorizon, uSurface (linear radiance): scattered light looking
  *   down, level and up.
@@ -42,6 +47,9 @@ export const UNDERWATER_SHADER = {
     uniform mat4 uCameraWorld;
     uniform vec3 uAbsorption;
     uniform float uFarDistance;
+    uniform float uClearWater;
+    uniform float uDepthDarkening;
+    uniform float uSurfaceY;
     uniform vec3 uDeep;
     uniform vec3 uHorizon;
     uniform vec3 uSurface;
@@ -102,8 +110,14 @@ export const UNDERWATER_SHADER = {
       vec3 eye = uCameraWorld[3].xyz;
       // Where the ray enters the water through the glass.
       float toGlass = direction.z < 0.0 ? max(eye.z, 0.0) / -direction.z : 0.0;
-      float distance = depth >= 1.0 ? uFarDistance : max(length(view.xyz) - toGlass, 0.0);
-      vec3 transmitted = exp(-uAbsorption * distance);
+      float reach = length(view.xyz);
+      float distance = depth >= 1.0 ? uFarDistance : max(reach - toGlass, 0.0);
+      // Deeper things get less of the light that comes down from the surface.
+      if (depth < 1.0) {
+        float below = max(uSurfaceY - (eye.y + direction.y * reach), 0.0);
+        color *= exp(-uDepthDarkening * below);
+      }
+      vec3 transmitted = exp(-uAbsorption * max(distance - uClearWater, 0.0));
       vec3 water = color * transmitted + scattered(direction) * (1.0 - transmitted);
       gl_FragColor = vec4(mix(color, water, uStrength), 1.0);
     }

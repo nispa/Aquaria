@@ -62,6 +62,7 @@ import { createBlockworkRenderer } from "./blockworkRenderer";
 import { createRockworkRenderer, type RockworkRenderer } from "./rockworkRenderer";
 import type { ShapeSource } from "./sceneryShapes";
 import { createWaterUniforms } from "./uniforms";
+import { createTankFrame } from "./tankFrame";
 import { createTorchLight } from "./torchLight";
 
 const VERTICAL_FOV = 38;
@@ -144,6 +145,10 @@ export interface AquariumView {
   setMsaa(samples: number): void;
   /** Switches to another LED setup or cycle. */
   setLights(lights: Lights): void;
+  /** Draws with another look: exposure, sun and effect parameters, live. */
+  setSceneLook(sceneLook: SceneLook | undefined): void;
+  /** Where the sunlight comes from, a unit direction from the middle of the tank. */
+  sunDirection(): readonly [number, number, number];
   /**
    * Height of the seabed (sand plus rockwork) at (x, z), m. The scenery is laid
    * out here (it follows the camera), so the simulation reads it through the app.
@@ -234,7 +239,8 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   const gpuTimer = gl instanceof WebGL2RenderingContext ? createGpuTimer(gl) : undefined;
   if (gpuTimer?.blocking === true) gpuTimer.setEnabled(false);
   renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = options.sceneLook?.exposure ?? DEFAULT_EXPOSURE;
+  let sceneLook = options.sceneLook;
+  renderer.toneMappingExposure = sceneLook?.exposure ?? DEFAULT_EXPOSURE;
   renderer.shadowMap.type = PCFShadowMap;
 
   const world = new ThreeScene();
@@ -336,9 +342,11 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   );
   const fixture = createFixtureRenderer(scene.tank, water);
   world.add(fixture.object);
-  const lookSun = options.sceneLook?.sun;
+  const tankFrame = createTankFrame(scene.tank);
+  world.add(tankFrame.object);
   /** Under LED spots the sun stands straight overhead, so shadows fall down. */
   const placeSun = (lights: Lights): void => {
+    const lookSun = sceneLook?.sun;
     if (lookSun !== undefined && lights.fixture.type !== "spots") {
       sun.position
         .set(...lookSun)
@@ -417,6 +425,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
         (camera.position.z - z) * Math.tan(((VERTICAL_FOV / 2) * Math.PI) / 180) * camera.aspect,
         scene.tank.width / 2,
       );
+    tankFrame.layout(halfWidthAt(0));
     ridge =
       scene.rockwork === undefined
         ? undefined
@@ -503,7 +512,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     // Every parameter has a default; the scene's look may tune them.
     const created = lookPasses(effects, look).map((effect) => ({
       stage: effect.stage,
-      instance: effect.create(context, effectParams(options.sceneLook, effect.id)),
+      instance: effect.create(context, effectParams(sceneLook, effect.id)),
     }));
     created
       .filter((entry) => entry.stage === "hdr")
@@ -531,6 +540,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     particles?.setBubbleStyle(look.has("refractive-bubbles") ? "refractive" : "sprite");
     environment.setLightShaftsVisible(look.has("light-shafts"));
     environment.setWavesVisible(look.has("waves"));
+    tankFrame.object.visible = look.has("frame");
     // Shadow and environment support are compiled into the shaders.
     forEachMaterial(world, (material) => {
       material.needsUpdate = true;
@@ -575,6 +585,17 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       msaaSamples = samples;
       buildPipeline(currentLook);
       applySize();
+    },
+    setSceneLook(next) {
+      sceneLook = next;
+      renderer.toneMappingExposure = next?.exposure ?? DEFAULT_EXPOSURE;
+      placeSun(lights);
+      buildPipeline(currentLook);
+      applySize();
+    },
+    sunDirection() {
+      const direction = sun.position.clone().sub(sun.target.position).normalize();
+      return [direction.x, direction.y, direction.z];
     },
     setLights(next) {
       fixture.setFixture(next.fixture);
@@ -688,6 +709,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       particles?.dispose();
       environmentMap.dispose();
       fixture.dispose();
+      tankFrame.dispose();
       surfaces.dispose();
       loaders.dispose();
       renderer.dispose();

@@ -67,6 +67,22 @@ reefs.
 water, with how many), the color and level of each channel, and the
 moonlight.
 
+### Look
+
+The look is the composition of water and light: how bright the picture is,
+where the sun stands, how the water fades the colors with distance, the
+sunbeams, the contrast and the colors. **Look** chooses it: the scene's own,
+**Hero** (the open water of the poster, with surface waves and the tank
+frame), or **None** (every effect at its default).
+
+Below are sliders for all of it: exposure, sun height and turn, then one
+group per effect with every setting it has. The Deep water light group
+holds the water itself: how fast red, green and blue fade, how much water
+behind the glass stays clear before the haze begins, how much darker
+things get deeper down, the scattered light looking down, level and up,
+the sun's glow and the sunbeams. Your changes are kept for each look;
+**Reset this look** forgets them.
+
 ### Lighting and Post-processing
 
 Every effect has its own switch, so you decide what the GPU spends its time
@@ -81,6 +97,7 @@ on.
 | Refractive bubbles    | Bubbles that bend the light like glass                     | if it fits |
 | Light shaft planes    | Cheap light shafts; not needed with volumetric light       | off        |
 | Coral fluorescence    | Corals and anemones glow under blue and violet             | on         |
+| Tank frame            | Dark posts at the sides and the stand under the glass      | off        |
 | Ambient occlusion     | Darker creases and corners                                 | off        |
 | Volumetric light      | Rays of light through the water, blocked by fish and kelp  | if it fits |
 | Depth of field        | Blurs what is out of focus                                 | off        |

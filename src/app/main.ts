@@ -53,9 +53,16 @@ import {
 } from "../scene/objectManifest";
 import { parseCatalog, parseScene, SceneValidationError } from "../scene/parse";
 import {
+  chooseLook,
+  LOOKS_FOLDER,
   lookParamIssues,
+  mergeTweaks,
+  parseLookIndex,
   parseSceneLook,
+  PLAIN_LOOK_ID,
   sceneLookUrl,
+  switchLookFeatures,
+  tweakLook,
   withLookStartup,
   type SceneLook,
 } from "../scene/sceneLook";
@@ -102,6 +109,7 @@ import {
 import { readScenePictures, scenePictureUrl, writeScenePicture } from "../scene/scenePictures";
 import type { SceneChoice, SceneChoiceGroup } from "../ui/panel";
 import { createSimulation, type Simulation } from "../sim/simulation";
+import type { LookSectionState } from "../ui/lookSection";
 import { createPanel } from "../ui/panel";
 import { createPointerInput, type PointerEvents } from "../input/pointer";
 import { createSoundBoard } from "../audio/soundBoard";
@@ -415,6 +423,40 @@ async function loadSceneLook(
   return sceneLook;
 }
 
+interface LoadedLooks {
+  readonly looks: ReadonlyMap<string, SceneLook>;
+  /** The looks listed in looks/index.json, offered in the panel. */
+  readonly offered: readonly string[];
+}
+
+/**
+ * The looks the panel offers (looks/index.json) and the scene's own. A look
+ * of the list that fails is left out with a warning; the scene's own look
+ * failing stops the start, like the scene itself would.
+ */
+async function loadLooks(
+  sceneLookId: string | undefined,
+  effects: readonly EffectDefinition[],
+): Promise<LoadedLooks> {
+  let offered: readonly string[] = [];
+  try {
+    offered = parseLookIndex(await fetchJson(`${LOOKS_FOLDER}/index.json`));
+  } catch (error) {
+    logger.warn("No looks to choose from", { error: String(error) });
+  }
+  const ids = new Set([...offered, ...(sceneLookId === undefined ? [] : [sceneLookId])]);
+  const looks = new Map<string, SceneLook>();
+  for (const id of ids) {
+    try {
+      looks.set(id, await loadSceneLook(id, effects));
+    } catch (error) {
+      if (id === sceneLookId) throw error;
+      logger.warn("A look could not be loaded", { look: id, error: String(error) });
+    }
+  }
+  return { looks, offered: offered.filter((id) => looks.has(id)) };
+}
+
 async function animalManifest(id: string): Promise<ModelManifest> {
   const data = await fetchJson(
     `${modelFolderUrl(id, ANIMAL_MODELS_FOLDER)}/${MODEL_MANIFEST_FILE}`,
@@ -470,10 +512,18 @@ async function start(): Promise<void> {
     return parsed;
   };
   const loadedScene = parseWithObjects(sceneData);
-  const sceneLook =
-    loadedScene.look === undefined ? undefined : await loadSceneLook(loadedScene.look, effects);
-  // The scene's look may start some features on or leave them to the viewer.
-  const features = withLookStartup(lookFeatures(effects), sceneLook);
+  const { looks, offered: offeredLooks } = await loadLooks(loadedScene.look, effects);
+  /** The look chosen: the viewer's, else the scene's own, else the plain one. */
+  const lookChoice = (): { readonly id: string; readonly look: SceneLook } =>
+    chooseLook(loadedScene.look, settings.lookChoice, looks);
+  /** The chosen look with the viewer's tweaks to it. */
+  const drawnLook = (): SceneLook => {
+    const { id, look: chosen } = lookChoice();
+    return tweakLook(chosen, settings.lookTweaks?.[id]);
+  };
+  let sceneLook = drawnLook();
+  // The look may start some features on or leave them to the viewer.
+  let features = withLookStartup(lookFeatures(effects), sceneLook);
   // The look is fitted to the GPU on live frames; a requested list or a still frame is used as is.
   const fitsLook = options.effects === undefined && options.frozenSeconds === undefined;
   let look: Look = fitsLook
@@ -682,6 +732,43 @@ async function start(): Promise<void> {
     saveSettings(settings);
   };
 
+  /** What the panel's Look section shows: the choices, and the look drawn now. */
+  const lookSectionState = (): LookSectionState => ({
+    looks: [
+      ...offeredLooks.map((id) => ({ id, name: looks.get(id)?.name ?? id })),
+      { id: PLAIN_LOOK_ID, name: "None" },
+    ],
+    choice: settings.lookChoice,
+    sceneLookName:
+      loadedScene.look === undefined ? "none" : (looks.get(loadedScene.look)?.name ?? "none"),
+    look: sceneLook,
+    sun: view.sunDirection(),
+    effects,
+  });
+  /** The viewer's tweaks to the current look when the Look section was last shown. */
+  let shownTweak = settings.lookTweaks?.[lookChoice().id];
+  // Sliders send many changes a second: the look is rebuilt once per frame at most.
+  let lookRebuildPending = false;
+  const scheduleLookRebuild = (): void => {
+    if (lookRebuildPending) return;
+    lookRebuildPending = true;
+    window.requestAnimationFrame(() => {
+      lookRebuildPending = false;
+      view.setSceneLook(sceneLook);
+    });
+  };
+  /** After another look was chosen or the tweaks reset: draws it and shows it in the panel. */
+  const showChosenLook = (before: SceneLook): void => {
+    sceneLook = drawnLook();
+    features = withLookStartup(lookFeatures(effects), sceneLook);
+    look = switchLookFeatures(look, before, sceneLook, settings.look ?? {});
+    view.setSceneLook(sceneLook);
+    view.setLook(look);
+    panel.setLook(look);
+    shownTweak = settings.lookTweaks?.[lookChoice().id];
+    panel.setLookSection(lookSectionState());
+  };
+
   // One batch of fish pictures at a time: each batch has its own small renderer.
   let portraits = Promise.resolve();
   const drawPortraits = (requests: readonly FishPortraitRequest[]): void => {
@@ -745,8 +832,30 @@ async function start(): Promise<void> {
         recommended: scene.lights,
         custom: settings.lights !== undefined,
       },
+      lookSection: lookSectionState(),
     },
     {
+      onLookChoose(choice) {
+        const before = sceneLook;
+        update({ lookChoice: choice });
+        showChosenLook(before);
+      },
+      onLookTweak(change) {
+        const { id } = lookChoice();
+        update({ lookTweaks: { ...settings.lookTweaks, [id]: mergeTweaks(shownTweak, change) } });
+        sceneLook = drawnLook();
+        scheduleLookRebuild();
+      },
+      onLookReset() {
+        const { id } = lookChoice();
+        const before = sceneLook;
+        update({
+          lookTweaks: Object.fromEntries(
+            Object.entries(settings.lookTweaks ?? {}).filter(([lookId]) => lookId !== id),
+          ),
+        });
+        showChosenLook(before);
+      },
       onCountChange(speciesId, count) {
         simulation.setCount(speciesId, count);
         update({
