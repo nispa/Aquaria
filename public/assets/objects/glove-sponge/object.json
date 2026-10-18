@@ -1,0 +1,26 @@
+{
+  "name": "Glove sponge",
+  "category": "object",
+  "model": "model.glb",
+  "color": ["#d8803a", "#6f7fd8", "#c8a048"],
+  "traits": {
+    "tint": {},
+    "collision": {
+      "across": 0.5,
+      "up": 0.45,
+      "along": 0.42,
+      "sink": -0.02,
+      "lift": 0
+    },
+    "tags": ["sponge", "shelter"],
+    "placement": {
+      "bands": [1, 4],
+      "size": [0.3, 0.6]
+    }
+  },
+  "credit": {
+    "author": "Smithsonian Institution, National Museum of Natural History",
+    "source": "https://n2t.net/ark:/65665/369d11867-94df-4e5c-810d-28cd7fb5b2e7",
+    "license": "CC0-1.0"
+  }
+}

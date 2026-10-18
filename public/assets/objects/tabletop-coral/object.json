@@ -1,0 +1,26 @@
+{
+  "name": "Table coral",
+  "category": "object",
+  "model": "model.glb",
+  "color": ["#9fc0a8", "#b8c890", "#a0b8c8"],
+  "traits": {
+    "tint": {},
+    "collision": {
+      "across": 0.5,
+      "up": 0.3,
+      "along": 0.4,
+      "sink": 0,
+      "lift": 0
+    },
+    "tags": ["coral", "shelter"],
+    "placement": {
+      "bands": [1, 4],
+      "size": [0.5, 1.0]
+    }
+  },
+  "credit": {
+    "author": "Smithsonian Institution, National Museum of Natural History",
+    "source": "https://n2t.net/ark:/65665/36558b63e-105b-4818-9190-760802a9abc3",
+    "license": "CC0-1.0"
+  }
+}

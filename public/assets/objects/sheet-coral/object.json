@@ -1,0 +1,26 @@
+{
+  "name": "Sheet coral",
+  "category": "object",
+  "model": "model.glb",
+  "color": ["#d8a070", "#c98a5a", "#b8a080"],
+  "traits": {
+    "tint": {},
+    "collision": {
+      "across": 0.5,
+      "up": 0.3,
+      "along": 0.5,
+      "sink": -0.02,
+      "lift": 0
+    },
+    "tags": ["coral"],
+    "placement": {
+      "bands": [1, 4],
+      "size": [0.3, 0.6]
+    }
+  },
+  "credit": {
+    "author": "Smithsonian Institution, National Museum of Natural History",
+    "source": "https://n2t.net/ark:/65665/37d657fef-eacb-46f4-a9c2-d34150352b72",
+    "license": "CC0-1.0"
+  }
+}

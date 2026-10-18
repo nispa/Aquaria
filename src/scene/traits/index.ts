@@ -4,9 +4,10 @@ import { collision } from "./collision";
 import { placement } from "./placement";
 import { sway } from "./sway";
 import { tags } from "./tags";
+import { tint } from "./tint";
 
 /** Every trait Aquaria carries out, by id. Adding one: a file here and a line below. */
-export const TRAITS = { sway, collision, tags, placement } as const;
+export const TRAITS = { sway, collision, tags, placement, tint } as const;
 
 export type TraitId = keyof typeof TRAITS;
 

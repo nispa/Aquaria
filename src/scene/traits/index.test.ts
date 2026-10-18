@@ -58,3 +58,9 @@ describe("collision trait", () => {
     });
   });
 });
+
+describe("tint trait", () => {
+  it("tints a model fully with the item's color by default", () => {
+    expect(TRAITS.tint.schema.parse({})).toEqual({ strength: 1 });
+  });
+});

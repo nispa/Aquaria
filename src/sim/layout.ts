@@ -85,6 +85,8 @@ export interface Prop {
   readonly elevation?: number;
   /** What the item is to fish; see scene/tags. */
   readonly tags: readonly string[];
+  /** How much its color tints its model (the `tint` trait); none keeps the model's colors. */
+  readonly tint?: number;
 }
 
 /** Keeps objects a little away from the glass and the side walls. */
@@ -137,6 +139,7 @@ export interface PropTraits {
   readonly shape: PropShape;
   readonly solid: boolean;
   readonly tags: readonly string[];
+  readonly tint?: number;
 }
 
 /** What a prop of this object is to the rest of the engine; undefined when it cannot be drawn. */
@@ -157,6 +160,7 @@ export function propTraitsOf(
     shape,
     solid,
     tags: object.traits.tags ?? [],
+    ...(object.traits.tint === undefined ? {} : { tint: object.traits.tint.strength }),
   };
 }
 
@@ -338,6 +342,7 @@ export function layoutProps(
         seed: Math.floor(entryRng.next() * SEED_RANGE),
         ...(spec.material === undefined ? {} : { material: spec.material }),
         tags: tagsOf(spec, object),
+        ...(traits.tint === undefined ? {} : { tint: traits.tint }),
       };
     });
   });

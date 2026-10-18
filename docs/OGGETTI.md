@@ -55,7 +55,7 @@ Un oggetto ha bisogno di un `model` o di una `recipe`. Con tutti e due,
 Aquaria disegna la ricetta e gli altri programmi vedono il modello.
 
 Un modello tiene i suoi materiali; `color` colora solo quello che disegna
-una ricetta. Se il modello ha più pezzi affiancati al primo livello, ogni
+una ricetta, a meno che l'oggetto non abbia il tratto `tint`. Se il modello ha più pezzi affiancati al primo livello, ogni
 elemento in vasca ne usa uno, per varietà.
 
 Le licenze accettate sono le stesse dei pesci: `CC0-1.0`, `CC-BY-3.0`,
@@ -110,6 +110,22 @@ valori.
 | `bands`  | `[0, 4]`   | Fasce di profondità, 0 al vetro, 4 in fondo |
 | `size`   | nessuno    | Intervallo di misura in metri (oggetti)     |
 | `height` | nessuno    | Intervallo di altezza in metri (piante)     |
+
+### `tint`: il colore tinge il modello
+
+Il colore dell'elemento moltiplica i colori del modello. Pensato per le
+scansioni dei coralli: scheletri sbiancati di museo con una texture grigio
+chiaro che tiene ogni poro, riportati a un colore vivo da `color`. Un
+modello tinto brilla anche sotto la luce attinica, come i coralli che
+Aquaria disegna da sé.
+
+| Valore     | Predefinito | Cosa è                                                      |
+| ---------- | ----------- | ----------------------------------------------------------- |
+| `strength` | `1`         | 0 tiene i colori del modello, 1 prende quello dell'elemento |
+
+Quello del corallo staghorn: `"tint": {}`. La sua scansione è diventata un
+oggetto con `scripts/blender/coral_scans.py`, che spiega come nelle prime
+righe.
 
 ### Aggiungere un tratto
 

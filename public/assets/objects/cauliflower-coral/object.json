@@ -1,0 +1,26 @@
+{
+  "name": "Cauliflower coral",
+  "category": "object",
+  "model": "model.glb",
+  "color": ["#e39aa6", "#d98a6a", "#c9a0d0"],
+  "traits": {
+    "tint": {},
+    "collision": {
+      "across": 0.45,
+      "up": 0.5,
+      "along": 0.45,
+      "sink": -0.02,
+      "lift": 0
+    },
+    "tags": ["coral", "shelter"],
+    "placement": {
+      "bands": [1, 4],
+      "size": [0.3, 0.55]
+    }
+  },
+  "credit": {
+    "author": "Smithsonian Institution, National Museum of Natural History",
+    "source": "https://n2t.net/ark:/65665/311440544-0f5f-495a-9836-f6ef7ad55055",
+    "license": "CC0-1.0"
+  }
+}

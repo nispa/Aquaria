@@ -281,12 +281,24 @@ export function createPropRenderer(
       surface === undefined
         ? [causticsPatch(water)]
         : [surfacePatch(surfaces.get(surface.id), "triplanar", surface), causticsPatch(water)];
+    // A tinted model (a bleached coral scan) takes the item's color over its own,
+    // and glows under actinic light like the living corals drawn by recipes.
+    const tint =
+      first.tint === undefined
+        ? undefined
+        : new Color(1, 1, 1).lerp(new Color(first.color), first.tint);
+    if (tint !== undefined) patches.push(fluorescencePatch(water));
     for (const [variantIndex, variantMembers] of byVariant) {
       const variant = variants[variantIndex];
       if (variant === undefined) continue;
       for (const part of variant.parts) {
         const geometry = part.geometry.clone();
         const material = modelMaterial(part.material, patches);
+        if (tint !== undefined) {
+          for (const each of Array.isArray(material) ? material : [material]) {
+            if ("color" in each && each.color instanceof Color) each.color.multiply(tint);
+          }
+        }
         const mesh = new InstancedMesh(geometry, material, variantMembers.length);
         mesh.castShadow = true;
         mesh.receiveShadow = true;

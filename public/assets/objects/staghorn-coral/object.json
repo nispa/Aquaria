@@ -1,0 +1,26 @@
+{
+  "name": "Staghorn coral",
+  "category": "object",
+  "model": "model.glb",
+  "color": ["#f08a4a", "#e8743c", "#f5a05a"],
+  "traits": {
+    "tint": {},
+    "collision": {
+      "across": 0.45,
+      "up": 0.5,
+      "along": 0.45,
+      "sink": -0.02,
+      "lift": 0
+    },
+    "tags": ["coral", "shelter"],
+    "placement": {
+      "bands": [1, 4],
+      "size": [0.45, 0.9]
+    }
+  },
+  "credit": {
+    "author": "Smithsonian Institution, National Museum of Natural History",
+    "source": "https://n2t.net/ark:/65665/3147268f9-134a-4e56-abc4-5747d0236cc8",
+    "license": "CC0-1.0"
+  }
+}

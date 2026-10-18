@@ -13,7 +13,7 @@ import {
 } from "./effectManifest";
 import { checkSceneObjects, parseObjectIndex } from "./objectCatalog";
 import { bundledObjects } from "./objectFixtures";
-import { objectMaterialUrl } from "./objectManifest";
+import { objectMaterialUrl, objectModelUrl } from "./objectManifest";
 import { MODEL_MANIFEST_FILE, modelIdsOf, parseModelManifest } from "./modelManifest";
 import { parseCatalog, parseScene } from "./parse";
 import { parseSceneIndex } from "./sceneIndex";
@@ -174,6 +174,16 @@ describe("bundled data files", () => {
     expect(
       [normal, surface].map((url) => existsSync(new URL(`../../public/${url}`, import.meta.url))),
     ).toEqual([true, true]);
+  });
+
+  it.each(objectFolders)("ships the model the %s object names, credited in ASSETS.md", (id) => {
+    const manifest = objects.get(id);
+    const url = manifest === undefined ? undefined : objectModelUrl(id, manifest);
+    const credited = url === undefined || assetCredits.includes(manifest?.credit?.source ?? "?");
+    const present =
+      url === undefined || existsSync(new URL(`../../public/${url}`, import.meta.url));
+
+    expect([present, credited]).toEqual([true, true]);
   });
 
   it.each(materialIds)("credits the %s material in ASSETS.md", (id) => {

@@ -23,7 +23,11 @@
     }
   },
   "current": {
-    "direction": [1, 0, 0.15],
+    "direction": [
+      1,
+      0,
+      0.15
+    ],
     "strength": 0.03,
     "turbulence": 0.3
   },
@@ -58,31 +62,68 @@
       "kind": "kelp",
       "name": "Kelp at the sides",
       "count": 7,
-      "bands": [3, 4],
-      "height": [1.0, 2.2],
-      "color": ["#7a9a34", "#5f8a2e", "#9aa83e"]
+      "bands": [
+        3,
+        4
+      ],
+      "height": [
+        1.0,
+        2.2
+      ],
+      "color": [
+        "#7a9a34",
+        "#5f8a2e",
+        "#9aa83e"
+      ]
     },
     {
       "kind": "seagrass",
       "count": 30,
-      "bands": [0, 4],
-      "height": [0.12, 0.35],
-      "color": ["#6fa84a", "#8bbf52"]
+      "bands": [
+        0,
+        4
+      ],
+      "height": [
+        0.12,
+        0.35
+      ],
+      "color": [
+        "#6fa84a",
+        "#8bbf52"
+      ]
     },
     {
       "kind": "bush",
       "name": "Green algae",
       "count": 8,
-      "bands": [1, 3],
-      "height": [0.25, 0.6],
-      "color": ["#4f9a3a", "#6fc24a"]
+      "bands": [
+        1,
+        3
+      ],
+      "height": [
+        0.25,
+        0.6
+      ],
+      "color": [
+        "#4f9a3a",
+        "#6fc24a"
+      ]
     },
     {
       "kind": "anemone",
       "count": 4,
-      "bands": [0, 2],
-      "height": [0.12, 0.22],
-      "color": ["#d98fb0", "#c98fd6"]
+      "bands": [
+        0,
+        2
+      ],
+      "height": [
+        0.12,
+        0.22
+      ],
+      "color": [
+        "#d98fb0",
+        "#c98fd6"
+      ]
     }
   ],
   "props": [
@@ -91,8 +132,14 @@
       "name": "Rock pillars",
       "count": 3,
       "color": "#5d6a6c",
-      "bands": [3, 4],
-      "size": [1.0, 1.4],
+      "bands": [
+        3,
+        4
+      ],
+      "size": [
+        1.0,
+        1.4
+      ],
       "material": {
         "id": "reef-rock",
         "tileSize": 0.6,
@@ -103,8 +150,14 @@
       "kind": "rock",
       "count": 10,
       "color": "#7e8580",
-      "bands": [1, 4],
-      "size": [0.45, 0.95],
+      "bands": [
+        1,
+        4
+      ],
+      "size": [
+        0.45,
+        0.95
+      ],
       "material": {
         "id": "reef-rock",
         "tileSize": 0.45,
@@ -112,44 +165,96 @@
       }
     },
     {
-      "kind": "branch-coral",
-      "name": "Orange branching corals",
-      "count": 12,
-      "color": ["#e8743c", "#d9583a", "#f08a4a"],
-      "size": [0.45, 0.85]
+      "kind": "staghorn-coral",
+      "count": 8,
+      "color": [
+        "#f08a4a",
+        "#e8743c",
+        "#f5a05a"
+      ]
     },
     {
-      "kind": "brain-coral",
-      "count": 6,
-      "color": ["#c8a85a", "#b8955a"],
-      "material": {
-        "id": "reef-rock",
-        "tileSize": 0.35
-      },
-      "size": [0.35, 0.6]
+      "kind": "grooved-brain-coral",
+      "count": 3,
+      "color": [
+        "#c9b27a",
+        "#a8b87a",
+        "#d0a070"
+      ]
+    },
+    {
+      "kind": "maze-coral",
+      "count": 3,
+      "color": [
+        "#c9a070",
+        "#b8b07a",
+        "#d6b48a"
+      ]
+    },
+    {
+      "kind": "cauliflower-coral",
+      "count": 5,
+      "color": [
+        "#e39aa6",
+        "#d98a6a",
+        "#c9a0d0"
+      ]
+    },
+    {
+      "kind": "finger-coral",
+      "count": 4,
+      "color": [
+        "#9d8fd6",
+        "#7fb8c9",
+        "#c9b88a"
+      ]
+    },
+    {
+      "kind": "sheet-coral",
+      "count": 4,
+      "color": [
+        "#d8a070",
+        "#c98a5a",
+        "#b8a080"
+      ]
+    },
+    {
+      "kind": "tabletop-coral",
+      "count": 3,
+      "color": [
+        "#9fc0a8",
+        "#b8c890",
+        "#a0b8c8"
+      ]
+    },
+    {
+      "kind": "glove-sponge",
+      "count": 4,
+      "color": [
+        "#d8803a",
+        "#6f7fd8",
+        "#c8a048"
+      ]
     },
     {
       "kind": "fan-coral",
       "count": 5,
-      "color": ["#7a4fa8", "#5a6fc8"],
-      "size": [0.7, 1.1]
-    },
-    {
-      "kind": "table-coral",
-      "count": 4,
-      "color": ["#8fb8c9", "#b0c8a0"],
-      "size": [0.45, 0.7]
-    },
-    {
-      "kind": "leather-coral",
-      "count": 5,
-      "color": ["#5f9a8a", "#8fb87a"],
-      "size": [0.3, 0.5]
+      "color": [
+        "#7a4fa8",
+        "#5a6fc8"
+      ],
+      "size": [
+        0.7,
+        1.1
+      ]
     },
     {
       "kind": "shell",
       "count": 5,
-      "color": ["#f3e6d4", "#e8d2b8"]
+      "color": [
+        "#f3e6d4",
+        "#e8d2b8"
+      ]
     },
     {
       "kind": "starfish",
@@ -192,8 +297,14 @@
       "model": "sea-turtle",
       "count": 2,
       "length": 1.1,
-      "distance": [1.5, 4],
-      "every": [40, 110]
+      "distance": [
+        1.5,
+        4
+      ],
+      "every": [
+        40,
+        110
+      ]
     }
   ]
 }

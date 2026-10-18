@@ -52,7 +52,8 @@ The driftwood's:
 An object needs a `model` or a `recipe`. With both, Aquaria draws the
 recipe and other programs see the model.
 
-A model keeps its own materials; `color` only tints what a recipe draws.
+A model keeps its own materials; `color` only tints what a recipe draws,
+unless the object has the `tint` trait.
 If the model has several pieces side by side at the top level, each item
 in the tank uses one of them, for variety.
 
@@ -106,6 +107,20 @@ A scene entry can override any of it.
 | `bands`  | `[0, 4]`   | Depth bands, 0 at the glass, 4 at the back |
 | `size`   | none       | Size range in meters (objects)             |
 | `height` | none       | Height range in meters (plants)            |
+
+### `tint`: the color tints the model
+
+The item's color multiplies the model's own colors. Made for the coral
+scans: bleached museum skeletons with a light grey texture that keeps every
+pore, brought back to a living color by `color`. A tinted model also glows
+under actinic light, like the corals Aquaria draws itself.
+
+| Value      | Default | What it is                                           |
+| ---------- | ------- | ---------------------------------------------------- |
+| `strength` | `1`     | 0 keeps the model's colors, 1 takes the item's color |
+
+The staghorn coral's: `"tint": {}`. Its scan was made into an object by
+`scripts/blender/coral_scans.py`, which says how in its first lines.
 
 ### Adding a trait
 
