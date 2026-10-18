@@ -2,8 +2,10 @@
 
 The Hero scene's rock is blocks, like the scene editor's (scene/blocks):
 eroded pillars, the tallest up to the surface, worn into ledges and
-hollows, with a rubbly foot; low reef mounds; and a reef bank winding
-across the middle of the tank, where corals and algae grow side by side. This
+hollows, with a rubbly foot; low reef mounds; a reef bank winding
+across the middle of the tank, where corals and algae grow side by side;
+and on the right a lone outcrop in terraces, crowded with corals, sponges
+and anemones as on the poster. This
 script writes them into the scene's `blocks`, keeping its `growth`, so the
 layout can be changed here and regenerated instead of drawn by hand:
 
@@ -37,6 +39,8 @@ MOUNDS = [
 ]
 # The reef bank: from x_min to x_max, its crest winding around z, m.
 BANK = {"x_min": -2.9, "x_max": 2.9, "z": -1.55, "width": 0.55, "height": 0.42, "seed": 10.0}
+# The lone outcrop on the right: terraces from the sand up, each (top, radius), m.
+OUTCROP = {"x": 2.15, "z": -1.05, "tiers": [(0.4, 0.62), (0.78, 0.46), (1.15, 0.3)], "seed": 11.0}
 # A pillar to the surface goes a little beyond it, so no gap shows.
 ABOVE_SURFACE = 0.2
 
@@ -96,6 +100,19 @@ def in_bank(x, y, z):
     return across < 1 and y < top * (1 - across * across)
 
 
+def in_outcrop(x, y, z):
+    seed = OUTCROP["seed"]
+    dx, dz = x - OUTCROP["x"], z - OUTCROP["z"]
+    angle = math.atan2(dz, dx)
+    for top, radius in OUTCROP["tiers"]:
+        # Each terrace's rim wavers and its top is a little uneven.
+        reach = radius * (1 + 0.18 * noise(angle * 2, top * 5, seed) + 0.06 * noise(angle * 7, y * 9, seed + 1))
+        height = top + 0.06 * noise(dx * 6, dz * 6, seed + 2)
+        if y < height and dx * dx + dz * dz < reach * reach:
+            return True
+    return False
+
+
 def runs_of(cells):
     """Lengths of alternating empty and solid stretches, the first one empty."""
     runs, current, count = [], 0, 0
@@ -127,6 +144,7 @@ def main():
                     any(in_pillar(x, y, z, p, height) for p in PILLARS)
                     or any(in_mound(x, y, z, m) for m in MOUNDS)
                     or in_bank(x, y, z)
+                    or in_outcrop(x, y, z)
                 )
                 cells.append(1 if solid else 0)
     blocks = {"size": BLOCK_SIZE, "runs": runs_of(cells), "color": ROCK_COLOR, "material": MATERIAL}
