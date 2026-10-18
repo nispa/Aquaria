@@ -401,6 +401,11 @@ export const sceneSchema = z
     id: z.string().min(1),
     name: z.string().min(1),
     seed: z.number().int().nonnegative(),
+    /** A look in `public/looks/` (exposure, sun, effect parameters); see scene/sceneLook. */
+    look: z
+      .string()
+      .regex(/^[a-z0-9-]+$/, "look is a file name: lowercase letters, digits and dashes.")
+      .optional(),
     /** Tank size in meters: x = width, y = height, z = depth away from the glass. */
     tank: z.object({ width: positive, height: positive, depth: positive }),
     water: z.object({

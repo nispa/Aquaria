@@ -52,6 +52,13 @@ import {
   type ObjectManifest,
 } from "../scene/objectManifest";
 import { parseCatalog, parseScene, SceneValidationError } from "../scene/parse";
+import {
+  lookParamIssues,
+  parseSceneLook,
+  sceneLookUrl,
+  withLookStartup,
+  type SceneLook,
+} from "../scene/sceneLook";
 import type { Scene, SpeciesCatalog } from "../scene/schema";
 import {
   applyCountOverrides,
@@ -388,6 +395,26 @@ async function loadFileEffects(): Promise<readonly EffectDefinition[]> {
 }
 
 /** The manifest of an animal's model (a visitor, a crab), from public/assets/animals. */
+/**
+ * The scene's look file, checked against the effects that will draw it:
+ * parameters an effect refuses stop the start, effects nobody provides are
+ * only a warning (an effect folder may have been left out).
+ */
+async function loadSceneLook(
+  id: string,
+  effects: readonly EffectDefinition[],
+): Promise<SceneLook> {
+  const sceneLook = parseSceneLook(await fetchJson(sceneLookUrl(id)), id);
+  const issues = lookParamIssues(sceneLook, effects);
+  if (issues.invalid.length > 0) {
+    throw new SceneValidationError(`Invalid look "${id}":\n${issues.invalid.join("\n")}`);
+  }
+  if (issues.unknown.length > 0) {
+    logger.warn("The look tunes effects that are not there", { look: id, effects: issues.unknown });
+  }
+  return sceneLook;
+}
+
 async function animalManifest(id: string): Promise<ModelManifest> {
   const data = await fetchJson(
     `${modelFolderUrl(id, ANIMAL_MODELS_FOLDER)}/${MODEL_MANIFEST_FILE}`,
@@ -436,12 +463,6 @@ async function start(): Promise<void> {
       : fetchJson(`scenes/${sceneId}.json`),
     loadSceneChoices(sceneIndex, customScenes),
   ]);
-  const features = lookFeatures(effects);
-  // The look is fitted to the GPU on live frames; a requested list or a still frame is used as is.
-  const fitsLook = options.effects === undefined && options.frozenSeconds === undefined;
-  let look: Look = fitsLook
-    ? calibrationPlan(features, settings.look ?? {}).start
-    : resolveLook(features, settings.look ?? {}, options.effects);
   /** A scene validated, down to the plants and objects it names. */
   const parseWithObjects = (input: unknown): Scene => {
     const parsed = parseScene(input, catalog);
@@ -449,6 +470,15 @@ async function start(): Promise<void> {
     return parsed;
   };
   const loadedScene = parseWithObjects(sceneData);
+  const sceneLook =
+    loadedScene.look === undefined ? undefined : await loadSceneLook(loadedScene.look, effects);
+  // The scene's look may start some features on or leave them to the viewer.
+  const features = withLookStartup(lookFeatures(effects), sceneLook);
+  // The look is fitted to the GPU on live frames; a requested list or a still frame is used as is.
+  const fitsLook = options.effects === undefined && options.frozenSeconds === undefined;
+  let look: Look = fitsLook
+    ? calibrationPlan(features, settings.look ?? {}).start
+    : resolveLook(features, settings.look ?? {}, options.effects);
   const baseScene = applyCountOverrides(loadedScene, settings.counts[sceneId] ?? {}, catalog);
   let sceneryCounts: Readonly<Record<string, number>> = settings.scenery?.[sceneId] ?? {};
   const scene = applySceneryOverrides(baseScene, sceneryCounts);
@@ -513,6 +543,7 @@ async function start(): Promise<void> {
       logger: createLogger("render", consoleSink),
       renderHeight: settings.renderHeight,
       look,
+      sceneLook,
       effects,
       shapes: shapes.geometry,
       lights: effectiveLights(settings.lights),

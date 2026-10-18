@@ -12,14 +12,15 @@ l'acquario si ferma e ti dice quale campo, in quale file.
 
 ## Dove stanno le cose
 
-| File                            | Cosa contiene                                                  |
-| ------------------------------- | -------------------------------------------------------------- |
-| `public/scenes/<id>.json`       | Una scena                                                      |
-| `public/scenes/index.json`      | Le scene del pannello, a gruppi; la prima è quella di partenza |
-| `public/species.json`           | Tutte le specie                                                |
-| `public/assets/objects/<id>/`   | Una pianta o un oggetto ([Piante e oggetti](OGGETTI.md))       |
-| `public/assets/species/<id>/`   | Il modello 3D di una specie ([Modelli 3D](MODELLI_PESCI.md))   |
-| `public/assets/materials/<id>/` | Una texture di superficie: sabbia, roccia, legno               |
+| File                            | Cosa contiene                                                          |
+| ------------------------------- | ---------------------------------------------------------------------- |
+| `public/scenes/<id>.json`       | Una scena                                                              |
+| `public/scenes/index.json`      | Le scene del pannello, a gruppi; la prima è quella di partenza         |
+| `public/species.json`           | Tutte le specie                                                        |
+| `public/assets/objects/<id>/`   | Una pianta o un oggetto ([Piante e oggetti](OGGETTI.md))               |
+| `public/assets/species/<id>/`   | Il modello 3D di una specie ([Modelli 3D](MODELLI_PESCI.md))           |
+| `public/assets/materials/<id>/` | Una texture di superficie: sabbia, roccia, legno                       |
+| `public/looks/<id>.json`        | Un look: esposizione, sole, impostazioni degli effetti ([Look](#look)) |
 
 Una scena salvata nell'editor resta nel browser, non in questi file. Per
 includerla, usa **Export JSON** nella scheda Scene dell'editor, copia il
@@ -162,6 +163,39 @@ pannello; **Recommended** torna a queste.
 
 Tutti i campi sono facoltativi; la [Guida all'uso](GUIDA_UTENTE.md#time-e-lights)
 spiega come appaiono.
+
+### Look
+
+Una scena può nominare un look, un file in `public/looks/`: `"look": "hero"`.
+Il look dice come si disegna la scena: quanto è luminosa, dov'è il sole e
+le impostazioni degli effetti. La scena Hero usa `public/looks/hero.json`:
+
+```jsonc
+{
+  "name": "Hero",
+  "exposure": 0.72,
+  "sun": [0.02, 0.62, -1],
+  "features": { "waves": true },
+  "effects": {
+    "underwater": { "strength": 1, "absorption": [0.5, 0.24, 0.2], "shafts": 0.9 },
+    "finish": { "vignette": 0.75, "contrast": 1.15, "saturation": 1.15 },
+  },
+}
+```
+
+- `exposure`: sotto 1 è più scuro. Senza look vale 1.05.
+- `sun`: da dove arriva la luce del sole, visto dal centro della vasca
+  (`x` a destra, `y` in alto, `z` verso il vetro). Qui è alto e dietro,
+  così brilla attraverso la superficie in cima all'immagine.
+- `features`: cosa la scena accende (`true`) o spegne (`false`) alla
+  partenza. Gli interruttori del pannello scelti da chi guarda vincono.
+- `effects`: impostazioni per id dell'effetto. Quello che manca resta al
+  valore predefinito. Gli [effetti](EFFETTI.md) elencano le loro impostazioni.
+
+L'effetto `underwater` è quello che fa il mare aperto: il rosso sparisce
+per primo, le cose lontane si sciolgono nella luce dell'acqua e i raggi del
+sole si aprono a ventaglio. Resta spento finché un look non ne imposta la
+`strength`.
 
 ## Una specie
 

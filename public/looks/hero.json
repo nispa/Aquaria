@@ -1,0 +1,35 @@
+{
+  "name": "Hero",
+  "exposure": 0.72,
+  "sun": [0.02, 0.62, -1],
+  "features": {
+    "waves": true
+  },
+  "effects": {
+    "underwater": {
+      "strength": 1,
+      "absorption": [0.5, 0.24, 0.2],
+      "deep": "#010b10",
+      "horizon": "#08404c",
+      "surface": "#2a8c98",
+      "brightness": 1,
+      "sunColor": "#fff0d2",
+      "sunGlow": 4,
+      "sunFocus": 120,
+      "shafts": 0.9,
+      "shaftCount": 44
+    },
+    "volumetric-light": {
+      "exposure": 0.8,
+      "threshold": 1.0,
+      "density": 1.1,
+      "decay": 0.98
+    },
+    "finish": {
+      "vignette": 0.75,
+      "contrast": 1.15,
+      "saturation": 1.15,
+      "tint": "#eefcff"
+    }
+  }
+}

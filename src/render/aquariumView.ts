@@ -2,6 +2,7 @@ import {
   ACESFilmicToneMapping,
   AmbientLight,
   Color,
+  DepthTexture,
   DirectionalLight,
   FogExp2,
   Group,
@@ -31,6 +32,7 @@ import { centerSquare } from "../scene/scenePictures";
 import type { Scene, SpeciesCatalog } from "../scene/schema";
 import type { Lights } from "../scene/lights";
 import { lookPasses, type Look } from "../scene/look";
+import { DEFAULT_EXPOSURE, effectParams, type SceneLook } from "../scene/sceneLook";
 import { createLens } from "./lens";
 import { createGpuTimer } from "./gpuTimer";
 import { obstaclesOf, type Obstacle } from "../sim/obstacles";
@@ -63,9 +65,10 @@ import { createWaterUniforms } from "./uniforms";
 import { createTorchLight } from "./torchLight";
 
 const VERTICAL_FOV = 38;
-const BASE_EXPOSURE = 1.05;
 /** Sun placement relative to the tank: above, slightly to the right and in front. */
 const SUN_OFFSET = { x: 2, aboveSurface: 6, z: 3 } as const;
+/** Distance of the sun from the middle of the tank when a look sets its direction, m. */
+const SUN_DISTANCE = 9;
 /** Shadow camera half-size relative to the larger of tank width and depth. */
 const SHADOW_COVERAGE = 0.75;
 const SHADOW_BIAS = -0.0004;
@@ -107,6 +110,8 @@ export interface AquariumViewOptions {
   readonly renderHeight: number;
   /** Enabled lighting features and effects. */
   readonly look: Look;
+  /** How the scene draws: exposure, sun, effect parameters (the scene's `look` file). */
+  readonly sceneLook?: SceneLook | undefined;
   /** Registered post-processing effects; the look enables them by id. */
   readonly effects: readonly EffectDefinition[];
   /** Where the generated plant and object shapes come from (render/shapeLibrary). */
@@ -229,7 +234,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   const gpuTimer = gl instanceof WebGL2RenderingContext ? createGpuTimer(gl) : undefined;
   if (gpuTimer?.blocking === true) gpuTimer.setEnabled(false);
   renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = BASE_EXPOSURE;
+  renderer.toneMappingExposure = options.sceneLook?.exposure ?? DEFAULT_EXPOSURE;
   renderer.shadowMap.type = PCFShadowMap;
 
   const world = new ThreeScene();
@@ -331,9 +336,16 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   );
   const fixture = createFixtureRenderer(scene.tank, water);
   world.add(fixture.object);
+  const lookSun = options.sceneLook?.sun;
   /** Under LED spots the sun stands straight overhead, so shadows fall down. */
   const placeSun = (lights: Lights): void => {
-    if (lights.fixture.type === "spots") {
+    if (lookSun !== undefined && lights.fixture.type !== "spots") {
+      sun.position
+        .set(...lookSun)
+        .normalize()
+        .multiplyScalar(SUN_DISTANCE)
+        .add(sun.target.position);
+    } else if (lights.fixture.type === "spots") {
       sun.position.set(
         0,
         scene.tank.height + SUN_OFFSET.aboveSurface,
@@ -484,12 +496,14 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     disposePipeline();
     const samples = Math.min(msaaSamples, renderer.capabilities.maxSamples);
     const target = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples });
+    // The scene pass keeps its depth for the effects that read it (deep-water light).
+    target.depthTexture = new DepthTexture(1, 1);
     const next = new EffectComposer(renderer, target);
     next.addPass(new RenderPass(world, camera));
-    // Every parameter has a default: the tuned look lives in the effect files.
+    // Every parameter has a default; the scene's look may tune them.
     const created = lookPasses(effects, look).map((effect) => ({
       stage: effect.stage,
-      instance: effect.create(context, {}),
+      instance: effect.create(context, effectParams(options.sceneLook, effect.id)),
     }));
     created
       .filter((entry) => entry.stage === "hdr")

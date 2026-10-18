@@ -113,7 +113,8 @@ function surface(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
   const material = new ShaderMaterial({
     uniforms: { ...water, uSurfaceOpacity: { value: scene.water.surface } },
     transparent: true,
-    depthWrite: false,
+    // Its depth tells the deep-water light how far the surface is.
+    depthWrite: true,
     side: DoubleSide,
     vertexShader: /* glsl */ `
       varying vec3 vWorld;
@@ -168,7 +169,8 @@ function waveSurface(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh
       uSurfaceOpacity: { value: scene.water.surface },
     },
     transparent: true,
-    depthWrite: false,
+    // Its depth tells the deep-water light how far the surface is.
+    depthWrite: true,
     side: DoubleSide,
     vertexShader: WAVE_SURFACE_VERTEX,
     fragmentShader: WAVE_SURFACE_FRAGMENT,

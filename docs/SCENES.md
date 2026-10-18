@@ -19,6 +19,7 @@ stops and tells you which field, in which file.
 | `public/assets/objects/<id>/`   | One plant or object ([Plants and objects](OBJECTS.md)) |
 | `public/assets/species/<id>/`   | A species' 3D model ([3D fish models](FISH_MODELS.md)) |
 | `public/assets/materials/<id>/` | A surface texture: sand, rock, wood                    |
+| `public/looks/<id>.json`        | A look: exposure, sun, effect settings ([Look](#look)) |
 
 A scene you save in the editor lives in the browser, not in these files.
 To ship it, use **Export JSON** in the editor's Scene tab, copy the file to
@@ -159,6 +160,38 @@ panel; this is what **Recommended** goes back to.
 
 All fields are optional; the [User guide](USER_GUIDE.md#time-and-lights)
 explains what they look like.
+
+### Look
+
+A scene can name a look, a file in `public/looks/`: `"look": "hero"`. The
+look says how the scene is drawn: how bright, where the sun is, and the
+settings of the effects. The Hero scene uses `public/looks/hero.json`:
+
+```jsonc
+{
+  "name": "Hero",
+  "exposure": 0.72,
+  "sun": [0.02, 0.62, -1],
+  "features": { "waves": true },
+  "effects": {
+    "underwater": { "strength": 1, "absorption": [0.5, 0.24, 0.2], "shafts": 0.9 },
+    "finish": { "vignette": 0.75, "contrast": 1.15, "saturation": 1.15 },
+  },
+}
+```
+
+- `exposure`: below 1 is darker. Without a look it is 1.05.
+- `sun`: where the sunlight comes from, seen from the middle of the tank
+  (`x` right, `y` up, `z` towards the glass). Here it is high and behind,
+  so it shines through the surface at the top of the picture.
+- `features`: what the scene starts with on (`true`) or off (`false`).
+  The viewer's own switches in the panel still win.
+- `effects`: settings by effect id. What is left out keeps its default.
+  The [effects](EFFECTS.md) list their settings.
+
+The `underwater` effect is what makes open water: red fades first, far
+things melt into the water's own light, and sunbeams fan out from the sun.
+It stays off unless a look sets its `strength`.
 
 ## A species
 
