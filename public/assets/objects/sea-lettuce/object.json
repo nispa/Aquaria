@@ -1,0 +1,24 @@
+{
+  "name": "Sea lettuce",
+  "category": "plant",
+  "model": "model.glb",
+  "traits": {
+    "sway": {
+      "amount": 0.05,
+      "speed": 0.9
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["plant", "algae"],
+    "placement": {
+      "on": ["sand", "rock"],
+      "height": [0.12, 0.25]
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/sea_lettuce.py",
+    "license": "CC0-1.0"
+  }
+}

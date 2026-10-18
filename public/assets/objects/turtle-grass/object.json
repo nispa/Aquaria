@@ -1,0 +1,23 @@
+{
+  "name": "Turtle grass",
+  "category": "plant",
+  "model": "model.glb",
+  "traits": {
+    "sway": {
+      "amount": 0.06
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["plant"],
+    "placement": {
+      "on": ["sand"],
+      "height": [0.15, 0.35]
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/seagrass.py",
+    "license": "CC0-1.0"
+  }
+}
