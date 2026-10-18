@@ -2,11 +2,18 @@
  * Measures how long the GPU takes to draw a frame, with the WebGL2 timer
  * query extension when the browser offers it. Results arrive a few frames
  * late, so a small ring of queries is kept in flight and reused.
+ *
+ * Phones rarely offer the extension. There the timer waits for the GPU to
+ * finish each frame (a one-pixel read) and times that on the CPU: exact
+ * enough to fit the look, but it stops the CPU and GPU from overlapping, so
+ * it is switched off once the look is fitted.
  */
 
 /** Queries in flight; results usually come back within two or three frames. */
 const RING = 4;
 const NANOSECONDS_PER_MS = 1e6;
+/** One RGBA pixel. */
+const PIXEL_BYTES = 4;
 
 interface TimerQueryExtension {
   readonly TIME_ELAPSED_EXT: number;
@@ -16,6 +23,10 @@ interface TimerQueryExtension {
 export interface GpuTimer {
   /** Whether the browser can time the GPU at all. */
   readonly supported: boolean;
+  /** Whether timing waits for the GPU each frame, which costs frame rate. */
+  readonly blocking: boolean;
+  /** Times frames or not; while off, `latestMs` is undefined. */
+  setEnabled(enabled: boolean): void;
   /** Wraps the GPU work of one frame. Allocation-free. */
   begin(): void;
   end(): void;
@@ -28,17 +39,40 @@ function isTimerExtension(value: unknown): value is TimerQueryExtension {
   return typeof value === "object" && value !== null && "TIME_ELAPSED_EXT" in value;
 }
 
-export function createGpuTimer(gl: WebGL2RenderingContext): GpuTimer {
+/** Times frames on the CPU, reading one pixel to wait until the GPU has drawn them. */
+function createBlockingTimer(gl: WebGL2RenderingContext, now: () => number): GpuTimer {
+  const pixel = new Uint8Array(PIXEL_BYTES);
+  let enabled = true;
+  let start: number | undefined;
+  let latest: number | undefined;
+  return {
+    supported: true,
+    blocking: true,
+    setEnabled(on) {
+      enabled = on;
+      start = undefined;
+      latest = undefined;
+    },
+    begin() {
+      if (enabled) start = now();
+    },
+    end() {
+      if (start === undefined) return;
+      gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+      latest = now() - start;
+      start = undefined;
+    },
+    latestMs: () => latest,
+    dispose: () => undefined,
+  };
+}
+
+export function createGpuTimer(
+  gl: WebGL2RenderingContext,
+  now: () => number = () => performance.now(),
+): GpuTimer {
   const extension: unknown = gl.getExtension("EXT_disjoint_timer_query_webgl2");
-  if (!isTimerExtension(extension)) {
-    return {
-      supported: false,
-      begin: () => undefined,
-      end: () => undefined,
-      latestMs: () => undefined,
-      dispose: () => undefined,
-    };
-  }
+  if (!isTimerExtension(extension)) return createBlockingTimer(gl, now);
   const queries = Array.from({ length: RING }, () => gl.createQuery());
   const pending = new Array<boolean>(RING).fill(false);
   let next = 0;
@@ -60,9 +94,16 @@ export function createGpuTimer(gl: WebGL2RenderingContext): GpuTimer {
     }
   };
 
+  let enabled = true;
   return {
     supported: true,
+    blocking: false,
+    setEnabled(on) {
+      enabled = on;
+      if (!on) latest = undefined;
+    },
     begin() {
+      if (!enabled) return;
       collect();
       const query = queries[next];
       // All queries still waiting: skip timing this frame rather than block.

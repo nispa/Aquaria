@@ -170,6 +170,12 @@ export interface AquariumView {
   /** Whether the browser can time the GPU, so `gpuMs` ever returns a number. */
   readonly timesGpu: boolean;
   /**
+   * Switches on or off the timing that waits for the GPU each frame, used
+   * where there is no timer query (most phones). It costs frame rate, so it
+   * starts off; timer queries always run.
+   */
+  setGpuTiming(enabled: boolean): void;
+  /**
    * Draws a frame and returns the middle square of it, `size` pixels a side,
    * as a JPEG data URL: the card picture of a scene.
    */
@@ -206,6 +212,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   });
   const gl = renderer.getContext();
   const gpuTimer = gl instanceof WebGL2RenderingContext ? createGpuTimer(gl) : undefined;
+  if (gpuTimer?.blocking === true) gpuTimer.setEnabled(false);
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = BASE_EXPOSURE;
   renderer.shadowMap.type = PCFShadowMap;
@@ -608,10 +615,15 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       gpuTimer?.begin();
       composer?.render();
       lens.render(renderer, world, camera);
+      // A timer without queries reads a pixel of the canvas to wait for the GPU.
+      renderer.setRenderTarget(null);
       gpuTimer?.end();
     },
     gpuMs: () => gpuTimer?.latestMs(),
     timesGpu: gpuTimer?.supported === true,
+    setGpuTiming(enabled) {
+      if (gpuTimer?.blocking === true) gpuTimer.setEnabled(enabled);
+    },
     resize(width, height) {
       cssWidth = Math.max(width, 1);
       cssHeight = Math.max(height, 1);

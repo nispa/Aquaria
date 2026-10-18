@@ -855,6 +855,7 @@ async function start(): Promise<void> {
       (species) => [species.id, simulation.targetCount(species.id)] as const,
     );
     ({ simulation, view } = mountScene(shownScene));
+    if (fitting !== undefined) view.setGpuTiming(true);
     for (const [id, count] of counts) simulation.setCount(id, count);
     scheduleSceneryRebuild();
   };
@@ -968,10 +969,13 @@ async function start(): Promise<void> {
     panel.setLook(look);
     fitted = [];
     fitting = createFeatureCalibration(plan.candidates, frameBudgetMs(frameLimitOf(settings)));
+    view.setGpuTiming(true);
     panel.setLookFitting(true, fitted);
   };
   const stopFitting = (): void => {
     fitting = undefined;
+    // Without timer queries the automatic resolution goes by frame intervals.
+    view.setGpuTiming(false);
     panel.setLookFitting(false, fitted);
     governor = createGovernor(frameLimitOf(settings), highestHeight());
     logger.info("Look fitted to the GPU", { added: fitted.join(", ") });
