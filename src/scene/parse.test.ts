@@ -2,7 +2,13 @@ import { RECOMMENDED_LIGHTS } from "./lights";
 import { describe, expect, it } from "vitest";
 import { catalogFixture, sceneFixture } from "./fixtures";
 import { parseCatalog, parseScene, SceneValidationError } from "./parse";
-import { DEFAULT_APPETITE, DEFAULT_CURIOSITY, DEFAULT_SHYNESS, DEFAULT_WAVES } from "./schema";
+import {
+  DEFAULT_APPETITE,
+  DEFAULT_CURIOSITY,
+  DEFAULT_GROWTH,
+  DEFAULT_SHYNESS,
+  DEFAULT_WAVES,
+} from "./schema";
 
 describe("parseCatalog", () => {
   it("accepts a valid species catalog", () => {
@@ -475,5 +481,42 @@ describe("species reactions to the viewer", () => {
 
     expect(behavior?.curiosity).toBe(0.9);
     expect(behavior?.shyness).toBe(0.1);
+  });
+});
+
+describe("living growth on rock", () => {
+  const catalog = parseCatalog(catalogFixture());
+
+  it("fills in the growth of a ridge from its defaults", () => {
+    const input = sceneFixture();
+    input.rockwork = {
+      bands: [1, 3],
+      height: [0.3, 0.9],
+      color: "#8a7d70",
+      growth: {},
+    };
+
+    const scene = parseScene(input, catalog);
+
+    expect(scene.rockwork?.growth).toEqual(DEFAULT_GROWTH);
+  });
+
+  it("leaves bare rock without a growth entry", () => {
+    const input = sceneFixture();
+    input.rockwork = { bands: [1, 3], height: [0.3, 0.9], color: "#8a7d70" };
+
+    expect(parseScene(input, catalog).rockwork?.growth).toBeUndefined();
+  });
+
+  it("rejects an algae cover beyond the whole rock", () => {
+    const input = sceneFixture();
+    input.rockwork = {
+      bands: [1, 3],
+      height: [0.3, 0.9],
+      color: "#8a7d70",
+      growth: { algae: 2 },
+    };
+
+    expect(() => parseScene(input, catalog)).toThrow(/growth\.algae/);
   });
 });

@@ -228,6 +228,25 @@ export const colorOrPalette = z.union([hexColor, z.array(hexColor).min(1)]);
 /** Where an entry grows: on the sand (when absent) or on the scene's rockwork ridge. */
 const placement = z.enum(["sand", "rockwork"]).optional();
 
+/**
+ * Life on the rock, painted over its texture: algae on the faces turned to
+ * the light, crusts of pink coralline algae in patches, darker crevices
+ * underneath. Live rock in a reef looks like this; bare rock when absent.
+ */
+export const growthSchema = z.object({
+  /** Share of the upward faces covered by algae. */
+  algae: unit.default(0.6),
+  algaeColor: hexColor.default("#4d6b2c"),
+  /** Share of the rock crusted with coralline algae. */
+  coralline: unit.default(0.3),
+  corallineColor: hexColor.default("#b4708e"),
+  /** Size of the patches, m. */
+  patch: positive.max(2).default(0.35),
+});
+
+export type Growth = z.output<typeof growthSchema>;
+export const DEFAULT_GROWTH: Growth = growthSchema.parse({});
+
 /** Largest number of loose rocks piled on a rockwork ridge. */
 export const MAX_ROCKWORK_ROCKS = 150;
 
@@ -248,6 +267,7 @@ const rockwork = z.object({
   rocks: z.number().int().min(0).max(MAX_ROCKWORK_ROCKS).default(40),
   color: hexColor,
   material: surfaceMaterial.optional(),
+  growth: growthSchema.optional(),
 });
 
 /**
@@ -261,6 +281,7 @@ const blocks = z.object({
   runs: z.array(z.number().int().nonnegative()),
   color: hexColor,
   material: surfaceMaterial.optional(),
+  growth: growthSchema.optional(),
 });
 
 /** Largest count per flora entry; also the top of its panel slider. */

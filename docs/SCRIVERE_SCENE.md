@@ -137,6 +137,22 @@ Ci sono due modi di costruire la roccia:
 Piante e oggetti con `"on": "rockwork"` crescono sulla roccia invece che
 sulla sabbia.
 
+Entrambe possono essere roccia viva: `growth` dipinge alghe sulle facce
+rivolte alla luce, croste rosa di alga corallina a chiazze e fessure più
+scure sotto le sporgenze. `"growth": {}` prende i valori predefiniti; la
+scena Hero usa quelli.
+
+| Valore           | Predefinito | Cosa è                                              |
+| ---------------- | ----------- | --------------------------------------------------- |
+| `algae`          | `0.6`       | Quanto delle facce rivolte in alto coprono le alghe |
+| `algaeColor`     | `#4d6b2c`   | Il loro colore                                      |
+| `coralline`      | `0.3`       | Quanto della roccia ricopre la corallina            |
+| `corallineColor` | `#b4708e`   | Il suo colore                                       |
+| `patch`          | `0.35`      | Grandezza delle chiazze, m                          |
+
+Le colonne della scena Hero le genera `scripts/hero_pillars.py`: cambia lì
+le colonne e rilancialo su `public/scenes/hero.json`.
+
 ### Le luci
 
 Una scena può suggerire le sue luci. Chi guarda le può cambiare dal

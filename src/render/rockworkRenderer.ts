@@ -3,6 +3,7 @@ import type { RockworkSpec } from "../scene/schema";
 import type { Rockwork } from "../sim/rockwork";
 import { floorHeight } from "../sim/terrain";
 import { causticsPatch } from "./shaders/causticsPatch";
+import { growthPatch } from "./shaders/growthPatch";
 import { patchMaterial, type ShaderPatch } from "./shaders/patch";
 import { surfacePatch } from "./shaders/surfacePatch";
 import type { SurfaceLibrary } from "./surfaceLibrary";
@@ -19,19 +20,23 @@ export interface RockworkRenderer {
   dispose(): void;
 }
 
-/** Rock colored and textured as a scene says, lit by the caustics. */
+/** Rock colored, textured and grown over as a scene says, lit by the caustics. */
 export function rockMaterial(
-  spec: { readonly color: string; readonly material?: RockworkSpec["material"] },
+  spec: {
+    readonly color: string;
+    readonly material?: RockworkSpec["material"];
+    readonly growth?: RockworkSpec["growth"];
+  },
   water: WaterUniforms,
   surfaces: SurfaceLibrary,
 ): MeshStandardMaterial {
-  const patches: ShaderPatch[] =
-    spec.material === undefined
-      ? [causticsPatch(water)]
-      : [
-          surfacePatch(surfaces.get(spec.material.id), "triplanar", spec.material),
-          causticsPatch(water),
-        ];
+  const patches: ShaderPatch[] = [
+    ...(spec.material === undefined
+      ? []
+      : [surfacePatch(surfaces.get(spec.material.id), "triplanar", spec.material)]),
+    ...(spec.growth === undefined ? [] : [growthPatch(spec.growth)]),
+    causticsPatch(water),
+  ];
   return patchMaterial(
     new MeshStandardMaterial({ color: new Color(spec.color), roughness: ROUGHNESS }),
     patches,
