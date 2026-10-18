@@ -1,5 +1,10 @@
 import { BufferGeometry, Float32BufferAttribute, SphereGeometry } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import {
+  DEFAULT_PECTORAL_REST,
+  DEFAULT_PECTORAL_SWEEP,
+  type PectoralFin,
+} from "../scene/modelManifest";
 import type { ProceduralFishBody } from "../scene/schema";
 
 type Shape = ProceduralFishBody["shape"];
@@ -79,6 +84,16 @@ const FIN_SEGMENTS = 10;
 const TAIL_FAN_SEGMENTS = 8;
 /** Where the tail fin joins the body, along x. */
 const TAIL_STEM = -0.42;
+/** The pectoral fin's base: along x, and its middle's height as a share of the body's half height (below the middle). */
+const PECTORAL_ROOT = 0.2;
+const PECTORAL_DEPTH = 0.3;
+/** Pectoral fin length (base to tip) and height as shares of the body height, and its longest. */
+const PECTORAL_LENGTH = 0.45;
+const PECTORAL_HEIGHT = 0.32;
+const MAX_PECTORAL_LENGTH = 0.15;
+/** The base sits this far into the skin, so no gap shows where the fin joins the body. */
+const PECTORAL_SINK = 0.95;
+const PECTORAL_SEGMENTS = 8;
 
 /** Height of the body profile at a point along it (0 = tail, 1 = nose), 0..1. */
 function profileAt(proportions: BodyProportions, alongBody: number): number {
@@ -190,10 +205,65 @@ function bannerFin(proportions: BodyProportions): BufferGeometry {
   ]);
 }
 
-/** Marks every vertex of a part as body (0) or fin (1), for the fish shader. */
-function marked(part: BufferGeometry, fin: 0 | 1): BufferGeometry {
+/**
+ * Where a procedural fish's pectoral fins are, in the same terms as a
+ * model's manifest, for the pectoral patch: low on the side behind the gill.
+ */
+export function proceduralPectoralFin(shape: Shape): PectoralFin {
+  const proportions = BODY_PROPORTIONS[shape];
+  const taper = profileAt(proportions, PECTORAL_ROOT + 0.5);
+  const halfHeight = (proportions.height / 2) * taper;
+  const middle = -PECTORAL_DEPTH * halfHeight;
+  const halfFin = (proportions.height * PECTORAL_HEIGHT) / 2;
+  const length = Math.min(proportions.height * PECTORAL_LENGTH, MAX_PECTORAL_LENGTH);
+  // The body's cross-section is an ellipse: how far out its skin is at the fin's height.
+  const across = Math.sqrt(Math.max(1 - (middle / halfHeight) ** 2, 0));
+  return {
+    root: [
+      [PECTORAL_ROOT, middle + halfFin],
+      [PECTORAL_ROOT, middle - halfFin],
+    ],
+    side: (proportions.thickness / 2) * taper * across * PECTORAL_SINK,
+    front: PECTORAL_ROOT,
+    back: PECTORAL_ROOT - length,
+    top: middle + halfFin,
+    bottom: middle - halfFin,
+    rest: DEFAULT_PECTORAL_REST,
+    sweep: DEFAULT_PECTORAL_SWEEP,
+  };
+}
+
+/** A pectoral fin on one side (1 right, +z; -1 left): a paddle swept back from its base, standing out by `rest`. */
+function pectoralFin(fin: PectoralFin, side: 1 | -1): BufferGeometry {
+  const [[rootX, top], [, bottom]] = fin.root;
+  const middle = (top + bottom) / 2;
+  const halfFin = (top - bottom) / 2;
+  const length = fin.front - fin.back;
+  const rest = (fin.rest * Math.PI) / 180;
+  const point = (step: number): [number, number, number] => {
+    const angle = (step / PECTORAL_SEGMENTS - 0.5) * Math.PI;
+    const back = length * Math.cos(angle);
+    return [
+      rootX - back * Math.cos(rest),
+      middle + halfFin * Math.sin(angle),
+      side * (fin.side + back * Math.sin(rest)),
+    ];
+  };
+  const vertices: number[] = [];
+  for (let step = 0; step < PECTORAL_SEGMENTS; step += 1) {
+    vertices.push(rootX, middle, side * fin.side, ...point(step), ...point(step + 1));
+  }
+  return flatPart(vertices);
+}
+
+/** Marks every vertex of a part as body (0) or fin (1), and pectoral fin (1) or not, for the fish shader. */
+function marked(part: BufferGeometry, fin: 0 | 1, pectoral: 0 | 1 = 0): BufferGeometry {
   const count = part.getAttribute("position").count;
   part.setAttribute("aFin", new Float32BufferAttribute(new Array<number>(count).fill(fin), 1));
+  part.setAttribute(
+    "aPectoral",
+    new Float32BufferAttribute(new Array<number>(count).fill(pectoral), 1),
+  );
   return part;
 }
 
@@ -210,7 +280,13 @@ export function createFishGeometry(shape: Shape): BufferGeometry {
       : []),
     ...(proportions.banner > 0 ? [bannerFin(proportions)] : []),
   ];
-  const parts = [marked(shapeBody(proportions), 0), ...fins.map((fin) => marked(fin, 1))];
+  const pectoral = proceduralPectoralFin(shape);
+  const parts = [
+    marked(shapeBody(proportions), 0),
+    ...fins.map((fin) => marked(fin, 1)),
+    marked(pectoralFin(pectoral, 1), 1, 1),
+    marked(pectoralFin(pectoral, -1), 1, 1),
+  ];
   const merged = mergeGeometries(parts);
   parts.forEach((part) => {
     part.dispose();

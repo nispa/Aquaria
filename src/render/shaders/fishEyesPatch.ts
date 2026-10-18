@@ -16,7 +16,7 @@ export type FishEyesUniforms = {
  *
  * Vertex attributes: aEyeWeight (0..1, how much of the vertex is eye),
  * aEyeCenter (the point it turns about, in the fish frame).
- * Instance attribute: aGaze (-1 right .. 1 left; -z is the fish's left).
+ * Instance attribute (fishInstancePatch): aGaze (-1 right .. 1 left; -z is the fish's left).
  * Runs before fishMotionPatch; the head does not bend, so the order of the
  * two only matters for the normals, and both turn about the same axis.
  */
@@ -27,7 +27,6 @@ export function fishEyesPatch(uniforms: FishEyesUniforms): ShaderPatch {
     vertexHead: /* glsl */ `
       attribute float aEyeWeight;
       attribute vec3 aEyeCenter;
-      attribute float aGaze;
       uniform float uEyeTurn;
 
       // Turns a vector about the up axis by this vertex's share of the gaze;

@@ -34,7 +34,9 @@ import { createDebugSliders, type DebugSliderSpec } from "../ui/debugSliders";
  * (eyes, jaw, gill covers) can be read off. Sliders move the gaze, the
  * mouth, the gills, the bend of a turn and the tail; each can swing by
  * itself ("auto"). The URL can set where they start:
- * ?id=<species>&model=0|1&gaze=-1..1&mouth=0..1&breath=0..1&zoom=x,y,halfWidth.
+ * ?id=<species>&model=0|1&gaze=-1..1&mouth=0..1&breath=0..1&spread=-1..1
+ * &finbeats=0..5&zoom=x,y,halfWidth&view=top (from above, where the
+ * pectoral fins' `side` is read: the grid's horizontal lines then read z).
  * See docs/FISH_MODELS.md.
  */
 
@@ -49,7 +51,9 @@ const DEFAULT_SPECIES = "blue-tang";
 /** Fastest tail beat the slider offers, beats per second. */
 const MAX_BEATS = 3;
 /** Seconds of one swing of each slider on auto. */
-const PERIODS = { gaze: 3, mouth: 2, breath: 3, bend: 4, effort: 5 } as const;
+const PERIODS = { gaze: 3, mouth: 2, breath: 3, bend: 4, effort: 5, spread: 4 } as const;
+/** Fastest pectoral fin beat the slider offers, beats per second. */
+const MAX_FIN_BEATS = 5;
 /** How the gills open with time when the model does not say. */
 const DEFAULT_GILL_RATE = 1;
 /** Longest frame step, s, so a hidden tab does not jump the tail. */
@@ -66,6 +70,8 @@ function numberParam(params: URLSearchParams, name: string, fallback: number): n
 interface View {
   centre: readonly [number, number];
   halfWidth: number;
+  /** Seen from above: the grid's second axis is z, growing down the screen. */
+  readonly top: boolean;
 }
 
 function drawLines(
@@ -83,7 +89,7 @@ function drawLines(
   }
 }
 
-function drawGrid(canvas: HTMLCanvasElement, { centre, halfWidth }: View): void {
+function drawGrid(canvas: HTMLCanvasElement, { centre, halfWidth, top }: View): void {
   const context = canvas.getContext("2d");
   if (context === null) return;
   canvas.width = canvas.clientWidth;
@@ -107,7 +113,7 @@ function drawGrid(canvas: HTMLCanvasElement, { centre, halfWidth }: View): void 
     context.lineTo(canvas.width, toY(y));
     if (!labelled) return;
     context.fillStyle = "#b0d0ff";
-    context.fillText(`y ${y.toFixed(1)}`, 4, toY(y) - 3);
+    context.fillText(top ? `z ${(-y).toFixed(1)}` : `y ${y.toFixed(1)}`, 4, toY(y) - 3);
   });
 }
 
@@ -187,6 +193,21 @@ function sliderSpecs(params: URLSearchParams, halfWidth: number): DebugSliderSpe
     },
     { id: "beats", label: "Swimming (beats/s)", min: 0, max: MAX_BEATS, value: 0 },
     {
+      id: "spread",
+      label: "Pectoral spread",
+      min: -1,
+      max: 1,
+      value: numberParam(params, "spread", 0),
+      periodSeconds: PERIODS.spread,
+    },
+    {
+      id: "finBeats",
+      label: "Pectoral beats/s",
+      min: 0,
+      max: MAX_FIN_BEATS,
+      value: numberParam(params, "finbeats", 0),
+    },
+    {
       id: "zoom",
       label: "Zoom (half width)",
       min: ZOOM_RANGE[0],
@@ -216,6 +237,7 @@ async function start(): Promise<void> {
   const view: View = {
     centre: [zoom[0] ?? 0, zoom[1] ?? 0],
     halfWidth: zoom[2] ?? DEFAULT_HALF_WIDTH,
+    top: params.get("view") === "top",
   };
 
   const modelCanvas = document.querySelector<HTMLCanvasElement>("#model");
@@ -278,8 +300,15 @@ async function start(): Promise<void> {
   light.position.set(1, 2, 3);
   scene.add(fish.object, new AmbientLight(0xffffff, 1.6), light);
   const camera = new OrthographicCamera();
-  camera.position.set(view.centre[0], view.centre[1], 5);
-  camera.lookAt(view.centre[0], view.centre[1], 0);
+  if (view.top) {
+    // From above, x still to the right: the screen's up is the fish's left (-z).
+    camera.up.set(0, 0, -1);
+    camera.position.set(view.centre[0], 5, -view.centre[1]);
+    camera.lookAt(view.centre[0], 0, -view.centre[1]);
+  } else {
+    camera.position.set(view.centre[0], view.centre[1], 5);
+    camera.lookAt(view.centre[0], view.centre[1], 0);
+  }
 
   let framedWidth = 0;
   let framedHeight = 0;
@@ -316,6 +345,13 @@ async function start(): Promise<void> {
     individual.mouth = sliders.value("mouth");
     individual.bend = sliders.value("bend");
     individual.effort = sliders.value("effort");
+    const finBeats = sliders.value("finBeats");
+    const { fins } = individual;
+    fins.spreadLeft = sliders.value("spread");
+    fins.spreadRight = fins.spreadLeft;
+    fins.beat = finBeats > 0 ? 1 : 0;
+    fins.phaseLeft = (fins.phaseLeft + 2 * Math.PI * finBeats * seconds) % (2 * Math.PI);
+    fins.phaseRight = fins.phaseLeft + Math.PI;
     const beats = sliders.value("beats");
     individual.swimPhase += 2 * Math.PI * beats * seconds;
     const rate = manifests.get(species.model ?? "")?.gills?.rate ?? DEFAULT_GILL_RATE;

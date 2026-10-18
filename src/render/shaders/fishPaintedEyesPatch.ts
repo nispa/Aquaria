@@ -33,7 +33,7 @@ export type FishPaintedEyesUniforms = {
  * is about to turn, as the procedural fish's do (on the side it turns
  * towards it looks forward, on the other side backward).
  *
- * Instance attribute: aGaze (-1 right .. 1 left; -z is the fish's left).
+ * Instance attribute (fishInstancePatch): aGaze (-1 right .. 1 left; -z is the fish's left).
  * The geometry is in the fish frame: one body length along +x, snout at +0.5.
  */
 export function fishPaintedEyesPatch(uniforms: FishPaintedEyesUniforms): ShaderPatch {
@@ -41,7 +41,6 @@ export function fishPaintedEyesPatch(uniforms: FishPaintedEyesUniforms): ShaderP
     name: "fish-painted-eyes",
     uniforms,
     vertexHead: /* glsl */ `
-      attribute float aGaze;
       varying vec3 vFishPoint;
       varying float vFishGaze;
     `,

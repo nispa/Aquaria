@@ -19,19 +19,21 @@ import {
   type Object3D,
 } from "three";
 import type { Logger } from "../core/logger";
-import { modelFileUrl, type ModelManifest } from "../scene/modelManifest";
+import { modelFileUrl, type ModelManifest, type PectoralFin } from "../scene/modelManifest";
 import { MAX_INDIVIDUALS_PER_SPECIES, type Species, type SpeciesCatalog } from "../scene/schema";
 import type { Fish } from "../sim/simulation";
-import { BODY_PROPORTIONS, createFishGeometry } from "./fishGeometry";
+import { BODY_PROPORTIONS, createFishGeometry, proceduralPectoralFin } from "./fishGeometry";
 import { createCrustaceanGeometry } from "./crustaceanGeometry";
 import { prepareFishModel, type FishModelPart } from "./fishModel";
 import { causticsPatch } from "./shaders/causticsPatch";
+import { fishInstancePatch } from "./shaders/fishInstancePatch";
 import { fishMotionPatch } from "./shaders/fishMotionPatch";
 import { fishPatch, PATTERN_IDS } from "./shaders/fishPatch";
 import { fishEyesPatch } from "./shaders/fishEyesPatch";
 import { fishGillsPatch } from "./shaders/fishGillsPatch";
 import { fishJawPatch } from "./shaders/fishJawPatch";
 import { fishPaintedEyesPatch } from "./shaders/fishPaintedEyesPatch";
+import { fishPectoralPatch } from "./shaders/fishPectoralPatch";
 import { patchMaterial, type ShaderPatch } from "./shaders/patch";
 import type { WaterUniforms } from "./uniforms";
 import { createWalkingBodies, type WalkingBodies } from "./walkingBodies";
@@ -76,12 +78,10 @@ type ModelState = "idle" | "loading" | "ready" | "failed";
 interface SpeciesInstances {
   readonly species: Species;
   readonly matrices: InstancedBufferAttribute;
-  readonly swimPhase: InstancedBufferAttribute;
-  readonly opacity: InstancedBufferAttribute;
-  readonly gaze: InstancedBufferAttribute;
-  readonly bend: InstancedBufferAttribute;
-  readonly effort: InstancedBufferAttribute;
-  readonly mouth: InstancedBufferAttribute;
+  /** Packed as shaders/fishInstancePatch reads them. */
+  readonly motion: InstancedBufferAttribute;
+  readonly look: InstancedBufferAttribute;
+  readonly finStroke: InstancedBufferAttribute;
   readonly procedural: InstancedMesh[];
   /** Empty until the model has loaded. */
   readonly model: InstancedMesh[];
@@ -122,12 +122,9 @@ function createInstances(species: Species, wantModel: boolean): SpeciesInstances
   return {
     species,
     matrices: perInstance(MATRIX_SIZE),
-    swimPhase: perInstance(),
-    opacity: perInstance(),
-    gaze: perInstance(),
-    bend: perInstance(),
-    effort: perInstance(),
-    mouth: perInstance(),
+    motion: perInstance(4),
+    look: perInstance(4),
+    finStroke: perInstance(3),
     procedural: [],
     model: [],
     modelState: "idle",
@@ -140,12 +137,9 @@ function createInstances(species: Species, wantModel: boolean): SpeciesInstances
 }
 
 function shareInstanceAttributes(geometry: BufferGeometry, instances: SpeciesInstances): void {
-  geometry.setAttribute("aSwimPhase", instances.swimPhase);
-  geometry.setAttribute("aOpacity", instances.opacity);
-  geometry.setAttribute("aGaze", instances.gaze);
-  geometry.setAttribute("aBend", instances.bend);
-  geometry.setAttribute("aEffort", instances.effort);
-  geometry.setAttribute("aMouth", instances.mouth);
+  geometry.setAttribute("aMotion", instances.motion);
+  geometry.setAttribute("aLook", instances.look);
+  geometry.setAttribute("aFinStroke", instances.finStroke);
 }
 
 function createInstancedMesh(
@@ -194,6 +188,7 @@ function proceduralMaterial(body: Species["body"], water: WaterUniforms): MeshPh
       iridescenceThicknessRange: [260, 520],
     }),
     [
+      fishInstancePatch(),
       fishPatch({
         uBaseColor: { value: new Color(colors.base) },
         uAccentColor: { value: new Color(colors.accent) },
@@ -202,9 +197,23 @@ function proceduralMaterial(body: Species["body"], water: WaterUniforms): MeshPh
         uHalfHeight: { value: BODY_PROPORTIONS[shape].height / 2 },
       }),
       fishMotionPatch({ uSwimAmplitude: { value: BODY_PROPORTIONS[shape].swimAmplitude } }),
+      pectoralPatch(proceduralPectoralFin(shape)),
       causticsPatch(water),
     ],
   );
+}
+
+/** Pectoral fins that beat about their base, wherever a body has them. */
+function pectoralPatch(fin: PectoralFin): ShaderPatch {
+  const [top, bottom] = fin.root;
+  return fishPectoralPatch({
+    uPectoralRootTop: { value: new Vector2(...top) },
+    uPectoralRootBottom: { value: new Vector2(...bottom) },
+    uPectoralSide: { value: fin.side },
+    uPectoralLength: { value: fin.front - fin.back },
+    uPectoralRest: { value: MathUtils.degToRad(fin.rest) },
+    uPectoralSweep: { value: MathUtils.degToRad(fin.sweep) },
+  });
 }
 
 /** Eyes, jaw and gills a model's manifest asks for; none when it asks for nothing. */
@@ -263,8 +272,10 @@ export function modelMaterial(
   const copy = material.clone();
   copy.transparent = true;
   return patchMaterial(copy, [
+    fishInstancePatch(),
     ...facePatches(manifest, water),
     fishMotionPatch({ uSwimAmplitude: { value: manifest.swimAmplitude } }),
+    ...(manifest.fins?.pectoral === undefined ? [] : [pectoralPatch(manifest.fins.pectoral)]),
     causticsPatch(water),
   ]);
 }
@@ -472,7 +483,7 @@ export function createFishRenderer(
     for (const { mesh, index, weights } of instances.mouthMorphs) {
       const influences = weights.morphTargetInfluences ?? [];
       for (let instance = 0; instance < instances.count; instance += 1) {
-        influences[index] = instances.mouth.getX(instance);
+        influences[index] = instances.look.getY(instance);
         mesh.setMorphAt(instance, weights);
       }
       if (mesh.morphTexture !== null) mesh.morphTexture.needsUpdate = true;
@@ -497,12 +508,22 @@ export function createFishRenderer(
         matrix.compose(individual.position, rotation, scale);
         const index = instances.count;
         matrix.toArray(instances.matrices.array, index * MATRIX_SIZE);
-        instances.swimPhase.setX(index, individual.swimPhase);
-        instances.opacity.setX(index, individual.opacity);
-        instances.gaze.setX(index, individual.gaze);
-        instances.bend.setX(index, individual.bend);
-        instances.effort.setX(index, individual.effort);
-        instances.mouth.setX(index, individual.mouth);
+        const { fins } = individual;
+        instances.motion.setXYZW(
+          index,
+          individual.swimPhase,
+          individual.bend,
+          individual.effort,
+          individual.opacity,
+        );
+        instances.look.setXYZW(
+          index,
+          individual.gaze,
+          individual.mouth,
+          fins.spreadLeft,
+          fins.spreadRight,
+        );
+        instances.finStroke.setXYZ(index, fins.phaseLeft, fins.phaseRight, fins.beat);
         instances.count += 1;
         if (instances.walking !== undefined) instances.walkers.push(individual);
       }
@@ -514,12 +535,9 @@ export function createFishRenderer(
         for (const mesh of instances.procedural) mesh.count = instances.count;
         for (const mesh of instances.model) mesh.count = instances.count;
         instances.matrices.needsUpdate = true;
-        instances.swimPhase.needsUpdate = true;
-        instances.opacity.needsUpdate = true;
-        instances.gaze.needsUpdate = true;
-        instances.bend.needsUpdate = true;
-        instances.effort.needsUpdate = true;
-        instances.mouth.needsUpdate = true;
+        instances.motion.needsUpdate = true;
+        instances.look.needsUpdate = true;
+        instances.finStroke.needsUpdate = true;
         openMouths(instances);
         instances.walking?.update(instances.walkers, seconds);
       }

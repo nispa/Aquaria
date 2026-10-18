@@ -49,7 +49,7 @@ export type FishUniforms = {
  * are paler, translucent and ribbed, and the jaw drops to eat. Swimming is
  * fishMotionPatch's job; apply this patch first.
  *
- * Instance attributes: aGaze (-1 right .. 1 left),
+ * Instance attributes (fishInstancePatch): aGaze (-1 right .. 1 left),
  * aMouth (0 closed .. 1 wide open: the jaw drops and a dark gape shows).
  * Vertex attribute: aFin (0 body, 1 fin).
  * The geometry is one body length long along +x, nose at +0.5.
@@ -60,8 +60,6 @@ export function fishPatch(uniforms: FishUniforms): ShaderPatch {
     uniforms,
     vertexHead: /* glsl */ `
       attribute float aFin;
-      attribute float aGaze;
-      attribute float aMouth;
       varying float vMouth;
       varying vec3 vBodyPosition;
       varying float vFin;

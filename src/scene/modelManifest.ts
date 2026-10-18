@@ -44,6 +44,11 @@ const DEFAULT_JAW_DROP = 0.02;
 const DEFAULT_GILL_OPEN = 0.006;
 /** Breaths a second unless the manifest says; small fish breathe about once a second. */
 const DEFAULT_GILL_RATE = 1.1;
+/** How far a modelled pectoral fin stands out from the body unless the manifest says, degrees. */
+export const DEFAULT_PECTORAL_REST = 30;
+/** How far a pectoral fin swings either way in a full beat unless the manifest says, degrees. */
+export const DEFAULT_PECTORAL_SWEEP = 35;
+const MAX_FIN_ANGLE = 90;
 
 /**
  * A place on the fish, in the fish frame every model is brought to: one body
@@ -54,6 +59,36 @@ const bodyLengths = z.number().min(-0.6).max(0.6);
 
 /** Body lengths a second at which an animated model's clips play at their own pace, unless the manifest says. */
 const DEFAULT_ANIMATION_SPEED = 0.3;
+
+/** A point on the fish's side, x and y in the fish frame. */
+const sidePoint = z.tuple([bodyLengths, bodyLengths]);
+
+/**
+ * The pectoral fins: a box on each side of the body, x from `back` to
+ * `front` and y from `bottom` to `top`, holding the points further out
+ * than `side` from the middle of the body (z). They swing about their base,
+ * the line from the `root`'s top end to its bottom end, at `side`. `rest`
+ * is how far the modelled fin stands out from the body and `sweep` how far
+ * it swings either way in a full beat, degrees.
+ */
+export const pectoralFinSchema = z
+  .object({
+    root: z.tuple([sidePoint, sidePoint]),
+    side: z.number().min(0).max(0.4),
+    front: bodyLengths,
+    back: bodyLengths,
+    top: bodyLengths,
+    bottom: bodyLengths,
+    rest: z.number().min(0).max(MAX_FIN_ANGLE).default(DEFAULT_PECTORAL_REST),
+    sweep: z.number().min(0).max(MAX_FIN_ANGLE).default(DEFAULT_PECTORAL_SWEEP),
+  })
+  .refine(({ root }) => root[0][1] > root[1][1], {
+    message: "root goes from the top end of the fin's base to the bottom end.",
+  })
+  .refine(({ front, back }) => front > back, { message: "front must be ahead of back." })
+  .refine(({ top, bottom }) => top > bottom, { message: "top must be above bottom." });
+
+export type PectoralFin = z.output<typeof pectoralFinSchema>;
 
 const axis = z.enum(["+x", "-x", "+y", "-y", "+z", "-z"]);
 
@@ -143,6 +178,11 @@ export const modelManifestSchema = z
       })
       .refine((gills) => gills.top > gills.bottom, { message: "top must be above bottom." })
       .optional(),
+    /**
+     * Fins that move on their own: the pectoral fins beat, fold and spread
+     * as the fish swims (sim/pectoralFins). Without it they stay as modelled.
+     */
+    fins: z.object({ pectoral: pectoralFinSchema.optional() }).optional(),
     /**
      * The skeletal clips of an animated model (not a fish: a turtle, a
      * crab), played as it moves: `swim`, `walk` and `idle` name glTF

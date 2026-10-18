@@ -20,7 +20,7 @@ export type FishJawUniforms = {
  * the points of the snout below the mouth's line drop and the ones above
  * lift a little, more towards the tip, as the procedural fish's jaw does.
  *
- * Instance attribute: aMouth (0 shut .. 1 wide open).
+ * Instance attribute (fishInstancePatch): aMouth (0 shut .. 1 wide open).
  * The geometry is in the fish frame: one body length along +x, snout at +0.5.
  */
 export function fishJawPatch(uniforms: FishJawUniforms): ShaderPatch {
@@ -28,7 +28,6 @@ export function fishJawPatch(uniforms: FishJawUniforms): ShaderPatch {
     name: "fish-jaw",
     uniforms,
     vertexHead: /* glsl */ `
-      attribute float aMouth;
       uniform float uJawStart;
       uniform float uJawLine;
       uniform float uJawDrop;

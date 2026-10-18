@@ -159,6 +159,61 @@ describe("parseModelManifest", () => {
     expect(() => parseModelManifest(input, "barramundi")).toThrow(/gills/);
   });
 
+  it("finds the pectoral fins, swinging them as far as a calm fish does unless told otherwise", () => {
+    const pectoral = {
+      root: [
+        [0.15, 0.06],
+        [0.12, -0.08],
+      ],
+      side: 0.1,
+      front: 0.17,
+      back: -0.08,
+      top: 0.13,
+      bottom: -0.13,
+    };
+    const input = { name: "Clownfish", credit, fins: { pectoral } };
+
+    expect(parseModelManifest(input, "clownfish").fins?.pectoral).toEqual({
+      ...pectoral,
+      rest: 30,
+      sweep: 35,
+    });
+  });
+
+  it("refuses a pectoral fin whose base runs upside down", () => {
+    const pectoral = {
+      root: [
+        [0.12, -0.08],
+        [0.15, 0.06],
+      ],
+      side: 0.1,
+      front: 0.17,
+      back: -0.08,
+      top: 0.13,
+      bottom: -0.13,
+    };
+    const input = { name: "Clownfish", credit, fins: { pectoral } };
+
+    expect(() => parseModelManifest(input, "clownfish")).toThrow(/pectoral/);
+  });
+
+  it("refuses a pectoral fin whose front is behind its back", () => {
+    const pectoral = {
+      root: [
+        [0.15, 0.06],
+        [0.12, -0.08],
+      ],
+      side: 0.1,
+      front: -0.08,
+      back: 0.17,
+      top: 0.13,
+      bottom: -0.13,
+    };
+    const input = { name: "Clownfish", credit, fins: { pectoral } };
+
+    expect(() => parseModelManifest(input, "clownfish")).toThrow(/pectoral/);
+  });
+
   it("names the clips an animated model plays, in place and at its own pace", () => {
     const input = { name: "Sea turtle", credit, animations: { swim: "Armature|Swim" } };
 

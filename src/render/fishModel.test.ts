@@ -140,6 +140,39 @@ describe("prepareFishModel", () => {
     expect(morphed?.getX(0)).toBeCloseTo(1);
   });
 
+  it("weights the pectoral fins the manifest finds, in the fish frame", () => {
+    // The box fish's sides are 0.0625 body lengths from its middle.
+    const pectoral = (side: number) => ({
+      root: [
+        [0.1, 0.1],
+        [0.1, -0.1],
+      ],
+      side,
+      front: 0.5,
+      back: -0.5,
+      top: 0.5,
+      bottom: -0.5,
+    });
+
+    const [inside] = prepareFishModel(
+      boxFishAlongZ(),
+      manifest({ forward: "+z", fins: { pectoral: pectoral(0.05) } }),
+    );
+    const [beyond] = prepareFishModel(
+      boxFishAlongZ(),
+      manifest({ forward: "+z", fins: { pectoral: pectoral(0.2) } }),
+    );
+
+    expect(inside?.geometry.getAttribute("aPectoral").getX(0)).toBe(1);
+    expect(beyond?.geometry.getAttribute("aPectoral").getX(0)).toBe(0);
+  });
+
+  it("adds no pectoral weights to a model whose manifest has no fins", () => {
+    const [part] = prepareFishModel(boxFishAlongZ(), manifest({ forward: "+z" }));
+
+    expect(part?.geometry.hasAttribute("aPectoral")).toBe(false);
+  });
+
   it("bakes a skinned model in the pose its bones are in", () => {
     // A box 1 long along x, bound to one bone that stretches it to 4 long.
     const geometry = new BoxGeometry(1, 0.5, 0.25);

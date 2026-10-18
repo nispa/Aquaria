@@ -15,6 +15,7 @@ import {
   type SkinnedMesh,
 } from "three";
 import type { ModelAxis, ModelManifest } from "../scene/modelManifest";
+import { pectoralWeights } from "./pectoralWeights";
 
 /** One mesh of a fish model, in the fish frame shared with the procedural bodies. */
 export interface FishModelPart {
@@ -444,9 +445,17 @@ export function prepareFishModel(root: Object3D, manifest: ModelManifest): FishM
     };
   });
   const normalize = normalizeToBodyLength(parts.map((part) => part.geometry));
+  const pectoral = manifest.fins?.pectoral;
   for (const { geometry } of parts) {
     if (geometry.hasAttribute("aEyeCenter")) {
       (geometry.getAttribute("aEyeCenter") as BufferAttribute).applyMatrix4(normalize);
+    }
+    if (pectoral !== undefined) {
+      const positions = geometry.getAttribute("position").array;
+      geometry.setAttribute(
+        "aPectoral",
+        new BufferAttribute(pectoralWeights(positions, pectoral), 1),
+      );
     }
   }
   return parts;

@@ -26,7 +26,7 @@ export type FishMotionUniforms = {
  *
  * Runs after the morph targets, so an opening mouth swims with the head.
  *
- * Instance attributes: aSwimPhase (radians), aOpacity (0..1),
+ * Instance attributes (fishInstancePatch): aSwimPhase (radians), aOpacity (0..1),
  * aBend (curvature times body length, positive into a left turn, -2.5..2.5),
  * aEffort (tail sweep relative to cruising, 0.5..2.2).
  * The geometry is one body length long along +x, snout at +0.5, dorsal fin up.
@@ -36,10 +36,6 @@ export function fishMotionPatch(uniforms: FishMotionUniforms): ShaderPatch {
     name: "fish-motion",
     uniforms,
     vertexHead: /* glsl */ `
-      attribute float aSwimPhase;
-      attribute float aOpacity;
-      attribute float aBend;
-      attribute float aEffort;
       uniform float uSwimAmplitude;
       varying float vFishOpacity;
 
