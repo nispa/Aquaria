@@ -208,17 +208,26 @@ export interface RockSurface {
   heightAt(x: number, z: number): number;
 }
 
-/** Draws a spot on the sand within the depth range, or on the rock surface. */
+/** Spots drawn on the rock before giving up on the entry's bands. */
+const ROCK_SPOT_TRIES = 16;
+
+/**
+ * Draws a spot within the depth range: on the rock surface when there is
+ * one, else on the sand. A spot on the rock keeps to the range too, so an
+ * entry for a reef bank in the middle does not end up on the pillars'
+ * tops; when the rock has no spot in the range, the item goes on the sand.
+ */
 function drawSpot(
   entryRng: Rng,
   depth: { readonly near: number; readonly far: number },
   halfWidthAt: HalfWidthAt,
   rock: RockSurface | undefined,
 ): Spot {
-  const point = rock?.randomPoint(entryRng);
-  if (rock !== undefined && point !== undefined) {
+  for (let attempt = 0; rock !== undefined && attempt < ROCK_SPOT_TRIES; attempt += 1) {
+    const point = rock.randomPoint(entryRng);
+    if (point === undefined) break;
     const [x, z] = point;
-    return { x, z, elevation: rock.heightAt(x, z) };
+    if (z <= depth.near && z >= depth.far) return { x, z, elevation: rock.heightAt(x, z) };
   }
   const across = entryRng.range(-1, 1);
   const z = entryRng.range(depth.far, Math.min(depth.near, -EDGE_CLEARANCE));

@@ -133,7 +133,9 @@ There are two ways to build rock:
   turn it into blocks.
 
 Plants and objects with `"on": "rockwork"` grow on the rock instead of the
-sand.
+sand, within their entry's `bands`: a bank in the middle and the tops of the
+pillars behind it can each have their own corals. Where the rock has no
+spot in the bands, they grow on the sand.
 
 Both can be live rock: `growth` paints algae on the faces turned to the
 light, crusts of pink coralline algae in patches, and darker crevices under

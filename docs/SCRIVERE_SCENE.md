@@ -135,7 +135,9 @@ Ci sono due modi di costruire la roccia:
   `material`. L'editor la può trasformare in blocchi.
 
 Piante e oggetti con `"on": "rockwork"` crescono sulla roccia invece che
-sulla sabbia.
+sulla sabbia, dentro le `bands` della loro voce: un banco a metà vasca e le
+cime delle colonne dietro possono avere ciascuno i propri coralli. Dove la
+roccia non ha posto nelle bande, crescono sulla sabbia.
 
 Entrambe possono essere roccia viva: `growth` dipinge alghe sulle facce
 rivolte alla luce, croste rosa di alga corallina a chiazze e fessure più

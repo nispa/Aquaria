@@ -2,7 +2,8 @@
 
 The Hero scene's rock is blocks, like the scene editor's (scene/blocks):
 eroded pillars, the tallest up to the surface, worn into ledges and
-hollows, with a rubbly foot; and low reef mounds the corals grow on. This
+hollows, with a rubbly foot; low reef mounds; and a reef bank winding
+across the middle of the tank, where corals and algae grow side by side. This
 script writes them into the scene's `blocks`, keeping its `growth`, so the
 layout can be changed here and regenerated instead of drawn by hand:
 
@@ -34,6 +35,8 @@ MOUNDS = [
     (-0.4, -2.6, 0.8, 0.45, 8.0),
     (1.5, -2.7, 0.7, 0.4, 9.0),
 ]
+# The reef bank: from x_min to x_max, its crest winding around z, m.
+BANK = {"x_min": -2.9, "x_max": 2.9, "z": -1.55, "width": 0.55, "height": 0.42, "seed": 10.0}
 # A pillar to the surface goes a little beyond it, so no gap shows.
 ABOVE_SURFACE = 0.2
 
@@ -80,6 +83,19 @@ def in_mound(x, y, z, mound):
     return share < 1 and y < height * (1 - share * share) * (1 + 0.3 * noise(x * 4, z * 4, seed))
 
 
+def in_bank(x, y, z):
+    if not BANK["x_min"] <= x <= BANK["x_max"]:
+        return False
+    seed = BANK["seed"]
+    crest = BANK["z"] + 0.35 * noise(x * 0.8, seed, 0)
+    half = BANK["width"] * (1 + 0.35 * noise(x * 1.7, seed + 1, 0))
+    across = abs(z - crest) / max(half, 0.1)
+    # Lower towards both ends, lumpy along its length, with a few dips.
+    ends = min(1.0, (x - BANK["x_min"]) / 0.6, (BANK["x_max"] - x) / 0.6)
+    top = BANK["height"] * ends * (1 + 0.35 * noise(x * 3, z * 3, seed + 2))
+    return across < 1 and y < top * (1 - across * across)
+
+
 def runs_of(cells):
     """Lengths of alternating empty and solid stretches, the first one empty."""
     runs, current, count = [], 0, 0
@@ -107,8 +123,10 @@ def main():
             z = -depth + (row + 0.5) * BLOCK_SIZE
             for column in range(columns):
                 x = -width / 2 + (column + 0.5) * BLOCK_SIZE
-                solid = any(in_pillar(x, y, z, p, height) for p in PILLARS) or any(
-                    in_mound(x, y, z, m) for m in MOUNDS
+                solid = (
+                    any(in_pillar(x, y, z, p, height) for p in PILLARS)
+                    or any(in_mound(x, y, z, m) for m in MOUNDS)
+                    or in_bank(x, y, z)
                 )
                 cells.append(1 if solid else 0)
     blocks = {"size": BLOCK_SIZE, "runs": runs_of(cells), "color": ROCK_COLOR, "material": MATERIAL}

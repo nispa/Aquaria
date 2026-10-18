@@ -5,7 +5,7 @@ import { createObjectCatalog } from "../scene/objectCatalog";
 import { bundledObjects } from "../scene/objectFixtures";
 import { parseObjectManifest } from "../scene/objectManifest";
 import type { FloraSpec, PropSpec } from "../scene/schema";
-import { layoutFlora, layoutProps } from "./layout";
+import { layoutFlora, layoutProps, type RockSurface } from "./layout";
 import { createRockwork } from "./rockwork";
 import { bandDepthRange } from "./tank";
 
@@ -266,6 +266,48 @@ describe("color palettes", () => {
     );
 
     expect(new Set(plants.map((plant) => plant.color))).toEqual(new Set(palette));
+  });
+});
+
+describe("placement on rock within an entry's bands", () => {
+  /** Rock with two spots: one by the glass and one at the back. */
+  const twoSpots = (): RockSurface => {
+    let call = 0;
+    return {
+      randomPoint: () => {
+        call += 1;
+        return call % 2 === 1 ? [0, -0.3] : [0.5, -tank.depth + 0.4];
+      },
+      heightAt: () => 0.5,
+    };
+  };
+
+  it("keeps an entry on the rock inside its bands", () => {
+    const corals = layoutProps(
+      objects,
+      tank,
+      [{ kind: "brain-coral", count: 6, color: "#b89a5e", on: "rockwork", bands: [3, 4] }],
+      createRng(6),
+      undefined,
+      twoSpots(),
+    );
+    const near = bandDepthRange(tank, [3, 4]).near;
+
+    expect(corals.filter((coral) => coral.z > near || coral.elevation !== 0.5)).toEqual([]);
+  });
+
+  it("keeps a plant on the rock inside its bands", () => {
+    const plants = layoutFlora(
+      objects,
+      tank,
+      [{ kind: "kelp", count: 6, bands: [0, 1], height: [1, 2], color: "#3d7a3a", on: "rockwork" }],
+      createRng(6),
+      undefined,
+      twoSpots(),
+    );
+    const far = bandDepthRange(tank, [0, 1]).far;
+
+    expect(plants.filter((plant) => plant.z < far)).toEqual([]);
   });
 });
 
