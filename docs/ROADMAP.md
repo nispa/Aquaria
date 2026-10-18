@@ -417,6 +417,12 @@ tuned against reference photographs, with every parameter a slider.
 
 Raised by the user, not planned yet.
 
+- My fish (care mode), for the phone's small reef: a pet of your own to
+  keep alive, feed at its hours, play with (the finger, the torch, the
+  spells) and watch grow up over days; its state saved in the browser,
+  gentle reminders, nothing that punishes a missed day too hard. No names
+  or marks of existing toys.
+
 - A catfish (model in `downloads/catfish-3d-model.zip`, license to check),
   with a swimming style of its own: a bottom dweller that rests on the
   sand, glides along it whiskers first and sifts it for food.
