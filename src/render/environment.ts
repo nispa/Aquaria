@@ -25,6 +25,12 @@ import type { WaterUniforms } from "./uniforms";
 
 /** How far the sand, surface and backdrop extend beyond the tank, in tank sizes. */
 const EXTENT = 6;
+/**
+ * ...and at least this far, m, so a small tank never shows their edges; the
+ * large scenes already reach past it.
+ */
+const MIN_SPAN = 30;
+const span = (size: number): number => Math.max(size * EXTENT, MIN_SPAN);
 /** Distance of the backdrop behind the back of the tank, m. */
 const BACKDROP_DISTANCE = 10;
 const LIGHT_SHAFT_COUNT = 7;
@@ -78,7 +84,7 @@ function floor(
   surfaces: SurfaceLibrary,
   tracker: Tracker,
 ): Mesh {
-  const width = scene.tank.width * EXTENT;
+  const width = span(scene.tank.width);
   // The sand stops just short of the backdrop: where the two meet, depth-based
   // effects (ambient occlusion) would draw a crease along the horizon.
   const depth = scene.tank.depth + BACKDROP_DISTANCE + FLOOR_FRONT_OVERHANG - BACKDROP_GAP;
@@ -107,7 +113,7 @@ function floor(
 
 /** The underside of the waves: bright, rippling and fading into the distance. */
 function surface(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
-  const size = scene.tank.width * EXTENT;
+  const size = span(scene.tank.width);
   const geometry = new PlaneGeometry(size, size);
   geometry.rotateX(Math.PI / 2);
   const material = new ShaderMaterial({
@@ -152,7 +158,7 @@ function surface(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
 
 /** The underside of the surface moved by waves, with Snell's window and the sun's glare. */
 function waveSurface(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
-  const size = scene.tank.width * EXTENT;
+  const size = span(scene.tank.width);
   const geometry = new PlaneGeometry(size, size, WAVE_SEGMENTS, WAVE_SEGMENTS);
   geometry.rotateX(Math.PI / 2);
   const { waves } = scene.water;
@@ -189,7 +195,8 @@ function waveSurface(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh
 function backdrop(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
   const top = scene.backdrop.type === "gradient" ? scene.backdrop.top : scene.water.color;
   const bottom = scene.backdrop.type === "gradient" ? scene.backdrop.bottom : scene.water.color;
-  const width = scene.tank.width * EXTENT;
+  const width = span(scene.tank.width);
+  // The gradient's horizon depends on the height: kept in tank sizes.
   const height = scene.tank.height * EXTENT;
   const geometry = new PlaneGeometry(width, height);
   const material = new ShaderMaterial({

@@ -61,8 +61,9 @@ function marineSnow(
   const material = new ShaderMaterial({
     uniforms: {
       ...water,
+      // Up to the glass, not past it: snow in front of the glass would hang in the air.
       uBoxMin: { value: [-width / 2 - WRAP_MARGIN, 0, -depth - WRAP_MARGIN] },
-      uBoxSize: { value: [width + WRAP_MARGIN * 2, height, depth + WRAP_MARGIN * 2] },
+      uBoxSize: { value: [width + WRAP_MARGIN * 2, height, depth + WRAP_MARGIN] },
       uPixelScale: { value: 1 },
     },
     transparent: true,
