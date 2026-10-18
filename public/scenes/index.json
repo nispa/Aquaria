@@ -1,6 +1,6 @@
 {
   "groups": [
-    { "name": "Demo", "scenes": ["hero", "aquaria"] },
+    { "name": "Demo", "scenes": ["aquaria", "hero"] },
     { "name": "Open sea", "scenes": ["reef"] },
     { "name": "Aquariums", "scenes": ["home-reef", "planted-tank", "iwagumi"] }
   ]
