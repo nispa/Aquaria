@@ -53,4 +53,14 @@ describe("burst-coast", () => {
 
     expect(Math.max(...responses)).toBeGreaterThan(4);
   });
+
+  it("lets a fin-swimming species pulse without beating its tail", () => {
+    const thrusts = collect(
+      startStyle(burstCoastStyle, { thrust: 0 }),
+      20,
+      (state) => state.thrust,
+    );
+
+    expect(Math.max(...thrusts)).toBeLessThanOrEqual(0.1);
+  });
 });

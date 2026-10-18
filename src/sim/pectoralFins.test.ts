@@ -8,6 +8,8 @@ import {
 
 const HOVERING: FinDrive = { speedRatio: 0.3, acceleration: 0, bend: 0, thrust: 0.6 };
 const CRUISING: FinDrive = { speedRatio: 1, acceleration: 0, bend: 0, thrust: 1 };
+const FIN_PULSE: FinDrive = { speedRatio: 1.2, acceleration: 2.5, bend: 0, thrust: 0 };
+const FIN_GLIDE: FinDrive = { speedRatio: 1.1, acceleration: -0.4, bend: 0, thrust: 0 };
 const BURSTING: FinDrive = { speedRatio: 2.2, acceleration: 2, bend: 0, thrust: 1 };
 const BRAKING: FinDrive = { speedRatio: 0.6, acceleration: -2, bend: 0, thrust: 1 };
 const TURNING_LEFT: FinDrive = { speedRatio: 0.5, acceleration: 0, bend: 1.2, thrust: 0.6 };
@@ -16,15 +18,12 @@ const STEP = 1 / 60;
 const SETTLE_STEPS = 300;
 
 describe("pectoralStroke", () => {
-  it("beats the fins in turn when the fish hovers", () => {
+  it("moves the fins slowly and gently in turn when the fish hovers", () => {
     const stroke = pectoralStroke(HOVERING);
 
-    expect(stroke.alternation).toBeCloseTo(1, 2);
-    expect(stroke.beat).toBeCloseTo(1, 2);
-  });
-
-  it("beats faster hovering than cruising", () => {
-    expect(pectoralStroke(HOVERING).rate).toBeGreaterThan(pectoralStroke(CRUISING).rate);
+    expect(stroke.alternation).toBeGreaterThan(0.8);
+    expect(stroke.beat).toBeLessThan(0.5);
+    expect(stroke.rate).toBeLessThan(pectoralStroke(CRUISING).rate);
   });
 
   it("rows both fins together, gently, when the fish cruises on its tail", () => {
@@ -34,7 +33,20 @@ describe("pectoralStroke", () => {
     expect(stroke.beat).toBeLessThan(0.6);
   });
 
-  it("folds the fins against the body in a burst", () => {
+  it("spreads both fins wide and beats them together during a fin-propelled pulse, then tucks them to glide", () => {
+    const pulse = pectoralStroke(FIN_PULSE);
+    const glide = pectoralStroke(FIN_GLIDE);
+
+    expect(pulse.alternation).toBe(0);
+    expect(pulse.beat).toBe(1);
+    expect(pulse.spreadLeft).toBeGreaterThan(0.7);
+    expect(pulse.spreadRight).toBeGreaterThan(0.7);
+    expect(glide.beat).toBe(0);
+    expect(glide.spreadLeft).toBeLessThan(-0.7);
+    expect(glide.spreadRight).toBeLessThan(-0.7);
+  });
+
+  it("folds the fins against the body in a tail burst", () => {
     const stroke = pectoralStroke(BURSTING);
 
     expect(stroke.beat).toBe(0);

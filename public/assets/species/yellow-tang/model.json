@@ -3,7 +3,7 @@
   "file": "model.glb",
   "forward": "+z",
   "up": "+y",
-  "swimAmplitude": 0.06,
+  "swimAmplitude": 0.045,
   "mouth": {
     "jaw": {
       "start": 0.44,
@@ -24,6 +24,21 @@
     "top": 0.11,
     "bottom": -0.12,
     "curve": 2
+  },
+  "fins": {
+    "pectoral": {
+      "root": [
+        [0.235, -0.08],
+        [0.195, -0.122]
+      ],
+      "side": 0.075,
+      "front": 0.245,
+      "back": 0.1,
+      "top": 0.03,
+      "bottom": -0.13,
+      "rest": 35,
+      "sweep": 42
+    }
   },
   "credit": {
     "author": "LasquetiSpice",

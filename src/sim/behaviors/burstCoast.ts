@@ -20,7 +20,7 @@ function coast(state: SwimState, params: Params, context: SwimContext): void {
   state.timer = context.rng.range(params.coastSeconds[0], params.coastSeconds[1]);
   state.speed = params.coastSpeed;
   state.response = DRAG_RESPONSE;
-  state.thrust = COAST_THRUST;
+  state.thrust = Math.min(COAST_THRUST, params.thrust);
 }
 
 function burst(state: SwimState, params: Params, context: SwimContext): void {
@@ -29,7 +29,7 @@ function burst(state: SwimState, params: Params, context: SwimContext): void {
   state.yaw += context.rng.normal(0, params.burstTurn);
   state.speed = params.burstSpeed;
   state.response = BURST_RESPONSE;
-  state.thrust = 1;
+  state.thrust = params.thrust;
 }
 
 /** Dart off in a new direction, glide with a still tail, slow down, dart again. */

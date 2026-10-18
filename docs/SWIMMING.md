@@ -43,26 +43,30 @@ A fish never goes faster than its species' `speed.max`.
 Tangs, sardines, tetras. The heading wanders gently, the pace drifts a
 little, and now and then the fish moves to a new height.
 
-| Value                 | Default | What it is                         |
-| --------------------- | ------- | ---------------------------------- |
-| `speedVariation`      | 0.15    | How much the pace changes          |
-| `turnJitter`          | 0.5     | How restless the heading is        |
-| `heightChangeSeconds` | 12      | How often it moves to a new height |
+| Value                 | Default | What it is                                                 |
+| --------------------- | ------- | ---------------------------------------------------------- |
+| `speedVariation`      | 0.15    | How much the pace changes                                  |
+| `turnJitter`          | 0.5     | How restless the heading is                                |
+| `heightChangeSeconds` | 12      | How often it moves to a new height                         |
+| `thrust`              | 1       | How much the tail works in cruise (below 1: swims on fins) |
 
 ### `burst-coast`: dart and glide
 
-Damsels, guppies, platies. A short burst in a new direction with the tail
-beating hard, then a long glide with the tail almost still, slowing down.
-Fish in a group are never in step.
+Damsels, guppies, platies, tangs. A short burst in a new direction, then a
+long glide with the tail almost still, slowing down. With low `thrust`
+(like a blue tang), the burst is a pectoral-fin pulse — both fins spread
+wide and beat together, then fold against the body for the glide. Fish in a
+group are never in step.
 
-| Value                 | Default    | What it is                         |
-| --------------------- | ---------- | ---------------------------------- |
-| `burstSpeed`          | 2.2        | Pace during a burst                |
-| `burstSeconds`        | 0.35       | How long a burst lasts             |
-| `coastSpeed`          | 0.35       | Pace it slows down to              |
-| `coastSeconds`        | [1.2, 3.5] | How long a glide lasts             |
-| `burstTurn`           | 0.9        | How much it turns at each burst    |
-| `heightChangeSeconds` | 6          | How often it moves to a new height |
+| Value                 | Default    | What it is                                                   |
+| --------------------- | ---------- | ------------------------------------------------------------ |
+| `burstSpeed`          | 2.2        | Pace during a burst                                          |
+| `burstSeconds`        | 0.35       | How long a burst lasts                                       |
+| `coastSpeed`          | 0.35       | Pace it slows down to                                        |
+| `coastSeconds`        | [1.2, 3.5] | How long a glide lasts                                       |
+| `burstTurn`           | 0.9        | How much it turns at each burst                              |
+| `heightChangeSeconds` | 6          | How often it moves to a new height                           |
+| `thrust`              | 1          | How much the tail works in a burst (low: pectoral-fin pulse) |
 
 ### `hover`: staying in one spot
 

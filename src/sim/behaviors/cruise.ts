@@ -14,7 +14,7 @@ export const cruiseStyle: SwimStyle<"cruise"> = {
   start(state, params, context) {
     state.speed = 1;
     state.response = CRUISE_RESPONSE;
-    state.thrust = 1;
+    state.thrust = params.thrust;
     startHeight(state, context, params.heightChangeSeconds);
   },
   step(state, params, context, deltaSeconds) {

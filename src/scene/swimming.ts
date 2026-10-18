@@ -30,9 +30,11 @@ const cruise = z.strictObject({
   turnJitter: share.default(0.5),
   /** Average time between changes of the height a fish swims at. */
   heightChangeSeconds: positive.default(12),
+  /** How much of the cruising push comes from the tail, 0 on the pectoral fins alone .. 1 on the tail. */
+  thrust: share.max(1).default(1),
 });
 
-/** Dart, glide, slow down, dart again: damsels, guppies, small reef fish. */
+/** Dart, glide, slow down, dart again: damsels, guppies, tangs, small reef fish. */
 const burstCoast = z.strictObject({
   style: z.literal("burst-coast"),
   /** Speed wanted during a burst, as a share of cruise speed (capped at max speed). */
@@ -44,6 +46,8 @@ const burstCoast = z.strictObject({
   /** Spread of the change of heading at each burst, radians. */
   burstTurn: share.default(0.9),
   heightChangeSeconds: positive.default(6),
+  /** How much of the burst push comes from the tail, 0 on the pectoral fins alone .. 1 on the tail. */
+  thrust: share.max(1).default(1),
 });
 
 /** Station keeping with small corrections and turns on the spot: gobies, grammas, gouramis. */

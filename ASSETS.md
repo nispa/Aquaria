@@ -100,7 +100,10 @@ scripts in `scripts/blender/`:
   converted;
 - barramundi (`barramundi.py`): an open, protruding mouth shaped by hand;
 - hermit crab (`hermit_crab.py`): a new walk and a pose for hiding in the
-  shell, in place of its idle animation.
+  shell, in place of its idle animation;
+- clownfish, powder blue tang, moorish idol and yellow tang (`tropical_fish.py`):
+  one fish of each species extracted from the school with its own bones and a
+  short in-place `Swim` clip looped from the school's animation.
 
 Fish are drawn in their rest pose and bent by the engine; only the animals
 that walk (shrimps, crabs) play animations.
@@ -126,8 +129,8 @@ Credits for the CC-BY models, as their licenses ask:
 - "Animated Swimming Tropical Fish School Loop"
   (https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99)
   by LasquetiSpice (https://sketchfab.com/LasquetiSpice), licensed under
-  CC-BY-4.0. One fish of each species was extracted from the school (the
-  vertices bound to its bones), without the skeleton and animation.
+  CC-BY-4.0. One fish of each species was extracted from the school with its
+  own bones and a short in-place `Swim` clip looped from the school's animation.
 
 Everything else (procedural fish, plants, corals, shells, starfish, water,
 light) is procedural geometry and shaders generated in code.

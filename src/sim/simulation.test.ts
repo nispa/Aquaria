@@ -560,7 +560,7 @@ describe("swimming styles", () => {
     expect(total / samples).toBeLessThan(0.5);
   });
 
-  it("beats the pectoral fins in turn while hovering", () => {
+  it("beats the pectoral fins gently in turn while hovering", () => {
     const simulation = simulateSwimming({ style: "hover" });
     let beat = 0;
     let alternation = 0;
@@ -572,7 +572,8 @@ describe("swimming styles", () => {
       samples += 1;
     });
 
-    expect(beat / samples).toBeGreaterThan(0.7);
+    expect(beat / samples).toBeGreaterThan(0.2);
+    expect(beat / samples).toBeLessThan(0.5);
     expect(alternation / samples).toBeGreaterThan(0.7);
   });
 
@@ -582,6 +583,16 @@ describe("swimming styles", () => {
 
     watch(simulation, 20, (fish) => spreads.push(fish.fins.spreadLeft));
 
+    expect(Math.min(...spreads)).toBeLessThan(-0.5);
+  });
+
+  it("spreads the pectoral fins to pulse and tucks them to glide when burst-coast swims on fins", () => {
+    const simulation = simulateSwimming({ style: "burst-coast", thrust: 0.15 });
+    const spreads: number[] = [];
+
+    watch(simulation, 20, (fish) => spreads.push(fish.fins.spreadLeft));
+
+    expect(Math.max(...spreads)).toBeGreaterThan(0.5);
     expect(Math.min(...spreads)).toBeLessThan(-0.5);
   });
 

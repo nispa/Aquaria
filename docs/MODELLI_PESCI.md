@@ -124,12 +124,12 @@ disegnato. A un modello basta dire dove sono, come il pesce pagliaccio:
 ```json
 "fins": {
   "pectoral": {
-    "root": [[0.14, 0.11], [0.155, -0.1]],
-    "side": 0.1,
-    "front": 0.17,
-    "back": -0.08,
-    "top": 0.14,
-    "bottom": -0.13,
+    "root": [[0.21, 0.04], [0.17, -0.095]],
+    "side": 0.095,
+    "front": 0.225,
+    "back": 0.025,
+    "top": 0.12,
+    "bottom": -0.11,
     "rest": 35,
     "sweep": 35
   }

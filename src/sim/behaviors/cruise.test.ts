@@ -34,9 +34,15 @@ describe("cruise", () => {
     expect(Math.max(...jumps)).toBeLessThan(0.4);
   });
 
-  it("keeps the tail beating fully", () => {
-    const thrusts = collect(startStyle(cruiseStyle), 10, (state) => state.thrust);
+  it("keeps the tail beating fully by default, or at the thrust the species sets", () => {
+    const defaultThrusts = collect(startStyle(cruiseStyle), 10, (state) => state.thrust);
+    const finThrusts = collect(
+      startStyle(cruiseStyle, { thrust: 0.25 }),
+      10,
+      (state) => state.thrust,
+    );
 
-    expect(new Set(thrusts)).toEqual(new Set([1]));
+    expect(new Set(defaultThrusts)).toEqual(new Set([1]));
+    expect(new Set(finThrusts)).toEqual(new Set([0.25]));
   });
 });

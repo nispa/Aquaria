@@ -25,6 +25,21 @@
     "bottom": -0.1,
     "curve": 2
   },
+  "fins": {
+    "pectoral": {
+      "root": [
+        [0.28, -0.09],
+        [0.27, -0.145]
+      ],
+      "side": 0.05,
+      "front": 0.3,
+      "back": 0.18,
+      "top": -0.035,
+      "bottom": -0.155,
+      "rest": 35,
+      "sweep": 35
+    }
+  },
   "credit": {
     "author": "LasquetiSpice",
     "source": "https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99",

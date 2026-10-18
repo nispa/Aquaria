@@ -44,26 +44,30 @@ Un pesce non va mai più veloce del `speed.max` della sua specie.
 Pesci chirurgo, sardine, neon. La direzione vaga piano, l'andatura cambia
 un poco, e ogni tanto il pesce si sposta a un'altra altezza.
 
-| Valore                | Default | Cos'è                            |
-| --------------------- | ------- | -------------------------------- |
-| `speedVariation`      | 0.15    | Quanto cambia l'andatura         |
-| `turnJitter`          | 0.5     | Quanto è irrequieta la direzione |
-| `heightChangeSeconds` | 12      | Ogni quanto cambia altezza       |
+| Valore                | Default | Cos'è                                                          |
+| --------------------- | ------- | -------------------------------------------------------------- |
+| `speedVariation`      | 0.15    | Quanto cambia l'andatura                                       |
+| `turnJitter`          | 0.5     | Quanto è irrequieta la direzione                               |
+| `heightChangeSeconds` | 12      | Ogni quanto cambia altezza                                     |
+| `thrust`              | 1       | Quanto lavora la coda in crociera (sotto 1: spingono le pinne) |
 
 ### `burst-coast`: scatto e planata
 
-Damigelle, guppy, platy. Uno scatto breve in una nuova direzione, con la
-coda che batte forte, poi una lunga planata con la coda quasi ferma,
-rallentando. I pesci di un gruppo non scattano mai insieme.
+Damigelle, guppy, platy, pesci chirurgo. Uno scatto breve in una nuova
+direzione, poi una lunga planata con la coda quasi ferma, rallentando. Con
+`thrust` basso (come nel blue tang), lo scatto è un impulso di pinne
+pettorali: entrambe si aprono e battono insieme, poi si ripiegano lungo i
+fianchi durante la planata. I pesci di un gruppo non scattano mai insieme.
 
-| Valore                | Default    | Cos'è                      |
-| --------------------- | ---------- | -------------------------- |
-| `burstSpeed`          | 2.2        | Andatura durante lo scatto |
-| `burstSeconds`        | 0.35       | Quanto dura uno scatto     |
-| `coastSpeed`          | 0.35       | Andatura a cui rallenta    |
-| `coastSeconds`        | [1.2, 3.5] | Quanto dura una planata    |
-| `burstTurn`           | 0.9        | Quanto gira a ogni scatto  |
-| `heightChangeSeconds` | 6          | Ogni quanto cambia altezza |
+| Valore                | Default    | Cos'è                                                                |
+| --------------------- | ---------- | -------------------------------------------------------------------- |
+| `burstSpeed`          | 2.2        | Andatura durante lo scatto                                           |
+| `burstSeconds`        | 0.35       | Quanto dura uno scatto                                               |
+| `coastSpeed`          | 0.35       | Andatura a cui rallenta                                              |
+| `coastSeconds`        | [1.2, 3.5] | Quanto dura una planata                                              |
+| `burstTurn`           | 0.9        | Quanto gira a ogni scatto                                            |
+| `heightChangeSeconds` | 6          | Ogni quanto cambia altezza                                           |
+| `thrust`              | 1          | Quanto lavora la coda nello scatto (basso: impulso con le pettorali) |
 
 ### `hover`: restare in un punto
 

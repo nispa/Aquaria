@@ -3,26 +3,30 @@ import { easeToward } from "./posture";
 
 /**
  * The pectoral fins, the paddles behind the gills. A clownfish hovering by
- * its anemone keeps station on them alone, beating them in turn several
- * times a second; cruising, its tail does the work and they only row along
- * together; in a dash it folds them against its body; it spreads them wide
- * to brake, and spreads the one on the inside of a turn to pivot on it.
+ * its anemone keeps station with slow, gentle alternating beats; cruising on
+ * the tail, the fins row along softly together; in a tail dash they fold
+ * against the body; a fin-swimming tang instead spreads both fins wide to
+ * pulse forward and tucks them to glide; braking spreads both fins wide, and
+ * turning spreads the inner fin to pivot on it.
  * Renderers turn this state into a stroke (render/shaders/fishPectoralPatch).
  */
 
-/** Beats a second while hovering on the fins, and while cruising on the tail. */
-const HOVER_RATE = 3.5;
+/** Beats a second while hovering, while cruising on the tail, and during a fin pulse. */
+const HOVER_RATE = 1.3;
 const CRUISE_RATE = 2.2;
-/** How hard the fins row along while the tail drives the fish, as a share of a full beat. */
+const PULSE_RATE = 3;
+/** Share of a full beat used while hovering in place and while cruising on the tail. */
+const HOVER_BEAT = 0.35;
 const CRUISE_BEAT = 0.45;
-/**
- * The fins carry the fish below this much work (speed in cruise speeds times
- * the style's thrust) and hand it over to the tail up to the second.
- */
+/** Speeds (in cruise speeds) across which a fish transitions from hovering to forward swimming. */
 const FIN_WORK: readonly [number, number] = [0.4, 1];
+/** Tail thrust below which forward swimming is driven by the pectoral fins instead of the tail. */
+const FIN_THRUST: readonly [number, number] = [0.2, 0.5];
+/** Acceleration (cruise speeds a second) that brings a fin-driven pulse to full spread and beat. */
+const FULL_PULSE_ACCELERATION = 0.6;
 /** How much acceleration adds to the push: seconds of acceleration per cruise speed. */
 const ACCELERATION_PUSH_SECONDS = 0.3;
-/** The fins fold away as the push grows from the first to the second, in cruise speeds. */
+/** The fins fold away as a tail push grows from the first to the second, in cruise speeds. */
 const TUCK_PUSH: readonly [number, number] = [1.3, 1.9];
 /** Slowing down by this many cruise speeds a second spreads the fins fully. */
 const FULL_BRAKE = 1.5;
@@ -84,19 +88,25 @@ export function createPectoralFins(phase: number): PectoralFins {
 
 /** The stroke the fins settle into for how the fish is swimming now. */
 export function pectoralStroke({ speedRatio, acceleration, bend, thrust }: FinDrive): FinStroke {
-  const onFins = 1 - smoothstep(FIN_WORK[0], FIN_WORK[1], speedRatio * thrust);
+  const hovering = 1 - smoothstep(FIN_WORK[0], FIN_WORK[1], speedRatio);
+  const finDriven = 1 - smoothstep(FIN_THRUST[0], FIN_THRUST[1], thrust);
+  const pulse = finDriven * smoothstep(0, FULL_PULSE_ACCELERATION, acceleration);
+  const glide = finDriven * (1 - hovering) * (1 - pulse);
   const push = speedRatio + acceleration * ACCELERATION_PUSH_SECONDS;
-  const tuck = smoothstep(TUCK_PUSH[0], TUCK_PUSH[1], push);
-  const brake = smoothstep(0, FULL_BRAKE, -acceleration);
+  const tailTuck = (1 - finDriven) * smoothstep(TUCK_PUSH[0], TUCK_PUSH[1], push);
+  const tuck = Math.max(tailTuck, glide);
+  const brake = (1 - finDriven) * smoothstep(0, FULL_BRAKE, -acceleration);
   const turn = smoothstep(0, FULL_TURN_BEND, Math.abs(bend));
-  const inner = brake + turn;
-  const outer = brake - turn * OUTER_DRAW_IN;
+  const inner = pulse + brake + turn;
+  const outer = pulse + brake - turn * OUTER_DRAW_IN;
   const left = bend > 0 ? inner : outer;
   const right = bend > 0 ? outer : inner;
+  const baseRate = CRUISE_RATE + (HOVER_RATE - CRUISE_RATE) * hovering;
+  const baseBeat = CRUISE_BEAT + (HOVER_BEAT - CRUISE_BEAT) * hovering;
   return {
-    rate: CRUISE_RATE + (HOVER_RATE - CRUISE_RATE) * onFins,
-    beat: (CRUISE_BEAT + (1 - CRUISE_BEAT) * onFins) * (1 - tuck),
-    alternation: onFins,
+    rate: baseRate + (PULSE_RATE - baseRate) * pulse,
+    beat: (baseBeat + (1 - baseBeat) * pulse) * (1 - tuck),
+    alternation: hovering * (1 - pulse),
     spreadLeft: clamp(left - tuck, -1, 1),
     spreadRight: clamp(right - tuck, -1, 1),
   };

@@ -32,7 +32,13 @@
         "torch": 0.2
       },
       "swim": {
-        "style": "cruise"
+        "style": "burst-coast",
+        "burstSpeed": 1.6,
+        "burstSeconds": 0.45,
+        "coastSpeed": 0.55,
+        "coastSeconds": [1, 2.2],
+        "burstTurn": 0.35,
+        "thrust": 0.15
       },
       "activities": {
         "peck": {
@@ -155,7 +161,13 @@
         "torch": 0.2
       },
       "swim": {
-        "style": "cruise"
+        "style": "burst-coast",
+        "burstSpeed": 1.5,
+        "burstSeconds": 0.45,
+        "coastSpeed": 0.6,
+        "coastSeconds": [1.2, 2.5],
+        "burstTurn": 0.4,
+        "thrust": 0.15
       },
       "activities": {
         "peck": {
