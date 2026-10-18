@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { catalogFixture } from "../scene/fixtures";
 import { parseCatalog } from "../scene/parse";
 import { createActivityState, createSwimState } from "../sim/behaviors";
+import { createPectoralFins } from "../sim/pectoralFins";
 import { createPlay } from "../sim/play";
 import { createUnstick, type Fish } from "../sim/simulation";
 import {
@@ -31,6 +32,7 @@ function fishFixture(): Fish {
     gaze: 0,
     bend: 0,
     effort: 1,
+    fins: createPectoralFins(0),
     satiety: 0.4,
     mouth: 0,
     fear: 0,

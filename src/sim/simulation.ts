@@ -42,6 +42,12 @@ import {
   wriggleBend,
   type PlayState,
 } from "./play";
+import {
+  createPectoralFins,
+  pectoralStroke,
+  stepPectoralFins,
+  type PectoralFins,
+} from "./pectoralFins";
 import { easeToward, tailEffort, turnBend, turnWithInertia } from "./posture";
 import {
   addAlignment,
@@ -178,6 +184,8 @@ const SWIM_BEATS_PER_BODY_LENGTH = 0.9;
 const GAZE_SACCADE_THRESHOLD = 0.35;
 /** How quickly the body follows its turns and the tail its effort, in seconds; filters wander jitter. */
 const BEND_RESPONSE_SECONDS = 0.2;
+/** Spreads the fishes' fin beats evenly around the circle, radians. */
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 const EFFORT_RESPONSE_SECONDS = 0.3;
 
 // Feeding. Fish notice flakes within FOOD_SENSE_RADIUS and leave their habitat
@@ -261,6 +269,8 @@ export interface Fish {
   bend: number;
   /** Tail-beat amplitude relative to cruising; see sim/posture. */
   effort: number;
+  /** The pectoral fins: their beat, and how far each is spread; see sim/pectoralFins. */
+  readonly fins: PectoralFins;
   /** 0 hungry .. 1 full; fish ignore food above 0.8. */
   satiety: number;
   /** 0 closed .. 1 wide open, when snapping at food. */
@@ -572,6 +582,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
       gaze: 0,
       bend: 0,
       effort: 1,
+      // From the id, not the rng: fish beat out of step without changing every draw after.
+      fins: createPectoralFins(nextId * GOLDEN_ANGLE),
       satiety: 0,
       mouth: 0,
       fear: 0,
@@ -1115,6 +1127,18 @@ export function createSimulation(options: SimulationOptions): Simulation {
       member.effort,
       tailEffort(previousVelocity, member.velocity, deltaSeconds, cruise, thrust),
       EFFORT_RESPONSE_SECONDS,
+      deltaSeconds,
+    );
+    const finSpeed = member.velocity.length();
+    stepPectoralFins(
+      member.fins,
+      pectoralStroke({
+        speedRatio: finSpeed / cruise,
+        acceleration:
+          deltaSeconds === 0 ? 0 : (finSpeed - previousVelocity.length()) / deltaSeconds / cruise,
+        bend: member.bend,
+        thrust,
+      }),
       deltaSeconds,
     );
     member.bend = wriggleBend(member.play) ?? member.bend;

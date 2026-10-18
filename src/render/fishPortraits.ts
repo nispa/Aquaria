@@ -13,6 +13,7 @@ import type { Logger } from "../core/logger";
 import type { ModelManifest } from "../scene/modelManifest";
 import type { Species, SpeciesCatalog } from "../scene/schema";
 import { createActivityState, createSwimState } from "../sim/behaviors";
+import { createPectoralFins } from "../sim/pectoralFins";
 import { createPlay } from "../sim/play";
 import { createUnstick, type Fish } from "../sim/simulation";
 import { createAssetLoaders } from "./assetLoaders";
@@ -57,6 +58,7 @@ export function posedFish(species: Species, heading: Vector3 = HEADING): Fish {
     gaze: 0,
     bend: 0,
     effort: EFFORT,
+    fins: createPectoralFins(0),
     satiety: 1,
     mouth: 0,
     fear: 0,

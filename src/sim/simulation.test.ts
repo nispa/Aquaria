@@ -560,6 +560,31 @@ describe("swimming styles", () => {
     expect(total / samples).toBeLessThan(0.5);
   });
 
+  it("beats the pectoral fins in turn while hovering", () => {
+    const simulation = simulateSwimming({ style: "hover" });
+    let beat = 0;
+    let alternation = 0;
+    let samples = 0;
+
+    watch(simulation, 10, (fish) => {
+      beat += fish.fins.beat;
+      alternation += fish.fins.alternation;
+      samples += 1;
+    });
+
+    expect(beat / samples).toBeGreaterThan(0.7);
+    expect(alternation / samples).toBeGreaterThan(0.7);
+  });
+
+  it("folds the pectoral fins away in a burst", () => {
+    const simulation = simulateSwimming({ style: "burst-coast" });
+    const spreads: number[] = [];
+
+    watch(simulation, 20, (fish) => spreads.push(fish.fins.spreadLeft));
+
+    expect(Math.min(...spreads)).toBeLessThan(-0.5);
+  });
+
   it("stills the tail while coasting and beats it hard in a burst", () => {
     const simulation = simulateSwimming({ style: "burst-coast" });
     const efforts: number[] = [];
