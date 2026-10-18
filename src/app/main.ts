@@ -13,6 +13,7 @@ import { versionLabel } from "../core/version";
 import { createAquariumView, type AquariumView } from "../render/aquariumView";
 import { openSceneEditor, type SceneEditor } from "./sceneEditor";
 import { drawFishPortraits, type FishPortraitRequest } from "../render/fishPortraits";
+import { afterPaint, createLoadingScreen } from "../ui/loadingScreen";
 import { drawSceneryPortraits, type SceneryPortraitRequest } from "../render/sceneryPortraits";
 import { EFFECTS } from "../render/effects";
 import { createFileEffect, fileEffectFragment } from "../render/effects/fileEffect";
@@ -119,6 +120,8 @@ const FPS_WINDOW_SECONDS = 1;
 const GPU_FRAME_SHARE = 0.75;
 /** Frames per second the budget is set for when there is no frame limit. */
 const UNLIMITED_BUDGET_FPS = 60;
+/** Models and textures still missing after this long arrive while the tank already shows, ms. */
+const MAX_LOADING_WAIT_MS = 15_000;
 /** Keeps the sound's generator apart from the scene's. */
 const SOUND_SEED_OFFSET = 7;
 /** The automatic resolution moves in steps of this many pixels. */
@@ -183,6 +186,7 @@ function saveSettings(settings: Settings): void {
 function showError(error: unknown): void {
   const message = error instanceof Error ? error.message : String(error);
   logger.error(message);
+  document.getElementById("loading")?.remove();
   const overlay = document.createElement("div");
   overlay.className = "error";
   const text = document.createElement("pre");
@@ -402,6 +406,7 @@ function customSceneData(custom: Readonly<Record<string, Scene>>, id: string): S
 async function start(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>("#aquarium");
   if (canvas === null) throw new Error('Missing <canvas id="aquarium">.');
+  const loading = createLoadingScreen(document.getElementById("loading"));
 
   const options = parseLaunchOptions(window.location.search);
   let settings = loadSettings();
@@ -526,6 +531,7 @@ async function start(): Promise<void> {
   let lensOn = false;
   const pointerAt = new Vector2();
   let shownScene = scene;
+  await loading.show("scenery");
   let { simulation, view } = mountScene(scene);
   // Without a GPU timer nothing can be measured: the default look is drawn as is.
   const canFitLook = fitsLook && view.timesGpu;
@@ -533,6 +539,13 @@ async function start(): Promise<void> {
     look = resolveLook(features, settings.look ?? {});
     view.setLook(look);
   }
+  // Behind the loading screen: the stalls of preparing models and compiling
+  // shaders would otherwise freeze the first seconds of the tank.
+  await loading.show("models");
+  await Promise.race([view.ready(), delay(MAX_LOADING_WAIT_MS)]);
+  await loading.show("shaders");
+  await view.compile();
+  await loading.show("frame");
   /** The scene editor while editing: it draws instead of the tank, and the simulation stops. */
   let editor: SceneEditor | undefined;
   const feedRng = createRng((options.seed ?? scene.seed) + FEED_SEED_OFFSET);
@@ -1004,6 +1017,7 @@ async function start(): Promise<void> {
     for (let step = 0; step < steps; step += 1) simulation.step(SIMULATION_STEP_SECONDS);
     await view.ready();
     view.render();
+    loading.remove();
     document.body.dataset.state = "ready";
     return;
   }
@@ -1059,8 +1073,15 @@ async function start(): Promise<void> {
     if (settings.showFps) panel.setFps(fps.fps, drawnHeight);
     panel.setHour(view.hour());
   };
+  view.render();
+  await afterPaint();
+  loading.fadeOut();
   window.requestAnimationFrame(frame);
   document.body.dataset.state = "ready";
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
 start().catch(showError);

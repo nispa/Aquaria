@@ -114,6 +114,11 @@ export interface AquariumViewOptions {
 export interface AquariumView {
   /** Resolves when textures have loaded (or failed), so a still frame shows them. */
   ready(): Promise<void>;
+  /**
+   * Compiles the shaders of everything in the tank, in parallel where the
+   * browser can, so the first frames do not stall on them.
+   */
+  compile(): Promise<void>;
   /** Pulls state from the simulation and draws one frame. */
   render(): void;
   resize(cssWidth: number, cssHeight: number): void;
@@ -540,6 +545,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
         visitors.settled(),
       ]).then(() => undefined);
     },
+    compile: () => renderer.compileAsync(world, camera).then(() => undefined),
     setMsaa(samples) {
       msaaSamples = samples;
       buildPipeline(currentLook);

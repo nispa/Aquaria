@@ -8,9 +8,233 @@
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <title>Aquaria</title>
+    <!-- The loading screen is styled here, not in the bundle: it must show before any script. -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #031420;
+      }
+      .loading {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        padding: 24px 16px;
+        box-sizing: border-box;
+        background: radial-gradient(ellipse at 50% 0%, #0b4a6e 0%, #052233 55%, #020d16 100%);
+        color: #e6f3f8;
+        font:
+          15px/1.4 system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        transition: opacity 0.6s ease;
+      }
+      .loading--done {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .loading__content {
+        position: relative;
+        display: grid;
+        justify-items: center;
+        gap: 28px;
+        width: 100%;
+        max-width: 560px;
+      }
+      .loading__logo {
+        width: min(100%, 520px);
+        height: auto;
+        filter: drop-shadow(0 0 24px rgb(79 195 232 / 0.35));
+        animation: loading-float 5s ease-in-out infinite;
+      }
+      .loading__steps {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 12px;
+        width: 100%;
+        max-width: 420px;
+      }
+      .loading__step {
+        display: grid;
+        grid-template-columns: 22px 1fr;
+        column-gap: 12px;
+        opacity: 0.4;
+        transition: opacity 0.3s ease;
+      }
+      .loading__step[data-state="current"],
+      .loading__step[data-state="done"] {
+        opacity: 1;
+      }
+      .loading__step strong {
+        font-weight: 600;
+      }
+      .loading__step span {
+        grid-column: 2;
+        color: #8fb3c4;
+        font-size: 13px;
+      }
+      .loading__mark {
+        grid-row: span 2;
+        position: relative;
+        width: 14px;
+        height: 14px;
+        margin: 3px 4px;
+        border-radius: 50%;
+        border: 2px solid #8fb3c4;
+        box-sizing: border-box;
+      }
+      .loading__step[data-state="current"] .loading__mark {
+        border-color: #4fc3e8;
+      }
+      .loading__step[data-state="current"] .loading__mark::after {
+        content: "";
+        position: absolute;
+        inset: -6px;
+        border-radius: 50%;
+        border: 2px solid #4fc3e8;
+        animation: loading-ping 1.2s ease-out infinite;
+      }
+      .loading__step[data-state="done"] .loading__mark {
+        border-color: #4fc3e8;
+        background: #4fc3e8;
+      }
+      .loading__step[data-state="done"] .loading__mark::after {
+        content: "";
+        position: absolute;
+        left: 3px;
+        top: 0;
+        width: 3px;
+        height: 7px;
+        border: solid #031420;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+      .loading__note {
+        margin: 0;
+        max-width: 420px;
+        color: #8fb3c4;
+        font-size: 13px;
+        text-align: center;
+      }
+      .loading__bubble {
+        position: absolute;
+        bottom: -20px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 1px solid rgb(180 230 250 / 0.5);
+        background: rgb(180 230 250 / 0.08);
+        animation: loading-rise 7s linear infinite;
+      }
+      .loading__bubble:nth-child(1) {
+        left: 12%;
+      }
+      .loading__bubble:nth-child(2) {
+        left: 27%;
+        width: 6px;
+        height: 6px;
+        animation-delay: -2.5s;
+        animation-duration: 6s;
+      }
+      .loading__bubble:nth-child(3) {
+        left: 71%;
+        animation-delay: -4s;
+        animation-duration: 8s;
+      }
+      .loading__bubble:nth-child(4) {
+        left: 86%;
+        width: 7px;
+        height: 7px;
+        animation-delay: -1s;
+      }
+      .loading__bubble:nth-child(5) {
+        left: 54%;
+        width: 5px;
+        height: 5px;
+        animation-delay: -5.5s;
+        animation-duration: 9s;
+      }
+      /* Transform and opacity only: the compositor keeps them moving while scripts run. */
+      @keyframes loading-rise {
+        from {
+          transform: translateY(0);
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        to {
+          transform: translateY(-110vh);
+          opacity: 0;
+        }
+      }
+      @keyframes loading-ping {
+        from {
+          transform: scale(0.6);
+          opacity: 1;
+        }
+        to {
+          transform: scale(1.4);
+          opacity: 0;
+        }
+      }
+      @keyframes loading-float {
+        50% {
+          transform: translateY(-6px);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .loading__logo,
+        .loading__bubble,
+        .loading__step .loading__mark::after {
+          animation: none;
+        }
+      }
+    </style>
   </head>
   <body>
     <canvas id="aquarium"></canvas>
+    <div id="loading" class="loading" role="status" aria-live="polite">
+      <div aria-hidden="true">
+        <i class="loading__bubble"></i><i class="loading__bubble"></i><i class="loading__bubble"></i
+        ><i class="loading__bubble"></i><i class="loading__bubble"></i>
+      </div>
+      <div class="loading__content">
+        <img class="loading__logo" src="title.webp" alt="Aquaria" width="600" height="158" />
+        <ol class="loading__steps">
+          <li class="loading__step" data-step="scene" data-state="current">
+            <i class="loading__mark"></i><strong>Reading the scene</strong>
+            <span>The tank, the species and the plants are described in JSON files.</span>
+          </li>
+          <li class="loading__step" data-step="scenery" data-state="waiting">
+            <i class="loading__mark"></i><strong>Building the scenery</strong>
+            <span>Rocks, corals and plants are grown from their recipes.</span>
+          </li>
+          <li class="loading__step" data-step="models" data-state="waiting">
+            <i class="loading__mark"></i><strong>Loading the fish</strong>
+            <span>3D models and textures are downloaded and made ready to swim.</span>
+          </li>
+          <li class="loading__step" data-step="shaders" data-state="waiting">
+            <i class="loading__mark"></i><strong>Compiling shaders</strong>
+            <span>The graphics card turns water, light and skin into programs of its own.</span>
+          </li>
+          <li class="loading__step" data-step="frame" data-state="waiting">
+            <i class="loading__mark"></i><strong>Drawing the first frame</strong>
+            <span>Everything comes together for the first time.</span>
+          </li>
+        </ol>
+        <p class="loading__note">
+          Then the effects are fitted to this screen while the fish already swim.
+        </p>
+      </div>
+    </div>
     <script type="module" src="/src/app/main.ts"></script>
   </body>
 </html>
