@@ -59,36 +59,63 @@ function setup({
   const id = catalog.species[0]?.id ?? "";
   const shown = () =>
     renderer.object.children.filter((child) => child.visible).map((child) => child.name);
-  return { id, catalog, entries, loads, renderer, shown };
+  const species = catalog.species[0];
+  /** Puts one fish of the species with a model in the tank. */
+  const swim = () => {
+    renderer.update(species === undefined ? [] : [posedFish(species)]);
+  };
+  return { id, catalog, entries, loads, renderer, shown, swim };
 }
 
 describe("createFishRenderer", () => {
   it("draws the procedural body while the model loads", () => {
-    const { id, shown } = setup({ load: () => new Promise(() => undefined) });
+    const { id, shown, swim } = setup({ load: () => new Promise(() => undefined) });
+
+    swim();
 
     expect(shown()).toContain(id);
   });
 
-  it("switches a species to its 3D model once it has loaded", async () => {
-    const { id, renderer, shown } = setup();
+  it("does not download the model of a species with no fish in the tank", () => {
+    const { loads, renderer } = setup();
 
+    renderer.update([]);
+
+    expect(loads).toEqual([]);
+  });
+
+  it("downloads the model when the first fish of its species appears", () => {
+    const { loads, swim } = setup();
+
+    swim();
+
+    expect(loads).toHaveLength(1);
+  });
+
+  it("switches a species to its 3D model once it has loaded", async () => {
+    const { id, renderer, shown, swim } = setup();
+
+    swim();
     await renderer.settled();
 
     expect([shown().includes(`${id}/model`), shown().includes(id)]).toEqual([true, false]);
   });
 
   it("keeps the procedural body when the model fails to load, with a warning", async () => {
-    const { id, entries, renderer, shown } = setup({
+    const { id, entries, renderer, shown, swim } = setup({
       load: () => Promise.reject(new Error("404")),
     });
 
+    swim();
     await renderer.settled();
 
     expect([shown().includes(id), entries[0]?.level]).toEqual([true, "warn"]);
   });
 
   it("keeps the procedural body when the model has no manifest, with a warning", () => {
-    const { id, entries, shown } = setup({ manifests: new Map() });
+    const { id, entries, shown, swim } = setup({ manifests: new Map() });
+
+    swim();
 
     expect([shown().includes(id), entries[0]?.details]).toEqual([
       true,
@@ -97,13 +124,16 @@ describe("createFishRenderer", () => {
   });
 
   it("does not download models that are switched off", () => {
-    const { loads } = setup({ modelsOn: false });
+    const { loads, swim } = setup({ modelsOn: false });
+
+    swim();
 
     expect(loads).toEqual([]);
   });
 
   it("goes back to the procedural body when the model is switched off", async () => {
-    const { id, renderer, shown } = setup();
+    const { id, renderer, shown, swim } = setup();
+    swim();
     await renderer.settled();
 
     renderer.setModelEnabled(id, false);
@@ -112,7 +142,8 @@ describe("createFishRenderer", () => {
   });
 
   it("loads the model when it is switched on later", async () => {
-    const { id, renderer, shown } = setup({ modelsOn: false });
+    const { id, renderer, shown, swim } = setup({ modelsOn: false });
+    swim();
 
     renderer.setModelEnabled(id, true);
     await renderer.settled();
@@ -138,8 +169,9 @@ describe("walking models", () => {
     });
 
   it("draws a species whose model walks as one animated body per individual", async () => {
-    const { id, catalog, renderer, shown } = walkers();
+    const { id, catalog, renderer, shown, swim } = walkers();
     const species = catalog.species[0];
+    swim();
     await renderer.settled();
 
     renderer.update(species === undefined ? [] : [posedFish(species), posedFish(species)], 0.1);
@@ -154,7 +186,8 @@ describe("walking models", () => {
   });
 
   it("goes back to the procedural body when a walking model is switched off", async () => {
-    const { id, renderer, shown } = walkers();
+    const { id, renderer, shown, swim } = walkers();
+    swim();
     await renderer.settled();
 
     renderer.setModelEnabled(id, false);

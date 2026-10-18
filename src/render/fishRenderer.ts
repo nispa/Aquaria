@@ -107,8 +107,9 @@ export interface FishRenderer {
   /** Resolves when every model requested so far has loaded or failed. */
   settled(): Promise<void>;
   /**
-   * Draws a species with its 3D model (loaded on first use) or with its
-   * procedural body. Species without a model always use the procedural body.
+   * Draws a species with its 3D model or with its procedural body. The model
+   * is loaded when the first fish of the species is in the tank. Species
+   * without a model always use the procedural body.
    */
   setModelEnabled(speciesId: string, enabled: boolean): void;
   dispose(): void;
@@ -456,7 +457,6 @@ export function createFishRenderer(
       instances.procedural,
       createInstancedMesh(entry.id, geometry, material, instances),
     );
-    if (instances.wantModel) loadModel(instances);
   }
 
   const matrix = new Matrix4();
@@ -502,6 +502,9 @@ export function createFishRenderer(
         if (instances.walking !== undefined) instances.walkers.push(individual);
       }
       for (const instances of species.values()) {
+        // A model is prepared on the main thread, which stalls a phone for a
+        // second per species: only species in the tank pay for theirs.
+        if (instances.count > 0 && instances.wantModel) loadModel(instances);
         for (const mesh of instances.procedural) mesh.count = instances.count;
         for (const mesh of instances.model) mesh.count = instances.count;
         instances.matrices.needsUpdate = true;
@@ -520,7 +523,7 @@ export function createFishRenderer(
       const instances = species.get(speciesId);
       if (instances === undefined) return;
       instances.wantModel = enabled;
-      if (enabled) loadModel(instances);
+      if (enabled && instances.count > 0) loadModel(instances);
       showBody(instances);
     },
     dispose() {

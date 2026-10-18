@@ -327,6 +327,7 @@ async function start(): Promise<void> {
     requestAnimationFrame(tick);
   };
 
+  fish.update([individual]);
   await fish.settled();
   frame();
   fish.update([individual]);

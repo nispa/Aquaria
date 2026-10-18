@@ -522,14 +522,17 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   setLook(options.look);
 
   return {
-    ready: () =>
-      Promise.all([
+    ready: () => {
+      // Fish models load when their species is first drawn: ask for them now.
+      fish.update(simulation.fish);
+      return Promise.all([
         surfaces.settled(),
         fish.settled(),
         flora?.settled(),
         props?.settled(),
         visitors.settled(),
-      ]).then(() => undefined),
+      ]).then(() => undefined);
+    },
     setMsaa(samples) {
       msaaSamples = samples;
       buildPipeline(currentLook);
