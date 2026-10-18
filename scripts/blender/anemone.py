@@ -2,9 +2,10 @@
 
 Two species, one object each:
 
-- the magnificent anemone (Heteractis magnifica): a tall column, often
-  pink or magenta, and long, slender, finger-like tentacles that flow in
-  the current, sparse enough for a clownfish to swim through;
+- the magnificent anemone (Heteractis magnifica): a wide oral disc
+  crowded with hundreds of thick, finger-like tentacles with round tips,
+  upright in the middle and bending out at the rim, so the whole anemone
+  is a soft dome a clownfish dives into; golden, orange or pink;
 
 - the bubble-tip anemone (Entacmaea quadricolor): a short column flaring
 into an oral disc crowded with tentacles; each tentacle swells into a
@@ -37,11 +38,12 @@ from plantkit import VARIANT_SPACING, export, leaf_material, linear, mix, plant_
 SEED = 20261018
 # Sizes in disc radii; Aquaria scales the anemone to its height in the scene.
 COLUMN_RADIUS = 0.36
-DISC_RADIUS = 0.55
 TENTACLE_SIDES = 8
 TENTACLE_SEGMENTS = 12
 # Where along a tentacle its end starts to round off.
 ROUNDING = 0.82
+# Rings over a round finger tip.
+TIP_RINGS = 5
 
 # Each species: where it goes, how its tentacles grow (length, thickness at
 # the root and swelling of the bulb as ranges; how far the outer ones lean
@@ -51,6 +53,8 @@ SPECIES = [
     {
         "output": "public/assets/objects/bubble-tip-anemone/model.glb",
         "column_height": 0.16,
+        "disc_radius": 0.55,
+        "taper": 0.2,
         "tentacles": 90,
         "length": (0.38, 0.6),
         "thickness": (0.045, 0.058),
@@ -66,18 +70,21 @@ SPECIES = [
     },
     {
         "output": "public/assets/objects/magnificent-anemone/model.glb",
-        "column_height": 0.34,
-        "tentacles": 120,
-        "length": (0.95, 1.4),
-        "thickness": (0.022, 0.03),
-        "bulb": (1.0, 1.08),
-        "lean": (0.35, 0.95),
-        "rise": (1.0, 0.3),
-        "wave": 0.35,
+        "column_height": 0.22,
+        "disc_radius": 0.8,
+        "taper": 0.08,
+        "tentacles": 380,
+        "length": (0.5, 0.75),
+        "thickness": (0.05, 0.064),
+        "bulb": (1.0, 1.06),
+        "lean": (0.05, 0.95),
+        "rise": (1.0, 0.1),
+        "round_tip": True,
+        "wave": 0.22,
         "morphs": [
-            ("#c0386e", "#e08aa4", "#f0a0b8", "#ffe0ea"),
-            ("#a8205a", "#e6b0b8", "#f2c4c8", "#fff0e8"),
-            ("#b02860", "#f094b0", "#f8b0c8", "#fff4f0"),
+            ("#c08a28", "#d6a83c", "#ecc860", "#fff0b4"),
+            ("#d4500e", "#ec7420", "#ff9c3c", "#ffd488"),
+            ("#c0386e", "#ec88a8", "#ffa8c2", "#ffe6ee"),
         ],
     },
 ]
@@ -101,16 +108,16 @@ def bridge(mesh, lower, upper):
         mesh.faces.new((lower[k], lower[(k + 1) % count], upper[(k + 1) % count], upper[k]))
 
 
-def column_and_disc(mesh, colors, sway, morph, column_height):
+def column_and_disc(mesh, colors, sway, morph, column_height, disc_radius):
     """The column flaring into the oral disc, with the mouth in the middle."""
     column = linear(morph[0])
     disc = mix(linear(morph[1]), column, 0.35)
     profile = [
         (0.0, COLUMN_RADIUS, column),
         (column_height * 0.6, COLUMN_RADIUS * 0.92, column),
-        (column_height, DISC_RADIUS * 0.85, mix(column, disc, 0.5)),
-        (column_height * 1.05, DISC_RADIUS, disc),
-        (column_height * 1.08, DISC_RADIUS * 0.5, disc),
+        (column_height, disc_radius * 0.85, mix(column, disc, 0.5)),
+        (column_height * 1.05, disc_radius, disc),
+        (column_height * 1.08, disc_radius * 0.5, disc),
         (column_height * 1.02, 0.06, column),
     ]
     rings = []
@@ -140,13 +147,20 @@ def tentacle(mesh, colors, sway, rng, species, morph, root, out):
     rise, curl = species["rise"]
     wiggle = Vector((rng.uniform(-0.2, 0.2), rng.uniform(-0.2, 0.2), 0))
     wave = species["wave"]
+    # A finger's end is a half sphere as long as the finger is thick.
+    rounding = 1 - base_radius / length if species.get("round_tip") else ROUNDING
     phase = rng.uniform(0, math.tau) if wave > 0 else 0.0
     side = Vector((-root.y, root.x, 0)).normalized() if root.length > 1e-6 else Vector((0, 1, 0))
     direction = Vector((root.x, root.y, 0)).normalized() if root.length > 1e-6 else Vector((1, 0, 0))
     previous = None
     position = root.copy()
-    for i in range(TENTACLE_SEGMENTS + 1):
-        t = i / TENTACLE_SEGMENTS
+    steps = [i / TENTACLE_SEGMENTS for i in range(TENTACLE_SEGMENTS + 1)]
+    if species.get("round_tip"):
+        # Rings close together over the half sphere, so the end is round.
+        steps = [t for t in steps if t < rounding] + [
+            rounding + (1 - rounding) * math.sin(k / TIP_RINGS * math.pi / 2) for k in range(TIP_RINGS + 1)
+        ]
+    for i, t in enumerate(steps):
         # Long tentacles wave gently from side to side along their length.
         waving = side * (wave * math.sin(t * 5.0 + phase) * t)
         heading = (
@@ -154,8 +168,9 @@ def tentacle(mesh, colors, sway, rng, species, morph, root, out):
         ).normalized()
         # Slim at the root, a bulb around 75 %, then a rounded, blunt end.
         swell = 1 + (bulb - 1) * math.exp(-(((t - 0.75) / 0.12) ** 2))
-        end = math.sqrt(max(1 - ((t - ROUNDING) / (1 - ROUNDING)) ** 2, 0.0)) if t > ROUNDING else 1.0
-        radius = base_radius * swell * (1.0 - 0.2 * t) * max(end, 0.25)
+        end = math.sqrt(max(1 - ((t - rounding) / (1 - rounding)) ** 2, 0.0)) if t > rounding else 1.0
+        smallest = 0.0 if species.get("round_tip") else 0.25
+        radius = base_radius * swell * (1.0 - species["taper"] * t) * max(end, smallest)
         points = ring(mesh, position, heading, radius, TENTACLE_SIDES, phase=i * 0.4)
         color = ramp(stops, t)
         for point in points:
@@ -164,8 +179,14 @@ def tentacle(mesh, colors, sway, rng, species, morph, root, out):
         if previous is not None:
             bridge(mesh, previous, points)
         previous = points
+        if i + 1 < len(steps):
+            position = position + heading * (length * (steps[i + 1] - t))
+    # A round end closes on its last ring; the others come to a short point.
+    if species.get("round_tip"):
+        cap = mesh.verts.new(position)
+    else:
         position = position + heading * (length / TENTACLE_SEGMENTS)
-    cap = mesh.verts.new(position - heading * (length / TENTACLE_SEGMENTS) * 0.6)
+        cap = mesh.verts.new(position - heading * (length / TENTACLE_SEGMENTS) * 0.6)
     colors[cap] = ramp(stops, 1.0)
     sway[cap] = 1.0
     for k in range(TENTACLE_SIDES):
@@ -177,12 +198,13 @@ def build_anemone(rng, offset, species, morph, material, name):
     colors = {}
     sway = {}
     column_height = species["column_height"]
-    column_and_disc(mesh, colors, sway, morph, column_height)
+    disc_radius = species["disc_radius"]
+    column_and_disc(mesh, colors, sway, morph, column_height, disc_radius)
     count = species["tentacles"]
     for index in range(count):
         # Spread over the disc like sunflower seeds, leaving the mouth bare.
         share = (index + 0.5) / count
-        distance = DISC_RADIUS * (0.25 + 0.72 * math.sqrt(share))
+        distance = disc_radius * (0.25 + 0.72 * math.sqrt(share))
         angle = index * 2.39996 + rng.uniform(-0.1, 0.1)
         root = Vector((math.cos(angle) * distance, math.sin(angle) * distance, column_height * 1.05))
         tentacle(mesh, colors, sway, rng, species, morph, root, out=math.sqrt(share))
