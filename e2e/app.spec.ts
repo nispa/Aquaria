@@ -245,7 +245,8 @@ test("remembers effect choices after a reload", async ({ page }) => {
 test("changes the scenery from the panel", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await openLive(page);
+  // A scene with brain coral: the default one may change.
+  await openLive(page, "?scene=aquaria&effects=none");
   await waitForState(page);
   await page.keyboard.press("h");
   await openSection(page, "scenery");
