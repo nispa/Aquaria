@@ -5,7 +5,12 @@ import { catalogFixture, sceneFixture } from "../scene/fixtures";
 import { parseModelManifest, type ModelManifest } from "../scene/modelManifest";
 import { parseCatalog, parseScene } from "../scene/parse";
 import { posedFish } from "./fishPortraits";
-import { createFishRenderer, type AnimatedModelLoader, type FishModelLoader } from "./fishRenderer";
+import {
+  createFishRenderer,
+  modelMaterial,
+  type AnimatedModelLoader,
+  type FishModelLoader,
+} from "./fishRenderer";
 import { createWaterUniforms } from "./uniforms";
 
 const manifest = parseModelManifest(
@@ -201,5 +206,23 @@ describe("walking models", () => {
     renderer.setModelEnabled(id, false);
 
     expect([shown().includes(id), shown().includes(`${id}/animated`)]).toEqual([true, false]);
+  });
+});
+
+describe("modelMaterial", () => {
+  const water = createWaterUniforms(parseScene(sceneFixture(), parseCatalog(catalogFixture())));
+  /** What the glTF loader makes of a material exported with alphaMode BLEND. */
+  const blended = () => new MeshStandardMaterial({ transparent: true, depthWrite: false });
+
+  it("writes depth for a model exported as blended, so depth effects do not hide it", () => {
+    const material = modelMaterial(blended(), manifest, water);
+
+    expect(material.depthWrite).toBe(true);
+  });
+
+  it("discards the clear texels of a model's texture, so cut-out fins do not hide what is behind", () => {
+    const material = modelMaterial(blended(), manifest, water);
+
+    expect(material.alphaTest).toBeGreaterThan(0);
   });
 });

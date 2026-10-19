@@ -41,6 +41,8 @@ import { createWalkingBodies, type WalkingBodies } from "./walkingBodies";
 /** Strength of the skin's rainbow sheen, 0..1. */
 const IRIDESCENCE = 0.35;
 const MATRIX_SIZE = 16;
+/** Texels this clear (alpha, 0..1) are cut away: the gaps around a model's painted fins. */
+const CLEAR_TEXEL = 0.05;
 
 /** Loads a glTF file and returns its scene; injected so tests run without a browser. */
 export type FishModelLoader = (url: string) => Promise<Object3D>;
@@ -271,6 +273,10 @@ export function modelMaterial(
 ): Material {
   const copy = material.clone();
   copy.transparent = true;
+  // A model exported as blended comes without depth writes: depth effects
+  // then take the fish for open water and its own faces show through.
+  copy.depthWrite = true;
+  copy.alphaTest = Math.max(copy.alphaTest, CLEAR_TEXEL);
   return patchMaterial(copy, [
     fishInstancePatch(),
     ...facePatches(manifest, water),
