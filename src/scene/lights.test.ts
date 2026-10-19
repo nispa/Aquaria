@@ -22,8 +22,16 @@ describe("lights", () => {
     expect(channels.accent.level).toBe(0);
   });
 
-  it("keeps the hour the aquarium was started at, so the light matches the room", () => {
-    expect(RECOMMENDED_LIGHTS.cycle.mode).toBe("startup");
+  it("shows the tank at one o'clock in the afternoon, whatever the time it is opened", () => {
+    const { mode, hour } = RECOMMENDED_LIGHTS.cycle;
+
+    expect([mode, hour]).toEqual(["fixed", 13]);
+  });
+
+  it("starts the day at six and ends it at seven in the evening", () => {
+    const { sunrise, sunset } = RECOMMENDED_LIGHTS.cycle;
+
+    expect([sunrise, sunset]).toEqual([6, 19]);
   });
 
   it("rejects hours outside the day", () => {

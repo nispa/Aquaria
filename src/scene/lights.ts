@@ -64,13 +64,13 @@ export const customLightsSchema = z.object({
        * fixed: always `hour`. clock: follows the local time. accelerated: a
        * whole day every `minutes`, starting from `hour`.
        */
-      mode: z.enum(["startup", "fixed", "clock", "accelerated"]).default("startup"),
+      mode: z.enum(["startup", "fixed", "clock", "accelerated"]).default("fixed"),
       hour: hour.default(13),
       minutes: z.number().min(1).max(MINUTES_PER_DAY).default(10),
       /** White and violet reach full level after the ramp that starts here. */
-      sunrise: hour.default(9),
+      sunrise: hour.default(6),
       /** White and violet are off by here. */
-      sunset: hour.default(21),
+      sunset: hour.default(19),
       /** Length of dawn and dusk, hours; blue runs one ramp longer at each end. */
       ramp: z.number().min(0.1).max(MAX_RAMP_HOURS).default(1.5),
     })

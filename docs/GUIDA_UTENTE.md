@@ -59,14 +59,14 @@ scena. Appena tocchi un comando passano a **Custom**.
 
 **Time** decide che ora è nella vasca:
 
-- _Hour at start_ (di partenza): l'ora in cui hai aperto l'acquario, poi
-  resta ferma.
-- _Fixed hour_: sempre l'ora che scegli.
+- _Hour at start_: l'ora in cui hai aperto l'acquario, poi resta ferma.
+- _Fixed hour_ (di partenza, le 13): sempre l'ora che scegli.
 - _Real clock_: segue l'orologio del computer.
 - _Accelerated day_: una giornata intera nei minuti che scegli.
 
-Puoi anche regolare alba, tramonto e quanto durano. Il blu si accende un
-po' prima del bianco e si spegne un po' dopo, come sulle barriere vere.
+Puoi anche regolare alba (all'inizio alle 6), tramonto (alle 19) e quanto
+durano. Il blu si accende un po' prima del bianco e si spegne un po' dopo,
+come sulle barriere vere.
 
 **Lights** sceglie la lampada (il cielo aperto, oppure una fila di faretti
 LED sopra l'acqua, e quanti), il colore e l'intensità di ogni canale, e la

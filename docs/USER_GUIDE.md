@@ -58,15 +58,14 @@ soon as you touch a control they switch to **Custom**.
 
 **Time** decides what hour it is in the tank:
 
-- _Hour at start_ (the default): the hour you opened the aquarium, then it
-  stays there.
-- _Fixed hour_: always the hour you choose.
+- _Hour at start_: the hour you opened the aquarium, then it stays there.
+- _Fixed hour_ (the default, 13:00): always the hour you choose.
 - _Real clock_: follows the time on your computer.
 - _Accelerated day_: a whole day in the minutes you choose.
 
-You can also set sunrise, sunset and how long dawn and dusk last. The blue
-comes on a little before the white and goes off a little after, as on real
-reefs.
+You can also set sunrise (6:00 at first), sunset (19:00) and how long dawn
+and dusk last. The blue comes on a little before the white and goes off a
+little after, as on real reefs.
 
 **Lights** sets the fixture (the open sky, or a row of LED spots over the
 water, with how many), the color and level of each channel, and the
