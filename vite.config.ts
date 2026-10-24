@@ -6,6 +6,7 @@ import type { Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vitest/config";
 import { assetCacheName, HASHED_BUILD_FILE } from "./src/core/assetCache";
+import { fishMakerServer } from "./scripts/fishMakerServer";
 
 /**
  * Serves (dev) and emits (build) Three.js' Basis transcoder under basis/, so
@@ -124,7 +125,7 @@ export default defineConfig({
     "import.meta.env.APP_COMMIT": JSON.stringify(appCommit()),
     "import.meta.env.APP_ASSET_CACHE": JSON.stringify(assetCacheName(BUILD)),
   },
-  plugins: [basisTranscoder(), installableApp()],
+  plugins: [basisTranscoder(), installableApp(), fishMakerServer()],
   build: {
     target: "es2022",
     sourcemap: true,

@@ -3,7 +3,7 @@
   "description": "A royal gramma (Gramma loreto): a small, oval body with a blunt head and a big eye, the front half violet-magenta and the back half yellow meeting in a soft, slanted band, a thin black line through the eye and a black spot at the front of the long dorsal fin, long violet pelvic fins.",
   "body": {
     "top": [
-      [0.36, 0.0],
+      [0.36, 0],
       [0.34, 0.05],
       [0.3, 0.09],
       [0.22, 0.13],
@@ -88,7 +88,7 @@
         [-0.26, 0.06],
         [-0.37, 0.11],
         [-0.46, 0.12],
-        [-0.44, 0.0],
+        [-0.44, 0],
         [-0.46, -0.12],
         [-0.37, -0.11],
         [-0.26, -0.06]
@@ -123,12 +123,12 @@
     "size": 1024,
     "ownStep": 8,
     "parts": {
-      "body": [0.0, 0.0, 1.0, 0.42],
-      "caudal": [0.0, 0.44, 0.36, 0.3],
+      "body": [0, 0, 1, 0.42],
+      "caudal": [0, 0.44, 0.36, 0.3],
       "dorsal": [0.38, 0.44, 0.62, 0.3],
       "anal": [0.38, 0.76, 0.4, 0.2],
       "pelvic": [0.8, 0.76, 0.1, 0.16],
-      "pectoral": [0.0, 0.76, 0.12, 0.1]
+      "pectoral": [0, 0.76, 0.12, 0.1]
     }
   },
   "materials": {
@@ -138,11 +138,11 @@
     },
     "fins": {
       "roughness": 0.5,
-      "metallic": 0.0
+      "metallic": 0
     },
     "eyes": {
       "roughness": 0.05,
-      "metallic": 0.0
+      "metallic": 0
     }
   },
   "strains": [

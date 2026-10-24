@@ -9,7 +9,7 @@
       [0.25, 0.078],
       [0.18, 0.095],
       [0.08, 0.1],
-      [0.0, 0.088],
+      [0, 0.088],
       [-0.06, 0.066],
       [-0.1, 0.05]
     ],
@@ -20,7 +20,7 @@
       [0.25, -0.075],
       [0.16, -0.1],
       [0.06, -0.1],
-      [0.0, -0.082],
+      [0, -0.082],
       [-0.06, -0.058],
       [-0.1, -0.045]
     ],
@@ -45,8 +45,15 @@
     "irisEdge": [55, 65],
     "pupilEdge": [30, 36]
   },
-  "mouth": { "reach": 0.05, "drop": 0.02 },
-  "gills": { "edge": 0.182, "top": 0.062, "bottom": -0.062 },
+  "mouth": {
+    "reach": 0.05,
+    "drop": 0.02
+  },
+  "gills": {
+    "edge": 0.182,
+    "top": 0.062,
+    "bottom": -0.062
+  },
   "fins": [
     {
       "id": "caudal",
@@ -59,7 +66,7 @@
         [-0.4, 0.225],
         [-0.47, 0.25],
         [-0.5, 0.12],
-        [-0.505, 0.0],
+        [-0.505, 0],
         [-0.5, -0.12],
         [-0.47, -0.25],
         [-0.4, -0.225],
@@ -97,7 +104,7 @@
         [-0.055, -0.095]
       ],
       "steps": [40, 24],
-      "bulge": 0.0
+      "bulge": 0
     },
     {
       "id": "pectoral",
@@ -112,17 +119,26 @@
     "size": 1024,
     "ownStep": 4,
     "parts": {
-      "body": [0.0, 0.0, 1.0, 0.42],
-      "caudal": [0.0, 0.44, 0.62, 0.56],
+      "body": [0, 0, 1, 0.42],
+      "caudal": [0, 0.44, 0.62, 0.56],
       "dorsal": [0.64, 0.44, 0.36, 0.3],
       "gonopodium": [0.64, 0.76, 0.12, 0.1],
       "pectoral": [0.78, 0.76, 0.1, 0.1]
     }
   },
   "materials": {
-    "skin": { "roughness": 0.42, "metallic": 0.1 },
-    "fins": { "roughness": 0.5, "metallic": 0.0 },
-    "eyes": { "roughness": 0.05, "metallic": 0.0 }
+    "skin": {
+      "roughness": 0.42,
+      "metallic": 0.1
+    },
+    "fins": {
+      "roughness": 0.5,
+      "metallic": 0
+    },
+    "eyes": {
+      "roughness": 0.05,
+      "metallic": 0
+    }
   },
   "finPaint": {
     "pectoral": {
@@ -141,27 +157,56 @@
       "id": "half-black-red",
       "name": "Half Black Red",
       "body": [
-        { "type": "fill", "color": "#d8d2ca" },
-        { "type": "patch", "color": "#a8a296", "bands": [{ "axis": "up", "range": [0.1, 0.85] }] },
+        {
+          "type": "fill",
+          "color": "#d8d2ca"
+        },
+        {
+          "type": "patch",
+          "color": "#a8a296",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [0.1, 0.85]
+            }
+          ]
+        },
         {
           "type": "patch",
           "color": "#efe9e2",
-          "bands": [{ "axis": "up", "range": [-0.2, -0.85] }]
+          "bands": [
+            {
+              "axis": "up",
+              "range": [-0.2, -0.85]
+            }
+          ]
         },
         {
           "type": "patch",
           "color": "#e8ecef",
           "amount": 0.35,
           "bands": [
-            { "axis": "x", "range": [0.162, 0.202] },
-            { "axis": "absZ", "range": [0.03, 0.08], "invert": true }
+            {
+              "axis": "x",
+              "range": [0.162, 0.202]
+            },
+            {
+              "axis": "absZ",
+              "range": [0.03, 0.08],
+              "invert": true
+            }
           ]
         },
         {
           "type": "patch",
           "color": "#e6c3bd",
           "amount": 0.25,
-          "bands": [{ "axis": "x", "range": [0.3, 0.1] }]
+          "bands": [
+            {
+              "axis": "x",
+              "range": [0.3, 0.1]
+            }
+          ]
         },
         {
           "type": "edge",
@@ -169,9 +214,18 @@
           "at": 0.08,
           "width": 0.03,
           "below": 0.25,
-          "noise": { "z": 40, "x": 10, "seed": 3, "amount": -0.03 }
+          "noise": {
+            "z": 40,
+            "x": 10,
+            "seed": 3,
+            "amount": -0.03
+          }
         },
-        { "type": "scales", "size": 0.016, "rim": 0.07 }
+        {
+          "type": "scales",
+          "size": 0.016,
+          "rim": 0.07
+        }
       ],
       "fins": {
         "caudal": {
@@ -210,27 +264,56 @@
       "id": "blue-grass",
       "name": "Blue Grass",
       "body": [
-        { "type": "fill", "color": "#b8c4cc" },
-        { "type": "patch", "color": "#7f8c96", "bands": [{ "axis": "up", "range": [0.1, 0.85] }] },
+        {
+          "type": "fill",
+          "color": "#b8c4cc"
+        },
+        {
+          "type": "patch",
+          "color": "#7f8c96",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [0.1, 0.85]
+            }
+          ]
+        },
         {
           "type": "patch",
           "color": "#e6eaec",
-          "bands": [{ "axis": "up", "range": [-0.2, -0.85] }]
+          "bands": [
+            {
+              "axis": "up",
+              "range": [-0.2, -0.85]
+            }
+          ]
         },
         {
           "type": "patch",
           "color": "#e8ecef",
           "amount": 0.35,
           "bands": [
-            { "axis": "x", "range": [0.162, 0.202] },
-            { "axis": "absZ", "range": [0.03, 0.08], "invert": true }
+            {
+              "axis": "x",
+              "range": [0.162, 0.202]
+            },
+            {
+              "axis": "absZ",
+              "range": [0.03, 0.08],
+              "invert": true
+            }
           ]
         },
         {
           "type": "patch",
           "color": "#6fa8d8",
           "amount": 0.35,
-          "bands": [{ "axis": "x", "range": [0.25, 0.05] }]
+          "bands": [
+            {
+              "axis": "x",
+              "range": [0.25, 0.05]
+            }
+          ]
         },
         {
           "type": "edge",
@@ -238,9 +321,18 @@
           "at": 0.08,
           "width": 0.03,
           "below": 0.25,
-          "noise": { "z": 40, "x": 10, "seed": 3, "amount": -0.03 }
+          "noise": {
+            "z": 40,
+            "x": 10,
+            "seed": 3,
+            "amount": -0.03
+          }
         },
-        { "type": "scales", "size": 0.016, "rim": 0.07 }
+        {
+          "type": "scales",
+          "size": 0.016,
+          "rim": 0.07
+        }
       ],
       "fins": {
         "caudal": {
@@ -301,29 +393,62 @@
       "id": "full-red",
       "name": "Full Red",
       "body": [
-        { "type": "fill", "color": "#d4262c" },
-        { "type": "patch", "color": "#a8161c", "bands": [{ "axis": "up", "range": [0.1, 0.85] }] },
+        {
+          "type": "fill",
+          "color": "#d4262c"
+        },
+        {
+          "type": "patch",
+          "color": "#a8161c",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [0.1, 0.85]
+            }
+          ]
+        },
         {
           "type": "patch",
           "color": "#e8705e",
-          "bands": [{ "axis": "up", "range": [-0.2, -0.85] }]
+          "bands": [
+            {
+              "axis": "up",
+              "range": [-0.2, -0.85]
+            }
+          ]
         },
         {
           "type": "patch",
           "color": "#e6d6cf",
           "amount": 0.85,
-          "bands": [{ "axis": "x", "range": [0.142, 0.222] }]
+          "bands": [
+            {
+              "axis": "x",
+              "range": [0.142, 0.222]
+            }
+          ]
         },
         {
           "type": "patch",
           "color": "#e8ecef",
           "amount": 0.35,
           "bands": [
-            { "axis": "x", "range": [0.162, 0.202] },
-            { "axis": "absZ", "range": [0.03, 0.08], "invert": true }
+            {
+              "axis": "x",
+              "range": [0.162, 0.202]
+            },
+            {
+              "axis": "absZ",
+              "range": [0.03, 0.08],
+              "invert": true
+            }
           ]
         },
-        { "type": "scales", "size": 0.016, "rim": 0.07 }
+        {
+          "type": "scales",
+          "size": 0.016,
+          "rim": 0.07
+        }
       ],
       "fins": {
         "caudal": {
@@ -362,20 +487,44 @@
       "id": "yellow-cobra",
       "name": "Yellow Cobra",
       "body": [
-        { "type": "fill", "color": "#c9b84a" },
-        { "type": "patch", "color": "#8d8a34", "bands": [{ "axis": "up", "range": [0.1, 0.85] }] },
+        {
+          "type": "fill",
+          "color": "#c9b84a"
+        },
+        {
+          "type": "patch",
+          "color": "#8d8a34",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [0.1, 0.85]
+            }
+          ]
+        },
         {
           "type": "patch",
           "color": "#ece2a8",
-          "bands": [{ "axis": "up", "range": [-0.2, -0.85] }]
+          "bands": [
+            {
+              "axis": "up",
+              "range": [-0.2, -0.85]
+            }
+          ]
         },
         {
           "type": "patch",
           "color": "#e8ecef",
           "amount": 0.35,
           "bands": [
-            { "axis": "x", "range": [0.162, 0.202] },
-            { "axis": "absZ", "range": [0.03, 0.08], "invert": true }
+            {
+              "axis": "x",
+              "range": [0.162, 0.202]
+            },
+            {
+              "axis": "absZ",
+              "range": [0.03, 0.08],
+              "invert": true
+            }
           ]
         },
         {
@@ -385,9 +534,18 @@
           "seed": 11,
           "width": [0.012, 0.03],
           "amount": 0.75,
-          "where": [{ "axis": "up", "range": [-0.7, -0.2] }]
+          "where": [
+            {
+              "axis": "up",
+              "range": [-0.7, -0.2]
+            }
+          ]
         },
-        { "type": "scales", "size": 0.016, "rim": 0.07 }
+        {
+          "type": "scales",
+          "size": 0.016,
+          "rim": 0.07
+        }
       ],
       "fins": {
         "caudal": {
