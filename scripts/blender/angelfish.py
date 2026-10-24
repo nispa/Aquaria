@@ -35,6 +35,7 @@ from fishkit import (  # noqa: E402
     body_fin,
     export,
     eyeball,
+    fan_edge,
     linear,
     make_object,
     material,
@@ -178,10 +179,7 @@ def pectoral(side):
     def base(u):
         return root + Vector((-0.008 * u, 0, 0.06 * (u - 0.5)))
 
-    def edge(u):
-        return root + Vector((-0.12, 0, 0.08 * (u - 0.5) - 0.025))
-
-    return pectoral_fin(BODY, ROUNDNESS, side, base, edge, rayed(10), steps_u=40, steps_v=8)
+    return pectoral_fin(BODY, ROUNDNESS, side, base, fan_edge(root, 0.12, 20, -40), rayed(10), steps_u=40, steps_v=8)
 
 
 def eye_centre(side):

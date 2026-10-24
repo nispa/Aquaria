@@ -33,12 +33,14 @@ from fishkit import (  # noqa: E402
     body_fin,
     export,
     eyeball,
+    fan_edge,
     linear,
     make_object,
     material,
     membrane,
     mix,
     pectoral_fin,
+    rayed_fin,
     rig,
     smoothstep,
     tail_fin,
@@ -153,10 +155,12 @@ def pelvic(side):
     def base(u):
         return root + Vector((-0.02 * u, 0, 0))
 
-    def edge(u):
-        return root + Vector((-0.05 - 0.015 * u, side * 0.012, -0.045 + 0.01 * u))
+    fan = fan_edge(root, 0.05, -20, -70)
 
-    return membrane(base, edge, lambda u, v, p: linear(BELLY, 0.55), steps_u=12, steps_v=6)
+    def edge(u):
+        return fan(u) + Vector((0, side * 0.012, 0))
+
+    return membrane(base, edge, rayed_fin(BELLY, 5, 0.6, 0.3), steps_u=16, steps_v=6)
 
 
 def pectoral(side):
@@ -165,10 +169,7 @@ def pectoral(side):
     def base(u):
         return root + Vector((-0.004 * u, 0, 0.04 * (u - 0.5)))
 
-    def edge(u):
-        return root + Vector((-0.07, 0, 0.045 * (u - 0.5) - 0.015))
-
-    return pectoral_fin(BODY, ROUNDNESS, side, base, edge, lambda u, v, p: linear(BELLY, 0.3))
+    return pectoral_fin(BODY, ROUNDNESS, side, base, fan_edge(root, 0.072, 20, -40), rayed_fin(BELLY, 7, 0.55, 0.18))
 
 
 def eye_centre(side):

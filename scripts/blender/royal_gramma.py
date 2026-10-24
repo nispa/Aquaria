@@ -32,12 +32,14 @@ from fishkit import (  # noqa: E402
     body_fin,
     export,
     eyeball,
+    fan_edge,
     linear,
     make_object,
     material,
     membrane,
     mix,
     pectoral_fin,
+    rayed_fin,
     rig,
     smoothstep,
     tail_fin,
@@ -53,6 +55,7 @@ EYE_RADIUS = 0.034
 # Colors, sRGB.
 VIOLET = "#8a2bd8"
 MAGENTA = "#b23ad0"
+PALE_VIOLET = "#ecc8ff"
 YELLOW = "#ffc21a"
 GOLD = "#f2a40c"
 BLACK = "#121212"
@@ -153,10 +156,12 @@ def pelvic(side):
     def base(u):
         return root + Vector((-0.04 * u, 0, 0.01 * u))
 
-    def edge(u):
-        return root + Vector((-0.09 - 0.03 * u, side * 0.015, -0.1 + 0.04 * u))
+    fan = fan_edge(root, 0.13, -38, -62, roundness=0.6)
 
-    return membrane(base, edge, lambda u, v, p: linear(VIOLET, 0.8 - 0.3 * v), steps_u=12, steps_v=12)
+    def edge(u):
+        return fan(u) + Vector((0, side * 0.015, 0))
+
+    return membrane(base, edge, rayed_fin(VIOLET, 4, 0.85, 0.5), steps_u=16, steps_v=12)
 
 
 def pectoral(side):
@@ -165,10 +170,7 @@ def pectoral(side):
     def base(u):
         return root + Vector((-0.005 * u, 0, 0.05 * (u - 0.5)))
 
-    def edge(u):
-        return root + Vector((-0.1, 0, 0.06 * (u - 0.5) - 0.02))
-
-    return pectoral_fin(BODY, ROUNDNESS, side, base, edge, lambda u, v, p: linear(MAGENTA, 0.3))
+    return pectoral_fin(BODY, ROUNDNESS, side, base, fan_edge(root, 0.1, 20, -40), rayed_fin(PALE_VIOLET, 8, 0.45, 0.12))
 
 
 def eye_centre(side):

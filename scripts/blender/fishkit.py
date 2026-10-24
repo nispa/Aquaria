@@ -200,6 +200,41 @@ def pectoral_fin(body, roundness, side, base, edge, color, lean=30, steps_u=24, 
     return membrane(on_skin, out, color, steps_u=steps_u, steps_v=steps_v)
 
 
+def fan_edge(root, length, top_angle, bottom_angle, roundness=0.45):
+    """The rounded edge of a fan-shaped fin spreading back from root, u from its lowest ray to its highest.
+
+    Angles are degrees above the backward direction; the middle rays are
+    the longest and the outer ones `1 - roundness` of them, so the edge is
+    a soft arc rather than the straight cut of a sheet.
+    """
+
+    def edge(u):
+        angle = math.radians(bottom_angle + (top_angle - bottom_angle) * u)
+        reach = length * (1 - roundness + roundness * math.sin(math.pi * u))
+        return root + Vector((-math.cos(angle) * reach, 0, math.sin(angle) * reach))
+
+    return edge
+
+
+def rayed_fin(tint, rays, root_alpha=0.6, edge_alpha=0.25, ray_strength=0.4, edge_color=None):
+    """See-through fin colors: a tinted web, clearer towards the edge, with soft rays along v.
+
+    The rays stay faint: fine, high-contrast stripes flicker into a moire
+    pattern once the fish is small on screen. `edge_color`, if given, tints
+    the last third of the fin (a dark or pale rim).
+    """
+
+    def color(u, v, p):
+        ray = (0.5 + 0.5 * math.cos(u * rays * 2 * math.pi)) ** 3
+        alpha = root_alpha + (edge_alpha - root_alpha) * smoothstep(0.2, 1.0, v)
+        web = linear(tint, alpha)
+        if edge_color is not None:
+            web = mix(web, linear(edge_color, alpha), smoothstep(0.6, 1.0, v))
+        return mix(web, linear(tint, min(alpha + 0.3, 1.0)), ray * ray_strength)
+
+    return color
+
+
 def body_fin(body, start_x, end_x, outline, upper, color, steps_u=240, bulge=0.006):
     """A fin along the body's top or bottom from start_x back to end_x, out to a traced, rounded outline."""
     points = rounded(
