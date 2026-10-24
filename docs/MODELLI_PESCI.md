@@ -260,6 +260,11 @@ che stampa sta oltre il punto più largo della pelle nel riquadro della
 pinna, di quanto Aquaria sfuma la pinna nel corpo, così il fianco non si
 muove mai con la pinna.
 
+Un pesce con un aspetto solo si dipinge allo stesso modo, senza
+colorazioni: royal gramma, angelfish e sardina mettono la loro unica
+texture dentro `model.glb`, compressa in WebP con `--texture-compress webp`
+nel comando `optimize` qui sopra.
+
 ## Animali che camminano
 
 Sui pesci Aquaria non riproduce animazioni: disegna un branco intero in un

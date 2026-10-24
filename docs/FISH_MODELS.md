@@ -254,6 +254,11 @@ fish frame changes whenever the outline does. The pectoral `side` it
 prints sits beyond the widest skin in the fin's box by the width Aquaria
 blends a fin into the body, so the flank never swings with the fin.
 
+A fish with a single look paints the same way without colorings: the
+royal gramma, the angelfish and the sardine put their one texture inside
+`model.glb`, compressed to WebP with `--texture-compress webp` in the
+`optimize` command above.
+
 ## Animals that walk
 
 Aquaria does not play animations on fish: it draws a whole school in one

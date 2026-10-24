@@ -264,8 +264,8 @@ def rayed_fin(tint, rays, root_alpha=0.6, edge_alpha=0.25, ray_strength=0.4, edg
     return color
 
 
-def body_fin(body, start_x, end_x, outline, upper, color, steps_u=240, bulge=0.006, uv=None):
-    """A fin along the body's top or bottom from start_x back to end_x, out to a traced, rounded outline."""
+def body_fin_curves(body, start_x, end_x, outline, upper):
+    """The base and the edge of a fin along the body's top or bottom (see body_fin), as functions of u."""
     points = rounded(
         [tuple(body.edge(start_x, upper))] + [(x, 0.0, z) for x, z in outline] + [tuple(body.edge(end_x, upper))]
     )
@@ -276,11 +276,17 @@ def body_fin(body, start_x, end_x, outline, upper, color, steps_u=240, bulge=0.0
     def edge(u):
         return polyline_point(points, u)
 
+    return base, edge
+
+
+def body_fin(body, start_x, end_x, outline, upper, color, steps_u=240, bulge=0.006, uv=None):
+    """A fin along the body's top or bottom from start_x back to end_x, out to a traced, rounded outline."""
+    base, edge = body_fin_curves(body, start_x, end_x, outline, upper)
     return membrane(base, edge, color, steps_u=steps_u, bulge=bulge, uv=uv)
 
 
-def tail_fin(root, base_height, outline, color, steps_u=200, steps_v=24, bulge=0.004, ruffle=0.0, uv=None):
-    """The caudal fin: from a short vertical base at root out to a traced, rounded outline."""
+def tail_fin_curves(root, base_height, outline):
+    """The base and the edge of a caudal fin (see tail_fin), as functions of u."""
     points = rounded(outline)
 
     def base(u):
@@ -289,6 +295,12 @@ def tail_fin(root, base_height, outline, color, steps_u=200, steps_v=24, bulge=0
     def edge(u):
         return polyline_point(points, u)
 
+    return base, edge
+
+
+def tail_fin(root, base_height, outline, color, steps_u=200, steps_v=24, bulge=0.004, ruffle=0.0, uv=None):
+    """The caudal fin: from a short vertical base at root out to a traced, rounded outline."""
+    base, edge = tail_fin_curves(root, base_height, outline)
     return membrane(base, edge, color, steps_u=steps_u, steps_v=steps_v, bulge=bulge, ruffle=ruffle, uv=uv)
 
 

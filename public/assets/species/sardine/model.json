@@ -17,6 +17,21 @@
     "bottom": -0.06,
     "curve": 4
   },
+  "fins": {
+    "pectoral": {
+      "root": [
+        [0.305, -0.023],
+        [0.31, -0.057]
+      ],
+      "side": 0.079,
+      "front": 0.321,
+      "back": 0.203,
+      "top": -0.011,
+      "bottom": -0.084,
+      "rest": 30,
+      "sweep": 35
+    }
+  },
   "credit": {
     "author": "Aquaria (scripts/blender/sardine.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/sardine.py",

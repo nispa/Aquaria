@@ -232,7 +232,7 @@ def save_webp(pixels, path, quality=90):
 PECTORAL_JOIN = 0.017
 
 
-def print_manifest_values(objects, body, roundness, pectoral_part, pectoral_base, gill_edge_x, gill_top, gill_bottom):
+def print_manifest_values(objects, body, roundness, pectoral_part, pectoral_base, gill_edge_x=None, gill_top=None, gill_bottom=None):
     """Prints the fish-frame numbers model.json needs for the gills and the pectoral fins (Blender x, z in).
 
     The fin's `side` is set beyond the widest skin inside its box by the
@@ -250,7 +250,8 @@ def print_manifest_values(objects, body, roundness, pectoral_part, pectoral_base
     side = float(widest) / length + PECTORAL_JOIN
     front, high = to_frame(max(xs) + 0.01, max(zs) + 0.01)
     back, low = to_frame(min(xs) - 0.01, min(zs) - 0.01)
-    print("gills:", {"edge": to_frame(gill_edge_x, 0)[0], "top": to_frame(0, gill_top)[1], "bottom": to_frame(0, gill_bottom)[1]})
+    if gill_edge_x is not None:
+        print("gills:", {"edge": to_frame(gill_edge_x, 0)[0], "top": to_frame(0, gill_top)[1], "bottom": to_frame(0, gill_bottom)[1]})
     print(
         "fins.pectoral:",
         {
