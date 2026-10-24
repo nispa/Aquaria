@@ -93,6 +93,11 @@ async function start(): Promise<void> {
   const say = (text: string): void => {
     status.textContent = text;
   };
+  // Where Save and Build write, always in sight: a fish copied under a new id is written there.
+  const target = element("p", "maker__target");
+  const showTarget = (): void => {
+    target.textContent = `Save and Build write public/assets/species/${id}/`;
+  };
   // A drag gives a new recipe: once it is let go, the panel shows that one.
   const side = createSideView(canvas, (next, finished) => {
     recipe = next;
@@ -124,9 +129,36 @@ async function start(): Promise<void> {
       return;
     }
     id = newId.value;
-    say(`Now ${id}: Save writes public/assets/species/${id}/fish.json.`);
+    newId.value = "";
+    showTarget();
+    say(`Now ${id}: a new fish, saved apart from the one it was copied from.`);
   });
-  species.append(picker, newId, copy);
+  // A recipe written elsewhere (by hand, or by an assistant such as Claude) comes in by pasting it.
+  const pasted = element("textarea", "maker__paste");
+  pasted.placeholder = "Paste a recipe (fish.json) here";
+  const openPasted = button("Open the pasted recipe", () => {
+    try {
+      const pastedId = SPECIES_ID.test(newId.value) ? newId.value : id;
+      const next = parseFishRecipe(JSON.parse(pasted.value), pastedId);
+      id = pastedId;
+      newId.value = "";
+      showTarget();
+      recipe = next;
+      strainIndex = 0;
+      renderShape();
+      renderPaint();
+      say(`Opened the pasted recipe as ${id}: Save writes public/assets/species/${id}/fish.json.`);
+    } catch (error) {
+      say(error instanceof Error ? error.message : String(error));
+    }
+  });
+  const copyRecipe = button("Copy the recipe", () => {
+    if (recipe === undefined) return;
+    void navigator.clipboard.writeText(JSON.stringify(recipe, null, 2)).then(() => {
+      say("The recipe is on the clipboard.");
+    });
+  });
+  species.append(picker, newId, copy, pasted, openPasted, copyRecipe);
 
   // The photograph under the fish.
   const photoBox = section(panel, "Photograph");
@@ -309,6 +341,11 @@ async function start(): Promise<void> {
   /** Checks the recipe and sends it to the dev server; true when it is saved (and built). */
   const send = async (action: "save" | "build"): Promise<boolean> => {
     if (recipe === undefined) return false;
+    // An id typed but not taken: saving now would write over the fish that is open.
+    if (newId.value !== "" && newId.value !== id) {
+      say(`"${newId.value}" is typed but not taken: press Copy as a new fish first, or clear it.`);
+      return false;
+    }
     try {
       parseFishRecipe(recipe, id);
     } catch (error) {
@@ -328,6 +365,7 @@ async function start(): Promise<void> {
   };
 
   actions.append(
+    target,
     button("Save", () => {
       void send("save");
     }),
@@ -342,6 +380,7 @@ async function start(): Promise<void> {
   const open = async (next: string): Promise<void> => {
     id = next;
     picker.value = next;
+    showTarget();
     strainIndex = 0;
     const loaded = await fetchJson(`/assets/species/${next}/fish.json`);
     recipe = parseFishRecipe(loaded, next);
