@@ -17,6 +17,7 @@ import { createPectoralFins } from "../sim/pectoralFins";
 import { createPlay } from "../sim/play";
 import { createUnstick, type Fish } from "../sim/simulation";
 import { createAssetLoaders } from "./assetLoaders";
+import { fishTextureLimit } from "./fishTextures";
 import { createFishRenderer } from "./fishRenderer";
 import { portraitFraming } from "./portraitFraming";
 import { neutralWaterUniforms } from "./uniforms";
@@ -110,7 +111,8 @@ export async function drawFishPortraits(
   renderer.setClearColor(0x000000, 0);
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = EXPOSURE;
-  const loaders = createAssetLoaders(renderer);
+  // A card is small: its fish never needs more than the smallest textures.
+  const loaders = createAssetLoaders(renderer, fishTextureLimit(0));
   const fish = createFishRenderer(
     { species: [...sitters.values()].map((individual) => individual.species) },
     neutralWaterUniforms(),

@@ -39,14 +39,27 @@ export interface AssetLoaders {
 /** Bytes per texel of an RGBA image. */
 const RGBA = 4;
 
-/** An image's texels, top row first, as glTF UVs read them. */
-async function imagePixels(url: string): Promise<ImageData> {
+/**
+ * An image's texels, top row first, as glTF UVs read them; one wider or
+ * taller than `limit` is scaled down to fit it.
+ */
+async function imagePixels(url: string, limit: number | undefined): Promise<ImageData> {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`${url}: HTTP ${String(response.status)}`);
-  const bitmap = await createImageBitmap(await response.blob(), {
-    premultiplyAlpha: "none",
-    colorSpaceConversion: "none",
-  });
+  const blob = await response.blob();
+  const options: ImageBitmapOptions = { premultiplyAlpha: "none", colorSpaceConversion: "none" };
+  const full = await createImageBitmap(blob, options);
+  const scale = limit === undefined ? 1 : Math.min(limit / Math.max(full.width, full.height), 1);
+  const bitmap =
+    scale === 1
+      ? full
+      : await createImageBitmap(blob, {
+          ...options,
+          resizeWidth: Math.round(full.width * scale),
+          resizeHeight: Math.round(full.height * scale),
+          resizeQuality: "high",
+        });
+  if (bitmap !== full) full.close();
   const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
   const context = canvas.getContext("2d");
   if (context === null) throw new Error("No 2D canvas to read the coloring from.");
@@ -55,8 +68,11 @@ async function imagePixels(url: string): Promise<ImageData> {
   return context.getImageData(0, 0, canvas.width, canvas.height);
 }
 
-async function loadTextureArray(urls: readonly string[]): Promise<Texture> {
-  const images = await Promise.all(urls.map(imagePixels));
+async function loadTextureArray(
+  urls: readonly string[],
+  limit: number | undefined,
+): Promise<Texture> {
+  const images = await Promise.all(urls.map((url) => imagePixels(url, limit)));
   const first = images[0];
   if (first === undefined) throw new Error("A coloring needs at least one texture.");
   const { width, height } = first;
@@ -79,8 +95,12 @@ async function loadTextureArray(urls: readonly string[]): Promise<Texture> {
   return texture;
 }
 
-/** Loaders for one renderer: compressed texture formats depend on its GPU support. */
-export function createAssetLoaders(renderer: WebGLRenderer): AssetLoaders {
+/**
+ * Loaders for one renderer: compressed texture formats depend on its GPU
+ * support. `coloringLimit` is the most texels across a coloring may keep
+ * (see fishTextureLimit); larger ones are scaled down as they load.
+ */
+export function createAssetLoaders(renderer: WebGLRenderer, coloringLimit?: number): AssetLoaders {
   const textures = new KTX2Loader().setTranscoderPath(BASIS_TRANSCODER_PATH);
   textures.detectSupport(renderer);
   const models = new GLTFLoader().setKTX2Loader(textures).setMeshoptDecoder(MeshoptDecoder);
@@ -89,7 +109,7 @@ export function createAssetLoaders(renderer: WebGLRenderer): AssetLoaders {
     loadModel: (url) => models.loadAsync(url).then((gltf) => gltf.scene),
     loadAnimated: (url) =>
       models.loadAsync(url).then((gltf) => ({ root: gltf.scene, clips: gltf.animations })),
-    loadColorings: loadTextureArray,
+    loadColorings: (urls) => loadTextureArray(urls, coloringLimit),
     dispose() {
       textures.dispose();
     },

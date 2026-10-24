@@ -49,6 +49,7 @@ import type { EffectDefinition, EffectInstance } from "./effects/types";
 import { createEnvironment } from "./environment";
 import { createWaterEnvironment } from "./environmentLight";
 import { createAssetLoaders } from "./assetLoaders";
+import { fishTextureLimit } from "./fishTextures";
 import { createFishRenderer } from "./fishRenderer";
 import { createFloraRenderer, type FloraRenderer } from "./floraRenderer";
 import { cameraFraming } from "./framing";
@@ -301,7 +302,8 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   // generators, so every rebuild starts from the same state.
   const scenerySeeds = { flora: rng.int(0, SEED_MAX), props: rng.int(0, SEED_MAX) };
   const particleSeed = rng.int(0, SEED_MAX);
-  const loaders = createAssetLoaders(renderer);
+  // Fish textures fit the resolution the tank starts at.
+  const loaders = createAssetLoaders(renderer, fishTextureLimit(options.renderHeight));
   const surfaces = createSurfaceLibrary((url) => loaders.textures.loadAsync(url), logger);
   surfaces.setAnisotropy(renderer.capabilities.getMaxAnisotropy());
   const environment = createEnvironment(scene, water, surfaces, rng.fork());
