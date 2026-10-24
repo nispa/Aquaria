@@ -420,6 +420,54 @@ tuned against reference photographs, with every parameter a slider.
 - [ ] The Hero scene runs at a usable frame rate on that phone; state the
       numbers before and after.
 
+## K. Fish maker
+
+Asked on 2026-10-24; comes before J (its plants follow the same idea, and
+the iwagumi's rasbora is K3). Today each Blender-made fish is a Python
+script (`guppy.py`, `platy.py`, `royal_gramma.py`…) that repeats the
+others but for its numbers (outline, fins, eye) and its paint. The maker
+takes those out of the code: a fish becomes data, as AGENTS.md wants for
+species, and a page draws it over a photograph. Blender stays the
+builder, behind a button: one source of truth for the shape, the eye
+bones and the mouth shape key.
+
+### K1. A fish as data
+
+- [ ] A recipe, `fish.json`: the body (top and bottom outline, thickness,
+      roundness), the fins (dorsal, anal, caudal: delta, forked or fan;
+      pectoral, pelvic), the eye and the mouth, and the strains, each a
+      stack of paint layers; validated (Zod in the repository, the same
+      checks in the builder).
+- [ ] Paint layers from those already written: countershading, bands
+      (the guppy's tuxedo, the gramma's split), round marks (Mickey
+      Mouse), speckles (Blue Grass), snakeskin (Cobra), stripes and bars,
+      fin rays and rims, the line through the eye, scales.
+- [ ] One generic builder, `scripts/blender/fishbuild.py <recipe>`: it
+      writes `model.glb`, `colorings/*.webp` and the `model.json` values
+      (gills, pectoral fins) the scripts print today.
+- [ ] The guppy, platy, royal gramma, angelfish and sardine as recipes,
+      coming out the same as their scripts, which are then removed.
+
+### K2. The designer
+
+- [ ] `/fish-designer.html` (with `pnpm dev`, beside the model viewer): a
+      photograph of the real fish under a side view, the outline and fin
+      points dragged over it, a flat preview of the strains while you
+      move them.
+- [ ] Paint layers listed with their colors and sliders, per strain.
+- [ ] Build: the dev server runs Blender and the compression (a few
+      seconds) and the model viewer shows the real 3D fish, fins beating,
+      strains to leaf through. Save writes the recipe.
+
+### K3. Proof and docs
+
+- [ ] A harlequin rasbora made with the designer alone, no code; it joins
+      the iwagumi (J5).
+- [ ] `docs/FISH_MODELS.md` (+ Italian): making a fish with the maker.
+
+Not in this block: painting on a model made by someone else (projection
+on its own UVs).
+
 ## J. Freshwater aquariums that look real
 
 Asked on 2026-10-24, after the Hero: the Planted tank and the Iwagumi
@@ -431,7 +479,7 @@ everything is scattered on a flat floor. A real planted tank has clear
 water under a white lamp, a clean background, a floor rising towards the
 back, three layers of plants in groups, and one focal point. Order:
 J2, J4, J3, J1, J5; the look alone changes the most, plants and stones
-are the long part.
+are the long part. After block K.
 
 ### J1. What the engine lacks
 
