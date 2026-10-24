@@ -626,6 +626,48 @@ body {
   margin-top: 8px;
 }
 
+/* An effect with settings: its switch, and a row that opens to show them. */
+.panel__effect-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.panel__effect-summary::-webkit-details-marker {
+  display: none;
+}
+
+.panel__effect-summary > .panel__row {
+  flex: 1;
+}
+
+.panel__effect-more {
+  flex: none;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.panel__effect-more::after {
+  content: " \25B8";
+}
+
+.panel__effect[open] .panel__effect-more::after {
+  content: " \25BE";
+}
+
+.panel__effect-summary:hover .panel__effect-more {
+  color: var(--text);
+}
+
+.panel__effect-settings {
+  margin: 2px 0 8px 22px;
+  padding: 6px 10px;
+  border-left: 2px solid var(--panel-border);
+}
+
 /* The keys in the About section: the key, then what it does. */
 .panel__keys {
   display: grid;

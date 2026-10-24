@@ -37,7 +37,13 @@ export interface LookSectionCallbacks {
 }
 
 export interface LookSection {
+  /** The look to draw with, the picture's own sliders and Reset. */
   readonly root: HTMLElement;
+  /**
+   * The sliders of one effect, to show under its switch; undefined for an
+   * effect with nothing to tune. Refilled on every update.
+   */
+  effectSettings(effectId: string): HTMLElement | undefined;
   /** Shows another look, or the same after a reset. */
   update(state: LookSectionState): void;
 }
@@ -119,8 +125,9 @@ function controlRows(
 /**
  * The panel's Look section: which composition of water and light the tank
  * draws with (the scene's own, a look from looks/, or none), and a slider
- * for every parameter of it: exposure, sun, and each effect's parameters,
- * read from the effect's own schema (scene/paramControls). Changes are the
+ * for every parameter of it: exposure and sun here, each effect's
+ * parameters (read from the effect's own schema, scene/paramControls)
+ * under the effect's switch, through `effectSettings`. Changes are the
  * viewer's tweaks, kept per look and undone by Reset.
  */
 export function createLookSection(
@@ -129,6 +136,14 @@ export function createLookSection(
 ): LookSection {
   const root = element("div", "panel__look");
   let tweak: LookTweak = {};
+  // One box per effect that has something to tune, kept across updates so the panel can hold it.
+  const settings = new Map<string, HTMLElement>();
+  for (const effect of initial.effects) {
+    if (paramControls(effect.params, {}).length === 0) continue;
+    const box = element("div", "panel__effect-settings");
+    box.dataset.lookEffect = effect.id;
+    settings.set(effect.id, box);
+  }
 
   const tweakEffect = (effectId: string, key: string, value: unknown): void => {
     const effects = { ...(tweak.effects ?? {}) };
@@ -184,24 +199,22 @@ export function createLookSection(
     );
     root.append(choice.row, picture);
 
+    root.append(reset);
+
     for (const effect of state.effects) {
+      const box = settings.get(effect.id);
+      if (box === undefined) continue;
       const controls = paramControls(effect.params, state.look.effects[effect.id] ?? {});
-      if (controls.length === 0) continue;
-      const group = element("details", "panel__group");
-      group.dataset.lookEffect = effect.id;
-      group.append(element("summary", "panel__subheading", effect.name));
-      for (const control of controls) {
-        group.append(
-          ...controlRows(`look-${effect.id}-${control.key}`, control, (value) => {
+      box.replaceChildren(
+        ...controls.flatMap((control) =>
+          controlRows(`look-${effect.id}-${control.key}`, control, (value) => {
             tweakEffect(effect.id, control.key, value);
           }),
-        );
-      }
-      root.append(group);
+        ),
+      );
     }
-    root.append(reset);
   };
 
   render(initial);
-  return { root, update: render };
+  return { root, effectSettings: (effectId) => settings.get(effectId), update: render };
 }

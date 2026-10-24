@@ -207,29 +207,46 @@ export interface Panel {
 
 const FEATURE_HEADINGS: Readonly<Record<LookFeatureKind, string>> = {
   lighting: "Lighting",
-  effect: "Post-processing",
+  effect: "Effects",
 };
 
 type SectionFactory = (id: string, title: string) => HTMLDetailsElement;
 
-/** One section per feature kind, one switch per feature; `inputs` gets each switch by feature id. */
+/**
+ * A feature's switch; with settings, a row that opens to show them under
+ * it, so an effect is switched and tuned in one place.
+ */
+function featureRow(switchRow: HTMLLabelElement, settings: HTMLElement | undefined): HTMLElement {
+  if (settings === undefined) return switchRow;
+  const row = element("details", "panel__effect");
+  const summary = element("summary", "panel__effect-summary");
+  summary.append(switchRow, element("span", "panel__effect-more", "Settings"));
+  row.append(summary, settings);
+  return row;
+}
+
+/**
+ * One section per feature kind, one switch per feature with its settings
+ * under it (`settingsOf`); `inputs` gets each switch by feature id.
+ */
 function featureSections(
   features: readonly LookFeature[],
   look: Look,
   section: SectionFactory,
+  settingsOf: (featureId: string) => HTMLElement | undefined,
   onChange: (featureId: string, enabled: boolean) => void,
   inputs: Map<string, HTMLInputElement>,
 ): HTMLElement[] {
   return (Object.keys(FEATURE_HEADINGS) as LookFeatureKind[]).map((kind) => {
     const box = section(kind, FEATURE_HEADINGS[kind]);
     for (const feature of features.filter((candidate) => candidate.kind === kind)) {
-      const row = checkbox(feature.name, look.has(feature.id), (checked) => {
+      const switchRow = checkbox(feature.name, look.has(feature.id), (checked) => {
         onChange(feature.id, checked);
       });
-      row.dataset.feature = feature.id;
-      const input = row.querySelector("input");
+      switchRow.dataset.feature = feature.id;
+      const input = switchRow.querySelector("input");
       if (input !== null) inputs.set(feature.id, input);
-      box.append(row);
+      box.append(featureRow(switchRow, settingsOf(feature.id)));
     }
     return box;
   });
@@ -590,6 +607,7 @@ export function createPanel(
     state.features,
     state.look,
     section,
+    (featureId) => lookSection.effectSettings(featureId),
     (featureId, enabled) => {
       callbacks.onFeatureChange(featureId, enabled);
     },
