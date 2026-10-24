@@ -367,7 +367,7 @@ tuned against reference photographs, with every parameter a slider.
 
 - [ ] Reef under LEDs: crystal clear water, little absorption, white and
       actinic blue spots, coral fluorescence, no surface waves.
-- [ ] Planted freshwater: see J2.
+- [x] Planted freshwater: see J2.
 - [x] Open sea: the Hero look as it is (`looks/hero.json`).
 - [x] Clownfish lagoon: shallow, sunny turquoise water, bright caustics on
       the sand, warm sun, soft sunbeams (`looks/lagoon.json`, worn by
@@ -507,10 +507,13 @@ are the long part. After block K.
 
 ### J2. The Planted freshwater look
 
-- [ ] `looks/planted.json`: clear water with little absorption, white
+- [x] `looks/planted.json`: clear water with little absorption, white
       6500 K light from above, soft caustics, no volumetric shafts, a
       quiet surface, full colors; tuned against reference photographs,
-      like the Hero.
+      like the Hero. Worn by the Planted tank and the Iwagumi, which also
+      got darker, clearer water, a near-black backdrop and an even light
+      from above instead of a row of spots. The floor still runs on past
+      the tank into the dark: the back panel is J1.
 
 ### J3. Plants made in Blender
 

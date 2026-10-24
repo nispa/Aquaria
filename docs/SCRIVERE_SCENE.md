@@ -216,6 +216,14 @@ le impostazioni degli effetti. La scena Hero usa `public/looks/hero.json`:
 - `effects`: impostazioni per id dell'effetto. Quello che manca resta al
   valore predefinito. Gli [effetti](EFFETTI.md) elencano le loro impostazioni.
 
+La Planted tank e l'Iwagumi usano `public/looks/planted.json`, una vasca
+di casa d'acqua dolce: acqua limpida che sbiadisce appena, niente neve
+marina, niente raggi di sole, niente onde, una luce bianca dritta
+dall'alto. Il look da solo non basta: la scena dà anche all'acqua un
+`color` grigio-verde scuro con poca nebbia (`fogDensity` 0.12), una
+`surface` calma (0.08), uno sfondo quasi nero e una plafoniera `"sun"`,
+così sopra l'acqua non si vede una fila di faretti.
+
 I look elencati in `public/looks/index.json` si possono anche scegliere
 nella sezione Look del pannello, per qualunque scena, con uno slider per
 ogni impostazione.

@@ -1,6 +1,7 @@
 {
   "id": "planted-tank",
   "name": "Planted tank",
+  "look": "planted",
   "seed": 20261001,
   "tank": {
     "width": 2.4,
@@ -8,9 +9,9 @@
     "depth": 1
   },
   "water": {
-    "color": "#0a2c3a",
-    "fogDensity": 0.35,
-    "surface": 0.25,
+    "color": "#2c3c36",
+    "fogDensity": 0.12,
+    "surface": 0.08,
     "bubbles": false
   },
   "light": {
@@ -28,8 +29,8 @@
   },
   "backdrop": {
     "type": "gradient",
-    "top": "#0e3444",
-    "bottom": "#010a10"
+    "top": "#16201c",
+    "bottom": "#050806"
   },
   "floor": {
     "color": "#5a4a3a",
@@ -53,8 +54,7 @@
     },
     "moon": 0.04,
     "fixture": {
-      "type": "spots",
-      "spots": 6
+      "type": "sun"
     }
   },
   "flora": [

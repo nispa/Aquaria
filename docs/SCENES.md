@@ -213,6 +213,14 @@ settings of the effects. The Hero scene uses `public/looks/hero.json`:
 - `effects`: settings by effect id. What is left out keeps its default.
   The [effects](EFFECTS.md) list their settings.
 
+The Planted tank and the Iwagumi wear `public/looks/planted.json`, a home
+tank of fresh water: clear water that hardly fades, no marine snow, no
+sunbeams, no waves, a white light from straight above. The look alone is
+not enough for that: the scene also gives the water a dark grey-green
+`color` with little fog (`fogDensity` 0.12), a quiet `surface` (0.08), a
+near-black backdrop and a `"sun"` fixture, so no row of spots shows above
+the water.
+
 The looks listed in `public/looks/index.json` can also be chosen in the
 panel's Look section for any scene, with a slider for every setting.
 

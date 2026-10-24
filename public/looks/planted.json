@@ -1,0 +1,34 @@
+{
+  "name": "Planted freshwater",
+  "exposure": 1.05,
+  "snow": 0.05,
+  "sun": [0.05, 1, 0.25],
+  "features": {
+    "waves": false,
+    "frame": false,
+    "volumetric-light": false,
+    "light-shafts": false
+  },
+  "effects": {
+    "underwater": {
+      "strength": 0.7,
+      "absorption": [0.18, 0.09, 0.11],
+      "deep": "#070b09",
+      "horizon": "#1c2924",
+      "surface": "#7d9a8f",
+      "brightness": 1,
+      "sunColor": "#ffffff",
+      "sunGlow": 0.2,
+      "sunFocus": 20,
+      "shafts": 0,
+      "clearWater": 1.1,
+      "depthDarkening": 0.03
+    },
+    "finish": {
+      "vignette": 0.15,
+      "contrast": 1.06,
+      "saturation": 1.2,
+      "tint": "#fdfffb"
+    }
+  }
+}

@@ -1,6 +1,7 @@
 {
   "id": "iwagumi",
   "name": "Iwagumi",
+  "look": "planted",
   "seed": 20261002,
   "tank": {
     "width": 2.2,
@@ -8,9 +9,9 @@
     "depth": 1
   },
   "water": {
-    "color": "#0f3f3c",
-    "fogDensity": 0.3,
-    "surface": 0.25,
+    "color": "#2c3a38",
+    "fogDensity": 0.12,
+    "surface": 0.08,
     "bubbles": false
   },
   "light": {
@@ -28,8 +29,8 @@
   },
   "backdrop": {
     "type": "gradient",
-    "top": "#1d5a52",
-    "bottom": "#04140f"
+    "top": "#18211f",
+    "bottom": "#050807"
   },
   "floor": {
     "color": "#7a7266",
@@ -53,8 +54,7 @@
     },
     "moon": 0.04,
     "fixture": {
-      "type": "spots",
-      "spots": 5
+      "type": "sun"
     }
   },
   "flora": [
