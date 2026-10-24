@@ -660,6 +660,11 @@
         }
       },
       "model": "platy",
+      "coloring": [
+        { "id": "red-wagtail", "weight": 2 },
+        { "id": "mickey-mouse", "weight": 2 },
+        { "id": "blue", "weight": 1 }
+      ],
       "length": {
         "mean": 0.05,
         "standardDeviation": 0.005

@@ -101,6 +101,52 @@ def scales(x, z, size):
     return smoothstep(0.75, 1.0, distance)
 
 
+def countershaded(back, flank, belly):
+    """Skin darker on the back and lighter on the belly, as most fish are: a painter of x, z, up, side."""
+
+    def color(x, z, up, side):
+        skin = mix(srgb(flank), srgb(back), smoothstep(0.1, 0.85, up))
+        return mix(skin, srgb(belly), smoothstep(-0.2, -0.85, up))
+
+    return color
+
+
+def with_scales(skin, x, z, size, rim=0.07):
+    """The skin with faint scales: rims a little darker, middles catching a little light.
+
+    The rims come and go with a slow noise, as light catches some scales
+    and not others: an even grid of them reads as a printed pattern.
+    """
+    edge = scales(x, z, size) * (0.35 + 0.65 * fbm(x / size * 0.35, z / size * 0.35, 41, octaves=2))
+    shade = 1 - rim * edge + 0.02 * (1 - edge)
+    out = skin.copy()
+    out[..., :3] *= shade[..., None]
+    return out
+
+
+def rayed(web, ray, root, alpha_root, alpha_edge, rays, root_share=0.14, edge_color=None):
+    """A see-through fin painter of u, v: a web darker between soft rays, its root tinted, the edge fading out instead of ending."""
+
+    def color(u, v):
+        streak = (0.5 + 0.5 * np.cos(u * rays * 2 * np.pi)) ** 3
+        out = mix(fill(u.shape, srgb(web)), srgb(ray), (1 - streak) * 0.45)
+        if edge_color is not None:
+            out = mix(out, srgb(edge_color), smoothstep(0.55, 1.0, v))
+        out = mix(out, srgb(root), 1 - smoothstep(0.0, root_share, v))
+        alpha = alpha_root + (alpha_edge - alpha_root) * smoothstep(0.2, 0.95, v)
+        # The last few hundredths of the fin thin out to nothing, so its outline is soft.
+        alpha = alpha * (1 - 0.75 * smoothstep(0.9, 1.0, v))
+        return with_alpha(out, alpha)
+
+    return color
+
+
+def round_mark(x, z, centre_x, centre_z, radius, softness=0.15):
+    """Coverage 0..1 of a round mark on the flank (body lengths)."""
+    distance = np.hypot(x - centre_x, z - centre_z)
+    return 1 - smoothstep(radius * (1 - softness), radius, distance)
+
+
 class Atlas:
     """Where each part of a fish lies on its square texture: a rectangle in uv space per part."""
 
@@ -179,6 +225,43 @@ def save_webp(pixels, path, quality=90):
     picture.file_format = "WEBP"
     picture.save(quality=quality)
     return path
+
+
+# How far in from `side` Aquaria blends a fin into the body, body lengths
+# (JOIN in src/render/pectoralWeights.ts), with a little to spare.
+PECTORAL_JOIN = 0.017
+
+
+def print_manifest_values(objects, body, roundness, pectoral_part, pectoral_base, gill_edge_x, gill_top, gill_bottom):
+    """Prints the fish-frame numbers model.json needs for the gills and the pectoral fins (Blender x, z in).
+
+    The fin's `side` is set beyond the widest skin inside its box by the
+    width Aquaria blends a fin into the body, so the flank never swings
+    with the fin; the fin's base nearer the body
+    than that stays put, as a fin's root does.
+    """
+    to_frame, length = fish_frame(objects)
+    verts = pectoral_part[0]
+    top, bottom = pectoral_base(1.0), pectoral_base(0.0)
+    xs, zs = [v[0] for v in verts], [v[2] for v in verts]
+    grid_x = np.linspace(min(xs) - 0.01, max(xs) + 0.01, 24)
+    grid_z = np.linspace(min(zs) - 0.01, max(zs) + 0.01, 24)
+    widest = max(body.skin(x, z, roundness) for x in grid_x for z in grid_z if body.peduncle_x < x < body.snout_x)
+    side = float(widest) / length + PECTORAL_JOIN
+    front, high = to_frame(max(xs) + 0.01, max(zs) + 0.01)
+    back, low = to_frame(min(xs) - 0.01, min(zs) - 0.01)
+    print("gills:", {"edge": to_frame(gill_edge_x, 0)[0], "top": to_frame(0, gill_top)[1], "bottom": to_frame(0, gill_bottom)[1]})
+    print(
+        "fins.pectoral:",
+        {
+            "root": [list(to_frame(top.x, top.z)), list(to_frame(bottom.x, bottom.z))],
+            "side": round(side, 3),
+            "front": front,
+            "back": back,
+            "top": high,
+            "bottom": low,
+        },
+    )
 
 
 def fish_frame(objects):

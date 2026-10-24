@@ -251,10 +251,14 @@ ogni pinna in un suo rettangolo (`Atlas` in `scripts/blender/paintkit.py`).
 Poi dipinge quell'atlante una volta per ceppo con numpy: dorso scuro e
 pancia chiara, squame appena accennate, raggi, bordi delle pinne che
 sfumano invece di finire netti, puntini e pelle di serpente dal rumore. Un
-ceppo nuovo è una funzione di pittura in più e una riga in `STRAINS`.
-Lanciato, scrive `model.glb` e `colorings/*.webp` e stampa i valori di
+ceppo nuovo è una funzione di pittura in più e una riga in `STRAINS`;
+`scripts/blender/platy.py` fa lo stesso per i ceppi del platy: Red
+Wagtail, Mickey Mouse e Blue. Lanciato, ognuno scrive `model.glb` e `colorings/*.webp` e stampa i valori di
 branchie e pinne pettorali per `model.json`, perché il riferimento del
-pesce cambia ogni volta che cambia il profilo.
+pesce cambia ogni volta che cambia il profilo. Il `side` delle pettorali
+che stampa sta oltre il punto più largo della pelle nel riquadro della
+pinna, di quanto Aquaria sfuma la pinna nel corpo, così il fianco non si
+muove mai con la pinna.
 
 ## Animali che camminano
 

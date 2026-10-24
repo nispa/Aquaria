@@ -247,9 +247,12 @@ each fin in its own rectangle (`Atlas` in `scripts/blender/paintkit.py`).
 Then it paints that atlas once per strain with numpy: countershading,
 faint scales, rays, fin edges that thin out instead of ending, dots and
 snakeskin from noise. A new strain is a new painter function and a line
-in `STRAINS`. Run it and it writes `model.glb` and `colorings/*.webp`,
+in `STRAINS`; `scripts/blender/platy.py` does the same for the platy's
+Red Wagtail, Mickey Mouse and Blue. Run one and it writes `model.glb` and `colorings/*.webp`,
 and prints the gills and pectoral values for `model.json`, since the
-fish frame changes whenever the outline does.
+fish frame changes whenever the outline does. The pectoral `side` it
+prints sits beyond the widest skin in the fin's box by the width Aquaria
+blends a fin into the body, so the flank never swings with the fin.
 
 ## Animals that walk
 

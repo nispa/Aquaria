@@ -157,26 +157,6 @@ PECTORAL_EDGE = fan_edge(PECTORAL_ROOT, 0.075, 20, -40)
 # Painting. Every painter returns sRGB colors with alpha for arrays of its part's parameters.
 
 
-def body_color(back, flank, belly):
-    """Countershaded skin: a darker back, a lighter belly, faint scales."""
-
-    def color(x, z, up, side):
-        skin = paint.mix(paint.srgb(flank), paint.srgb(back), paint.smoothstep(0.1, 0.85, up))
-        skin = paint.mix(skin, paint.srgb(belly), paint.smoothstep(-0.2, -0.85, up))
-        return skin
-
-    return color
-
-
-def scaled(skin, x, z):
-    """The skin with its scales: rims a little darker, middles catching a little light."""
-    rim = paint.scales(x, z, SCALE_SIZE)
-    shade = 1 - SCALE_RIM * rim + 0.02 * (1 - rim)
-    out = skin.copy()
-    out[..., :3] *= shade[..., None]
-    return out
-
-
 def gill_sheen(skin, x, z):
     """The gill cover and the cheek: silvery, a touch of light."""
     cheek = paint.smoothstep(GILL_EDGE_X - 0.02, GILL_EDGE_X + 0.02, x) * (1 - paint.smoothstep(0.03, 0.08, np.abs(z)))
@@ -197,21 +177,6 @@ def vermiculated(skin, x, z, color, scale, seed, coverage=1.0):
     return paint.mix(skin, paint.srgb(color), line * coverage)
 
 
-def fin_color(web, ray, root, alpha_root, alpha_edge, rays):
-    """A see-through fin: a web darker between soft rays, the root dark, the edge fading out instead of ending."""
-
-    def color(u, v):
-        streak = (0.5 + 0.5 * np.cos(u * rays * 2 * np.pi)) ** 3
-        out = paint.mix(paint.fill(u.shape, paint.srgb(web)), paint.srgb(ray), (1 - streak) * 0.45)
-        out = paint.mix(out, paint.srgb(root), 1 - paint.smoothstep(0.0, 0.14, v))
-        alpha = alpha_root + (alpha_edge - alpha_root) * paint.smoothstep(0.2, 0.95, v)
-        # The last few hundredths of the fin thin out to nothing, so its outline is soft.
-        alpha = alpha * (1 - 0.75 * paint.smoothstep(0.9, 1.0, v))
-        return paint.with_alpha(out, alpha)
-
-    return color
-
-
 def body_points(s, a):
     return paint.body_points(BODY, ROUNDNESS, s, a)
 
@@ -230,30 +195,30 @@ def caudal_points(u, v):
 
 
 def half_black_red():
-    skin = body_color("#a8a296", "#d8d2ca", "#efe9e2")
+    skin = paint.countershaded("#a8a296", "#d8d2ca", "#efe9e2")
 
     def body(s, a):
         x, z, up, side = body_points(s, a)
         out = gill_sheen(skin(x, z, up, side), x, z)
         out = paint.mix(out, paint.srgb("#e6c3bd"), paint.smoothstep(0.3, 0.1, x) * 0.25)
         out = tuxedo(out, x, z, "#141117")
-        return scaled(out, x, z)
+        return paint.with_scales(out, x, z, SCALE_SIZE, SCALE_RIM)
 
-    red = fin_color("#cf1820", "#8e0c12", "#2a0a0e", 0.9, 0.72, 34)
-    return body, red, red, fin_color("#3a3438", "#24202a", "#141117", 0.75, 0.6, 6)
+    red = paint.rayed("#cf1820", "#8e0c12", "#2a0a0e", 0.9, 0.72, 34)
+    return body, red, red, paint.rayed("#3a3438", "#24202a", "#141117", 0.75, 0.6, 6)
 
 
 def blue_grass():
-    skin = body_color("#7f8c96", "#b8c4cc", "#e6eaec")
+    skin = paint.countershaded("#7f8c96", "#b8c4cc", "#e6eaec")
 
     def body(s, a):
         x, z, up, side = body_points(s, a)
         out = gill_sheen(skin(x, z, up, side), x, z)
         out = paint.mix(out, paint.srgb("#6fa8d8"), paint.smoothstep(0.25, 0.05, x) * 0.35)
         out = tuxedo(out, x, z, "#1a2438")
-        return scaled(out, x, z)
+        return paint.with_scales(out, x, z, SCALE_SIZE, SCALE_RIM)
 
-    web = fin_color("#86bde6", "#5f93c4", "#1a2438", 0.82, 0.58, 30)
+    web = paint.rayed("#86bde6", "#5f93c4", "#1a2438", 0.82, 0.58, 30)
 
     def grass(points, seed):
         def color(u, v):
@@ -266,11 +231,11 @@ def blue_grass():
         return color
 
     dorsal_points = lambda u, v: paint.sheet_points(*dorsal_curves(), u, v)  # noqa: E731
-    return body, grass(caudal_points, 3), grass(dorsal_points, 5), fin_color("#9aa6b0", "#7f8c96", "#1a2438", 0.7, 0.55, 6)
+    return body, grass(caudal_points, 3), grass(dorsal_points, 5), paint.rayed("#9aa6b0", "#7f8c96", "#1a2438", 0.7, 0.55, 6)
 
 
 def full_red():
-    skin = body_color("#a8161c", "#d4262c", "#e8705e")
+    skin = paint.countershaded("#a8161c", "#d4262c", "#e8705e")
 
     def body(s, a):
         x, z, up, side = body_points(s, a)
@@ -279,23 +244,23 @@ def full_red():
         head = paint.smoothstep(GILL_EDGE_X - 0.04, GILL_EDGE_X + 0.04, x)
         out = paint.mix(out, paint.srgb("#e6d6cf"), head * 0.85)
         out = gill_sheen(out, x, z)
-        return scaled(out, x, z)
+        return paint.with_scales(out, x, z, SCALE_SIZE, SCALE_RIM)
 
-    red = fin_color("#e0222a", "#a8121a", "#b8161c", 0.9, 0.72, 34)
-    return body, red, red, fin_color("#d4262c", "#a8161c", "#a8161c", 0.75, 0.6, 6)
+    red = paint.rayed("#e0222a", "#a8121a", "#b8161c", 0.9, 0.72, 34)
+    return body, red, red, paint.rayed("#d4262c", "#a8161c", "#a8161c", 0.75, 0.6, 6)
 
 
 def yellow_cobra():
-    skin = body_color("#8d8a34", "#c9b84a", "#ece2a8")
+    skin = paint.countershaded("#8d8a34", "#c9b84a", "#ece2a8")
 
     def body(s, a):
         x, z, up, side = body_points(s, a)
         out = gill_sheen(skin(x, z, up, side), x, z)
         # The snakeskin covers the back and the flank, fading on the belly.
         out = vermiculated(out, x, z, "#3a3416", 60, 11, paint.smoothstep(-0.7, -0.2, up) * 0.75)
-        return scaled(out, x, z)
+        return paint.with_scales(out, x, z, SCALE_SIZE, SCALE_RIM)
 
-    web = fin_color("#ecc838", "#c49a1c", "#6e5c14", 0.88, 0.66, 30)
+    web = paint.rayed("#ecc838", "#c49a1c", "#6e5c14", 0.88, 0.66, 30)
 
     def snakeskin(points, seed):
         def color(u, v):
@@ -308,7 +273,7 @@ def yellow_cobra():
         return color
 
     dorsal_points = lambda u, v: paint.sheet_points(*dorsal_curves(), u, v)  # noqa: E731
-    return body, snakeskin(caudal_points, 21), snakeskin(dorsal_points, 23), fin_color("#d8c860", "#b4a040", "#6e5c14", 0.7, 0.55, 6)
+    return body, snakeskin(caudal_points, 21), snakeskin(dorsal_points, 23), paint.rayed("#d8c860", "#b4a040", "#6e5c14", 0.7, 0.55, 6)
 
 
 STRAINS = [
@@ -395,29 +360,6 @@ def eye_color(degrees):
     return mix(color, linear(PUPIL), 1 - smoothstep(30, 36, degrees))
 
 
-def print_manifest_values(objects, left_pectoral):
-    """The fish-frame numbers model.json needs for the gills and the pectoral fins."""
-    to_frame, length = paint.fish_frame(objects)
-    verts = left_pectoral[0]
-    top, bottom = pectoral_base(1.0), pectoral_base(0.0)
-    side = min(abs(v[1]) for v in verts) / length
-    xs, zs = [v[0] for v in verts], [v[2] for v in verts]
-    front, high = to_frame(max(xs) + 0.01, max(zs) + 0.01)
-    back, low = to_frame(min(xs) - 0.01, min(zs) - 0.01)
-    print("gills:", {"edge": to_frame(GILL_EDGE_X, 0)[0], "top": to_frame(0, GILL_HALF_HEIGHT)[1], "bottom": to_frame(0, -GILL_HALF_HEIGHT)[1]})
-    print(
-        "fins.pectoral:",
-        {
-            "root": [list(to_frame(top.x, top.z)), list(to_frame(bottom.x, bottom.z))],
-            "side": round(side - 0.004, 3),
-            "front": front,
-            "back": back,
-            "top": high,
-            "bottom": low,
-        },
-    )
-
-
 def main():
     args = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
     output = os.path.abspath(args[0]) if args else DEFAULT_OUTPUT
@@ -441,7 +383,7 @@ def main():
     right = eyeball(eye_centre(-1), EYE_RADIUS, -1, eye_color)
     eyes = make_object("Eyes", [left, right], material("Eyes", 0.05, 0.0, False))
 
-    print_manifest_values([body, fins, eyes], left_pectoral)
+    paint.print_manifest_values([body, fins, eyes], BODY, ROUNDNESS, left_pectoral, pectoral_base, GILL_EDGE_X, GILL_HALF_HEIGHT, -GILL_HALF_HEIGHT)
     rig([body, fins], eyes, len(left[0]), eye_centre(1), eye_centre(-1))
     export(output)
     print(f"Guppy written to {output}")

@@ -335,7 +335,7 @@ species with no coloring looks as today.
 - [x] Fauna cards show the species' first coloring; docs in
       `docs/FISH_MODELS.md`: how to paint colorings in code
       (`scripts/blender/guppy.py`, `paintkit.py`). The guppy wears four
-      strains.
+      strains, the platy three.
 
 ## I. Ready-made aquariums
 
