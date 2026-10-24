@@ -520,13 +520,18 @@ are the long part. After block K.
 On `scripts/blender/plantkit.py`, with painted textures (paintkit):
 veined leaves in two tones, light through them, swaying.
 
-- [ ] Carpet: Monte Carlo or dwarf hairgrass, thousands of instanced
-      leaflets, not discs.
-- [ ] Stem plants in thick groups: Rotala with red tips, Ludwigia.
-- [ ] Rosettes: Cryptocoryne, Amazon sword; Vallisneria as tall ribbons
-      at the back.
-- [ ] On wood and stone: Java fern and Anubias, and moss as a growth
-      (like the live rock of the Hero).
+- [x] Carpet: dwarf hairgrass (`hairgrass`, tufts of 60 to 90 blades,
+      `scripts/blender/freshwater_plants.py`), not discs.
+- [x] Stem plants in thick groups: Rotala, red-tipped and green variants
+      (`rotala`). Ludwigia is left out; the red tips are still shy.
+- [x] Rosettes: Cryptocoryne, green and bronze; Vallisneria as tall
+      ribbons at the back. Amazon sword is left out.
+- [x] Java fern, Anubias and moss (`java-fern`, `anubias`,
+      `moss-cushion`, `scripts/blender/epiphytes.py`). They stand on the
+      floor beside the stones and wood: growing on them waits for a
+      surface to attach to (J5).
+- [ ] Painted textures (paintkit) for the leaves: today the veins are in
+      the vertex colors only.
 
 ### J4. Hardscape made in Blender
 

@@ -1,0 +1,24 @@
+{
+  "name": "Java fern",
+  "category": "plant",
+  "model": "model.glb",
+  "traits": {
+    "sway": {
+      "amount": 0.05,
+      "speed": 0.8
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["plant", "shelter"],
+    "placement": {
+      "on": ["sand", "rock"],
+      "height": [0.12, 0.25]
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/epiphytes.py",
+    "license": "CC0-1.0"
+  }
+}

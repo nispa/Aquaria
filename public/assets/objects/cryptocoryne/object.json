@@ -1,0 +1,24 @@
+{
+  "name": "Cryptocoryne",
+  "category": "plant",
+  "model": "model.glb",
+  "traits": {
+    "sway": {
+      "amount": 0.02,
+      "speed": 0.7
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["plant", "shelter"],
+    "placement": {
+      "on": ["sand"],
+      "height": [0.12, 0.25]
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/freshwater_plants.py",
+    "license": "CC0-1.0"
+  }
+}

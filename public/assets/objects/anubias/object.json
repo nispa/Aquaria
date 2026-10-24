@@ -1,0 +1,24 @@
+{
+  "name": "Anubias",
+  "category": "plant",
+  "model": "model.glb",
+  "traits": {
+    "sway": {
+      "amount": 0.01,
+      "speed": 0.6
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["plant", "shelter"],
+    "placement": {
+      "on": ["sand", "rock"],
+      "height": [0.08, 0.16]
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/epiphytes.py",
+    "license": "CC0-1.0"
+  }
+}

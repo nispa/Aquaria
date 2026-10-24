@@ -59,43 +59,50 @@
   },
   "flora": [
     {
-      "kind": "carpet",
-      "count": 90,
+      "kind": "hairgrass",
+      "name": "Carpet",
+      "count": 200,
       "bands": [0, 3],
-      "height": [0.02, 0.05],
-      "color": ["#6fc23a", "#8ed64a"]
+      "height": [0.04, 0.08],
+      "color": "#ffffff"
     },
     {
-      "kind": "fern",
-      "count": 10,
+      "kind": "hairgrass",
+      "name": "Carpet (back)",
+      "count": 160,
       "bands": [1, 3],
-      "height": [0.18, 0.4],
-      "color": ["#4f9a3a", "#5fae44"]
+      "height": [0.05, 0.09],
+      "color": "#ffffff"
     },
     {
-      "kind": "stem",
-      "name": "Orange stem plants",
-      "count": 8,
-      "bands": [2, 4],
-      "height": [0.25, 0.5],
-      "color": "#4f8a36",
-      "tipColor": "#ff7a2a"
+      "kind": "cryptocoryne",
+      "name": "Cryptocoryne",
+      "count": 4,
+      "bands": [2, 3],
+      "height": [0.12, 0.2],
+      "color": "#ffffff"
     },
     {
-      "kind": "seagrass",
-      "name": "Grass tufts",
-      "count": 30,
-      "bands": [0, 4],
-      "height": [0.08, 0.22],
-      "color": "#8fcf5a"
+      "kind": "moss-cushion",
+      "name": "Moss",
+      "count": 14,
+      "bands": [1, 3],
+      "height": [0.05, 0.09],
+      "color": "#ffffff"
     },
     {
-      "kind": "bush",
-      "name": "Bushy plants",
-      "count": 8,
-      "bands": [1, 4],
-      "height": [0.15, 0.35],
-      "color": ["#5fb04a", "#79c85a"]
+      "kind": "anubias",
+      "count": 3,
+      "bands": [1, 3],
+      "height": [0.1, 0.16],
+      "color": "#ffffff"
+    },
+    {
+      "kind": "java-fern",
+      "count": 3,
+      "bands": [1, 3],
+      "height": [0.15, 0.25],
+      "color": "#ffffff"
     }
   ],
   "props": [
@@ -106,12 +113,6 @@
       "color": "#7d888f",
       "bands": [1, 3],
       "size": [0.12, 0.4]
-    },
-    {
-      "kind": "moss",
-      "count": 16,
-      "color": ["#6fc23a", "#8ed64a"],
-      "size": [0.12, 0.28]
     },
     {
       "kind": "pebble",

@@ -1,0 +1,24 @@
+{
+  "name": "Dwarf hairgrass",
+  "category": "plant",
+  "model": "model.glb",
+  "traits": {
+    "sway": {
+      "amount": 0.05,
+      "speed": 1.0
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["plant"],
+    "placement": {
+      "on": ["sand"],
+      "height": [0.04, 0.09]
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/freshwater_plants.py",
+    "license": "CC0-1.0"
+  }
+}
