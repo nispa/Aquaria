@@ -530,11 +530,13 @@ veined leaves in two tones, light through them, swaying.
 
 ### J4. Hardscape made in Blender
 
-- [ ] Seiryu stones: angular, layered, blue-grey with pale veins, in
+- [x] Seiryu stones: angular, layered, blue-grey with pale veins, in
       several sizes, for an iwagumi composition (one main stone leaning,
-      two to six around it).
-- [ ] Driftwood: branching roots (spider wood, manzanita) with bark,
-      instead of cylinders.
+      two to six around it). `seiryu-stone`, six stones from
+      `scripts/blender/seiryu.py`, in the Iwagumi; composing them is J5.
+- [x] Driftwood: branching roots (spider wood, manzanita) with bark,
+      instead of cylinders. `branching-driftwood`, three pieces from
+      `scripts/blender/driftwood.py`, in the Planted tank.
 
 ### J5. The scenes
 

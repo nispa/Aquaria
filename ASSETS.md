@@ -52,7 +52,7 @@ Aquaria tints it with the object's color (the `tint` trait).
 | Table coral (Madrepora cytherea, scan)                | `public/assets/objects/tabletop-coral/`      | https://n2t.net/ark:/65665/36558b63e-105b-4818-9190-760802a9abc3 | Smithsonian Institution, NMNH | CC0     |
 | Glove sponge (Spongia graminea tampa, scan)           | `public/assets/objects/glove-sponge/`        | https://n2t.net/ark:/65665/369d11867-94df-4e5c-810d-28cd7fb5b2e7 | Smithsonian Institution, NMNH | CC0     |
 
-## Plant models
+## Plant, stone and wood models
 
 Made in code with Blender by the scripts in `scripts/blender/`.
 
@@ -63,6 +63,8 @@ Made in code with Blender by the scripts in `scripts/blender/`.
 | Sea lettuce         | `public/assets/objects/sea-lettuce/`         | https://github.com/nispa/Aquaria/blob/main/scripts/blender/sea_lettuce.py | Aquaria | CC0     |
 | Bubble-tip anemone  | `public/assets/objects/bubble-tip-anemone/`  | https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py     | Aquaria | CC0     |
 | Magnificent anemone | `public/assets/objects/magnificent-anemone/` | https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py     | Aquaria | CC0     |
+| Seiryu stones       | `public/assets/objects/seiryu-stone/`        | https://github.com/nispa/Aquaria/blob/main/scripts/blender/seiryu.py      | Aquaria | CC0     |
+| Branching driftwood | `public/assets/objects/branching-driftwood/` | https://github.com/nispa/Aquaria/blob/main/scripts/blender/driftwood.py   | Aquaria | CC0     |
 
 ## Fish models
 

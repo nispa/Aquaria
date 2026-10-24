@@ -100,15 +100,12 @@
   ],
   "props": [
     {
-      "kind": "dragon-stone",
+      "kind": "seiryu-stone",
+      "name": "Seiryu stones",
       "count": 7,
-      "color": "#5c5e60",
+      "color": "#7d888f",
       "bands": [1, 3],
-      "material": {
-        "id": "dark-slate",
-        "tileSize": 0.3,
-        "displacement": 0.015
-      }
+      "size": [0.12, 0.4]
     },
     {
       "kind": "moss",

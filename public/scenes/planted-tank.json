@@ -110,14 +110,11 @@
   ],
   "props": [
     {
-      "kind": "driftwood",
+      "kind": "branching-driftwood",
+      "name": "Driftwood",
       "count": 3,
-      "color": "#5a4636",
-      "bands": [1, 2],
-      "material": {
-        "id": "mossy-wood",
-        "tileSize": 0.35
-      }
+      "color": "#82654a",
+      "bands": [1, 2]
     },
     {
       "kind": "rock",
