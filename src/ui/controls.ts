@@ -76,3 +76,57 @@ export function collapsible(
   });
   return { section, summary };
 }
+
+/** A row of tabs over their panels, one panel showing at a time. */
+export interface Tabs<Id extends string> {
+  readonly bar: HTMLElement;
+  /** Each tab's panel, to fill with sections. */
+  readonly panels: Readonly<Record<Id, HTMLElement>>;
+  /** Shows a tab, as a click on it would (without reporting it). */
+  show(id: Id): void;
+}
+
+/**
+ * Tabs with their panels; `onSelect` reports a tab the viewer clicked. The
+ * buttons and panels carry the ARIA tab roles, so a tab is found by its
+ * name and a panel by the tab that controls it.
+ */
+export function tabs<Id extends string>(
+  items: readonly { readonly id: Id; readonly label: string }[],
+  selected: Id,
+  onSelect: (id: Id) => void,
+): Tabs<Id> {
+  const bar = element("div", "panel__tabs");
+  bar.setAttribute("role", "tablist");
+  const buttons = new Map<Id, HTMLButtonElement>();
+  const panels = {} as Record<Id, HTMLElement>;
+  const show = (id: Id): void => {
+    for (const [tabId, button] of buttons) {
+      const current = tabId === id;
+      button.setAttribute("aria-selected", String(current));
+      button.tabIndex = current ? 0 : -1;
+      panels[tabId].hidden = !current;
+    }
+  };
+  for (const { id, label } of items) {
+    const button = element("button", "panel__tab", label);
+    button.type = "button";
+    button.id = `panel-tab-${id}`;
+    button.setAttribute("role", "tab");
+    button.setAttribute("aria-controls", `panel-tabpanel-${id}`);
+    button.addEventListener("click", () => {
+      show(id);
+      onSelect(id);
+    });
+    const panel = element("div", "panel__tabpanel");
+    panel.id = `panel-tabpanel-${id}`;
+    panel.dataset.tab = id;
+    panel.setAttribute("role", "tabpanel");
+    panel.setAttribute("aria-labelledby", button.id);
+    buttons.set(id, button);
+    panels[id] = panel;
+    bar.append(button);
+  }
+  show(selected);
+  return { bar, panels, show };
+}

@@ -190,6 +190,50 @@ body {
   text-overflow: ellipsis;
 }
 
+/* The tabs: one row that stays at the top while the panel scrolls. */
+.panel__tabs {
+  position: sticky;
+  top: -16px;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0 -18px 4px;
+  padding: 6px 18px 8px;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.panel__tab {
+  padding: 6px 2px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.panel__tab:hover {
+  color: var(--text);
+}
+
+.panel__tab[aria-selected="true"] {
+  border-color: var(--panel-border);
+  background: rgb(255 255 255 / 0.06);
+  color: var(--text);
+}
+
+.panel__tabpanel[hidden] {
+  display: none;
+}
+
+.panel__tabpanel > .panel__section:first-child {
+  margin-top: 8px;
+}
+
 .panel__section + .panel__section {
   margin-top: 14px;
   padding-top: 12px;
@@ -580,6 +624,25 @@ body {
 .panel__button--wide {
   width: 100%;
   margin-top: 8px;
+}
+
+/* The keys in the About section: the key, then what it does. */
+.panel__keys {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.panel__keys dt {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.panel__keys dd {
+  margin: 0;
+  color: var(--muted);
 }
 
 .panel__hint {

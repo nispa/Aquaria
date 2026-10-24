@@ -903,6 +903,7 @@ async function start(): Promise<void> {
       look,
       canFitLook,
       openSections: settings.panelSections ?? {},
+      tab: settings.panelTab ?? "tank",
       version: versionLabel(import.meta.env.APP_VERSION, import.meta.env.APP_COMMIT),
       about: ABOUT,
       logo: `${import.meta.env.BASE_URL}title.webp`,
@@ -1065,6 +1066,9 @@ async function start(): Promise<void> {
         view.aimTorch(torchOn && fingerOnGlass ? finger : undefined);
         panel.setTorch(torchOn);
         updateTapping();
+      },
+      onTabChange(tab) {
+        update({ panelTab: tab });
       },
       onSectionToggle(sectionId, open) {
         update({ panelSections: { ...settings.panelSections, [sectionId]: open } });

@@ -27,6 +27,10 @@ export type FrameLimit = (typeof FRAME_LIMIT_CHOICES)[number];
 export const DEFAULT_FRAME_LIMIT: FrameLimit = 30;
 
 /** Viewer preferences saved in the browser. */
+/** The control panel's tabs, in order: what is in the tank, its light, the picture, the computer. */
+export const PANEL_TABS = ["tank", "light", "picture", "system"] as const;
+export type PanelTab = (typeof PANEL_TABS)[number];
+
 export const settingsSchema = z.object({
   /** Height of the drawing buffer in pixels; the canvas always fills the screen. */
   renderHeight: z.number().int().min(MIN_RENDER_HEIGHT).max(UHD_HEIGHT).default(UHD_HEIGHT),
@@ -72,6 +76,8 @@ export const settingsSchema = z.object({
   sizeBalance: z.number().min(0).max(1).optional(),
   /** Open (true) or closed (false) per control panel section id; absent = the section's default. */
   panelSections: z.record(z.string(), z.boolean()).optional(),
+  /** The control panel's tab open last; one it no longer has is forgotten, not an error. */
+  panelTab: z.enum(PANEL_TABS).optional().catch(undefined),
   /** Custom LED setup; when absent the scene's own lights are used. */
   lights: customLightsSchema.optional(),
   /** Scenery count overrides per scene id, then per scenery key (see `sceneryEntries`). */

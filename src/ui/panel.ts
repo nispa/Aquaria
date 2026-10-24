@@ -2,7 +2,7 @@ import { FULL_HD_HEIGHT, resolutionLabel, UHD_HEIGHT } from "../core/resolution"
 import type { GpuKind } from "../core/gpu";
 import type { Lights } from "../scene/lights";
 import type { Look, LookFeature, LookFeatureKind } from "../scene/look";
-import { checkbox, collapsible, element, select, slider } from "./controls";
+import { checkbox, collapsible, element, select, slider, tabs } from "./controls";
 import { createFishCards, type DrawPortraits } from "./fishCards";
 import { createLightsSection, type LightsSectionState } from "./lightsSection";
 import { createLookSection, type LookSectionState } from "./lookSection";
@@ -12,6 +12,7 @@ import { createSceneryCards, type DrawSceneryPortraits } from "./sceneryCards";
 import { openSceneryPicker } from "./sceneryPicker";
 import type { AddableScenery, SceneryEntry } from "../scene/scenery";
 import type { Species } from "../scene/schema";
+import type { PanelTab } from "../scene/settings";
 
 /** Lowest height offered on the slider (half of Full HD, for weak GPUs). */
 const MIN_HEIGHT = FULL_HD_HEIGHT / 2;
@@ -20,8 +21,26 @@ const HEIGHT_STEP = 60;
 const BUTTON_IDLE_MS = 2500;
 const PERCENT = 100;
 const SIZE_STEP = 5;
-/** Sections open until the viewer closes them; every other section starts closed. */
-const OPEN_BY_DEFAULT: ReadonlySet<string> = new Set(["scenes", "fauna"]);
+/** The tabs of the panel, in order; each holds a few sections. */
+const TABS: readonly { readonly id: PanelTab; readonly label: string }[] = [
+  { id: "tank", label: "Tank" },
+  { id: "light", label: "Light" },
+  { id: "picture", label: "Picture" },
+  { id: "system", label: "System" },
+];
+
+/** The keys, as the About section lists them. */
+const KEYS: readonly (readonly [string, string])[] = [
+  ["H", "show or hide this panel"],
+  ["F", "full screen"],
+  ["Space", "feed the fish"],
+  ["T", "torch"],
+  ["Z", "magnifier"],
+  ["P", "point instead of tapping the glass"],
+  ["M", "sound"],
+  ["A", "what the fish are doing"],
+  ["E", "scene editor"],
+];
 
 /** "Real" at 0, "Alike" at 1, a percentage in between. */
 function sizeBalanceLabel(balance: number): string {
@@ -99,6 +118,8 @@ export interface PanelState {
   scenePicture(sceneId: string): string | undefined;
   /** Saved open/closed state per section id; absent sections use their default. */
   readonly openSections: Readonly<Record<string, boolean>>;
+  /** The tab showing when the panel opens. */
+  readonly tab: PanelTab;
 }
 
 export interface About {
@@ -154,6 +175,7 @@ export interface PanelCallbacks {
   onSoundChange(enabled: boolean): void;
   onVolumeChange(volume: number): void;
   onSectionToggle(sectionId: string, open: boolean): void;
+  onTabChange(tab: PanelTab): void;
 }
 
 export interface Panel {
@@ -243,10 +265,16 @@ function resetButton(onReset: () => void): HTMLButtonElement {
   return button;
 }
 
-/** Version, author, copyright, license and a link to the code, opened from the ⓘ. */
+/** The keys and what each does. */
+function keyList(): HTMLElement {
+  const list = element("dl", "panel__keys");
+  for (const [key, what] of KEYS) list.append(element("dt", "", key), element("dd", "", what));
+  return list;
+}
+
+/** Version, author, copyright, license, a link to the code and the reset button. */
 function aboutBox(version: string, about: About, onReset: () => void): HTMLElement {
   const box = element("div", "panel__about");
-  box.hidden = true;
   const link = element("a", "panel__link", about.repository.replace(/^https:\/\//, ""));
   link.href = about.repository;
   link.target = "_blank";
@@ -306,8 +334,9 @@ export function createPanel(
   panel.hidden = true;
   const featureInputs = new Map<string, HTMLInputElement>();
 
+  // In a tab every section starts open: the tab already keeps the panel short.
   const sectionWithSummary = (id: string, title: string) =>
-    collapsible(id, title, state.openSections[id] ?? OPEN_BY_DEFAULT.has(id), (open) => {
+    collapsible(id, title, state.openSections[id] ?? true, (open) => {
       callbacks.onSectionToggle(id, open);
     });
   const section: SectionFactory = (id, title) => sectionWithSummary(id, title).section;
@@ -316,19 +345,30 @@ export function createPanel(
   const infoButton = element("button", "panel__info", "i");
   infoButton.type = "button";
   infoButton.setAttribute("aria-label", "About Aquaria");
-  infoButton.setAttribute("aria-expanded", "false");
-  const about = aboutBox(state.version, state.about, () => {
-    callbacks.onResetEverything();
-  });
-  infoButton.addEventListener("click", () => {
-    about.hidden = !about.hidden;
-    infoButton.setAttribute("aria-expanded", String(!about.hidden));
-  });
   header.append(element("h1", "panel__title", state.sceneName), infoButton);
   const logo = element("img", "panel__logo");
   logo.src = state.logo;
   logo.alt = "Aquaria";
-  panel.append(logo, header, about);
+  const tabBar = tabs(TABS, state.tab, (tab) => {
+    callbacks.onTabChange(tab);
+  });
+  panel.append(logo, header, tabBar.bar, ...Object.values(tabBar.panels));
+
+  const about = section("about", "About");
+  about.append(
+    aboutBox(state.version, state.about, () => {
+      callbacks.onResetEverything();
+    }),
+    element("p", "panel__subheading", "Keys"),
+    keyList(),
+  );
+  // The ⓘ leads to the About section, in the System tab.
+  infoButton.addEventListener("click", () => {
+    tabBar.show("system");
+    callbacks.onTabChange("system");
+    about.open = true;
+    about.scrollIntoView({ block: "nearest" });
+  });
 
   const scenes = section("scenes", "Scenes");
   scenes.append(
@@ -443,7 +483,7 @@ export function createPanel(
   volumeRow.append(element("span", "panel__label", "Volume"), volume, volumeValue);
   sound.append(soundRow, volumeRow);
 
-  const quality = section("quality", "Quality");
+  const quality = section("quality", "Screen");
   const resolutionRow = element("label", "panel__row");
   const resolutionValue = element("output", "panel__value", resolutionLabel(state.renderHeight));
   const resolution = slider(MIN_HEIGHT, UHD_HEIGHT, HEIGHT_STEP, state.renderHeight);
@@ -542,36 +582,25 @@ export function createPanel(
     presets,
     automatic,
     frameLimit.row,
-    fit,
-    fitStatus,
     antialias.row,
     fpsRow,
     fullscreen,
   );
-  panel.append(
-    scenes,
-    fauna,
-    time.section,
-    lights,
-    lookBox,
-    scenery,
-    ...featureSections(
-      state.features,
-      state.look,
-      section,
-      (featureId, enabled) => {
-        callbacks.onFeatureChange(featureId, enabled);
-      },
-      featureInputs,
-    ),
-    sound,
-    quality,
-    element(
-      "p",
-      "panel__hint",
-      "H: show/hide · F: full screen · T: torch · Z: magnifier · P: point · M: sound · A: what fish do · E: edit rock",
-    ),
+  const effects = featureSections(
+    state.features,
+    state.look,
+    section,
+    (featureId, enabled) => {
+      callbacks.onFeatureChange(featureId, enabled);
+    },
+    featureInputs,
   );
+  const fitBox = element("div", "panel__section");
+  fitBox.append(fit, fitStatus);
+  tabBar.panels.tank.append(scenes, fauna, scenery);
+  tabBar.panels.light.append(time.section, lights);
+  tabBar.panels.picture.append(lookBox, ...effects, fitBox);
+  tabBar.panels.system.append(quality, sound, about);
 
   const fpsCounter = element("div", "fps");
   fpsCounter.hidden = !state.showFps;

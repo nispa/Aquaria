@@ -12,9 +12,14 @@ async function openLive(page: Page, query = "?effects=none"): Promise<void> {
   await page.goto(`/${query}`);
 }
 
-/** Opens a collapsible panel section, unless it is open already (e.g. remembered). */
+/**
+ * Opens a collapsible panel section, unless it is open already (e.g.
+ * remembered), after the tab that holds it.
+ */
 async function openSection(page: Page, id: string): Promise<void> {
   const section = page.locator(`details[data-section="${id}"]`);
+  const tab = await section.evaluate((node) => node.closest<HTMLElement>("[role=tabpanel]")?.id);
+  if (tab !== undefined) await page.locator(`[role=tab][aria-controls="${tab}"]`).click();
   const open = await section.evaluate((node) => (node as HTMLDetailsElement).open);
   // Its own summary, not those of the groups inside it.
   if (!open) await section.locator(":scope > summary").click();
@@ -74,7 +79,7 @@ test("shows the release, the author and a link to the code under the info button
   await expect(link).toHaveAttribute("target", "_blank");
 });
 
-test("keeps the advanced sections closed until opened, and remembers them", async ({ page }) => {
+test("remembers the panel's tab and the sections the viewer closed", async ({ page }) => {
   await page.addInitScript(() => {
     if (localStorage.getItem("aquaria.settings") === null) {
       localStorage.setItem("aquaria.settings", JSON.stringify({ renderHeight: 540 }));
@@ -85,16 +90,18 @@ test("keeps the advanced sections closed until opened, and remembers them", asyn
   await page.keyboard.press("h");
   await expect(page.getByRole("button", { name: "Full HD" })).toBeHidden();
 
-  await page.locator('details[data-section="quality"] summary').click();
+  await page.getByRole("tab", { name: "System" }).click();
+  await page.locator('details[data-section="sound"] > summary').click();
   // The toggle event, which saves the state, fires after the click returns.
   await page.waitForFunction(() =>
-    localStorage.getItem("aquaria.settings")?.includes('"quality":true'),
+    localStorage.getItem("aquaria.settings")?.includes('"sound":false'),
   );
   await page.reload();
   await waitForState(page);
   await page.keyboard.press("h");
 
   await expect(page.getByRole("button", { name: "Full HD" })).toBeVisible();
+  await expect(page.getByRole("slider", { name: "Volume" })).toBeHidden();
 });
 
 const bufferHeight = (page: Page) =>

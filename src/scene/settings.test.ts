@@ -223,6 +223,18 @@ describe("panel sections", () => {
   });
 });
 
+describe("panel tab", () => {
+  it("remembers which tab of the panel the viewer had open", () => {
+    expect(parseSettings({ panelTab: "picture" }).settings.panelTab).toBe("picture");
+  });
+
+  it("forgets a panel tab it no longer has, keeping the other settings", () => {
+    const parsed = parseSettings({ panelTab: "quality", sizeBalance: 0.3 });
+
+    expect([parsed.settings.panelTab, parsed.settings.sizeBalance]).toEqual([undefined, 0.3]);
+  });
+});
+
 describe("anti-aliasing preference", () => {
   it("defaults to 2x multisampling", () => {
     expect(DEFAULT_SETTINGS.msaaSamples ?? DEFAULT_MSAA_SAMPLES).toBe(2);
