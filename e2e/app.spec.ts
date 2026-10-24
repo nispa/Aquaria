@@ -550,11 +550,12 @@ test("changes the anti-aliasing from the panel", async ({ page }) => {
   await openLive(page);
   await waitForState(page);
   await page.keyboard.press("h");
+  // MSAA is in the System tab, SMAA among the effects in the Picture tab.
   await openSection(page, "quality");
-  await openSection(page, "effect");
-
   await page.locator('select[name="msaa"]').selectOption("4");
+  await openSection(page, "effect");
   await page.getByRole("checkbox", { name: "SMAA anti-aliasing" }).check();
+  await openSection(page, "quality");
 
   await expect(page.locator('select[name="msaa"]')).toHaveValue("4");
   expect(errors).toEqual([]);
