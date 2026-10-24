@@ -39,6 +39,26 @@ La profondità è divisa anche in cinque **fasce**: 0 è subito dietro il
 vetro, 4 è in fondo. Piante, oggetti e pesci usano le fasce per dire dove
 stanno.
 
+### Dimensione della vasca
+
+Una scena è scritta per una vasca, ma chi guarda può vederla in un'altra:
+nella scheda Tank del pannello c'è la scelta **Tank size**, e `?size=nano`
+fa lo stesso dall'indirizzo. Le dimensioni sono `nano` (40 × 30 × 30 cm),
+`small` (60 × 40 × 40 cm), `medium` (120 × 60 × 50 cm), `large` (240 × 110
+× 100 cm) e `ocean` (6 × 3,2 × 3,2 m). Una scena può dire per quale è
+scritta con `"size": "large"`; senza, si usa quella più vicina alle misure
+di `tank`.
+
+I pesci restano della loro misura vera, quindi in una vasca più piccola ce
+ne sono meno: il numero segue la radice quadrata del volume, un branco non
+scende sotto i tre e una specie che non ci sta più viene lasciata fuori.
+Piante e oggetti mantengono la densità, quindi il loro numero segue l'area
+del fondo; le piante seguono l'altezza della vasca e non superano l'80%
+della sua altezza, pietre e legni si rimpiccioliscono un poco. I punti
+scelti (`at`) si spostano con la vasca. Dai a un oggetto una `size` perché
+possa seguirla: senza, tiene quella predefinita. Una scena con la roccia
+fatta di blocchi ha una forma fissa e tiene la sua vasca.
+
 ## Una scena
 
 Breve ma completa:

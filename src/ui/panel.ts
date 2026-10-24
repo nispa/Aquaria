@@ -12,6 +12,7 @@ import { createSceneryCards, type DrawSceneryPortraits } from "./sceneryCards";
 import { openSceneryPicker } from "./sceneryPicker";
 import type { AddableScenery, SceneryEntry } from "../scene/scenery";
 import type { Species } from "../scene/schema";
+import { TANK_SIZE_MEASURES, TANK_SIZES, type TankSize } from "../scene/tankMeasures";
 import type { PanelTab } from "../scene/settings";
 
 /** Lowest height offered on the slider (half of Full HD, for weak GPUs). */
@@ -120,6 +121,32 @@ export interface PanelState {
   readonly openSections: Readonly<Record<string, boolean>>;
   /** The tab showing when the panel opens. */
   readonly tab: PanelTab;
+  /** Whether this scene can be shown at another size (rock built of blocks cannot). */
+  readonly canResizeTank: boolean;
+  /** The size the viewer chose for every scene; undefined for each scene as written. */
+  readonly tankSizeChoice: TankSize | undefined;
+}
+
+/** The panel's value for "each scene as it was written". */
+const AS_WRITTEN = "written";
+const CENTIMETERS_PER_METER = 100;
+
+const SIZE_NAMES: Readonly<Record<TankSize, string>> = {
+  nano: "Nano",
+  small: "Small",
+  medium: "Medium",
+  large: "Large",
+  ocean: "Ocean",
+};
+
+/** E.g. "Nano · 40 × 30 × 30 cm", or in meters for an ocean. */
+function tankSizeLabel(size: TankSize): string {
+  const { width, height, depth } = TANK_SIZE_MEASURES[size];
+  const inCentimeters = width < 3;
+  const unit = inCentimeters ? "cm" : "m";
+  const scale = inCentimeters ? CENTIMETERS_PER_METER : 1;
+  const measures = [width, height, depth].map((value) => String(Math.round(value * scale)));
+  return `${SIZE_NAMES[size]} · ${measures.join(" × ")} ${unit}`;
 }
 
 export interface About {
@@ -132,6 +159,8 @@ export interface About {
 
 export interface PanelCallbacks {
   onSceneChange(sceneId: string): void;
+  /** Shows every scene in a tank of this size; undefined shows each as it was written. */
+  onTankSizeChange(size: TankSize | undefined): void;
   /** Opens the scene editor (building rock from blocks) in place of the tank. */
   onOpenEditor(): void;
   onCountChange(speciesId: string, count: number): void;
@@ -401,6 +430,23 @@ export function createPanel(
       },
     }),
   );
+
+  const tankSizeRow = select(
+    "Tank size",
+    [
+      [AS_WRITTEN, "As the scene was written"],
+      ...TANK_SIZES.map((size) => [size, tankSizeLabel(size)] as const),
+    ],
+    state.tankSizeChoice ?? AS_WRITTEN,
+  );
+  tankSizeRow.input.disabled = !state.canResizeTank;
+  tankSizeRow.row.title = state.canResizeTank
+    ? "The same scene in a smaller or larger tank: fewer fish and plants, true sizes."
+    : "This scene's rock has a fixed shape, so its tank cannot change size.";
+  tankSizeRow.input.addEventListener("change", () => {
+    callbacks.onTankSizeChange(TANK_SIZES.find((size) => size === tankSizeRow.input.value));
+  });
+  scenes.append(tankSizeRow.row);
 
   const fauna = section("fauna", "Fauna");
   const sizeRow = element("label", "panel__row");

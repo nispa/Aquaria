@@ -188,6 +188,19 @@ describe("fish size preference", () => {
   });
 });
 
+describe("tank size preference", () => {
+  it("keeps a saved tank size", () => {
+    expect(parseSettings({ tankSize: "small" }).settings.tankSize).toBe("small");
+  });
+
+  it("forgets a size that no longer exists instead of resetting every setting", () => {
+    const parsed = parseSettings({ tankSize: "gigantic", sizeBalance: 0.3 });
+
+    expect(parsed.settings.tankSize).toBeUndefined();
+    expect(parsed.settings.sizeBalance).toBe(0.3);
+  });
+});
+
 describe("lights preference", () => {
   it("has no custom lights by default, so the scene's lights are used", () => {
     expect(DEFAULT_SETTINGS.lights).toBeUndefined();

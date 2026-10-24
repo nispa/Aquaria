@@ -37,6 +37,25 @@ the surface, `z` from the glass towards the back.
 Depth is also split into five **bands**: 0 is right behind the glass, 4 is
 at the back. Plants, objects and fish use bands to say where they belong.
 
+### Tank size
+
+A scene is written for one tank, but the viewer can see it in another: the
+Tank tab of the panel has a **Tank size** choice, and `?size=nano` does the
+same from the address. The sizes are `nano` (40 × 30 × 30 cm), `small`
+(60 × 40 × 40 cm), `medium` (120 × 60 × 50 cm), `large` (240 × 110 × 100
+cm) and `ocean` (6 × 3.2 × 3.2 m). A scene may say which one it is written
+for with `"size": "large"`; without it, the size closest to its `tank`
+measures is used.
+
+Fish keep their real size, so a smaller tank holds fewer of them: their
+number follows the square root of the volume, a school never drops below
+three, and a species that no longer fits is left out. Plants and objects
+keep their density, so their number follows the floor area; plants follow
+the tank's height and never grow above 80% of it, stones and woods shrink
+a little. Chosen spots (`at`) move with the tank. Give a prop a `size` so
+it can follow: without one it keeps its default. A scene whose rock is
+built of blocks has a fixed shape and keeps its tank.
+
 ## A scene
 
 A short but complete one:

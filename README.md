@@ -90,6 +90,7 @@ in the corner (point, torch, magnifier, food, panel) and fade away again.
 | `hour`    | `?hour=21.5`             | Fixes the time of day                          |
 | `seed`    | `?seed=7`                | Another random layout of the same scene        |
 | `effects` | `?effects=shadows,bloom` | Only these effects (`none` turns them all off) |
+| `size`    | `?size=nano`             | Shows the scene in a tank of that size         |
 | `frozen`  | `?frozen=10`             | Runs 10 seconds, then shows a still picture    |
 | `debug`   | `?debug=overlay,shapes`  | Starts with `A` (and `C`) on                   |
 

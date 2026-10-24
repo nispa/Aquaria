@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { customLightsSchema } from "./lights";
 import { lookTweakSchema } from "./sceneLook";
+import { TANK_SIZES } from "./tankMeasures";
 import { FULL_HD_HEIGHT, UHD_HEIGHT } from "../core/resolution";
 import {
   MAX_FLORA_PER_ENTRY,
@@ -65,6 +66,11 @@ export const settingsSchema = z.object({
     .optional(),
   /** The viewer's changes to each look, by look id (see scene/sceneLook). */
   lookTweaks: z.record(z.string(), lookTweakSchema).optional(),
+  /**
+   * The tank size the viewer chose in the panel: every scene that can be
+   * resized is shown at this size. Absent = each scene as it was written.
+   */
+  tankSize: z.enum(TANK_SIZES).optional().catch(undefined),
   /** The scene chosen last in the panel. */
   scene: z
     .string()

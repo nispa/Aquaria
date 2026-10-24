@@ -116,6 +116,7 @@ import {
   withGroup,
   type SceneIndex,
 } from "../scene/sceneIndex";
+import { canResize, resizeScene } from "../scene/tankSize";
 import { readScenePictures, scenePictureUrl, writeScenePicture } from "../scene/scenePictures";
 import type { SceneChoice, SceneChoiceGroup } from "../ui/panel";
 import { createSimulation, type Simulation } from "../sim/simulation";
@@ -251,6 +252,13 @@ function openScene(id: string | undefined): void {
     if (id === undefined) url.searchParams.delete("scene");
     else url.searchParams.set("scene", id);
   }
+  window.location.assign(url);
+}
+
+/** Reloads with the tank size the settings hold, dropping any ?size= from the URL. */
+function openTankSize(): void {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("size");
   window.location.assign(url);
 }
 
@@ -577,7 +585,13 @@ async function start(): Promise<void> {
     checkSceneObjects(parsed, objects);
     return parsed;
   };
-  const loadedScene = parseWithObjects(sceneData);
+  const writtenScene = parseWithObjects(sceneData);
+  const tankSizeChoice = options.size ?? settings.tankSize;
+  const loadedScene =
+    tankSizeChoice === undefined ? writtenScene : resizeScene(writtenScene, tankSizeChoice);
+  // What the viewer changed (counts, scenery) belongs to the size it was changed at.
+  const overridesKey =
+    loadedScene === writtenScene ? sceneId : `${sceneId}@${loadedScene.size ?? ""}`;
   const { looks, offered: offeredLooks } = await loadLooks(loadedScene.look, effects);
   /** The look chosen: the viewer's, else the scene's own, else the plain one. */
   const lookChoice = (): { readonly id: string; readonly look: SceneLook } =>
@@ -595,8 +609,8 @@ async function start(): Promise<void> {
   let look: Look = fitsLook
     ? calibrationPlan(features, settings.look ?? {}).start
     : resolveLook(features, settings.look ?? {}, options.effects);
-  const baseScene = applyCountOverrides(loadedScene, settings.counts[sceneId] ?? {}, catalog);
-  let sceneryCounts: Readonly<Record<string, number>> = settings.scenery?.[sceneId] ?? {};
+  const baseScene = applyCountOverrides(loadedScene, settings.counts[overridesKey] ?? {}, catalog);
+  let sceneryCounts: Readonly<Record<string, number>> = settings.scenery?.[overridesKey] ?? {};
   /** The scene with the viewer's scenery: the counts, and what was added from the catalog. */
   const withViewerScenery = (): Scene =>
     applySceneryOverrides(withAddedScenery(baseScene, sceneryCounts, objects), sceneryCounts);
@@ -866,7 +880,7 @@ async function start(): Promise<void> {
   const saveSceneryCounts = (counts: Readonly<Record<string, number>>): void => {
     sceneryCounts = counts;
     scheduleSceneryRebuild();
-    update({ scenery: { ...settings.scenery, [scene.id]: sceneryCounts } });
+    update({ scenery: { ...settings.scenery, [overridesKey]: sceneryCounts } });
   };
 
   const panel = createPanel(
@@ -876,6 +890,8 @@ async function start(): Promise<void> {
       gpu: { name: shortGpuName(view.gpuName()), kind: classifyGpu(view.gpuName()) },
       scenes: sceneChoices,
       sceneId,
+      canResizeTank: canResize(writtenScene),
+      tankSizeChoice,
       species: catalog.species,
       counts: Object.fromEntries(
         catalog.species.map((species) => [species.id, simulation.targetCount(species.id)]),
@@ -952,7 +968,7 @@ async function start(): Promise<void> {
         update({
           counts: {
             ...settings.counts,
-            [scene.id]: { ...settings.counts[scene.id], [speciesId]: count },
+            [overridesKey]: { ...settings.counts[overridesKey], [speciesId]: count },
           },
         });
       },
@@ -992,6 +1008,10 @@ async function start(): Promise<void> {
       onSceneChange(id) {
         update({ scene: id });
         openScene(id);
+      },
+      onTankSizeChange(size) {
+        update({ tankSize: size });
+        openTankSize();
       },
       onOpenEditor() {
         if (editor === undefined) openEditor();

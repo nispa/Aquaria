@@ -1,3 +1,5 @@
+import { TANK_SIZES, type TankSize } from "../scene/tankMeasures";
+
 /** Scene ids double as file names, so they are restricted. */
 const SCENE_ID = /^[a-z0-9-]+$/;
 const FEATURE_ID = /^[a-z0-9-]+$/;
@@ -17,6 +19,8 @@ export interface LaunchOptions {
   readonly scene?: string;
   /** When set, simulate this many seconds, render one still frame and stop. */
   readonly frozenSeconds?: number;
+  /** Shows the scene in a tank of this size, e.g. `?size=nano`. */
+  readonly size?: TankSize;
   /** Overrides the scene seed. */
   readonly seed?: number;
   /** Fixed hour of the aquarium day (0..24), overriding the light cycle. */
@@ -34,6 +38,10 @@ function isDebugTool(id: string): id is DebugTool {
 function debugList(value: string | null): readonly DebugTool[] | undefined {
   if (value === null) return undefined;
   return value.split(",").filter(isDebugTool);
+}
+
+function tankSize(value: string | null): TankSize | undefined {
+  return TANK_SIZES.find((size) => size === value);
 }
 
 function nonNegativeNumber(value: string | null): number | undefined {
@@ -54,6 +62,7 @@ export function parseLaunchOptions(search: string): LaunchOptions {
   const requested = params.get("scene");
   const scene = requested !== null && SCENE_ID.test(requested) ? requested : undefined;
   const frozenSeconds = nonNegativeNumber(params.get("frozen"));
+  const size = tankSize(params.get("size"));
   const seed = nonNegativeNumber(params.get("seed"));
   const effects = featureList(params.get("effects"));
   const hour = nonNegativeNumber(params.get("hour"));
@@ -61,6 +70,7 @@ export function parseLaunchOptions(search: string): LaunchOptions {
   return {
     ...(scene === undefined ? {} : { scene }),
     ...(frozenSeconds === undefined ? {} : { frozenSeconds }),
+    ...(size === undefined ? {} : { size }),
     ...(seed === undefined ? {} : { seed: Math.floor(seed) }),
     ...(effects === undefined ? {} : { effects }),
     ...(hour === undefined || hour > HOURS_PER_DAY ? {} : { hour }),
@@ -73,6 +83,7 @@ export function launchQuery(options: LaunchOptions): string {
   const params = new URLSearchParams();
   if (options.scene !== undefined) params.set("scene", options.scene);
   if (options.frozenSeconds !== undefined) params.set("frozen", String(options.frozenSeconds));
+  if (options.size !== undefined) params.set("size", options.size);
   if (options.seed !== undefined) params.set("seed", String(options.seed));
   if (options.hour !== undefined) params.set("hour", String(options.hour));
   if (options.effects !== undefined) {

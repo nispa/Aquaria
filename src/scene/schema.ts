@@ -3,6 +3,7 @@ import { activitiesSchema } from "./activities";
 import { blockGrid, cellCount, MAX_BLOCK_SIZE, MIN_BLOCK_SIZE, runsTotal } from "./blocks";
 import { lightsSchema } from "./lights";
 import { swimSchema } from "./swimming";
+import { TANK_SIZES } from "./tankMeasures";
 import { tagSchema } from "./tags";
 
 /**
@@ -461,6 +462,12 @@ export const sceneSchema = z
       .optional(),
     /** Tank size in meters: x = width, y = height, z = depth away from the glass. */
     tank: z.object({ width: positive, height: positive, depth: positive }),
+    /**
+     * The size class the scene is written for (see scene/tankSize); the one
+     * its `tank` measures are closest to when absent. The viewer can see the
+     * scene at another size.
+     */
+    size: z.enum(TANK_SIZES).optional(),
     water: z.object({
       color: hexColor,
       fogDensity: z.number().min(0).max(1),

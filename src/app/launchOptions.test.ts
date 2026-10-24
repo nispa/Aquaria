@@ -28,6 +28,20 @@ describe("parseLaunchOptions", () => {
   });
 });
 
+describe("size option", () => {
+  it("reads the size of the tank to show the scene in", () => {
+    expect(parseLaunchOptions("?size=nano").size).toBe("nano");
+  });
+
+  it("ignores a size that does not exist", () => {
+    expect(parseLaunchOptions("?size=gigantic").size).toBeUndefined();
+  });
+
+  it("writes the size back into the query", () => {
+    expect(launchQuery({ scene: "iwagumi", size: "small" })).toBe("?scene=iwagumi&size=small");
+  });
+});
+
 describe("effects option", () => {
   it("reads a comma-separated list of features to enable", () => {
     expect(parseLaunchOptions("?effects=shadows,bloom").effects).toEqual(["shadows", "bloom"]);

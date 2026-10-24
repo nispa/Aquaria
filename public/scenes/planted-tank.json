@@ -119,7 +119,8 @@
       "name": "Driftwood",
       "count": 3,
       "color": "#82654a",
-      "bands": [1, 2]
+      "bands": [1, 2],
+      "size": [0.4, 0.8]
     },
     {
       "kind": "rock",

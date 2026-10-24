@@ -356,9 +356,18 @@ species are needed.
 
 - [x] Fish sizes in a small tank: real sizes stay true; the size balance
       of the panel brings them together.
+- [x] Sizes as a choice, asked by the user on 2026-10-24: `nano`,
+      `small`, `medium`, `large`, `ocean`. A scene may say its own
+      (`size`); the panel's Tank size and `?size=` show any scene at
+      another (`scene/tankSize.ts`): fewer fish (square root of the
+      volume), plants and objects by floor area, true sizes kept. Scenes
+      with block rock keep their tank.
 - [ ] The floor's relief follows the tank: the sand dunes are ±12 cm
       whatever the size (`FLOOR_AMPLITUDE` in `sim/terrain.ts`), too
       much for a 60 cm tank. See J1.
+- [ ] A small tank needs its own back and floor: today the sand and the
+      backdrop run on far behind a nano tank as in open water. See J1's
+      background panel.
 
 ### I2. Four realistic looks
 
