@@ -8,6 +8,12 @@ import type { ShaderPatch } from "./patch";
  */
 const WAVE_ACROSS = 1.1;
 const WAVE_ALONG = 0.9;
+/**
+ * Fins are soft: the base is held by the shoulder girdle and the rays bend,
+ * so the tip swings further than the base, by this share more at the tip
+ * (it curls rather than turning like a plastic paddle on a hinge).
+ */
+const CURL = 0.8;
 /** A beat swings the fin out more than in, as far as a share of the sweep: it rows from near the body. */
 const STROKE_OUTWARD = 0.4;
 /** How far a fully spread fin stands out beyond its modelled pose, radians (to brake, to pivot). */
@@ -67,8 +73,9 @@ export function fishPectoralPatch(uniforms: FishPectoralUniforms): ShaderPatch {
         float across = clamp((uPectoralRootTop.y - point.y) / span, 0.0, 1.5);
         float along = clamp((uPectoralRootTop.x - point.x) / uPectoralLength, 0.0, 1.5);
         float lag = ${WAVE_ACROSS.toFixed(2)} * across + ${WAVE_ALONG.toFixed(2)} * along;
-        float pose = spread < 0.0 ? spread * uPectoralRest : spread * ${FLARE.toFixed(2)};
-        float stroke = aFinPose.x * uPectoralSweep * (sin(phase - lag) + ${STROKE_OUTWARD.toFixed(2)});
+        float flex = 1.0 + ${CURL.toFixed(2)} * along * along;
+        float pose = spread < 0.0 ? spread * uPectoralRest : spread * ${FLARE.toFixed(2)} * flex;
+        float stroke = aFinPose.x * uPectoralSweep * flex * (sin(phase - lag) + ${STROKE_OUTWARD.toFixed(2)});
         // Never through the body.
         float angle = max(pose + stroke, -uPectoralRest);
         return right > 0.5 ? angle : -angle;
