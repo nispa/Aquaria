@@ -9,23 +9,27 @@ si può fare con i pesci è in [Giocare con i pesci](INTERAZIONE.md).
 ## Il pannello di controllo
 
 Premi `H`, oppure il pulsante tondo che compare nell'angolo quando muovi il
-mouse. Ogni sezione si apre e si chiude dal titolo, e il pannello ricorda
-quali hai lasciato aperte. Tutto quello che cambi viene salvato nel
-browser.
+mouse. Il pannello ha quattro schede:
 
-La ⓘ accanto al titolo mostra la versione e **Reset Aquaria**: due clic
-dimenticano le tue impostazioni e riscaricano tutti i modelli e le texture.
-Usalo se un browser continua a mostrare qualcosa di vecchio dopo un
-aggiornamento; le tue scene restano.
+- **Tank**: cosa c'è nella vasca, la scena, i pesci, le piante e gli
+  oggetti;
+- **Light**: l'ora e la lampada;
+- **Picture**: come si disegnano l'acqua e la luce, e gli effetti;
+- **System**: lo schermo, il suono e le informazioni (About).
 
-### Scene
+Ogni sezione di una scheda si chiude e si riapre dal titolo. Il pannello
+ricorda la scheda e le sezioni che hai lasciato chiuse; tutto quello che
+cambi viene salvato nel browser. La ⓘ accanto al nome della scena apre
+About.
+
+### Tank
+
+#### Scene
 
 Una scheda per ogni scena, poi le tue sotto **My scenes**. Clicca per
 aprirne una. L'ultima scheda, **Editor**, apre l'[editor delle scene](#leditor-delle-scene).
 
-La ⓘ accanto al nome della scena mostra versione, autore e licenza.
-
-### Fauna
+#### Fauna
 
 Una scheda per ogni specie, con l'immagine del pesce disegnata dal vivo e
 un cursore per quanti ce ne sono. Le specie già in vasca vengono prima.
@@ -43,7 +47,7 @@ vanno nuotando.
   pesci i loro orari: i pesci diurni la notte riposano, quelli notturni si
   svegliano.
 
-### Scenery
+#### Scenery
 
 Una scheda per ogni gruppo di piante e oggetti della scena, con un cursore
 per quanti sono. Aggiungerne non sposta quelli che ci sono già.
@@ -54,7 +58,7 @@ corallo cervello nel Planted tank. Quello che scegli entra nella griglia con
 una scheda sua, in scala con la vasca, e resta lì anche la volta dopo. La
 sua **×** lo toglie di nuovo.
 
-### Time e Lights
+### Light
 
 La vasca è illuminata come un acquario di barriera: quattro canali LED
 (bianco, blu, viola e un colore libero) e una debole luce lunare blu di
@@ -80,7 +84,9 @@ luce lunare. La luce lunare si vede solo di notte: a 0% dopo il tramonto la
 vasca diventa buia, a 30% è una notte azzurra in cui i pesci si vedono
 ancora.
 
-### Look
+### Picture
+
+#### Look
 
 Il look è la composizione di acqua e luce: quanto è luminosa l'immagine,
 dove sta il sole, come l'acqua spegne i colori con la distanza, i raggi, il
@@ -88,18 +94,21 @@ contrasto e i colori. **Look** lo sceglie: quello della scena, **Hero**
 (il mare aperto del manifesto, con le onde in superficie e la cornice della
 vasca) o **None** (ogni effetto al suo valore predefinito).
 
-Sotto ci sono gli slider per tutto: esposizione, altezza e direzione del
-sole, poi un gruppo per effetto con ogni sua impostazione. Il gruppo Deep
-water light contiene l'acqua stessa: quanto in fretta svaniscono rosso,
-verde e blu, quanta acqua dietro il vetro resta limpida prima che inizi il
-velo, quanto si scurisce scendendo in profondità, la luce diffusa guardando
-in basso, di fronte e in alto, l'alone del sole e i raggi. Le tue modifiche
-restano per ogni look; **Reset this look** le dimentica.
+Sotto ci sono l'esposizione, la **Marine snow** (i puntini sospesi
+nell'acqua: 0 è acqua cristallina, 1 il mare aperto, fino a 3 torbida) e
+l'altezza e la direzione del sole. Le impostazioni di ogni effetto stanno
+sotto il suo interruttore, più in basso. Le tue modifiche restano per ogni
+look; **Reset this look** le dimentica.
 
-### Lighting e Post-processing
+#### Lighting ed Effects
 
 Ogni effetto ha il suo interruttore, così decidi tu dove spende il tempo la
-scheda grafica.
+scheda grafica. Un effetto con delle impostazioni ha accanto **Settings**,
+che apre i suoi slider sotto l'interruttore. Deep water light contiene
+l'acqua stessa: quanto in fretta svaniscono rosso, verde e blu, quanta
+acqua dietro il vetro resta limpida prima che inizi il velo, quanto si
+scurisce scendendo in profondità, la luce diffusa guardando in basso, di
+fronte e in alto, l'alone del sole e i raggi.
 
 | Interruttore          | Cosa fa                                                     | All'avvio    |
 | --------------------- | ----------------------------------------------------------- | ------------ |
@@ -127,7 +136,13 @@ L'ambient occlusion è di gran lunga il più pesante, e la profondità di
 campo su una parete vista da lontano sembra solo sfocatura: restano spenti
 finché non li accendi tu.
 
-### Quality
+**Fit effects to this screen**, in fondo alla scheda, dimentica gli
+interruttori degli effetti che hai cambiato e li adatta di nuovo alla
+scheda grafica. Utile dopo aver cambiato il limite di fotogrammi.
+
+### System
+
+#### Screen
 
 - **Resolution**: da 540p a 4K. Con **Automatic resolution** accesa (di
   partenza) Aquaria la abbassa quando la scheda grafica fatica e la rialza
@@ -137,17 +152,23 @@ finché non li accendi tu.
   nessun limite. Un limite lascia la scheda grafica libera per il resto del
   computer e fa durare di più la batteria.
 - **Anti-aliasing**: MSAA spento, 2×, 4× o 8×.
-- **Fit effects to this screen**: dimentica gli interruttori degli effetti
-  che hai cambiato e li adatta di nuovo alla scheda grafica. Utile dopo
-  aver cambiato il limite di fotogrammi.
 - **Show FPS**: fotogrammi al secondo e risoluzione davvero disegnata.
+- **Full screen** (anche `F`).
 - La scheda grafica in uso, con un avviso se è quella integrata, la più
   debole. Il README spiega [come sistemarlo](../README.it.md#usare-la-scheda-grafica-dedicata).
 
-### Sound
+#### Sound
 
 Acceso o spento (anche `M`), e il volume: il gorgoglio, il colpo sul
 vetro, il cibo, la torcia e la lente.
+
+#### About
+
+La versione e il commit da cui è stata costruita, l'autore, la licenza e
+un link al codice; poi ogni tasto e cosa fa. **Reset Aquaria**: due clic
+dimenticano le tue impostazioni e riscaricano tutti i modelli e le
+texture. Usalo se un browser continua a mostrare qualcosa di vecchio dopo
+un aggiornamento; le tue scene restano.
 
 ## L'editor delle scene
 

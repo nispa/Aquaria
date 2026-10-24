@@ -9,24 +9,26 @@ you can do with the fish, [Playing with the fish](INTERACTION.md).
 ## The control panel
 
 Press `H`, or the round button that appears in the corner when you move the
-mouse. Each section opens and closes from its title, and the panel
-remembers which ones you left open. Everything you change is saved in the
-browser.
+mouse. The panel has four tabs:
 
-The ⓘ next to the title shows the version and **Reset Aquaria**: two
-clicks forget your settings and download every model and texture again.
-Use it if a browser keeps showing something old after an update; your own
-scenes stay.
+- **Tank**: what is in the tank, the scene, the fish, the plants and
+  objects;
+- **Light**: the hour and the lamp;
+- **Picture**: how the water and the light are drawn, and the effects;
+- **System**: the screen, the sound, and About.
 
-### Scenes
+Each section in a tab closes and opens again from its title. The panel
+remembers the tab and the sections you left closed; everything you change
+is saved in the browser. The ⓘ next to the scene's name opens About.
+
+### Tank
+
+#### Scenes
 
 A card for each scene, then your own scenes under **My scenes**. Click one
 to open it. The last card, **Editor**, opens the [scene editor](#the-scene-editor).
 
-The ⓘ next to the scene's name shows the version, the author and the
-license.
-
-### Fauna
+#### Fauna
 
 A card for each species, with a live picture of the fish and a slider for
 how many. Species already in the tank come first. When you add fish they
@@ -42,7 +44,7 @@ swim in from the sides; when you remove some, they swim away.
 - **Realistic** turns off the playful tricks (hypnosis, tickling) and lets
   fish keep their hours: day fish rest at night, night fish wake up.
 
-### Scenery
+#### Scenery
 
 A card for each group of plants and objects in the scene, with a slider for
 how many. Adding more never moves the ones already there.
@@ -52,7 +54,7 @@ does not hold, with a search field: a fern in the Hero, a brain coral in
 the Planted tank. What you choose joins the grid with a card of its own,
 sized to the tank, and stays there next time. Its **×** takes it away again.
 
-### Time and Lights
+### Light
 
 The tank is lit like a reef aquarium: four LED channels (white, blue,
 violet and a free accent color) and a faint blue moonlight at night. Under
@@ -78,7 +80,9 @@ moonlight. The moonlight only shows at night: at 0% the tank goes dark
 after sunset, at 30% it is a clear blue night where you still see the
 fish.
 
-### Look
+### Picture
+
+#### Look
 
 The look is the composition of water and light: how bright the picture is,
 where the sun stands, how the water fades the colors with distance, the
@@ -86,18 +90,20 @@ sunbeams, the contrast and the colors. **Look** chooses it: the scene's own,
 **Hero** (the open water of the poster, with surface waves and the tank
 frame), or **None** (every effect at its default).
 
-Below are sliders for all of it: exposure, sun height and turn, then one
-group per effect with every setting it has. The Deep water light group
-holds the water itself: how fast red, green and blue fade, how much water
-behind the glass stays clear before the haze begins, how much darker
-things get deeper down, the scattered light looking down, level and up,
-the sun's glow and the sunbeams. Your changes are kept for each look;
-**Reset this look** forgets them.
+Below are the exposure, the **Marine snow** (the specks drifting in the
+water: 0 is crystal clear, 1 the open sea, up to 3 murky) and the sun's
+height and turn. The settings of each effect are under its switch, below.
+Your changes are kept for each look; **Reset this look** forgets them.
 
-### Lighting and Post-processing
+#### Lighting and Effects
 
 Every effect has its own switch, so you decide what the GPU spends its time
-on.
+on. An effect with settings has **Settings** beside it, which opens its
+sliders under the switch. Deep water light holds the water itself: how
+fast red, green and blue fade, how much water behind the glass stays clear
+before the haze begins, how much darker things get deeper down, the
+scattered light looking down, level and up, the sun's glow and the
+sunbeams.
 
 | Switch                | What it does                                               | At start   |
 | --------------------- | ---------------------------------------------------------- | ---------- |
@@ -124,7 +130,13 @@ Ambient occlusion is the heaviest by far, and depth of field looks like
 blur on a wall seen from a distance, so both stay off unless you turn them
 on.
 
-### Quality
+**Fit effects to this screen**, at the end of the tab, forgets the effect
+switches you changed and fits them to the GPU again. Useful after you
+change the frame limit.
+
+### System
+
+#### Screen
 
 - **Resolution**: from 540p to 4K. With **Automatic resolution** on (the
   default) Aquaria lowers it when the GPU struggles and raises it again
@@ -133,16 +145,23 @@ on.
 - **Frame limit**: 30 (the default) or 60 frames a second, or none. A limit
   leaves the GPU free for the rest of the computer and saves battery.
 - **Anti-aliasing**: MSAA off, 2×, 4× or 8×.
-- **Fit effects to this screen**: forgets the effect switches you changed
-  and fits them to the GPU again. Useful after you change the frame limit.
 - **Show FPS**: frames per second and the resolution actually drawn.
+- **Full screen** (also `F`).
 - The GPU in use, with a warning if it is the computer's weaker built-in
   one. The README explains [how to fix that](../README.md#use-the-dedicated-gpu).
 
-### Sound
+#### Sound
 
 On or off (also `M`), and the volume: soft bubbling, a thud when you tap
 the glass, the food, the torch and the magnifier.
+
+#### About
+
+The version and the commit it was built from, the author, the license and
+a link to the code; then every key and what it does. **Reset Aquaria**:
+two clicks forget your settings and download every model and texture
+again. Use it if a browser keeps showing something old after an update;
+your own scenes stay.
 
 ## The scene editor
 

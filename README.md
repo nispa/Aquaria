@@ -129,7 +129,7 @@ the lower one. The GPU will thank you.
 
 On a PC with two graphics cards, Windows often runs the browser on the
 weaker, built-in one, and 4K will stutter. The panel shows which GPU is in
-use under **Quality**, with a warning when it is the built-in one.
+use under **Screen**, in the System tab, with a warning when it is the built-in one.
 
 To move Chrome or Edge to the dedicated card:
 

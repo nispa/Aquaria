@@ -4,7 +4,7 @@ _Italian version: [EFFETTI.md](EFFETTI.md)._
 
 You can add a post-processing effect without touching the code: a folder
 with a short `effect.json` and a GLSL shader. Aquaria loads it at start and
-gives it a switch in the panel, under _Post-processing_. No rebuild needed.
+gives it a switch in the panel, under _Effects_ in the Picture tab. No rebuild needed.
 
 A shader runs only on the GPU and only sees the picture and the numbers
 Aquaria gives it, so loading one is safe.
@@ -82,14 +82,14 @@ void main() {
 
 ## Trying it
 
-1. Run `pnpm dev`, press `H` and turn the effect on under
-   _Post-processing_. Or open `?effects=shimmer` to see it alone.
+1. Run `pnpm dev`, press `H` and turn the effect on under _Effects_ in
+   the Picture tab; _Settings_ beside it opens its sliders. Or open `?effects=shimmer` to see it alone.
 2. After changing the shader, reload the page.
 3. If the switch does not appear, the browser console says why: a mistake
    in `effect.json`, a name already taken, or a shader that does not
    compile (with the compiler's message). The rest of the aquarium runs
    anyway.
-4. Check what it costs: turn on _Show FPS_ in the Quality section and
+4. Check what it costs: turn on _Show FPS_ in the System tab and
    compare with the effect on and off. A heavy effect should stay
    `manual`.
 

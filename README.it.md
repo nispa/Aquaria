@@ -129,7 +129,7 @@ tieni il più basso. La scheda grafica ringrazia.
 
 Su un PC con due schede grafiche, Windows fa spesso girare il browser su
 quella integrata, la più debole, e il 4K va a scatti. Il pannello mostra
-quale scheda è in uso sotto **Quality**, con un avviso quando è quella
+quale scheda è in uso sotto **Screen**, nella scheda System, con un avviso quando è quella
 integrata.
 
 Per spostare Chrome o Edge sulla scheda dedicata:

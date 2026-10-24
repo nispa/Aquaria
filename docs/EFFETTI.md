@@ -4,7 +4,7 @@ _English version: [EFFECTS.md](EFFECTS.md)._
 
 Puoi aggiungere un effetto di post-processing senza toccare il codice: una
 cartella con un breve `effect.json` e uno shader GLSL. Aquaria lo carica
-all'avvio e gli dà un interruttore nel pannello, sotto _Post-processing_.
+all'avvio e gli dà un interruttore nel pannello, sotto _Effects_ nella scheda Picture.
 Non serve ricompilare niente.
 
 Uno shader gira solo sulla scheda grafica e vede solo l'immagine e i
@@ -83,14 +83,14 @@ void main() {
 
 ## Provarlo
 
-1. Avvia `pnpm dev`, premi `H` e accendi l'effetto sotto
-   _Post-processing_. Oppure apri `?effects=shimmer` per vederlo da solo.
+1. Avvia `pnpm dev`, premi `H` e accendi l'effetto sotto _Effects_ nella
+   scheda Picture; _Settings_ accanto apre i suoi slider. Oppure apri `?effects=shimmer` per vederlo da solo.
 2. Dopo aver cambiato lo shader, ricarica la pagina.
 3. Se l'interruttore non compare, la console del browser dice perché: un
    errore in `effect.json`, un nome già usato, o uno shader che non
    compila (con il messaggio del compilatore). Il resto dell'acquario gira
    comunque.
-4. Controlla quanto costa: accendi _Show FPS_ nella sezione Quality e
+4. Controlla quanto costa: accendi _Show FPS_ nella scheda System e
    confronta con l'effetto acceso e spento. Un effetto pesante deve restare
    `manual`.
 
