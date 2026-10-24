@@ -275,15 +275,21 @@ Wagtail, Mickey Mouse e Blue. Lanciato, ognuno scrive `model.glb` e
 `model.json`, perché il riferimento del pesce cambia ogni volta che
 cambia il profilo.
 
-Un pesce con un aspetto solo si dipinge allo stesso modo, senza
-colorazioni: royal gramma, pesce angelo e sardina mettono la loro unica
-texture dentro `model.glb`, compressa in WebP con `--texture-compress webp`
-nel comando `optimize` qui sopra.
+Un pesce con un aspetto solo si dipinge allo stesso modo e lo porta come
+unica colorazione: il royal gramma (`"coloring": "classic"`), il pesce
+angelo (`"albino"`) e la sardina (`"silver"`). Gli script mettono dentro
+`model.glb` solo una copia minuscola della texture, per una specie che
+non porta colorazioni.
 
-Il WebP tiene piccolo lo scaricamento, ma sulla GPU una texture viene
-spacchettata: una colorazione 1024 × 1024 occupa circa 5 MB di memoria
-video con le sue mipmap, e una specie la paga una volta per ogni
-colorazione che porta.
+**Misura.** Dipingi le colorazioni a 1024 × 1024. Il WebP tiene piccolo lo
+scaricamento, ma sulla GPU una texture viene spacchettata: a 1024 una
+colorazione occupa circa 5 MB di memoria video con le sue mipmap, e una
+specie la paga una volta per ogni colorazione che porta. Per questo
+Aquaria le riduce mentre le carica, a quello che la risoluzione di
+partenza della vasca riesce a mostrare (`src/render/fishTextures.ts`):
+intere da 2160 pixel in su (4K), 512 da 1440 (QHD), 256 sotto. Le schede
+nel pannello usano sempre 256, la griglia di `/model-viewer.html` la
+texture intera.
 
 ## Animali che camminano
 

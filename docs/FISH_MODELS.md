@@ -268,14 +268,20 @@ Red Wagtail, Mickey Mouse and Blue. Run one and it writes `model.glb`
 and `colorings/*.webp`, and prints the gills and pectoral values for
 `model.json`, since the fish frame changes whenever the outline does.
 
-A fish with a single look paints the same way without colorings: the
-royal gramma, the angelfish and the sardine put their one texture inside
-`model.glb`, compressed to WebP with `--texture-compress webp` in the
-`optimize` command above.
+A fish with a single look paints the same way and wears it as its only
+coloring: the royal gramma (`"coloring": "classic"`), the angelfish
+(`"albino"`) and the sardine (`"silver"`). The scripts put only a tiny
+copy of the texture inside `model.glb`, for a species that wears no
+coloring.
 
-WebP keeps the download small, but on the GPU a texture is unpacked:
-a 1024 × 1024 coloring takes about 5 MB of video memory with its
-mipmaps, and a species takes that once per coloring it wears.
+**Size.** Paint colorings at 1024 × 1024. WebP keeps the download small,
+but on the GPU a texture is unpacked: at 1024 a coloring takes about 5 MB
+of video memory with its mipmaps, and a species takes that once per
+coloring it wears. So Aquaria brings them down as they load, to what the
+resolution the tank starts at can show (`src/render/fishTextures.ts`):
+whole from 2160 pixels up (4K), 512 from 1440 (QHD), 256 below. The
+cards in the panel always use 256, the grid of `/model-viewer.html` the
+whole texture.
 
 ## Animals that walk
 

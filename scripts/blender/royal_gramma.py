@@ -102,8 +102,11 @@ PEDUNCLE_X = BODY.peduncle_x
 
 
 # The texture: its size in texels, and a rectangle for each part. The
-# gramma has one look, so the texture goes inside the model at full size.
+# gramma has one look; it wears it as its only coloring, "classic".
 TEXTURE_SIZE = 1024
+# The model's own texture is small: the species wears its coloring, which Aquaria
+# brings down to the screen's needs as it loads.
+OWN_TEXTURE_STEP = 8
 ATLAS = paint.Atlas(TEXTURE_SIZE)
 ATLAS.place("body", 0.0, 0.0, 1.0, 0.42)
 ATLAS.place("caudal", 0.0, 0.44, 0.36, 0.30)
@@ -229,7 +232,9 @@ def main():
     output = os.path.abspath(args[0]) if args else DEFAULT_OUTPUT
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
-    texture = paint.image("Royal gramma", paint_texture())
+    pixels = paint_texture()
+    paint.save_webp(pixels, os.path.join(output, "colorings", "classic.webp"))
+    texture = paint.image("Royal gramma", pixels[::OWN_TEXTURE_STEP, ::OWN_TEXTURE_STEP])
     body = make_object(
         "Body", [BODY.mesh(None, roundness=ROUNDNESS, uv=ATLAS.uv("body"))], textured_material("Skin", texture, 0.4, 0.05, False)
     )

@@ -32,6 +32,12 @@
       "sweep": 35
     }
   },
+  "colorings": {
+    "albino": {
+      "name": "Albino",
+      "texture": "colorings/albino.webp"
+    }
+  },
   "credit": {
     "author": "Aquaria (scripts/blender/angelfish.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/angelfish.py",

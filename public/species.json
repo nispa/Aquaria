@@ -120,6 +120,7 @@
         }
       },
       "model": "sardine",
+      "coloring": "silver",
       "length": {
         "mean": 0.13,
         "standardDeviation": 0.01
@@ -205,6 +206,7 @@
         }
       },
       "model": "royal-gramma",
+      "coloring": "classic",
       "length": {
         "mean": 0.08,
         "standardDeviation": 0.008
@@ -558,6 +560,7 @@
         }
       },
       "model": "freshwater-angelfish",
+      "coloring": "albino",
       "length": {
         "mean": 0.12,
         "standardDeviation": 0.012

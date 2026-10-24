@@ -32,6 +32,12 @@
       "sweep": 35
     }
   },
+  "colorings": {
+    "silver": {
+      "name": "Silver",
+      "texture": "colorings/silver.webp"
+    }
+  },
   "credit": {
     "author": "Aquaria (scripts/blender/sardine.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/sardine.py",

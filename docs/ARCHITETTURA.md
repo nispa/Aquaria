@@ -75,8 +75,9 @@ Lo stesso vale per la scheda grafica: la risoluzione segue quello che la
 scheda riesce a fare, gli effetti pesanti si accendono solo se c'è
 margine, e le texture dell'arredamento sono file KTX2 che restano
 compressi nella memoria video. Fanno eccezione i pesci dipinti dai nostri
-script Blender: le loro piccole texture WebP vengono spacchettate sulla
-GPU, pochi megabyte per specie.
+script Blender: le loro texture WebP vengono spacchettate sulla GPU,
+quindi si riducono mentre si caricano a quello che la risoluzione di
+partenza riesce a mostrare (256 texel sotto la QHD).
 
 ## Effetti come plug-in
 

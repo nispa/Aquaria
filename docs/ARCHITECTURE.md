@@ -71,8 +71,9 @@ objects: it reuses the same vectors and arrays.
 The same goes for the GPU: the resolution follows what the GPU can do, the
 heavier effects are switched on only if there is room, and the scenery's
 textures are KTX2 files that stay compressed in video memory. The fish
-painted by our own Blender scripts are the exception: their small WebP
-textures are unpacked on the GPU, a few megabytes per species.
+painted by our own Blender scripts are the exception: their WebP
+textures are unpacked on the GPU, so they are brought down as they load
+to what the starting resolution can show (256 texels below QHD).
 
 ## Effects as plug-ins
 

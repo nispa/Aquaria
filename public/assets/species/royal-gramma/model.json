@@ -32,6 +32,12 @@
       "sweep": 35
     }
   },
+  "colorings": {
+    "classic": {
+      "name": "Classic",
+      "texture": "colorings/classic.webp"
+    }
+  },
   "credit": {
     "author": "Aquaria (scripts/blender/royal_gramma.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/royal_gramma.py",
