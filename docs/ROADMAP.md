@@ -165,26 +165,25 @@ No skeletons here: the model has no bones, and on the bottom these animals
 are a few pixels tall, where how they glide, the antennae and the tail flick
 show, single steps do not.
 
-- [ ] Limbs moved in the shader: the body moves as one piece, driven by the
-      simulation; legs, antennae and tail move in the shader, instanced
-      like the fish. Which part is which comes from a per-vertex limb
-      attribute (painted in Blender like `_SWAY`, or taken from the
-      model's materials; written by procedural bodies);
-      `docs/FISH_MODELS.md` tells how to paint it.
-- [ ] A procedural shrimp body: segmented curved body, fan tail, long
-      antennae, thin legs, with the limb attribute; colors per species.
-- [ ] A `crawl` style: walking forward on the seabed (sand, rockwork,
-      plants), around obstacles, stopping to pick at the surface with the
-      small claws, eating flakes that reach the bottom.
-- [ ] Short swims: now and then a shrimp lifts off and swims a little way
-      with its legs, then settles again; antennae always moving.
-- [ ] Tapped, it flicks its tail and darts backwards, then walks again when
-      calm.
-- [ ] Species entries and fauna cards (red freshwater shrimp for planted
-      tanks, marbled shrimp for reefs), small groups; docs.
-- [ ] Then the out work model: decimated to a few thousand triangles, the
-      limb attribute from its materials, one shape with a coloring per
-      species (block H); `ASSETS.md`.
+- [x] Legs that move: done another way. Walking species are drawn as
+      skinned bodies playing a walk clip (`render/walkingBodies`,
+      `animations.walk` in `model.json`), not with a limb attribute in
+      the shader.
+- [x] A procedural shrimp body (`render/crustaceanGeometry`, shape
+      `shrimp`), the light fallback.
+- [x] A `crawl` style: walking on the floor and following its rise and
+      fall, stopping to pick at the ground, leaving it for food, a fright,
+      the finger or a place higher up, then sinking back (48e11e9).
+- [ ] Short swims of its own accord: today a shrimp only leaves the floor
+      when something calls it; antennae that always move.
+- [ ] Tapped, it flicks its tail and darts backwards (today it runs off
+      like a fish), then walks again when calm.
+- [x] Red cherry shrimp for planted tanks: species entry, fauna card,
+      docs (`docs/SWIMMING.md`).
+- [ ] Marbled shrimp for reefs: one more coloring of the same shape
+      (block H) and a species entry.
+- [x] The model: our own, from `scripts/blender/shrimp.py`, rigged with a
+      walk clip, instead of the out work download.
 
 ### D4. Crabs and hermit crabs
 
@@ -197,10 +196,10 @@ show, single steps do not.
 - [x] Species entries and fauna cards (freshwater crab for planted tanks,
       hermit crab for reefs), docs, `ASSETS.md`.
 
-Done without the shader limbs of D3: legs, claws and antennae are still,
-the bodies glide. The crab model is a scan (CC0, ffish.asia), the hermit
-crab a CC-BY model by kenchoo; both carry skeletons and walk clips that
-species bodies do not play yet.
+The crab model is a scan (CC0, ffish.asia), the hermit crab a CC-BY
+model by kenchoo; both walk with their own skeletal clips (walk, and hide
+for the hermit crab, from `scripts/blender/hermit_crab.py`), as the
+shrimp does.
 
 ## E. Objects as files
 
@@ -349,14 +348,17 @@ the engine lacks something (soft tentacles, fish inside them).
 
 ### I1. Tank sizes
 
-- [ ] Preset sizes with their real measures, e.g. nano 60 × 35 × 35 cm,
-      home 120 × 50 × 55 cm, large 250 × 70 × 70 cm, public 6 × 3.2 ×
-      3.2 m; the camera, the scale of the sand and the bubbles follow.
-- [ ] Each species gets a smallest tank from aquarium practice (e.g. a
-      blue tang needs a large one); a scene or the panel that puts it in a
-      smaller one gets a clear warning, and the fauna cards say why.
-- [ ] Fish sizes in a small tank: real sizes stay true; the size balance
-      of the panel works as today.
+The size of a tank does not depend on what is in it (checked by the
+user on 2026-10-24: a shark in a small tank works once the panel's fish
+size draws every species alike). Each scene sets its own measures, and
+the scene editor resizes a tank; no presets and no smallest tank per
+species are needed.
+
+- [x] Fish sizes in a small tank: real sizes stay true; the size balance
+      of the panel brings them together.
+- [ ] The floor's relief follows the tank: the sand dunes are ±12 cm
+      whatever the size (`FLOOR_AMPLITUDE` in `sim/terrain.ts`), too
+      much for a 60 cm tank. See J1.
 
 ### I2. Four realistic looks
 
@@ -365,11 +367,11 @@ tuned against reference photographs, with every parameter a slider.
 
 - [ ] Reef under LEDs: crystal clear water, little absorption, white and
       actinic blue spots, coral fluorescence, no surface waves.
-- [ ] Planted freshwater: warm, slightly green water, light from a lamp
-      above, tiny oxygen bubbles on the leaves.
-- [ ] Open sea: the Hero look as it is.
-- [ ] Clownfish lagoon: shallow, sunny turquoise water, bright caustics on
-      the sand, warm sun, soft sunbeams.
+- [ ] Planted freshwater: see J2.
+- [x] Open sea: the Hero look as it is (`looks/hero.json`).
+- [x] Clownfish lagoon: shallow, sunny turquoise water, bright caustics on
+      the sand, warm sun, soft sunbeams (`looks/lagoon.json`, worn by
+      the nano reef).
 - [ ] Night tank (optional fifth): moonlight blue, fluorescence, the
       fish resting.
 
@@ -397,15 +399,16 @@ tuned against reference photographs, with every parameter a slider.
 
 ### I5. The aquariums
 
-- [ ] Nano reef (60 cm): a clownfish pair in a bubble-tip anemone, live
-      rock, a few corals; Reef under LEDs.
+- [x] Nano reef: a clownfish pair in a magnificent anemone, a few
+      corals, the Clownfish lagoon look; 1 m wide rather than 60 cm, and
+      the scene phones open (`phone` in `scenes/index.json`).
 - [ ] Clownfish lagoon (120 cm): the soft anemones of I3 and the clownfish
       of I4 in front, coral garden and sand; Clownfish lagoon look.
-- [ ] Planted tank (120 cm) and Iwagumi: today's scenes moved to the new
-      plants and the Planted freshwater look.
+- [ ] Planted tank and Iwagumi: see block J.
 - [ ] Home reef (250 cm): today's scene with the coral scans and live
       rock.
-- [ ] Hero (public, 6 m) replaces Aquaria as the starting scene.
+- [x] Hero (public, 6 m) is the starting scene (29f5a82); Aquaria stays
+      in the list.
 - [ ] Each with its caption, gallery picture, card picture and visual
       baseline, grouped by size in the panel.
 
@@ -416,6 +419,67 @@ tuned against reference photographs, with every parameter a slider.
       rock, fewer seagrass tufts; measured on the Redmi Note 14 Pro.
 - [ ] The Hero scene runs at a usable frame rate on that phone; state the
       numbers before and after.
+
+## J. Freshwater aquariums that look real
+
+Asked on 2026-10-24, after the Hero: the Planted tank and the Iwagumi
+look far behind it. Their plants are the generators from before the Hero
+(flat cards in one green: carpet discs, stick stems), their water and
+light are the open sea's (haze, sunbeams, marine snow, a 2.2 to 2.4 m
+tank), the iwagumi stones are pillars, the driftwood is cylinders, and
+everything is scattered on a flat floor. A real planted tank has clear
+water under a white lamp, a clean background, a floor rising towards the
+back, three layers of plants in groups, and one focal point. Order:
+J2, J4, J3, J1, J5; the look alone changes the most, plants and stones
+are the long part.
+
+### J1. What the engine lacks
+
+- [ ] A floor profile in the scene: rising towards the back, mounds and
+      terraces, with dunes scaled to the tank instead of ±12 cm.
+- [ ] Particles per scene: marine snow for the sea; almost none in fresh
+      water, and oxygen bubbles rising from the leaves in the afternoon
+      (pearling).
+- [ ] A home tank's look: rimless glass with visible edges, a background
+      panel (frosted white, black, or a gradient), a slim lamp above.
+
+### J2. The Planted freshwater look
+
+- [ ] `looks/planted.json`: clear water with little absorption, white
+      6500 K light from above, soft caustics, no volumetric shafts, a
+      quiet surface, full colors; tuned against reference photographs,
+      like the Hero.
+
+### J3. Plants made in Blender
+
+On `scripts/blender/plantkit.py`, with painted textures (paintkit):
+veined leaves in two tones, light through them, swaying.
+
+- [ ] Carpet: Monte Carlo or dwarf hairgrass, thousands of instanced
+      leaflets, not discs.
+- [ ] Stem plants in thick groups: Rotala with red tips, Ludwigia.
+- [ ] Rosettes: Cryptocoryne, Amazon sword; Vallisneria as tall ribbons
+      at the back.
+- [ ] On wood and stone: Java fern and Anubias, and moss as a growth
+      (like the live rock of the Hero).
+
+### J4. Hardscape made in Blender
+
+- [ ] Seiryu stones: angular, layered, blue-grey with pale veins, in
+      several sizes, for an iwagumi composition (one main stone leaning,
+      two to six around it).
+- [ ] Driftwood: branching roots (spider wood, manzanita) with bark,
+      instead of cylinders.
+
+### J5. The scenes
+
+- [ ] Iwagumi: the stones composed, a carpet, one large school; little
+      else.
+- [ ] Planted tank: a driftwood centrepiece, red and green stem plants in
+      contrast at the back, Cryptocoryne in the middle, a carpet in front,
+      neons, angelfish and shrimps.
+- [ ] Each with its caption, gallery picture, card picture and visual
+      baseline; measured on the phone (I6).
 
 ## Ideas to discuss
 
