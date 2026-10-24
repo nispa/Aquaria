@@ -61,6 +61,36 @@ describe("parseCatalog", () => {
     ]);
   });
 
+  it("lets a species wear one coloring of its model", () => {
+    const input = catalogFixture();
+    input.species[0]!.model = "guppy";
+    input.species[0]!.coloring = "half-black-red";
+
+    const catalog = parseCatalog(input);
+
+    expect(catalog.species[0]?.coloring).toEqual([{ id: "half-black-red", weight: 1 }]);
+  });
+
+  it("lets a species mix several colorings, weighted", () => {
+    const input = catalogFixture();
+    input.species[0]!.model = "guppy";
+    input.species[0]!.coloring = [{ id: "half-black-red", weight: 3 }, { id: "blue-grass" }];
+
+    const catalog = parseCatalog(input);
+
+    expect(catalog.species[0]?.coloring).toEqual([
+      { id: "half-black-red", weight: 3 },
+      { id: "blue-grass", weight: 1 },
+    ]);
+  });
+
+  it("rejects a coloring on a species without a model", () => {
+    const input = catalogFixture();
+    input.species[0]!.coloring = "half-black-red";
+
+    expect(() => parseCatalog(input)).toThrow(/coloring/);
+  });
+
   it("rejects a model that is not a folder name", () => {
     const input = catalogFixture();
     input.species[0]!.model = "../tang";

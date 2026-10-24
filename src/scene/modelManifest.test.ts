@@ -230,6 +230,42 @@ describe("parseModelManifest", () => {
     expect(() => parseModelManifest(input, "sea-turtle")).toThrow(/animations/);
   });
 
+  it("lists the colorings a model can wear, each a texture in its folder", () => {
+    const manifest = parseModelManifest(
+      {
+        name: "Guppy",
+        credit,
+        colorings: {
+          "half-black-red": { name: "Half Black Red", texture: "colorings/half-black-red.png" },
+          "blue-grass": { name: "Blue Grass", texture: "colorings/blue-grass.png" },
+        },
+      },
+      "guppy",
+    );
+
+    expect(Object.keys(manifest.colorings ?? {})).toEqual(["half-black-red", "blue-grass"]);
+  });
+
+  it("refuses a coloring texture outside the model folder", () => {
+    const input = {
+      name: "Guppy",
+      credit,
+      colorings: { red: { name: "Red", texture: "../platy/red.png" } },
+    };
+
+    expect(() => parseModelManifest(input, "guppy")).toThrow(/texture/);
+  });
+
+  it("refuses a coloring id that is not lowercase with dashes", () => {
+    const input = {
+      name: "Guppy",
+      credit,
+      colorings: { "Blue Grass": { name: "Blue Grass", texture: "blue.png" } },
+    };
+
+    expect(() => parseModelManifest(input, "guppy")).toThrow(/coloring/);
+  });
+
   it("names the model in its error messages", () => {
     expect(() => parseModelManifest({ credit }, "barramundi")).toThrow(/barramundi/);
   });

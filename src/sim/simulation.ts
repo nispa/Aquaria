@@ -1,5 +1,6 @@
 import { Box3, Vector3 } from "three";
 import { clamp, lerp, smoothstep, turnBetween } from "../core/math";
+import { coloringIndex } from "./coloring";
 import { createRng, hashToUnit, type Rng } from "../core/rng";
 import type { Scene, Species, SpeciesCatalog } from "../scene/schema";
 import type { SwimSpec } from "../scene/swimming";
@@ -186,6 +187,8 @@ const GAZE_SACCADE_THRESHOLD = 0.35;
 const BEND_RESPONSE_SECONDS = 0.2;
 /** Spreads the fishes' fin beats evenly around the circle, radians. */
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+/** Steps of this share around 0..1 never repeat and fill it evenly (the golden ratio, less one). */
+const GOLDEN_RATIO_CONJUGATE = (Math.sqrt(5) - 1) / 2;
 const EFFORT_RESPONSE_SECONDS = 0.3;
 
 // Feeding. Fish notice flakes within FOOD_SENSE_RADIUS and leave their habitat
@@ -255,6 +258,8 @@ export type FishState = "entering" | "swimming" | "leaving";
 export interface Fish {
   readonly id: number;
   readonly species: Species;
+  /** Which of the species' colorings it wears, an index into `species.coloring` (0 without one). */
+  readonly coloring: number;
   readonly position: Vector3;
   readonly velocity: Vector3;
   /** Body length of this individual, in meters. */
@@ -584,6 +589,8 @@ export function createSimulation(options: SimulationOptions): Simulation {
       effort: 1,
       // From the id, not the rng: fish beat out of step without changing every draw after.
       fins: createPectoralFins(nextId * GOLDEN_ANGLE),
+      // From the id too: a school mixes its strains evenly, whatever the seed.
+      coloring: coloringIndex(species.coloring, (nextId * GOLDEN_RATIO_CONJUGATE) % 1),
       satiety: 0,
       mouth: 0,
       fear: 0,

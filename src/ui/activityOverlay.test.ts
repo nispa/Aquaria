@@ -24,6 +24,7 @@ function fishFixture(): Fish {
   return {
     id: 1,
     species,
+    coloring: 0,
     position: new Vector3(),
     velocity: new Vector3(species.speed.cruise, 0, 0),
     length: 0.25,

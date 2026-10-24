@@ -50,6 +50,7 @@ export function posedFish(species: Species, heading: Vector3 = HEADING): Fish {
   return {
     id: 0,
     species,
+    coloring: 0,
     position: new Vector3(),
     velocity: heading.clone(),
     length: 1,

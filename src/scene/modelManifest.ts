@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { formatIssues, SceneValidationError } from "./parse";
-import { hexColor, type SpeciesCatalog } from "./schema";
+import { coloringId, hexColor, MAX_COLORINGS, type SpeciesCatalog } from "./schema";
 
 /**
  * A 3D fish model is a folder in `public/assets/species/<id>/`: a glTF file
@@ -89,6 +89,26 @@ export const pectoralFinSchema = z
   .refine(({ top, bottom }) => top > bottom, { message: "top must be above bottom." });
 
 export type PectoralFin = z.output<typeof pectoralFinSchema>;
+
+/** An image inside the model folder: a coloring's texture. */
+const relativeImage = z
+  .string()
+  .regex(
+    /^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))[\w./-]+\.(?:png|webp|jpg|jpeg)$/,
+    "texture must be a .png, .webp or .jpg path inside the model folder.",
+  );
+
+/**
+ * One way the model can be colored: a base-color texture laid on the
+ * model's UVs in place of its own, for every material that has a texture.
+ * All the colorings of a model have the same size.
+ */
+const coloringSchema = z.object({
+  name: z.string().min(1),
+  texture: relativeImage,
+});
+
+export type Coloring = z.output<typeof coloringSchema>;
 
 const axis = z.enum(["+x", "-x", "+y", "-y", "+z", "-z"]);
 
@@ -203,6 +223,16 @@ export const modelManifestSchema = z
       })
       .refine((clips) => [clips.swim, clips.walk, clips.idle].some((clip) => clip !== undefined), {
         message: "Name at least one clip: swim, walk or idle.",
+      })
+      .optional(),
+    /**
+     * Colorings by id, worn by the species that name them (`coloring` in
+     * species.json): strains of one fish, or kin of the same shape.
+     */
+    colorings: z
+      .record(coloringId, coloringSchema)
+      .refine((colorings) => Object.keys(colorings).length <= MAX_COLORINGS, {
+        message: `A model lists at most ${String(MAX_COLORINGS)} colorings.`,
       })
       .optional(),
     credit: z.object({

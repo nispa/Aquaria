@@ -90,6 +90,29 @@ const modelFolder = z
   .string()
   .regex(/^[a-z0-9-]+$/, "model is a folder name: lowercase letters, digits and dashes.");
 
+/** Most colorings one model lists and one species mixes: layers of one texture array on the GPU. */
+export const MAX_COLORINGS = 8;
+
+/** A coloring of a 3D model, as its `model.json` names it. */
+export const coloringId = z
+  .string()
+  .regex(/^[a-z0-9-]+$/, "A coloring id uses lowercase letters, digits and dashes.");
+
+/**
+ * Which colorings of its model a species wears: one id, or several with
+ * weights, each fish wearing one of them (strains of guppies, platies).
+ * Always a list once parsed.
+ */
+const coloring = z
+  .union([
+    coloringId.transform((id) => [{ id, weight: 1 }]),
+    z
+      .array(z.object({ id: coloringId, weight: positive.default(1) }))
+      .min(1)
+      .max(MAX_COLORINGS),
+  ])
+  .optional();
+
 /** How keen a species is on food when it is not fed (0 = ignores it, 1 = greedy). */
 export const DEFAULT_APPETITE = 0.6;
 /** Share of a species' individuals that come to look at a finger on the glass. */
@@ -127,6 +150,8 @@ export const speciesSchema = z.object({
   body: proceduralBody,
   /** Optional realistic 3D model; the viewer can switch it off per species. */
   model: modelFolder.optional(),
+  /** Colorings of the model the fish wear; without it, the model's own colors. */
+  coloring,
   /** Most individuals a tank may hold, e.g. 1 or 2 for a solitary, detailed fish. */
   maxCount: z
     .number()
@@ -165,6 +190,13 @@ export const speciesCatalogSchema = z
         });
       }
       seen.add(entry.id);
+      if (entry.coloring !== undefined && entry.model === undefined) {
+        context.addIssue({
+          code: "custom",
+          path: ["species", index, "coloring"],
+          message: `Species "${entry.id}" has a coloring but no model to wear it.`,
+        });
+      }
     }
   });
 

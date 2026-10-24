@@ -155,6 +155,25 @@ describe("createSimulation", () => {
   });
 });
 
+describe("colorings", () => {
+  it("dresses the fish of a species in its colorings, by their weights", () => {
+    const input = catalogFixture();
+    input.species[0]!.model = "guppy";
+    input.species[0]!.coloring = [{ id: "half-black-red", weight: 3 }, { id: "blue-grass" }];
+    const strains = parseCatalog(input);
+    const id = strains.species[0]?.id ?? "";
+    const scene = parseScene({ ...sceneFixture(), fauna: [{ species: id, count: 4 }] }, strains);
+
+    const simulation = createSimulation({ scene, catalog: strains, rng: createRng(1) });
+    const worn = simulation.fish.map((fish) => fish.coloring);
+
+    expect([
+      worn.filter((index) => index === 0).length,
+      worn.filter((index) => index === 1).length,
+    ]).toEqual([3, 1]);
+  });
+});
+
 describe("changing populations", () => {
   it("spawns new fish outside the side walls, invisible and entering", () => {
     const simulation = simulate();
