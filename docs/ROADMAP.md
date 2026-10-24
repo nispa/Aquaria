@@ -455,14 +455,19 @@ bones and the mouth shape key.
 
 ### K2. The designer
 
-- [ ] `/fish-designer.html` (with `pnpm dev`, beside the model viewer): a
-      photograph of the real fish under a side view, the outline and fin
-      points dragged over it, a flat preview of the strains while you
-      move them.
-- [ ] Paint layers listed with their colors and sliders, per strain.
-- [ ] Build: the dev server runs Blender and the compression (a few
-      seconds) and the model viewer shows the real 3D fish, fins beating,
-      strains to leaf through. Save writes the recipe.
+- [x] `/fish-designer.html` (with `pnpm dev`, linked from `/debug.html`):
+      a photograph of the real fish under a side view, the outline and
+      fin points dragged over it (`scene/fishOutline`, `scene/fishHandles`,
+      `ui/sideView`).
+- [x] Paint layers listed with their colors and numbers, per strain:
+      moved, removed, added from a template; each fin's painter.
+- [x] Build: the dev server (`scripts/fishMakerServer.ts`) runs Blender
+      and the compression and lays the measured values over `model.json`;
+      the model viewer under the drawing shows the real 3D fish. Save
+      writes the recipe.
+- [ ] A flat preview of the strains while you edit them: it would mean
+      painting in TypeScript too; for now Build shows them in a few
+      seconds.
 
 ### K3. Proof and docs
 

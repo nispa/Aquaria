@@ -312,6 +312,33 @@ comprimere. Il gamberetto red cherry è ancora uno script a sé,
 `scripts/blender/shrimp.py`, sugli stessi pezzi comuni (`fishkit.py`,
 `paintkit.py`).
 
+### Con il fish maker
+
+Con `pnpm dev` apri `/fish-designer.html` (anche da `/debug.html`). A
+sinistra la ricetta è disegnata di lato su una griglia in lunghezze del
+corpo: il corpo in blu, le pinne in arancione, l'occhio e il bordo
+dell'opercolo. Scegli una foto del pesce vero, visto di lato, e mettila
+sotto il disegno con i cursori (centro, larghezza, trasparenza, e
+_facing left_ per un pesce girato dall'altra parte). Poi trascina i punti
+finché il profilo segue la foto: il profilo del corpo, quello di ogni
+pinna e dove comincia e finisce, le radici delle pinne pettorali e
+pelviche, l'occhio.
+
+A destra, _Shape and fins_ contiene i numeri che si scrivono invece di
+trascinarli (spessore, rotondità, la misura dell'occhio, gli angoli delle
+pinne), e _Strains_ la pittura: gli strati del corpo di un ceppo dal primo
+all'ultimo, che puoi spostare, togliere o aggiungere, e il pittore di
+ogni pinna. _Copy as a new fish_ comincia una specie nuova da quella
+aperta.
+
+**Save** controlla la ricetta e la scrive. **Build** la salva, lancia
+Blender (`$BLENDER`, oppure il più recente installato dove lo mettono gli
+installer, oppure `blender` nel `PATH`), comprime il modello nella
+cartella della specie, scrive le colorazioni, unisce i valori misurati a
+`model.json` e mostra il risultato nel model viewer sotto il disegno. Una
+specie nuova ha bisogno anche della sua voce in `public/species.json`
+prima che il viewer e la vasca la possano mostrare.
+
 ### A mano
 
 Se modelli a mano:

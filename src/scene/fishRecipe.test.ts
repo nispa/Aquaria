@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseFishRecipe } from "./fishRecipe";
+import { BODY_LAYER_TEMPLATES, FIN_LAYER_TEMPLATES, parseFishRecipe } from "./fishRecipe";
 
 /** The smallest fish: a body, a tail, one strain. */
 function recipe(): Record<string, unknown> {
@@ -105,6 +105,39 @@ describe("parseFishRecipe", () => {
     };
 
     expect(() => parseFishRecipe(input, "tiny")).toThrow(/bands or any/);
+  });
+
+  it("accepts every body layer the fish maker offers to add", () => {
+    const strain = (recipe().strains as Record<string, unknown>[])[0];
+    const input = {
+      ...recipe(),
+      strains: [
+        {
+          ...strain,
+          body: [{ type: "fill", color: "#808080" }, ...Object.values(BODY_LAYER_TEMPLATES)],
+        },
+      ],
+    };
+
+    expect(() => parseFishRecipe(input, "tiny")).not.toThrow();
+  });
+
+  it("accepts every fin layer the fish maker offers to add", () => {
+    const strain = (recipe().strains as Record<string, unknown>[])[0];
+    const caudal = {
+      rayed: {
+        web: "#a0a0a0",
+        ray: "#909090",
+        root: "#808080",
+        alphaRoot: 0.8,
+        alphaEdge: 0.5,
+        rays: 12,
+      },
+      layers: Object.values(FIN_LAYER_TEMPLATES),
+    };
+    const input = { ...recipe(), strains: [{ ...strain, fins: { caudal } }] };
+
+    expect(() => parseFishRecipe(input, "tiny")).not.toThrow();
   });
 
   it("names the species in its error messages", () => {

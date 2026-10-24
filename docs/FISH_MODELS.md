@@ -308,6 +308,32 @@ uncompressed. The red cherry shrimp is still a script of its own,
 `scripts/blender/shrimp.py`, on the same building blocks
 (`fishkit.py`, `paintkit.py`).
 
+### With the fish maker
+
+With `pnpm dev`, open `/fish-designer.html` (also from `/debug.html`). On
+the left the recipe is drawn from the side over a grid in body lengths:
+the body in blue, the fins in orange, the eye and the edge of the gill
+cover. Choose a photograph of the real fish, seen from the side, and lay
+it under the drawing with the sliders (centre, width, opacity, and
+_facing left_ for a fish looking the other way). Then drag the points
+until the outline follows the photograph: the body's outline, each fin's
+outline and where it starts and ends, the roots of the pectoral and
+pelvic fins, the eye.
+
+On the right, _Shape and fins_ holds the numbers you type rather than
+drag (thickness, roundness, the eye's size, the fins' angles), and
+_Strains_ the paint: a strain's body layers from first to last, which you
+move, remove or add, and each fin's painter. _Copy as a new fish_ starts a
+new species from the one open.
+
+**Save** checks the recipe and writes it. **Build** saves it, runs Blender
+(`$BLENDER`, or the newest one installed where installers put it, or
+`blender` on the `PATH`), compresses the model into the species' folder,
+writes the colorings, lays the measured values over `model.json`, and
+shows the result in the model viewer under the drawing. A new species
+also needs its entry in `public/species.json` before the viewer and the
+tank can show it.
+
 ### By hand
 
 If you model by hand:

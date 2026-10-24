@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Aquaria fish maker</title>
+    <style>
+      body {
+        margin: 0;
+        background: #0b1a26;
+        color: #cfe3f0;
+        font:
+          13px system-ui,
+          sans-serif;
+      }
+      #side {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 360px;
+        height: 58vh;
+        width: calc(100vw - 360px);
+        touch-action: none;
+      }
+      #viewer {
+        position: fixed;
+        left: 0;
+        right: 360px;
+        bottom: 0;
+        width: calc(100vw - 360px);
+        height: 42vh;
+        border: 0;
+        border-top: 1px solid #1f3d52;
+      }
+      #controls {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 360px;
+        box-sizing: border-box;
+        padding: 12px;
+        overflow-y: auto;
+        background: #0f2333;
+        border-left: 1px solid #1f3d52;
+      }
+      #controls h1 {
+        margin: 0 0 6px;
+        font-size: 15px;
+      }
+      #controls a {
+        color: #8cc8f0;
+      }
+      .maker__section {
+        margin: 10px 0;
+        padding-top: 8px;
+        border-top: 1px solid #1f3d52;
+      }
+      .maker__heading {
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .maker__subheading {
+        margin: 10px 0 4px;
+        color: #8fb3c4;
+      }
+      .maker__fields {
+        margin-left: 8px;
+      }
+      .maker__field {
+        display: grid;
+        grid-template-columns: 90px 1fr;
+        align-items: center;
+        gap: 6px;
+        margin: 3px 0;
+      }
+      .maker__key {
+        color: #8fb3c4;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .maker__numbers {
+        display: flex;
+        gap: 4px;
+      }
+      .maker__number {
+        width: 64px;
+      }
+      .maker__text,
+      .maker__select {
+        width: 100%;
+        margin: 3px 0;
+      }
+      .maker__layer {
+        margin: 4px 0;
+        padding: 4px 6px;
+        border: 1px solid #1f3d52;
+        border-radius: 6px;
+      }
+      .maker__layer > summary {
+        cursor: pointer;
+      }
+      .maker__tools {
+        float: right;
+      }
+      .maker__tools .maker__button {
+        padding: 0 6px;
+      }
+      .maker__button {
+        margin: 3px 4px 3px 0;
+      }
+      .maker__status {
+        white-space: pre-wrap;
+        max-height: 200px;
+        overflow-y: auto;
+        color: #ffd27a;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="side"></canvas>
+    <iframe id="viewer" title="The fish built, in the model viewer"></iframe>
+    <aside id="controls">
+      <h1>Fish maker</h1>
+      <p>
+        Drag the points over a photograph of the fish, paint its strains, then Build: Blender makes
+        the model and it appears below. <a href="/debug.html">All debug tools</a>
+      </p>
+    </aside>
+    <script type="module" src="/src/app/fishDesigner.ts"></script>
+  </body>
+</html>

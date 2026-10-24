@@ -355,3 +355,49 @@ export function parseFishRecipe(input: unknown, id: string): FishRecipe {
   }
   return result.data;
 }
+
+type BodyLayer = FishRecipe["strains"][number]["body"][number];
+type FinLayer = NonNullable<NonNullable<FishRecipe["finPaint"]>[string]["layers"]>[number];
+
+/** A new body layer of each type, as the fish maker adds one: visible, and easy to tune from there. */
+export const BODY_LAYER_TEMPLATES: Readonly<Record<string, BodyLayer>> = {
+  fill: { type: "fill", color: "#c0c0c0" },
+  patch: { type: "patch", color: "#606060", bands: [{ axis: "up", range: [0.1, 0.85] }] },
+  edge: { type: "edge", color: "#141414", at: 0, width: 0.03 },
+  marks: { type: "marks", color: "#111111", marks: [[0, 0, 0.02]] },
+  noise: { type: "noise", color: "#ffffff", scale: 12, seed: 1, range: [0.55, 0.8], amount: 0.3 },
+  noiseLines: { type: "noiseLines", color: "#202020", scale: 40, seed: 1, width: [0.015, 0.035] },
+  eyeLine: {
+    type: "eyeLine",
+    color: "#121212",
+    slope: 0.35,
+    width: [0.004, 0.012],
+    x: [0.15, 0.2],
+  },
+  rays: { type: "rays", color: "#404040", centre: [0.2, 0], count: 20, power: 6, amount: 0.3 },
+  gillCurve: {
+    type: "gillCurve",
+    color: "#f0c0c0",
+    x: 0.15,
+    curve: 0.05,
+    width: [0, 0.05],
+    amount: 0.5,
+  },
+  scales: { type: "scales", size: 0.016, rim: 0.07 },
+};
+
+/** A new fin layer of each type. */
+export const FIN_LAYER_TEMPLATES: Readonly<Record<string, FinLayer>> = {
+  tint: { type: "tint", color: "#ffffff" },
+  dots: {
+    type: "dots",
+    color: "#0c0c10",
+    cell: 0.014,
+    radius: 0.0045,
+    seed: 1,
+    chance: [0.55, 0.4],
+    fade: [0.08, 0.2],
+  },
+  noiseLines: { type: "noiseLines", color: "#202020", scale: 40, seed: 1, width: [0.015, 0.035] },
+  marks: { type: "marks", color: "#111111", marks: [[0, 0, 0.02]] },
+};
