@@ -5,6 +5,7 @@ import { SceneValidationError } from "./parse";
 import {
   chooseLook,
   DEFAULT_EXPOSURE,
+  DEFAULT_MARINE_SNOW,
   effectParams,
   lookParamIssues,
   mergeTweaks,
@@ -30,7 +31,13 @@ describe("scene look", () => {
   it("fills in the defaults of an empty look", () => {
     const look = parseSceneLook({ name: "Plain" }, "plain");
 
-    expect(look).toEqual({ name: "Plain", exposure: DEFAULT_EXPOSURE, features: {}, effects: {} });
+    expect(look).toEqual({
+      name: "Plain",
+      exposure: DEFAULT_EXPOSURE,
+      snow: DEFAULT_MARINE_SNOW,
+      features: {},
+      effects: {},
+    });
   });
 
   it("rejects a sun that points nowhere, naming the look", () => {
@@ -122,6 +129,18 @@ describe("choosing and tweaking a look", () => {
     const tweaked = tweakLook(hero, { exposure: 1.2, sun: [0, 1, 0] });
 
     expect([tweaked.exposure, tweaked.sun]).toEqual([1.2, [0, 1, 0]]);
+  });
+
+  it("fills the water with the usual marine snow unless the look says", () => {
+    expect(hero.snow).toBe(1);
+  });
+
+  it("lets a look ask for crystal clear water, without marine snow", () => {
+    expect(parseSceneLook({ name: "Planted", snow: 0 }, "planted").snow).toBe(0);
+  });
+
+  it("lets the viewer's tweaks change how much marine snow drifts", () => {
+    expect(tweakLook(hero, { snow: 2.5 }).snow).toBe(2.5);
   });
 
   it("keeps the look as it is without tweaks", () => {

@@ -7,14 +7,27 @@ import {
   Points,
   ShaderMaterial,
 } from "three";
-import type { Rng } from "../core/rng";
+import { createRng, type Rng } from "../core/rng";
+import { MAX_MARINE_SNOW } from "../scene/sceneLook";
 import type { Scene } from "../scene/schema";
 import { bubbleStreamsFromProps, type BubbleStream } from "../sim/bubbles";
 import type { Prop } from "../sim/layout";
 import { createRefractiveBubbles } from "./refractiveBubbles";
 import type { WaterUniforms } from "./uniforms";
 
+/** Specks of marine snow at amount 1, the open sea's. */
 const SNOW_COUNT = 2400;
+/**
+ * Seed of the specks beyond the first SNOW_COUNT, kept apart from the
+ * scene's random draws so the first ones, and the bubbles after them, stay
+ * where they always were.
+ */
+const EXTRA_SNOW_SEED = 7_200_001;
+
+/** How many specks of marine snow to draw for an amount (0 none, 1 the open sea's). */
+export function snowCount(amount: number): number {
+  return Math.round(SNOW_COUNT * Math.min(Math.max(amount, 0), MAX_MARINE_SNOW));
+}
 const BUBBLES_PER_STREAM = 40;
 const MAX_BUBBLE_STREAMS = 3;
 /** Bubble rise speed, m/s. */
@@ -32,6 +45,8 @@ export interface Particles {
   update(timeSeconds: number): void;
   /** Point sizes depend on the drawing-buffer height; call when it changes. */
   setBufferHeight(heightPixels: number, verticalFovDegrees: number): void;
+  /** How much marine snow drifts: 0 none, 1 the open sea's, up to MAX_MARINE_SNOW. */
+  setSnow(amount: number): void;
   dispose(): void;
 }
 
@@ -47,13 +62,17 @@ function marineSnow(
   rng: Rng,
 ): Points<BufferGeometry, ShaderMaterial> {
   const { width, height, depth } = scene.tank;
-  const positions = new Float32Array(SNOW_COUNT * 3);
-  const seeds = new Float32Array(SNOW_COUNT);
-  for (let index = 0; index < SNOW_COUNT; index += 1) {
-    positions[index * 3] = rng.next();
-    positions[index * 3 + 1] = rng.next();
-    positions[index * 3 + 2] = rng.next();
-    seeds[index] = rng.next();
+  // Room for the most snow; how much of it is drawn is set by setSnow.
+  const total = snowCount(MAX_MARINE_SNOW);
+  const positions = new Float32Array(total * 3);
+  const seeds = new Float32Array(total);
+  const extra = createRng(EXTRA_SNOW_SEED);
+  for (let index = 0; index < total; index += 1) {
+    const draws = index < SNOW_COUNT ? rng : extra;
+    positions[index * 3] = draws.next();
+    positions[index * 3 + 1] = draws.next();
+    positions[index * 3 + 2] = draws.next();
+    seeds[index] = draws.next();
   }
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new BufferAttribute(positions, 3));
@@ -225,6 +244,9 @@ export function createParticles(
         const uniform = material.uniforms.uPixelScale;
         if (uniform !== undefined) uniform.value = pixelScale(heightPixels, verticalFovDegrees);
       }
+    },
+    setSnow(amount) {
+      snow.geometry.setDrawRange(0, snowCount(amount));
     },
     dispose() {
       for (const points of [snow, bubbleStreams]) {

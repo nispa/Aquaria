@@ -32,7 +32,12 @@ import { centerSquare } from "../scene/scenePictures";
 import type { Scene, SpeciesCatalog } from "../scene/schema";
 import type { Lights } from "../scene/lights";
 import { lookPasses, type Look } from "../scene/look";
-import { DEFAULT_EXPOSURE, effectParams, type SceneLook } from "../scene/sceneLook";
+import {
+  DEFAULT_EXPOSURE,
+  DEFAULT_MARINE_SNOW,
+  effectParams,
+  type SceneLook,
+} from "../scene/sceneLook";
 import { createLens } from "./lens";
 import { createGpuTimer } from "./gpuTimer";
 import { obstaclesOf, type Obstacle } from "../sim/obstacles";
@@ -474,6 +479,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     particles = createParticles(scene, items, water, createRng(particleSeed));
     particles.setBubbleStyle(currentLook.has("refractive-bubbles") ? "refractive" : "sprite");
     particles.setBufferHeight(renderHeight, VERTICAL_FOV);
+    particles.setSnow(sceneLook?.snow ?? DEFAULT_MARINE_SNOW);
     floraGroup.add(flora.object);
     propGroup.add(props.object);
     particleGroup.add(particles.object);
@@ -592,6 +598,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     setSceneLook(next) {
       sceneLook = next;
       renderer.toneMappingExposure = next?.exposure ?? DEFAULT_EXPOSURE;
+      particles?.setSnow(next?.snow ?? DEFAULT_MARINE_SNOW);
       placeSun(lights);
       buildPipeline(currentLook);
       applySize();

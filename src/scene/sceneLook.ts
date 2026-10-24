@@ -13,6 +13,12 @@ export const LOOKS_FOLDER = "looks";
 
 /** Tone-mapping exposure when the scene names no look. */
 export const DEFAULT_EXPOSURE = 1.05;
+/** Marine snow as every scene had it before it could be set: the open sea's. */
+export const DEFAULT_MARINE_SNOW = 1;
+/** The most marine snow a look may ask for: murky water. */
+export const MAX_MARINE_SNOW = 3;
+
+const marineSnow = z.number().min(0).max(MAX_MARINE_SNOW);
 
 const direction = z
   .tuple([z.number(), z.number(), z.number()])
@@ -22,6 +28,11 @@ export const sceneLookSchema = z.object({
   name: z.string().min(1),
   /** Brightness of the whole picture before tone mapping: below 1 is darker. */
   exposure: z.number().positive().max(4).default(DEFAULT_EXPOSURE),
+  /**
+   * How much marine snow drifts in the water: 0 is crystal clear (a home
+   * tank with a good filter), 1 the open sea, up to 3 murky.
+   */
+  snow: marineSnow.default(DEFAULT_MARINE_SNOW),
   /**
    * Where the sunlight comes from, as a direction from the middle of the tank
    * (x right, y up, z towards the glass); the light, its shadows and its glow
@@ -45,10 +56,12 @@ export const PLAIN_LOOK: SceneLook = sceneLookSchema.parse({ name: "None" });
 
 /**
  * The viewer's own changes to a look, from the panel's sliders: the
- * exposure, the sun, and single effect parameters. Saved per look id.
+ * exposure, the marine snow, the sun, and single effect parameters. Saved
+ * per look id.
  */
 export const lookTweakSchema = z.object({
   exposure: z.number().positive().max(4).optional(),
+  snow: marineSnow.optional(),
   sun: direction.optional(),
   effects: z.record(z.string(), z.record(z.string(), z.unknown())).optional(),
 });
@@ -101,6 +114,7 @@ export function tweakLook(look: SceneLook, tweak: LookTweak | undefined): SceneL
   return {
     ...look,
     exposure: tweak.exposure ?? look.exposure,
+    snow: tweak.snow ?? look.snow,
     ...(tweak.sun === undefined ? {} : { sun: tweak.sun }),
     effects,
   };

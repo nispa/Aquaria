@@ -179,7 +179,7 @@ panel; this is what **Recommended** goes back to.
   day every `minutes`). `sunrise` and `sunset` are hours; `ramp` is how long
   dawn and dusk last, in hours.
 
-All fields are optional; the [User guide](USER_GUIDE.md#time-and-lights)
+All fields are optional; the [User guide](USER_GUIDE.md#light)
 explains what they look like.
 
 ### Look
@@ -202,6 +202,9 @@ settings of the effects. The Hero scene uses `public/looks/hero.json`:
 ```
 
 - `exposure`: below 1 is darker. Without a look it is 1.05.
+- `snow`: how much marine snow drifts in the water, from 0 (crystal
+  clear, a home tank) through 1 (the open sea, also without a look) to 3
+  (murky).
 - `sun`: where the sunlight comes from, seen from the middle of the tank
   (`x` right, `y` up, `z` towards the glass). Here it is high and behind,
   so it shines through the surface at the top of the picture.

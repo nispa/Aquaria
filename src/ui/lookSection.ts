@@ -1,11 +1,18 @@
 import type { EffectDescriptor } from "../scene/look";
 import { paramControls, paramLabel, type ParamControl } from "../scene/paramControls";
-import { sunAngles, sunFromAngles, type LookTweak, type SceneLook } from "../scene/sceneLook";
+import {
+  MAX_MARINE_SNOW,
+  sunAngles,
+  sunFromAngles,
+  type LookTweak,
+  type SceneLook,
+} from "../scene/sceneLook";
 import { element, select, slider } from "./controls";
 
 /** The viewer's look choice that means "the scene's own". */
 const SCENE_OWN = "";
 const EXPOSURE = { min: 0.2, max: 2.5, step: 0.01 } as const;
+const MARINE_SNOW = { min: 0, max: MAX_MARINE_SNOW, step: 0.05 } as const;
 const SUN_HEIGHT = { min: 5, max: 90, step: 1 } as const;
 const SUN_TURN = { min: -180, max: 180, step: 1 } as const;
 const RGB = ["red", "green", "blue"] as const;
@@ -186,6 +193,10 @@ export function createLookSection(
       element("p", "panel__subheading", "Picture"),
       sliderRow("look-exposure", "Exposure", EXPOSURE, state.look.exposure, (value) => {
         tweak = { ...tweak, exposure: value };
+        callbacks.onTweak(tweak);
+      }),
+      sliderRow("look-snow", "Marine snow", MARINE_SNOW, state.look.snow, (value) => {
+        tweak = { ...tweak, snow: value };
         callbacks.onTweak(tweak);
       }),
       sliderRow("look-sun-height", "Sun height", SUN_HEIGHT, Math.round(height), (value) => {

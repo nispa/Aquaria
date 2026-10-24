@@ -183,7 +183,7 @@ pannello; **Recommended** torna a queste.
   (una giornata intera ogni `minutes`). `sunrise` e `sunset` sono ore;
   `ramp` è quanto durano alba e tramonto, in ore.
 
-Tutti i campi sono facoltativi; la [Guida all'uso](GUIDA_UTENTE.md#time-e-lights)
+Tutti i campi sono facoltativi; la [Guida all'uso](GUIDA_UTENTE.md#light)
 spiega come appaiono.
 
 ### Look
@@ -206,6 +206,8 @@ le impostazioni degli effetti. La scena Hero usa `public/looks/hero.json`:
 ```
 
 - `exposure`: sotto 1 è più scuro. Senza look vale 1.05.
+- `snow`: quanta neve marina c'è nell'acqua, da 0 (cristallina, una vasca
+  di casa) a 1 (il mare aperto, anche senza look) fino a 3 (torbida).
 - `sun`: da dove arriva la luce del sole, visto dal centro della vasca
   (`x` a destra, `y` in alto, `z` verso il vetro). Qui è alto e dietro,
   così brilla attraverso la superficie in cima all'immagine.
