@@ -313,6 +313,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       manifests: options.modelManifests,
       load: loaders.loadModel,
       loadAnimated: loaders.loadAnimated,
+      loadColorings: loaders.loadColorings,
     },
     options.fishModelEnabled,
   );

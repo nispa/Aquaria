@@ -12,7 +12,8 @@ import type { ShaderPatch } from "./patch";
  *   (0 shut .. 1 wide open), z and w the left and right pectoral fins'
  *   spread (-1 folded .. 1 spread wide);
  * - aFinStroke: x and y the left and right pectoral fins' place in their
- *   beat (radians), z the beat (0..1).
+ *   beat (radians), z the beat (0..1), w the coloring the fish wears (0, 1,
+ *   2…, a layer of shaders/fishColoringPatch's texture array).
  *
  * The other fish patches read them by their own names (aSwimPhase, aGaze,
  * aFinPose…), defined here; apply this patch first.
@@ -23,7 +24,7 @@ export function fishInstancePatch(): ShaderPatch {
     vertexHead: /* glsl */ `
       attribute vec4 aMotion;
       attribute vec4 aLook;
-      attribute vec3 aFinStroke;
+      attribute vec4 aFinStroke;
       #define aSwimPhase aMotion.x
       #define aBend aMotion.y
       #define aEffort aMotion.z
@@ -32,6 +33,7 @@ export function fishInstancePatch(): ShaderPatch {
       #define aMouth aLook.y
       #define aFinPhase aFinStroke.xy
       #define aFinPose vec3(aFinStroke.z, aLook.zw)
+      #define aColoring aFinStroke.w
     `,
   };
 }

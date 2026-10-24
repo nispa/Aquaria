@@ -114,7 +114,7 @@ export async function drawFishPortraits(
     { species: [...sitters.values()].map((individual) => individual.species) },
     neutralWaterUniforms(),
     logger,
-    { manifests, load: loaders.loadModel },
+    { manifests, load: loaders.loadModel, loadColorings: loaders.loadColorings },
     (speciesId) => wanted.get(speciesId) ?? false,
   );
   const scene = new Scene();

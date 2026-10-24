@@ -1,4 +1,13 @@
-import { AnimationClip, BoxGeometry, Group, Mesh, MeshStandardMaterial } from "three";
+import {
+  AnimationClip,
+  BoxGeometry,
+  DataArrayTexture,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+  Texture,
+  type Material,
+} from "three";
 import { describe, expect, it } from "vitest";
 import { createLogger, type LogEntry } from "../core/logger";
 import { catalogFixture, sceneFixture } from "../scene/fixtures";
@@ -9,6 +18,7 @@ import {
   createFishRenderer,
   modelMaterial,
   type AnimatedModelLoader,
+  type ColoringLoader,
   type FishModelLoader,
 } from "./fishRenderer";
 import { createWaterUniforms } from "./uniforms";
@@ -28,8 +38,36 @@ function boxFish(): Group {
   return root;
 }
 
+/** The box fish with a texture, and two colorings of it. */
+const coloredManifest = parseModelManifest(
+  {
+    name: "Box fish",
+    colorings: {
+      red: { name: "Red", texture: "colorings/red.png" },
+      blue: { name: "Blue", texture: "colorings/blue.png" },
+    },
+    credit: { author: "Someone", source: "https://example.org/fish", license: "CC0-1.0" },
+  },
+  "box-fish",
+);
+
+function texturedBoxFish(): Group {
+  const root = new Group();
+  root.add(
+    new Mesh(new BoxGeometry(1, 0.3, 0.1), new MeshStandardMaterial({ map: new Texture() })),
+  );
+  return root;
+}
+
+const patchesOf = (material: Material | Material[]): string =>
+  (Array.isArray(material) ? material : [material])
+    .map((each) => each.customProgramCacheKey())
+    .join(" ");
+
 interface SetupOptions {
   readonly load?: FishModelLoader;
+  readonly loadColorings?: ColoringLoader;
+  readonly coloring?: readonly string[];
   readonly loadAnimated?: AnimatedModelLoader;
   readonly manifests?: ReadonlyMap<string, ModelManifest>;
   readonly modelsOn?: boolean;
@@ -39,11 +77,14 @@ interface SetupOptions {
 function setup({
   load = () => Promise.resolve(boxFish()),
   loadAnimated,
+  loadColorings,
+  coloring,
   manifests = withManifest,
   modelsOn = true,
 }: SetupOptions = {}) {
   const input = catalogFixture();
   input.species[0]!.model = "box-fish";
+  if (coloring !== undefined) input.species[0]!.coloring = coloring.map((id) => ({ id }));
   const catalog = parseCatalog(input);
   const entries: LogEntry[] = [];
   const loads: string[] = [];
@@ -58,6 +99,7 @@ function setup({
         return load(url);
       },
       ...(loadAnimated === undefined ? {} : { loadAnimated }),
+      ...(loadColorings === undefined ? {} : { loadColorings }),
     },
     () => modelsOn,
   );
@@ -123,6 +165,46 @@ describe("createFishRenderer", () => {
     await renderer.settled();
 
     expect([shown().includes(id), entries[0]?.level]).toEqual([true, "warn"]);
+  });
+
+  it("dresses the model in the textures of the colorings its species wears", async () => {
+    const urls: string[][] = [];
+    const { id, renderer, swim } = setup({
+      load: () => Promise.resolve(texturedBoxFish()),
+      manifests: new Map([["box-fish", coloredManifest]]),
+      coloring: ["blue", "red"],
+      loadColorings: (textures) => {
+        urls.push([...textures]);
+        return Promise.resolve(new DataArrayTexture());
+      },
+    });
+
+    swim();
+    await renderer.settled();
+    const model = renderer.object.getObjectByName(`${id}/model`) as Mesh;
+
+    expect([urls, patchesOf(model.material).includes("fish-coloring")]).toEqual([
+      [["assets/species/box-fish/colorings/blue.png", "assets/species/box-fish/colorings/red.png"]],
+      true,
+    ]);
+  });
+
+  it("keeps the model's own colors when its species wears a coloring the model lacks, with a warning", async () => {
+    const { id, entries, renderer, swim } = setup({
+      load: () => Promise.resolve(texturedBoxFish()),
+      manifests: new Map([["box-fish", coloredManifest]]),
+      coloring: ["green"],
+      loadColorings: () => Promise.resolve(new DataArrayTexture()),
+    });
+
+    swim();
+    await renderer.settled();
+    const model = renderer.object.getObjectByName(`${id}/model`) as Mesh;
+
+    expect([patchesOf(model.material).includes("fish-coloring"), entries[0]?.level]).toEqual([
+      false,
+      "warn",
+    ]);
   });
 
   it("keeps the procedural body when the model has no manifest, with a warning", () => {

@@ -273,7 +273,12 @@ async function start(): Promise<void> {
     catalog,
     water,
     logger,
-    { manifests, load: loaders.loadModel, loadAnimated: loaders.loadAnimated },
+    {
+      manifests,
+      load: loaders.loadModel,
+      loadAnimated: loaders.loadAnimated,
+      loadColorings: loaders.loadColorings,
+    },
     (id) => id === named.id && modelSwitch.checked,
   );
   let individual = posedFish(species, new Vector3(1, 0, 0));
