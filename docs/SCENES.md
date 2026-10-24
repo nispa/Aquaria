@@ -250,6 +250,9 @@ Species are in `public/species.json`. This is the royal gramma, as it is in the 
   `crab` or `hermit-crab`.
 - `model` (optional) is a folder with a 3D model. The viewer can switch
   between the model and the procedural body for each species.
+- `coloring` (optional) is which colorings of the model the fish wear: one
+  id, or several with weights, so a school mixes strains (see
+  [FISH_MODELS.md](FISH_MODELS.md)).
 - `length` is the real length in meters. Each fish gets its own, around the
   `mean`.
 - `speed` is in meters per second: the usual pace and the top speed.

@@ -44,13 +44,14 @@ export interface FishPortraitRequest {
 
 /**
  * A still individual of body length 1 at the origin, heading along
- * `heading`: by default facing the camera at three-quarters.
+ * `heading`: by default facing the camera at three-quarters, wearing the
+ * species' first coloring unless told which.
  */
-export function posedFish(species: Species, heading: Vector3 = HEADING): Fish {
+export function posedFish(species: Species, heading: Vector3 = HEADING, coloring = 0): Fish {
   return {
     id: 0,
     species,
-    coloring: 0,
+    coloring,
     position: new Vector3(),
     velocity: heading.clone(),
     length: 1,

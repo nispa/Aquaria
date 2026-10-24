@@ -165,6 +165,32 @@ describe("bundled data files", () => {
     expect(assetCredits).toContain(manifest.credit.source);
   });
 
+  it.each(modelFolders)("ships the texture of every coloring of the %s model", (id) => {
+    const manifest = parseModelManifest(readJson(`${MODELS}${id}/${MODEL_MANIFEST_FILE}`), id);
+    const textures = Object.values(manifest.colorings ?? {}).map(({ texture }) => texture);
+
+    expect(
+      textures.filter(
+        (texture) => !existsSync(new URL(`${MODELS}${id}/${texture}`, import.meta.url)),
+      ),
+    ).toEqual([]);
+  });
+
+  it("lists every coloring a species wears in the species' model", () => {
+    const catalog = parseCatalog(readJson("../../public/species.json"));
+    const worn = catalog.species.flatMap(({ model, coloring }) =>
+      model === undefined ? [] : (coloring ?? []).map(({ id }) => [model, id] as const),
+    );
+
+    expect(
+      worn.filter(
+        ([model, id]) =>
+          parseModelManifest(readJson(`${MODELS}${model}/${MODEL_MANIFEST_FILE}`), model)
+            .colorings?.[id] === undefined,
+      ),
+    ).toEqual([]);
+  });
+
   it("ships a model folder for every species with a 3D model", () => {
     const catalog = parseCatalog(readJson("../../public/species.json"));
 

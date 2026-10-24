@@ -198,6 +198,59 @@ If you model by hand:
    turn. Its eyes should move first. If they do not, the eyeballs are
    probably weighted to the root bone.
 
+## Colorings: one model, many strains
+
+Fish of the same shape differ in their colors. A model can list
+colorings, each a base-color texture laid on its UVs, and a species
+wears one of them or mixes several. The guppy's `model.json`:
+
+```json
+"colorings": {
+  "half-black-red": { "name": "Half Black Red", "texture": "colorings/half-black-red.webp" },
+  "blue-grass": { "name": "Blue Grass", "texture": "colorings/blue-grass.webp" },
+  "full-red": { "name": "Full Red", "texture": "colorings/full-red.webp" },
+  "yellow-cobra": { "name": "Yellow Cobra", "texture": "colorings/yellow-cobra.webp" }
+}
+```
+
+and in `public/species.json`:
+
+```json
+"model": "guppy",
+"coloring": [
+  { "id": "half-black-red", "weight": 3 },
+  { "id": "blue-grass", "weight": 2 },
+  { "id": "full-red", "weight": 2 },
+  { "id": "yellow-cobra", "weight": 2 }
+]
+```
+
+Each fish wears one, three Half Black Red for every two of the others,
+and keeps it. A species that wears only one writes
+`"coloring": "full-red"`. The shape is downloaded once and the whole
+school stays one draw on the GPU: the textures become the layers of one
+texture array.
+
+- The textures are PNG, WebP or JPEG files in the model folder, all of
+  the same size. Up to 8 colorings per model.
+- They replace the texture of every material of the model that has one
+  (body and fins); materials without one (the guppy's eyes, colored by
+  vertex) stay as they are.
+- A coloring the model does not list, or a texture that does not load,
+  leaves the model in its own colors, with a warning.
+- The fish's card shows the first coloring. To look at another one on
+  the grid: `/model-viewer.html?id=guppy&coloring=1`.
+
+**Painting them in code.** `scripts/blender/guppy.py` lays the guppy out
+on one square texture: the body unrolled (along it, and once round it),
+each fin in its own rectangle (`Atlas` in `scripts/blender/paintkit.py`).
+Then it paints that atlas once per strain with numpy: countershading,
+faint scales, rays, fin edges that thin out instead of ending, dots and
+snakeskin from noise. A new strain is a new painter function and a line
+in `STRAINS`. Run it and it writes `model.glb` and `colorings/*.webp`,
+and prints the gills and pectoral values for `model.json`, since the
+fish frame changes whenever the outline does.
+
 ## Animals that walk
 
 Aquaria does not play animations on fish: it draws a whole school in one

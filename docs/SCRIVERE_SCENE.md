@@ -257,6 +257,9 @@ com'è nel file:
   con forma `shrimp`, `crab` o `hermit-crab`.
 - `model` (facoltativo) è una cartella con un modello 3D. Chi guarda può
   passare dal modello al corpo disegnato, specie per specie.
+- `coloring` (facoltativo) è quali colorazioni del modello portano i
+  pesci: un id, o più d'uno con i pesi, così un branco mescola i ceppi
+  (vedi [MODELLI_PESCI.md](MODELLI_PESCI.md)).
 - `length` è la lunghezza vera in metri. Ogni pesce ha la sua, attorno a
   `mean`.
 - `speed` è in metri al secondo: l'andatura normale e quella massima.

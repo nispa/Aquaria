@@ -319,19 +319,23 @@ species (the tangs, the shrimps of D3) and several strains of one species
 (guppies, platies, red and blue shrimps). Comes before the D3 model. A
 species with no coloring looks as today.
 
-- [ ] `model.json` lists colorings by id: textures (base color, optional
-      pattern mask) or plain colors per material, credit when they come
-      from elsewhere; validated with Zod, a missing texture logs a warning
-      and falls back to the model's own.
-- [ ] A species names its model and coloring (`model`, `coloring`); several
-      species share one folder, so the shape is downloaded and kept on the
-      GPU once.
-- [ ] Strains: a species may list several colorings with weights; each
-      fish draws one from the seeded RNG and keeps it, so a school mixes
-      them. Instanced like today (a per-instance index into a texture
-      array or atlas), not one draw per coloring.
-- [ ] Fauna cards show the species' first coloring; docs in
-      `docs/FISH_MODELS.md`: how to paint a coloring in Blender.
+- [x] `model.json` lists colorings by id, each a base-color texture;
+      validated with Zod, a missing coloring or texture logs a warning and
+      falls back to the model's own.
+- [ ] Colorings as a pattern mask or plain colors per material, and a
+      credit for colorings that come from elsewhere.
+- [x] A species names its model and coloring (`model`, `coloring`).
+- [ ] Several species share one folder, so the shape is downloaded and
+      kept on the GPU once (today each species loads its own copy).
+- [x] Strains: a species may list several colorings with weights; each
+      fish wears one and keeps it, so a school mixes them (picked from
+      the fish's id, like its fin beat, so the seeded draws stay as they
+      were). Instanced like today: a per-instance layer of a texture
+      array, not one draw per coloring.
+- [x] Fauna cards show the species' first coloring; docs in
+      `docs/FISH_MODELS.md`: how to paint colorings in code
+      (`scripts/blender/guppy.py`, `paintkit.py`). The guppy wears four
+      strains.
 
 ## I. Ready-made aquariums
 

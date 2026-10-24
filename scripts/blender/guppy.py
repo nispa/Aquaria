@@ -1,31 +1,35 @@
-"""Builds Aquaria's guppy (Poecilia reticulata) in Blender.
+"""Builds Aquaria's guppy (Poecilia reticulata) in Blender, with its strains.
 
     blender --background --python scripts/blender/guppy.py -- <output folder>
 
-Writes model.glb to the output folder (by default
-public/assets/species/guppy). Everything is generated here, so the model is
-the project's own work (CC0, like the code that made it). It is a male
-"fancy" guppy, the one aquariums keep:
+Writes model.glb and colorings/<strain>.webp to the output folder (by
+default public/assets/species/guppy), and prints the fish-frame values
+model.json needs. Everything is generated here, so the model and its
+colorings are the project's own work (CC0, like the code that made them).
+It is a male "fancy" guppy, the one aquariums keep:
 
 - a small, slender body with an upturned mouth and a big eye;
-- a huge delta tail, as long as the body and fanned wide, and a long
-  flag of a dorsal fin, both see-through, red-orange with black dots;
-- an olive back, silver flanks with a sky-blue sheen, orange patches and a
-  black spot, painted as vertex colors; a silver eye with a black pupil;
+- a delta tail fanned wide, nearly as long as the body, its edge
+  fluttering, and a long dorsal flag swept back;
+- the colors are a texture (an atlas: the body unrolled, each fin in its
+  own rectangle), painted once per strain, so one model wears them all:
+  Half Black Red (the "tuxedo", the model's own), Blue Grass, Full Red and
+  Yellow Cobra. Scales, rays and soft, see-through fin edges are painted
+  in, so the fish does not look like a plastic toy;
+- a silver eye with a black pupil (vertex colors, untouched by strains);
 - an armature: "Root" holds the body, "Eye.L" and "Eye.R" hold the eyeballs
   (their heads at the eyeballs' centres), so Aquaria can turn the eyes;
 - a "MouthOpen" shape key that drops the lower jaw.
 
-The shared pieces are in fishkit.py; docs/FISH_MODELS.md tells what
-Aquaria expects of a model.
+The shared pieces are in fishkit.py and paintkit.py; docs/FISH_MODELS.md
+tells what Aquaria expects of a model.
 """
 
-import math
 import os
-import random
 import sys
 
 import bpy
+import numpy as np
 from mathutils import Vector
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -34,15 +38,20 @@ from fishkit import (  # noqa: E402
     body_fin,
     export,
     eyeball,
+    fan_edge,
     linear,
     make_object,
     material,
     mix,
     pectoral_fin,
+    polyline_point,
     rig,
+    rounded,
     smoothstep,
     tail_fin,
+    textured_material,
 )
+import paintkit as paint  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DEFAULT_OUTPUT = os.path.join(ROOT, "public", "assets", "species", "guppy")
@@ -51,15 +60,8 @@ HALF_THICKNESS = 0.05
 EYE = Vector((0.285, 0.0, 0.025))
 EYE_RADIUS = 0.03
 
-# Colors, sRGB.
-OLIVE = "#8d9468"
+# The eye's colors, sRGB (vertex colors).
 SILVER = "#c9ccc4"
-BELLY = "#ecebe2"
-SKY = "#4aa3e6"
-ORANGE = "#ff7a26"
-BLACK = "#151515"
-TAIL = "#ff5a1e"
-TAIL_EDGE = "#d8261c"
 IRIS = "#d9d7c8"
 PUPIL = "#080808"
 
@@ -88,23 +90,6 @@ BOTTOM = [
     (-0.10, -0.045),
 ]
 
-# Where the flank's colors sit: (x, height share, radius) for the orange
-# patches and the black spot; the blue sheen covers the middle of the flank.
-ORANGE_PATCHES = [(0.12, -0.2, 0.04), (0.02, 0.3, 0.035), (-0.06, -0.25, 0.03)]
-BLACK_SPOT = (0.05, 0.05, 0.018)
-# Black dots on the tail: (u, v) on the fin, radius; scattered by a fixed
-# seed, so every build of the model is the same.
-DOT_SEED = 7
-TAIL_DOT_COUNT = 42
-
-
-def scattered_dots(count, seed):
-    rng = random.Random(seed)
-    return [(rng.uniform(0.06, 0.94), rng.uniform(0.3, 0.95), rng.uniform(0.008, 0.016)) for _ in range(count)]
-
-
-TAIL_DOTS = scattered_dots(TAIL_DOT_COUNT, DOT_SEED)
-
 
 def thickness(s):
     """Round behind the head, flattening towards the peduncle."""
@@ -113,91 +98,290 @@ def thickness(s):
 
 # How round the body's cross-section is (Body.mesh); the pectoral fins sit on its skin.
 ROUNDNESS = 0.9
-BODY = Body(TOP, BOTTOM, thickness, linear(OLIVE), linear(TAIL))
+BODY = Body(TOP, BOTTOM, thickness, linear(SILVER), linear(SILVER))
 PEDUNCLE_X = BODY.peduncle_x
 
+# Where the gill cover ends, Blender coordinates; printed in the fish frame for model.json.
+GILL_EDGE_X = 0.182
+GILL_HALF_HEIGHT = 0.062
 
-def blob(x, height, centre_x, centre_height, radius):
-    """1 inside a soft round patch on the flank, 0 outside; heights count double."""
-    distance = math.hypot(x - centre_x, (height - centre_height) * 0.1)
-    # A ragged edge, so patches look painted by nature rather than stamped.
-    ragged = radius * (1 + 0.25 * math.sin(x * 140 + height * 9))
-    return (1.0 - smoothstep(ragged * 0.5, ragged, distance)) * 0.8
+# The texture: its size in texels, and a rectangle for each part.
+TEXTURE_SIZE = 1024
+ATLAS = paint.Atlas(TEXTURE_SIZE)
+ATLAS.place("body", 0.0, 0.0, 1.0, 0.42)
+ATLAS.place("caudal", 0.0, 0.44, 0.62, 0.56)
+ATLAS.place("dorsal", 0.64, 0.44, 0.36, 0.30)
+ATLAS.place("gonopodium", 0.64, 0.76, 0.12, 0.10)
+ATLAS.place("pectoral", 0.78, 0.76, 0.10, 0.10)
+# The model's own texture is small: the species wears its colorings.
+OWN_TEXTURE_STEP = 4
+
+# How big a scale is, body lengths, and how dark its rim.
+SCALE_SIZE = 0.016
+SCALE_RIM = 0.07
+# Where the tuxedo's black starts, x, and how wide its ragged edge is.
+TUXEDO_X = 0.08
+TUXEDO_EDGE = 0.03
 
 
-def skin(x, z, top, bottom):
-    height = (z - (top + bottom) / 2) / max((top - bottom) / 2, 1e-4)
-    color = mix(linear(SILVER), linear(OLIVE), smoothstep(0.2, 0.85, height))
-    color = mix(color, linear(BELLY), smoothstep(-0.25, -0.85, height))
-    # A sky-blue sheen along the middle of the flank, behind the gills.
-    sheen = smoothstep(0.2, 0.1, x) * (1 - smoothstep(0.25, 0.7, abs(height)))
-    color = mix(color, linear(SKY), sheen * 0.75)
-    for patch in ORANGE_PATCHES:
-        color = mix(color, linear(ORANGE), blob(x, height, *patch))
-    return mix(color, linear(BLACK), blob(x, height, *BLACK_SPOT))
+def caudal_outline():
+    return [
+        (PEDUNCLE_X - 0.005, 0, 0.04),
+        (-0.24, 0, 0.13),
+        (-0.40, 0, 0.225),
+        (-0.47, 0, 0.25),
+        (-0.50, 0, 0.12),
+        (-0.505, 0, 0.0),
+        (-0.50, 0, -0.12),
+        (-0.47, 0, -0.25),
+        (-0.40, 0, -0.225),
+        (-0.24, 0, -0.13),
+        (PEDUNCLE_X - 0.005, 0, -0.04),
+    ]
 
 
-def spotted(dots):
-    """Red-orange fins, see-through, deeper red towards the edge, with black dots."""
+CAUDAL_ROOT = Vector((PEDUNCLE_X + 0.006, 0, 0))
+CAUDAL_BASE_HEIGHT = 0.07
+DORSAL = dict(start_x=0.05, end_x=-0.08, outline=[(-0.02, 0.15), (-0.12, 0.21), (-0.24, 0.215), (-0.20, 0.15), (-0.12, 0.09)])
+GONOPODIUM = dict(start_x=-0.01, end_x=-0.045, outline=[(-0.03, -0.12), (-0.075, -0.13), (-0.055, -0.095)])
+PECTORAL_ROOT = Vector((0.2, 0, -0.03))
 
-    def color(u, v, p):
-        fin = mix(linear(TAIL, 0.82), linear(TAIL_EDGE, 0.7), smoothstep(0.5, 1.0, v))
-        # Soft rays fanning out, a little darker between them.
-        ray = (0.5 + 0.5 * math.cos(u * 30 * 2 * math.pi)) ** 3
-        fin = mix(fin, linear(TAIL_EDGE, 0.85), (1 - ray) * 0.25 * smoothstep(0.1, 0.4, v))
-        # Near the body the fin keeps a little of the flank's blue.
-        fin = mix(fin, linear(SKY, 0.8), (1 - smoothstep(0.0, 0.18, v)) * 0.5)
-        dot = max((1 - smoothstep(r * 0.4, r, math.hypot(u - du, (v - dv) * 0.3))) for du, dv, r in dots)
-        return mix(fin, linear(BLACK, 0.9), dot)
+
+def pectoral_base(u):
+    return PECTORAL_ROOT + Vector((-0.004 * u, 0, 0.04 * (u - 0.5)))
+
+
+PECTORAL_EDGE = fan_edge(PECTORAL_ROOT, 0.075, 20, -40)
+
+
+# Painting. Every painter returns sRGB colors with alpha for arrays of its part's parameters.
+
+
+def body_color(back, flank, belly):
+    """Countershaded skin: a darker back, a lighter belly, faint scales."""
+
+    def color(x, z, up, side):
+        skin = paint.mix(paint.srgb(flank), paint.srgb(back), paint.smoothstep(0.1, 0.85, up))
+        skin = paint.mix(skin, paint.srgb(belly), paint.smoothstep(-0.2, -0.85, up))
+        return skin
 
     return color
 
 
+def scaled(skin, x, z):
+    """The skin with its scales: rims a little darker, middles catching a little light."""
+    rim = paint.scales(x, z, SCALE_SIZE)
+    shade = 1 - SCALE_RIM * rim + 0.02 * (1 - rim)
+    out = skin.copy()
+    out[..., :3] *= shade[..., None]
+    return out
+
+
+def gill_sheen(skin, x, z):
+    """The gill cover and the cheek: silvery, a touch of light."""
+    cheek = paint.smoothstep(GILL_EDGE_X - 0.02, GILL_EDGE_X + 0.02, x) * (1 - paint.smoothstep(0.03, 0.08, np.abs(z)))
+    return paint.mix(skin, paint.srgb("#e8ecef"), cheek * 0.35)
+
+
+def tuxedo(skin, x, z, color):
+    """The rear half black (Half Black, Blue Grass), its front edge ragged as on a real fish."""
+    ragged = TUXEDO_X + TUXEDO_EDGE * (paint.fbm(z * 40, x * 10, 3) - 0.5) - 0.25 * np.clip(-z, 0, None)
+    share = paint.smoothstep(ragged + TUXEDO_EDGE * 0.5, ragged - TUXEDO_EDGE * 0.5, x)
+    return paint.mix(skin, paint.srgb(color), share)
+
+
+def vermiculated(skin, x, z, color, scale, seed, coverage=1.0):
+    """The snakeskin of the cobra strains: winding dark lines."""
+    noise = paint.fbm(x * scale, z * scale, seed, octaves=2)
+    line = 1 - paint.smoothstep(0.012, 0.03, np.abs(noise - 0.5))
+    return paint.mix(skin, paint.srgb(color), line * coverage)
+
+
+def fin_color(web, ray, root, alpha_root, alpha_edge, rays):
+    """A see-through fin: a web darker between soft rays, the root dark, the edge fading out instead of ending."""
+
+    def color(u, v):
+        streak = (0.5 + 0.5 * np.cos(u * rays * 2 * np.pi)) ** 3
+        out = paint.mix(paint.fill(u.shape, paint.srgb(web)), paint.srgb(ray), (1 - streak) * 0.45)
+        out = paint.mix(out, paint.srgb(root), 1 - paint.smoothstep(0.0, 0.14, v))
+        alpha = alpha_root + (alpha_edge - alpha_root) * paint.smoothstep(0.2, 0.95, v)
+        # The last few hundredths of the fin thin out to nothing, so its outline is soft.
+        alpha = alpha * (1 - 0.75 * paint.smoothstep(0.9, 1.0, v))
+        return paint.with_alpha(out, alpha)
+
+    return color
+
+
+def body_points(s, a):
+    return paint.body_points(BODY, ROUNDNESS, s, a)
+
+
+def caudal_points(u, v):
+    points = rounded(caudal_outline())
+    return paint.sheet_points(
+        lambda t: CAUDAL_ROOT + Vector((0, 0, (0.5 - t) * CAUDAL_BASE_HEIGHT)),
+        lambda t: polyline_point(points, t),
+        u,
+        v,
+    )
+
+
+# The strains: how each paints the body and the fins. Colors are sRGB.
+
+
+def half_black_red():
+    skin = body_color("#a8a296", "#d8d2ca", "#efe9e2")
+
+    def body(s, a):
+        x, z, up, side = body_points(s, a)
+        out = gill_sheen(skin(x, z, up, side), x, z)
+        out = paint.mix(out, paint.srgb("#e6c3bd"), paint.smoothstep(0.3, 0.1, x) * 0.25)
+        out = tuxedo(out, x, z, "#141117")
+        return scaled(out, x, z)
+
+    red = fin_color("#cf1820", "#8e0c12", "#2a0a0e", 0.9, 0.72, 34)
+    return body, red, red, fin_color("#3a3438", "#24202a", "#141117", 0.75, 0.6, 6)
+
+
+def blue_grass():
+    skin = body_color("#7f8c96", "#b8c4cc", "#e6eaec")
+
+    def body(s, a):
+        x, z, up, side = body_points(s, a)
+        out = gill_sheen(skin(x, z, up, side), x, z)
+        out = paint.mix(out, paint.srgb("#6fa8d8"), paint.smoothstep(0.25, 0.05, x) * 0.35)
+        out = tuxedo(out, x, z, "#1a2438")
+        return scaled(out, x, z)
+
+    web = fin_color("#86bde6", "#5f93c4", "#1a2438", 0.82, 0.58, 30)
+
+    def grass(points, seed):
+        def color(u, v):
+            out = web(u, v)
+            x, z = points(u, v)
+            # Fine black dots, denser towards the edge: the "grass".
+            speckle = paint.dots(x, z, 0.014, 0.0045, seed, chance=0.55 + 0.4 * v)
+            return paint.mix(out, paint.with_alpha(paint.srgb("#0c0c10"), out[..., 3]), speckle * paint.smoothstep(0.08, 0.2, v))
+
+        return color
+
+    dorsal_points = lambda u, v: paint.sheet_points(*dorsal_curves(), u, v)  # noqa: E731
+    return body, grass(caudal_points, 3), grass(dorsal_points, 5), fin_color("#9aa6b0", "#7f8c96", "#1a2438", 0.7, 0.55, 6)
+
+
+def full_red():
+    skin = body_color("#a8161c", "#d4262c", "#e8705e")
+
+    def body(s, a):
+        x, z, up, side = body_points(s, a)
+        out = skin(x, z, up, side)
+        # A pale, silvery head; red from the gills back.
+        head = paint.smoothstep(GILL_EDGE_X - 0.04, GILL_EDGE_X + 0.04, x)
+        out = paint.mix(out, paint.srgb("#e6d6cf"), head * 0.85)
+        out = gill_sheen(out, x, z)
+        return scaled(out, x, z)
+
+    red = fin_color("#e0222a", "#a8121a", "#b8161c", 0.9, 0.72, 34)
+    return body, red, red, fin_color("#d4262c", "#a8161c", "#a8161c", 0.75, 0.6, 6)
+
+
+def yellow_cobra():
+    skin = body_color("#8d8a34", "#c9b84a", "#ece2a8")
+
+    def body(s, a):
+        x, z, up, side = body_points(s, a)
+        out = gill_sheen(skin(x, z, up, side), x, z)
+        # The snakeskin covers the back and the flank, fading on the belly.
+        out = vermiculated(out, x, z, "#3a3416", 60, 11, paint.smoothstep(-0.7, -0.2, up) * 0.75)
+        return scaled(out, x, z)
+
+    web = fin_color("#ecc838", "#c49a1c", "#6e5c14", 0.88, 0.66, 30)
+
+    def snakeskin(points, seed):
+        def color(u, v):
+            out = web(u, v)
+            x, z = points(u, v)
+            noise = paint.fbm(x * 40, z * 40, seed, octaves=2)
+            line = 1 - paint.smoothstep(0.015, 0.035, np.abs(noise - 0.5))
+            return paint.mix(out, paint.with_alpha(paint.srgb("#2a2410"), out[..., 3]), line * 0.8)
+
+        return color
+
+    dorsal_points = lambda u, v: paint.sheet_points(*dorsal_curves(), u, v)  # noqa: E731
+    return body, snakeskin(caudal_points, 21), snakeskin(dorsal_points, 23), fin_color("#d8c860", "#b4a040", "#6e5c14", 0.7, 0.55, 6)
+
+
+STRAINS = [
+    ("half-black-red", "Half Black Red", half_black_red),
+    ("blue-grass", "Blue Grass", blue_grass),
+    ("full-red", "Full Red", full_red),
+    ("yellow-cobra", "Yellow Cobra", yellow_cobra),
+]
+
+
+def dorsal_curves():
+    """The dorsal fin's base and edge, as body_fin traces them."""
+    start_x, end_x, outline = DORSAL["start_x"], DORSAL["end_x"], DORSAL["outline"]
+    points = rounded(
+        [tuple(BODY.edge(start_x, True))] + [(x, 0.0, z) for x, z in outline] + [tuple(BODY.edge(end_x, True))]
+    )
+    return (lambda t: BODY.edge(start_x + (end_x - start_x) * t, True)), (lambda t: polyline_point(points, t))
+
+
+def pectoral_color(u, v):
+    """Pectoral fins are nearly clear in every strain."""
+    streak = (0.5 + 0.5 * np.cos(u * 7 * 2 * np.pi)) ** 3
+    out = paint.mix(paint.fill(u.shape, paint.srgb("#efe8e0")), paint.srgb("#ffffff"), streak * 0.4)
+    alpha = 0.45 - 0.3 * paint.smoothstep(0.2, 1.0, v)
+    return paint.with_alpha(out, alpha * (1 - 0.7 * paint.smoothstep(0.85, 1.0, v)))
+
+
+def paint_strain(strain):
+    body, caudal, dorsal, gonopodium = strain()
+    return ATLAS.paint(
+        {"body": body, "caudal": caudal, "dorsal": dorsal, "gonopodium": gonopodium, "pectoral": pectoral_color},
+        paint.srgb("#000000", 0.0),
+    )
+
+
+# Geometry.
+
+
 def caudal():
-    """The delta tail: as long as the body, fanning out to a straight, wide edge."""
-    outline = [
-        (PEDUNCLE_X - 0.005, 0, 0.04),
-        (-0.30, 0, 0.17),
-        (-0.52, 0, 0.30),
-        (-0.62, 0, 0.32),
-        (-0.66, 0, 0.12),
-        (-0.665, 0, 0.0),
-        (-0.66, 0, -0.12),
-        (-0.62, 0, -0.32),
-        (-0.52, 0, -0.30),
-        (-0.30, 0, -0.17),
-        (PEDUNCLE_X - 0.005, 0, -0.04),
-    ]
     return tail_fin(
-        Vector((PEDUNCLE_X + 0.006, 0, 0)), 0.07, outline, spotted(TAIL_DOTS), steps_u=240, steps_v=72, bulge=0.01
+        CAUDAL_ROOT,
+        CAUDAL_BASE_HEIGHT,
+        caudal_outline(),
+        None,
+        steps_u=200,
+        steps_v=48,
+        bulge=0.01,
+        ruffle=0.012,
+        uv=ATLAS.uv("caudal"),
     )
 
 
 def dorsal():
-    """A long flag swept back over the tail."""
-    outline = [(-0.02, 0.17), (-0.14, 0.24), (-0.28, 0.25), (-0.22, 0.16), (-0.13, 0.09)]
-    dots = scattered_dots(12, DOT_SEED + 1)
-    return body_fin(BODY, 0.05, -0.08, outline, True, spotted(dots), steps_u=120)
+    return body_fin(BODY, DORSAL["start_x"], DORSAL["end_x"], DORSAL["outline"], True, None, steps_u=120, uv=ATLAS.uv("dorsal"))
 
 
 def gonopodium():
     """The male's anal fin: a short, pointed rod under the belly."""
-    outline = [(-0.03, -0.12), (-0.075, -0.13), (-0.055, -0.095)]
     return body_fin(
-        BODY, -0.01, -0.045, outline, False, lambda u, v, p: linear(SILVER, 0.6), steps_u=40, bulge=0.0
+        BODY,
+        GONOPODIUM["start_x"],
+        GONOPODIUM["end_x"],
+        GONOPODIUM["outline"],
+        False,
+        None,
+        steps_u=40,
+        bulge=0.0,
+        uv=ATLAS.uv("gonopodium"),
     )
 
 
 def pectoral(side):
-    root = Vector((0.2, 0, -0.03))
-
-    def base(u):
-        return root + Vector((-0.004 * u, 0, 0.04 * (u - 0.5)))
-
-    def edge(u):
-        return root + Vector((-0.08, 0, 0.05 * (u - 0.5) - 0.015))
-
-    return pectoral_fin(BODY, ROUNDNESS, side, base, edge, lambda u, v, p: linear(BELLY, 0.3))
+    return pectoral_fin(BODY, ROUNDNESS, side, pectoral_base, PECTORAL_EDGE, None, uv=ATLAS.uv("pectoral"))
 
 
 def eye_centre(side):
@@ -211,20 +395,53 @@ def eye_color(degrees):
     return mix(color, linear(PUPIL), 1 - smoothstep(30, 36, degrees))
 
 
+def print_manifest_values(objects, left_pectoral):
+    """The fish-frame numbers model.json needs for the gills and the pectoral fins."""
+    to_frame, length = paint.fish_frame(objects)
+    verts = left_pectoral[0]
+    top, bottom = pectoral_base(1.0), pectoral_base(0.0)
+    side = min(abs(v[1]) for v in verts) / length
+    xs, zs = [v[0] for v in verts], [v[2] for v in verts]
+    front, high = to_frame(max(xs) + 0.01, max(zs) + 0.01)
+    back, low = to_frame(min(xs) - 0.01, min(zs) - 0.01)
+    print("gills:", {"edge": to_frame(GILL_EDGE_X, 0)[0], "top": to_frame(0, GILL_HALF_HEIGHT)[1], "bottom": to_frame(0, -GILL_HALF_HEIGHT)[1]})
+    print(
+        "fins.pectoral:",
+        {
+            "root": [list(to_frame(top.x, top.z)), list(to_frame(bottom.x, bottom.z))],
+            "side": round(side - 0.004, 3),
+            "front": front,
+            "back": back,
+            "top": high,
+            "bottom": low,
+        },
+    )
+
+
 def main():
     args = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
     output = os.path.abspath(args[0]) if args else DEFAULT_OUTPUT
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
-    body = make_object("Body", [BODY.mesh(skin, roundness=ROUNDNESS)], material("Skin", 0.3, 0.2, False))
+    atlases = [(strain_id, name, paint_strain(strain)) for strain_id, name, strain in STRAINS]
+    for strain_id, name, pixels in atlases:
+        paint.save_webp(pixels, os.path.join(output, "colorings", f"{strain_id}.webp"))
+        print(f"Coloring {name} written")
+    own = paint.image("Guppy", atlases[0][2][::OWN_TEXTURE_STEP, ::OWN_TEXTURE_STEP])
+
+    body = make_object(
+        "Body", [BODY.mesh(None, roundness=ROUNDNESS, uv=ATLAS.uv("body"))], textured_material("Skin", own, 0.42, 0.1, False)
+    )
     BODY.mouth_shape_key(body, reach=0.05, drop=0.02)
-    fin_parts = [caudal(), dorsal(), gonopodium(), pectoral(1), pectoral(-1)]
-    fins = make_object("Fins", fin_parts, material("Fins", 0.4, 0.0, True))
+    left_pectoral = pectoral(1)
+    fin_parts = [caudal(), dorsal(), gonopodium(), left_pectoral, pectoral(-1)]
+    fins = make_object("Fins", fin_parts, textured_material("Fins", own, 0.5, 0.0, True))
 
     left = eyeball(eye_centre(1), EYE_RADIUS, 1, eye_color)
     right = eyeball(eye_centre(-1), EYE_RADIUS, -1, eye_color)
     eyes = make_object("Eyes", [left, right], material("Eyes", 0.05, 0.0, False))
 
+    print_manifest_values([body, fins, eyes], left_pectoral)
     rig([body, fins], eyes, len(left[0]), eye_centre(1), eye_centre(-1))
     export(output)
     print(f"Guppy written to {output}")

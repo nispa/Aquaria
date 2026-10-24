@@ -12,24 +12,42 @@
     "turn": 22
   },
   "gills": {
-    "edge": 0.32,
-    "top": 0.06,
-    "bottom": -0.06,
+    "edge": 0.287,
+    "top": 0.071,
+    "bottom": -0.071,
     "curve": 4
   },
   "fins": {
     "pectoral": {
       "root": [
-        [0.309, -0.013],
-        [0.298, -0.058]
+        [0.303, -0.011],
+        [0.307, -0.057]
       ],
-      "side": 0.064,
-      "front": 0.342,
-      "back": 0.252,
-      "top": -0.002,
-      "bottom": -0.076,
+      "side": 0.047,
+      "front": 0.319,
+      "back": 0.211,
+      "top": 0.0,
+      "bottom": -0.079,
       "rest": 30,
       "sweep": 35
+    }
+  },
+  "colorings": {
+    "half-black-red": {
+      "name": "Half Black Red",
+      "texture": "colorings/half-black-red.webp"
+    },
+    "blue-grass": {
+      "name": "Blue Grass",
+      "texture": "colorings/blue-grass.webp"
+    },
+    "full-red": {
+      "name": "Full Red",
+      "texture": "colorings/full-red.webp"
+    },
+    "yellow-cobra": {
+      "name": "Yellow Cobra",
+      "texture": "colorings/yellow-cobra.webp"
     }
   },
   "credit": {

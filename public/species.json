@@ -609,6 +609,12 @@
         }
       },
       "model": "guppy",
+      "coloring": [
+        { "id": "half-black-red", "weight": 3 },
+        { "id": "blue-grass", "weight": 2 },
+        { "id": "full-red", "weight": 2 },
+        { "id": "yellow-cobra", "weight": 2 }
+      ],
       "length": {
         "mean": 0.04,
         "standardDeviation": 0.005

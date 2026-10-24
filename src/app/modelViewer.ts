@@ -35,7 +35,7 @@ import { createDebugSliders, type DebugSliderSpec } from "../ui/debugSliders";
  * mouth, the gills, the bend of a turn and the tail; each can swing by
  * itself ("auto"). The URL can set where they start:
  * ?id=<species>&model=0|1&gaze=-1..1&mouth=0..1&breath=0..1&spread=-1..1
- * &finbeats=0..5&zoom=x,y,halfWidth&view=top (from above, where the
+ * &finbeats=0..5&coloring=<index into the species' colorings>&zoom=x,y,halfWidth&view=top (from above, where the
  * pectoral fins' `side` is read: the grid's horizontal lines then read z).
  * See docs/FISH_MODELS.md.
  */
@@ -257,6 +257,7 @@ async function start(): Promise<void> {
 
   const catalog = parseCatalog(await fetchJson("species.json"));
   const manifests = await loadManifests(modelIdsOf(catalog));
+  const coloring = numberParam(params, "coloring", 0);
   const named =
     speciesNamed(catalog.species, params.get("id") ?? DEFAULT_SPECIES) ?? catalog.species[0];
   if (named === undefined) return;
@@ -281,12 +282,12 @@ async function start(): Promise<void> {
     },
     (id) => id === named.id && modelSwitch.checked,
   );
-  let individual = posedFish(species, new Vector3(1, 0, 0));
+  let individual = posedFish(species, new Vector3(1, 0, 0), coloring);
 
   const showSpecies = (next: Species): void => {
     fish.setModelEnabled(species.id, false);
     species = next;
-    individual = posedFish(species, new Vector3(1, 0, 0));
+    individual = posedFish(species, new Vector3(1, 0, 0), coloring);
     fish.setModelEnabled(species.id, modelSwitch.checked);
   };
   picker.addEventListener("change", () => {

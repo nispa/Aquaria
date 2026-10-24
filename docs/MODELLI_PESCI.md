@@ -203,6 +203,59 @@ Se modelli a mano:
    girare. Gli occhi dovrebbero muoversi per primi. Se non si muovono,
    probabilmente i bulbi sono pesati sull'osso radice.
 
+## Colorazioni: un modello, tanti ceppi
+
+Pesci con la stessa forma cambiano nei colori. Un modello può elencare
+delle colorazioni, ognuna una texture di colore stesa sulle sue UV, e una
+specie ne porta una o ne mescola diverse. Il `model.json` del guppy:
+
+```json
+"colorings": {
+  "half-black-red": { "name": "Half Black Red", "texture": "colorings/half-black-red.webp" },
+  "blue-grass": { "name": "Blue Grass", "texture": "colorings/blue-grass.webp" },
+  "full-red": { "name": "Full Red", "texture": "colorings/full-red.webp" },
+  "yellow-cobra": { "name": "Yellow Cobra", "texture": "colorings/yellow-cobra.webp" }
+}
+```
+
+e in `public/species.json`:
+
+```json
+"model": "guppy",
+"coloring": [
+  { "id": "half-black-red", "weight": 3 },
+  { "id": "blue-grass", "weight": 2 },
+  { "id": "full-red", "weight": 2 },
+  { "id": "yellow-cobra", "weight": 2 }
+]
+```
+
+Ogni pesce ne porta una, tre Half Black Red ogni due degli altri, e se la
+tiene. Una specie che ne porta una sola scrive `"coloring": "full-red"`.
+La forma si scarica una volta e tutto il branco resta un solo disegno
+sulla GPU: le texture diventano gli strati di un texture array.
+
+- Le texture sono file PNG, WebP o JPEG nella cartella del modello, tutte
+  della stessa misura. Al massimo 8 colorazioni per modello.
+- Sostituiscono la texture di ogni materiale del modello che ne ha una
+  (corpo e pinne); i materiali senza (gli occhi del guppy, colorati per
+  vertice) restano come sono.
+- Una colorazione che il modello non elenca, o una texture che non si
+  carica, lascia il modello con i suoi colori, con un avviso.
+- La scheda del pesce mostra la prima colorazione. Per guardarne un'altra
+  sulla griglia: `/model-viewer.html?id=guppy&coloring=1`.
+
+**Dipingerle col codice.** `scripts/blender/guppy.py` stende il guppy su
+una texture quadrata: il corpo srotolato (lungo il pesce e tutto intorno),
+ogni pinna in un suo rettangolo (`Atlas` in `scripts/blender/paintkit.py`).
+Poi dipinge quell'atlante una volta per ceppo con numpy: dorso scuro e
+pancia chiara, squame appena accennate, raggi, bordi delle pinne che
+sfumano invece di finire netti, puntini e pelle di serpente dal rumore. Un
+ceppo nuovo è una funzione di pittura in più e una riga in `STRAINS`.
+Lanciato, scrive `model.glb` e `colorings/*.webp` e stampa i valori di
+branchie e pinne pettorali per `model.json`, perché il riferimento del
+pesce cambia ogni volta che cambia il profilo.
+
 ## Animali che camminano
 
 Sui pesci Aquaria non riproduce animazioni: disegna un branco intero in un
