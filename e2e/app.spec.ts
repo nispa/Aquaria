@@ -257,6 +257,46 @@ test("changes the scenery from the panel", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test("adds a plant the scene does not hold and takes it away again", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await openLive(page, "?scene=aquaria&effects=none");
+  await waitForState(page);
+  await page.keyboard.press("h");
+  await openSection(page, "scenery");
+
+  await page.getByRole("button", { name: "Add to the tank" }).click();
+  await page.getByRole("dialog").getByRole("searchbox").fill("fern");
+  await page.locator('[data-add-scenery="fern"]').click();
+
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.locator('[data-scenery-card="fern"] output')).toHaveText("8");
+  await page.getByRole("button", { name: "Take away Ferns" }).click();
+  await expect(page.locator('[data-scenery-card="fern"]')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test("keeps an added plant after a reload", async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem("aquaria.settings") === null) {
+      localStorage.setItem("aquaria.settings", JSON.stringify({ renderHeight: 540 }));
+    }
+  });
+  await page.goto("/?scene=aquaria&effects=none");
+  await waitForState(page);
+  await page.keyboard.press("h");
+  await openSection(page, "scenery");
+  await page.getByRole("button", { name: "Add to the tank" }).click();
+  await page.locator('[data-add-scenery="fern"]').click();
+
+  await page.reload();
+  await waitForState(page);
+  await page.keyboard.press("h");
+  await openSection(page, "scenery");
+
+  await expect(page.locator('[data-scenery-card="fern"] output')).toHaveText("8");
+});
+
 test("resizes the fish from the panel and remembers it", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

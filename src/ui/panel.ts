@@ -9,7 +9,8 @@ import { createLookSection, type LookSectionState } from "./lookSection";
 import type { LookTweak } from "../scene/sceneLook";
 import { createSceneCards } from "./sceneCards";
 import { createSceneryCards, type DrawSceneryPortraits } from "./sceneryCards";
-import type { SceneryEntry } from "../scene/scenery";
+import { openSceneryPicker } from "./sceneryPicker";
+import type { AddableScenery, SceneryEntry } from "../scene/scenery";
 import type { Species } from "../scene/schema";
 
 /** Lowest height offered on the slider (half of Full HD, for weak GPUs). */
@@ -61,7 +62,13 @@ export interface PanelState {
   readonly lookSection: LookSectionState;
   /** Plants, rocks, corals and shells with their current counts. */
   readonly scenery: readonly SceneryEntry[];
+  /** Keys of the scenery entries the viewer added from the catalog. */
+  readonly addedScenery: ReadonlySet<string>;
   readonly drawSceneryPortraits: DrawSceneryPortraits;
+  /** What the [ + ] window offers now: the catalog the scene does not hold. */
+  addableScenery(): readonly AddableScenery[];
+  /** Draws catalog pictures for the [ + ] window, keyed by object id. */
+  readonly drawCatalogPortraits: DrawSceneryPortraits;
   readonly renderHeight: number;
   /** Frames per second at most, one of `frameLimitChoices`; 0 = no limit. */
   readonly frameLimit: number;
@@ -112,6 +119,10 @@ export interface PanelCallbacks {
   /** Shows these species with their 3D models, or with their procedural bodies. */
   onFishModelChange(speciesIds: readonly string[], enabled: boolean): void;
   onSceneryChange(key: string, count: number): void;
+  /** Adds a plant or object of the catalog; returns its new entry, if it could be added. */
+  onSceneryAdd(id: string): SceneryEntry | undefined;
+  /** Takes away an entry the viewer added. */
+  onSceneryRemove(key: string): void;
   /** A custom setup, or undefined to go back to the recommended one. */
   onLightsChange(lights: Lights | undefined): void;
   /** A look from looks/, "none", or undefined for the scene's own. */
@@ -372,9 +383,23 @@ export function createPanel(
   const scenery = section("scenery", "Scenery");
   const sceneryCards = createSceneryCards({
     entries: state.scenery,
+    removable: state.addedScenery,
     drawPortraits: state.drawSceneryPortraits,
     onCountChange: (key, count) => {
       callbacks.onSceneryChange(key, count);
+    },
+    onAdd: () => {
+      openSceneryPicker(root, {
+        items: state.addableScenery(),
+        drawPortraits: state.drawCatalogPortraits,
+        onPick: (id) => {
+          const entry = callbacks.onSceneryAdd(id);
+          if (entry !== undefined) sceneryCards.add(entry);
+        },
+      });
+    },
+    onRemove: (key) => {
+      callbacks.onSceneryRemove(key);
     },
   });
   scenery.append(sceneryCards.grid);

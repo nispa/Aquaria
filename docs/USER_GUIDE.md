@@ -47,6 +47,11 @@ swim in from the sides; when you remove some, they swim away.
 A card for each group of plants and objects in the scene, with a slider for
 how many. Adding more never moves the ones already there.
 
+The last card, **+**, opens a window with every plant and object the scene
+does not hold, with a search field: a fern in the Hero, a brain coral in
+the Planted tank. What you choose joins the grid with a card of its own,
+sized to the tank, and stays there next time. Its **×** takes it away again.
+
 ### Time and Lights
 
 The tank is lit like a reef aquarium: four LED channels (white, blue,

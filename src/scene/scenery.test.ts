@@ -2,7 +2,14 @@ import { describe, expect, it } from "vitest";
 import { catalogFixture, sceneFixture } from "./fixtures";
 import { bundledObjects } from "./objectFixtures";
 import { parseCatalog, parseScene } from "./parse";
-import { applySceneryOverrides, sceneryAlone, sceneryEntries } from "./scenery";
+import {
+  addableScenery,
+  addedSceneryKeys,
+  applySceneryOverrides,
+  sceneryAlone,
+  sceneryEntries,
+  withAddedScenery,
+} from "./scenery";
 import type { SceneInput } from "./schema";
 
 const catalog = parseCatalog(catalogFixture());
@@ -129,5 +136,110 @@ describe("sceneryAlone", () => {
     const alone = sceneryAlone(sceneWith(reefInput), "sea-monster");
 
     expect([alone.flora, alone.props]).toEqual([[], []]);
+  });
+});
+
+describe("withAddedScenery", () => {
+  it("adds a plant the scene does not hold, with the count the viewer chose", () => {
+    const scene = withAddedScenery(sceneWith(reefInput), { fern: 7 }, objects);
+
+    expect(scene.flora.map((entry) => [entry.kind, entry.count])).toEqual([
+      ["kelp", 12],
+      ["anemone", 3],
+      ["fern", 7],
+    ]);
+  });
+
+  it("adds an object the scene does not hold among the props", () => {
+    const scene = withAddedScenery(sceneWith(reefInput), { starfish: 2 }, objects);
+
+    expect(scene.props.at(-1)).toMatchObject({ kind: "starfish", count: 2 });
+  });
+
+  it("keeps the keys of the scene's own entries", () => {
+    const before = sceneryEntries(sceneWith(reefInput), objects).map((entry) => entry.key);
+
+    const scene = withAddedScenery(sceneWith(reefInput), { fern: 7, starfish: 2 }, objects);
+
+    expect(sceneryEntries(scene, objects).map((entry) => entry.key)).toEqual([
+      ...before.slice(0, 2),
+      "fern",
+      ...before.slice(2),
+      "starfish",
+    ]);
+  });
+
+  it("ignores keys of the scene's own entries and names that are no object", () => {
+    const scene = sceneWith(reefInput);
+
+    expect(withAddedScenery(scene, { kelp: 1, "rock-2": 0, "giant-clam": 3 }, objects)).toEqual(
+      scene,
+    );
+  });
+
+  it("never asks for more items than the scene format accepts", () => {
+    const scene = withAddedScenery(sceneWith(reefInput), { starfish: 500 }, objects);
+
+    expect(scene.props.at(-1)?.count).toBe(sceneryEntries(scene, objects).at(-1)?.max);
+  });
+});
+
+describe("withAddedScenery in a small tank", () => {
+  /** A quarter of the height the catalog's sizes are made for. */
+  const nano = (): ReturnType<typeof sceneWith> => ({
+    ...sceneWith(reefInput),
+    tank: { width: 1, height: 0.75, depth: 0.7 },
+  });
+
+  it("makes an added plant as much smaller as the tank is lower than a big one", () => {
+    const [low = 0, high = 0] =
+      withAddedScenery(nano(), { fern: 1 }, objects).flora.at(-1)?.height ?? [];
+
+    expect([low, high].map((value) => value.toFixed(3))).toEqual(["0.045", "0.100"]);
+  });
+
+  it("makes an added object as much smaller as the tank is lower than a big one", () => {
+    const [low = 0, high = 0] =
+      withAddedScenery(nano(), { starfish: 1 }, objects).props.at(-1)?.size ?? [];
+
+    expect([low, high].map((value) => value.toFixed(3))).toEqual(["0.035", "0.055"]);
+  });
+
+  it("keeps the object's own size in a big tank", () => {
+    const scene = withAddedScenery(sceneWith(reefInput), { starfish: 1 }, objects);
+
+    expect(scene.props.at(-1)?.size).toEqual([0.14, 0.22]);
+  });
+});
+
+describe("addedSceneryKeys", () => {
+  it("names the entries the viewer added, not the scene's own", () => {
+    const keys = addedSceneryKeys(
+      sceneWith(reefInput),
+      { fern: 7, kelp: 2, "giant-clam": 1 },
+      objects,
+    );
+
+    expect([...keys]).toEqual(["fern"]);
+  });
+});
+
+describe("addableScenery", () => {
+  it("offers every plant and object of the catalog the scene does not hold yet", () => {
+    const offered = addableScenery(sceneWith(reefInput), objects).map((item) => item.id);
+
+    expect(offered).toContain("fern");
+    expect(offered).toContain("starfish");
+    expect(offered).not.toContain("kelp");
+    expect(offered).not.toContain("brain-coral");
+  });
+
+  it("names each item as its object does and lists plants before objects", () => {
+    const offered = addableScenery(sceneWith(reefInput), objects);
+    const fern = offered.find((item) => item.id === "fern");
+    const firstObject = offered.findIndex((item) => item.category === "object");
+
+    expect(fern).toEqual({ id: "fern", name: "Ferns", category: "plant" });
+    expect(offered.slice(firstObject).every((item) => item.category === "object")).toBe(true);
   });
 });

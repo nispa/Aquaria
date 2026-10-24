@@ -48,6 +48,12 @@ vanno nuotando.
 Una scheda per ogni gruppo di piante e oggetti della scena, con un cursore
 per quanti sono. Aggiungerne non sposta quelli che ci sono già.
 
+L'ultima scheda, **+**, apre una finestra con tutte le piante e gli oggetti
+che la scena non ha, con un campo di ricerca: una felce nella Hero, un
+corallo cervello nel Planted tank. Quello che scegli entra nella griglia con
+una scheda sua, in scala con la vasca, e resta lì anche la volta dopo. La
+sua **×** lo toglie di nuovo.
+
 ### Time e Lights
 
 La vasca è illuminata come un acquario di barriera: quattro canali LED

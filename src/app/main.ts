@@ -100,7 +100,15 @@ import {
   resolveLook,
   type Look,
 } from "../scene/look";
-import { applySceneryOverrides, sceneryEntries } from "../scene/scenery";
+import {
+  addableScenery,
+  ADDED_SCENERY_COUNT,
+  addedSceneryKeys,
+  applySceneryOverrides,
+  sceneryEntries,
+  withAddedScenery,
+} from "../scene/scenery";
+import { paletteScene } from "../scene/objectEntries";
 import {
   parseSceneIndex,
   sceneName,
@@ -589,7 +597,10 @@ async function start(): Promise<void> {
     : resolveLook(features, settings.look ?? {}, options.effects);
   const baseScene = applyCountOverrides(loadedScene, settings.counts[sceneId] ?? {}, catalog);
   let sceneryCounts: Readonly<Record<string, number>> = settings.scenery?.[sceneId] ?? {};
-  const scene = applySceneryOverrides(baseScene, sceneryCounts);
+  /** The scene with the viewer's scenery: the counts, and what was added from the catalog. */
+  const withViewerScenery = (): Scene =>
+    applySceneryOverrides(withAddedScenery(baseScene, sceneryCounts, objects), sceneryCounts);
+  const scene = withViewerScenery();
 
   // The wall clock is read once a second, not every frame (Date allocates).
   // Scene switches keep the hour of the first start: the light stays put.
@@ -780,7 +791,7 @@ async function start(): Promise<void> {
     sceneryRebuildPending = true;
     window.requestAnimationFrame(() => {
       sceneryRebuildPending = false;
-      const next = applySceneryOverrides(baseScene, sceneryCounts);
+      const next = withViewerScenery();
       view.setScenery(next.flora, next.props);
     });
   };
@@ -839,10 +850,23 @@ async function start(): Promise<void> {
   // Scenery pictures wait their turn too: one small renderer at a time.
   const drawSceneryPictures = (requests: readonly SceneryPortraitRequest[]): void => {
     portraits = portraits
-      .then(() => drawSceneryPortraits(scene, objects, requests, logger))
+      .then(() => drawSceneryPortraits(withViewerScenery(), objects, requests, logger))
       .catch((error: unknown) => {
         logger.warn("Scenery pictures could not be drawn", { error: String(error) });
       });
+  };
+  // The [ + ] window's pictures: one of every plant and object, keyed by object id.
+  const drawCatalogPictures = (requests: readonly SceneryPortraitRequest[]): void => {
+    portraits = portraits
+      .then(() => drawSceneryPortraits(paletteScene(scene, objects), objects, requests, logger))
+      .catch((error: unknown) => {
+        logger.warn("Catalog pictures could not be drawn", { error: String(error) });
+      });
+  };
+  const saveSceneryCounts = (counts: Readonly<Record<string, number>>): void => {
+    sceneryCounts = counts;
+    scheduleSceneryRebuild();
+    update({ scenery: { ...settings.scenery, [scene.id]: sceneryCounts } });
   };
 
   const panel = createPanel(
@@ -884,7 +908,10 @@ async function start(): Promise<void> {
       logo: `${import.meta.env.BASE_URL}title.webp`,
       scenePicture: (id) => scenePictureUrl(id, scenePictures, import.meta.env.BASE_URL),
       scenery: sceneryEntries(scene, objects),
+      addedScenery: addedSceneryKeys(baseScene, sceneryCounts, objects),
       drawSceneryPortraits: drawSceneryPictures,
+      addableScenery: () => addableScenery(withViewerScenery(), objects),
+      drawCatalogPortraits: drawCatalogPictures,
       lights: {
         lights: settings.lights ?? scene.lights,
         recommended: scene.lights,
@@ -944,9 +971,18 @@ async function start(): Promise<void> {
         remount();
       },
       onSceneryChange(key, count) {
-        sceneryCounts = { ...sceneryCounts, [key]: count };
-        scheduleSceneryRebuild();
-        update({ scenery: { ...settings.scenery, [scene.id]: sceneryCounts } });
+        saveSceneryCounts({ ...sceneryCounts, [key]: count });
+      },
+      onSceneryAdd(id) {
+        const manifest = objects.get(id);
+        if (manifest === undefined) return undefined;
+        saveSceneryCounts({ ...sceneryCounts, [id]: ADDED_SCENERY_COUNT[manifest.category] });
+        return sceneryEntries(withViewerScenery(), objects).find((entry) => entry.key === id);
+      },
+      onSceneryRemove(key) {
+        saveSceneryCounts(
+          Object.fromEntries(Object.entries(sceneryCounts).filter(([saved]) => saved !== key)),
+        );
       },
       onLightsChange(lights) {
         view.setLights(effectiveLights(lights));
@@ -1085,7 +1121,7 @@ async function start(): Promise<void> {
 
   /** The scene as the viewer sees it, with the current LED setup: what the editor starts from. */
   const sceneOnScreen = (): Scene => ({
-    ...scene,
+    ...withViewerScenery(),
     id: sceneId,
     lights: settings.lights ?? scene.lights,
   });
