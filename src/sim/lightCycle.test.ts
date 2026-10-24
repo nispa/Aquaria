@@ -128,6 +128,14 @@ describe("lightMix", () => {
     expect(actinicOnly.fluorescence).toBeGreaterThan(fullDay.fluorescence);
   });
 
+  it("tells how bright the moon is, as a share of the brightest moonlight", () => {
+    const brightMoon: Lights = { ...recommended, moon: 0.15 };
+
+    const mix = lightMix(brightMoon, channelLevels(brightMoon, 2));
+
+    expect(mix.moonlight).toBeCloseTo(0.5);
+  });
+
   it("takes the color of a custom accent channel", () => {
     const custom: Lights = {
       ...recommended,

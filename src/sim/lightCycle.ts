@@ -1,4 +1,9 @@
-import { LIGHT_CHANNELS as CHANNELS, type LightChannel, type Lights } from "../scene/lights";
+import {
+  LIGHT_CHANNELS as CHANNELS,
+  MAX_MOON_LEVEL,
+  type LightChannel,
+  type Lights,
+} from "../scene/lights";
 
 /**
  * The daily LED cycle: which hour it is, how bright each channel is at that
@@ -27,6 +32,8 @@ export interface LightState {
   readonly brightness: number;
   /** How strongly corals glow, 0..1. */
   readonly fluorescence: number;
+  /** How bright the night light is, 0 (none) .. 1 (the brightest moonlight). */
+  readonly moonlight: number;
 }
 
 export interface CycleInput {
@@ -151,7 +158,11 @@ function decodeChannels(lights: Lights): Record<LightChannel, Rgb> {
 export function lightMix(lights: Lights, levels: ChannelLevels): LightState {
   const result = { color: [0, 0, 0] as Rgb, brightness: 0, fluorescence: 0 };
   mixInto(decodeChannels(lights), levels, result);
-  return result;
+  return { ...result, moonlight: moonlightShare(lights) };
+}
+
+function moonlightShare(lights: Lights): number {
+  return lights.moon / MAX_MOON_LEVEL;
 }
 
 export interface LightMixer {
@@ -166,7 +177,12 @@ export interface LightMixer {
 export function createLightMixer(lights: Lights): LightMixer {
   const colors = decodeChannels(lights);
   const levels: Record<LightChannel, number> = { white: 0, blue: 0, violet: 0, accent: 0 };
-  const result = { color: [0, 0, 0] as Rgb, brightness: 0, fluorescence: 0 };
+  const result = {
+    color: [0, 0, 0] as Rgb,
+    brightness: 0,
+    fluorescence: 0,
+    moonlight: moonlightShare(lights),
+  };
   return {
     at(hour) {
       levelsInto(lights, hour, levels);

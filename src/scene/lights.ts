@@ -10,7 +10,7 @@ const HOURS_PER_DAY = 24;
 /** Dawn and dusk longer than this would overlap on the shortest day. */
 const MAX_RAMP_HOURS = 6;
 /** Moonlight is a faint blue glow, never a second day. */
-const MAX_MOON_LEVEL = 0.3;
+export const MAX_MOON_LEVEL = 0.3;
 const MINUTES_PER_DAY = 1440;
 /** Most LED spots a fixture may have (the shader keeps a fixed-size array). */
 export const MAX_SPOTS = 16;

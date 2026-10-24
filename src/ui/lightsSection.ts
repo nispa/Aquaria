@@ -206,6 +206,8 @@ export function createLightsSection(
     moonValue.textContent = `${moon.value}%`;
     change({ ...current, moon: Number(moon.value) / PERCENT });
   });
+  moonRow.title =
+    "Lights the tank at night only: 0% leaves it dark. Set an hour after sunset to see it.";
   moonRow.append(element("span", "panel__label", "Moonlight"), moon, moonValue);
   const moonControl: Control = {
     row: moonRow,

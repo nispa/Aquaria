@@ -16,10 +16,18 @@ const AMBIENT_INTENSITY = 0.6;
 /** Image-based light is a fill, not the key light: kept below the sun. */
 const ENVIRONMENT_INTENSITY = 0.65;
 /**
- * Share of the fill light and water color left at night, so shapes stay
- * readable in moonlight instead of going pitch black.
+ * Share of the fill light and water color left at night: almost none
+ * without a moon, and up to this much under the brightest moonlight. The
+ * moon itself only feeds the blue channel, too dim a light to read shapes
+ * by; this is what makes the night darker or clearer with it.
  */
-const NIGHT_FLOOR = 0.12;
+const MOONLESS_NIGHT = 0.02;
+const BRIGHTEST_MOON_NIGHT = 0.52;
+
+/** The fill light and water color left at night, by the moonlight (0 none .. 1 brightest). */
+export function nightFill(moonlight: number): number {
+  return MOONLESS_NIGHT + (BRIGHTEST_MOON_NIGHT - MOONLESS_NIGHT) * moonlight;
+}
 
 export interface LightTargets {
   readonly scene: Scene;
@@ -53,7 +61,8 @@ export function createLightRig(targets: LightTargets): LightRig {
   return {
     apply(state) {
       const daylight = Math.min(state.brightness, 1);
-      const fill = NIGHT_FLOOR + (1 - NIGHT_FLOOR) * daylight;
+      const night = nightFill(state.moonlight);
+      const fill = night + (1 - night) * daylight;
       // Scene tint (e.g. warm sunlight) times the LED color.
       lit.setRGB(state.color[0], state.color[1], state.color[2]).multiply(sceneLight);
       sun.color.copy(lit);

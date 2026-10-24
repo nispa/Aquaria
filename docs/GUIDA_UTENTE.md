@@ -76,7 +76,9 @@ come sulle barriere vere.
 
 **Lights** sceglie la lampada (il cielo aperto, oppure una fila di faretti
 LED sopra l'acqua, e quanti), il colore e l'intensità di ogni canale, e la
-luce lunare.
+luce lunare. La luce lunare si vede solo di notte: a 0% dopo il tramonto la
+vasca diventa buia, a 30% è una notte azzurra in cui i pesci si vedono
+ancora.
 
 ### Look
 

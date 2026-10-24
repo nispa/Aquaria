@@ -74,7 +74,9 @@ little after, as on real reefs.
 
 **Lights** sets the fixture (the open sky, or a row of LED spots over the
 water, with how many), the color and level of each channel, and the
-moonlight.
+moonlight. The moonlight only shows at night: at 0% the tank goes dark
+after sunset, at 30% it is a clear blue night where you still see the
+fish.
 
 ### Look
 
