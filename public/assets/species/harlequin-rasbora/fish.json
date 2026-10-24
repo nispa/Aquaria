@@ -1,0 +1,317 @@
+{
+  "name": "Harlequin rasbora",
+  "description": "A harlequin rasbora (Trigonostigma heteromorpha): a small, deep, flat-sided body with a small head and a deeply forked tail, copper-pink with a violet sheen on the head, and the black wedge from under the dorsal fin to the root of the tail, a golden line along its top.",
+  "body": {
+    "top": [
+      [0.36, 0.02],
+      [0.34, 0.045],
+      [0.29, 0.085],
+      [0.21, 0.125],
+      [0.12, 0.15],
+      [0.03, 0.155],
+      [-0.05, 0.13],
+      [-0.11, 0.09],
+      [-0.17, 0.05]
+    ],
+    "bottom": [
+      [0.36, 0.005],
+      [0.34, -0.02],
+      [0.29, -0.06],
+      [0.2, -0.1],
+      [0.1, -0.125],
+      [0, -0.125],
+      [-0.07, -0.1],
+      [-0.12, -0.07],
+      [-0.17, -0.04]
+    ],
+    "thickness": {
+      "half": 0.045,
+      "rise": 0.25,
+      "power": 0.5,
+      "taper": 0.6,
+      "taperFrom": 0.3,
+      "min": 0.01
+    },
+    "roundness": 1.1
+  },
+  "eye": {
+    "x": 0.29,
+    "z": 0.03,
+    "radius": 0.033,
+    "depth": 0.55,
+    "rim": "#c9c2b0",
+    "iris": "#e8c66a",
+    "pupil": "#080808",
+    "irisEdge": [55, 65],
+    "pupilEdge": [30, 36]
+  },
+  "mouth": {
+    "reach": 0.05,
+    "drop": 0.02
+  },
+  "gills": {
+    "edge": 0.2,
+    "top": 0.08,
+    "bottom": -0.06
+  },
+  "fins": [
+    {
+      "id": "caudal",
+      "type": "tail",
+      "root": 0.006,
+      "baseHeight": 0.07,
+      "outline": [
+        [-0.175, 0.045],
+        [-0.3, 0.13],
+        [-0.42, 0.19],
+        [-0.47, 0.2],
+        [-0.38, 0.07],
+        [-0.33, 0],
+        [-0.38, -0.07],
+        [-0.47, -0.2],
+        [-0.42, -0.19],
+        [-0.3, -0.13],
+        [-0.175, -0.045]
+      ],
+      "steps": [200, 40],
+      "bulge": 0.006,
+      "ruffle": 0.003
+    },
+    {
+      "id": "dorsal",
+      "type": "body",
+      "upper": true,
+      "start": 0.06,
+      "end": -0.04,
+      "outline": [
+        [0.04, 0.22],
+        [0, 0.28],
+        [-0.04, 0.24],
+        [-0.06, 0.16]
+      ],
+      "steps": [120, 24]
+    },
+    {
+      "id": "anal",
+      "type": "body",
+      "upper": false,
+      "start": -0.02,
+      "end": -0.11,
+      "outline": [
+        [-0.04, -0.17],
+        [-0.08, -0.19],
+        [-0.12, -0.12]
+      ],
+      "steps": [80, 24]
+    },
+    {
+      "id": "pelvic",
+      "type": "pelvic",
+      "root": [0.08, 0.02, -0.12],
+      "base": [-0.02, 0],
+      "edge": {
+        "fan": {
+          "length": 0.055,
+          "angles": [-25, -70]
+        }
+      },
+      "out": 0.01,
+      "steps": [16, 6]
+    },
+    {
+      "id": "pectoral",
+      "type": "pectoral",
+      "root": [0.21, -0.03],
+      "base": [-0.004, 0.04],
+      "length": 0.07,
+      "angles": [20, -40]
+    }
+  ],
+  "texture": {
+    "size": 1024,
+    "ownStep": 8,
+    "parts": {
+      "body": [0, 0, 1, 0.42],
+      "caudal": [0, 0.44, 0.5, 0.56],
+      "dorsal": [0.52, 0.44, 0.24, 0.3],
+      "anal": [0.78, 0.44, 0.2, 0.2],
+      "pelvic": [0.78, 0.66, 0.1, 0.1],
+      "pectoral": [0.52, 0.76, 0.12, 0.1]
+    }
+  },
+  "materials": {
+    "skin": {
+      "roughness": 0.35,
+      "metallic": 0.2
+    },
+    "fins": {
+      "roughness": 0.5,
+      "metallic": 0
+    },
+    "eyes": {
+      "roughness": 0.05,
+      "metallic": 0
+    }
+  },
+  "strains": [
+    {
+      "id": "classic",
+      "name": "Classic",
+      "body": [
+        {
+          "type": "fill",
+          "color": "#e8875e"
+        },
+        {
+          "type": "patch",
+          "color": "#a8503a",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [0.1, 0.85]
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#f0c4b0",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [-0.2, -0.85]
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#c9b7d4",
+          "amount": 0.45,
+          "bands": [
+            {
+              "axis": "x",
+              "range": [0.18, 0.3]
+            }
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#f0a33a",
+          "amount": 0.7,
+          "softness": 0.006,
+          "points": [
+            [0.05, 0.06],
+            [-0.17, 0.032],
+            [-0.17, 0.02],
+            [0.05, 0.045]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#1e1428",
+          "amount": 0.92,
+          "softness": 0.012,
+          "points": [
+            [0.05, 0.045],
+            [0.05, -0.085],
+            [-0.17, 0],
+            [-0.17, 0.02]
+          ]
+        },
+        {
+          "type": "scales",
+          "size": 0.016,
+          "rim": 0.07
+        }
+      ],
+      "fins": {
+        "caudal": {
+          "rayed": {
+            "web": "#e8a080",
+            "ray": "#c8704c",
+            "root": "#e07a50",
+            "alphaRoot": 0.75,
+            "alphaEdge": 0.35,
+            "rays": 26
+          },
+          "layers": [
+            {
+              "type": "shape",
+              "color": "#e0502a",
+              "amount": 0.7,
+              "points": [
+                [-0.18, 0.05],
+                [-0.47, 0.2],
+                [-0.44, 0.165],
+                [-0.18, 0.03]
+              ]
+            },
+            {
+              "type": "shape",
+              "color": "#e0502a",
+              "amount": 0.7,
+              "points": [
+                [-0.18, -0.05],
+                [-0.47, -0.2],
+                [-0.44, -0.165],
+                [-0.18, -0.03]
+              ]
+            }
+          ]
+        },
+        "dorsal": {
+          "rayed": {
+            "web": "#e88a60",
+            "ray": "#c05a38",
+            "root": "#d8603a",
+            "alphaRoot": 0.85,
+            "alphaEdge": 0.5,
+            "rays": 14
+          },
+          "layers": [
+            {
+              "type": "shape",
+              "color": "#1a1414",
+              "amount": 0.8,
+              "points": [
+                [0.075, 0.15],
+                [0.005, 0.29],
+                [-0.012, 0.27],
+                [0.045, 0.15]
+              ]
+            }
+          ]
+        },
+        "anal": {
+          "rayed": {
+            "web": "#eaa080",
+            "ray": "#c8704c",
+            "root": "#e07a50",
+            "alphaRoot": 0.7,
+            "alphaEdge": 0.35,
+            "rays": 12
+          }
+        },
+        "pelvic": {
+          "rayed": {
+            "web": "#f0b090",
+            "ray": "#ffffff",
+            "root": "#e8a080",
+            "alphaRoot": 0.55,
+            "alphaEdge": 0.2,
+            "rays": 6
+          }
+        },
+        "pectoral": {
+          "rayed": {
+            "web": "#f3e3d8",
+            "ray": "#ffffff",
+            "root": "#f0c8b0",
+            "alphaRoot": 0.4,
+            "alphaEdge": 0.12,
+            "rays": 7
+          }
+        }
+      }
+    }
+  ]
+}

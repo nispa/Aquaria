@@ -171,7 +171,8 @@ animation, `scripts/blender/barramundi.py` shapes it by hand.
 
 ### From a recipe
 
-The guppy, platy, angelfish, royal gramma and sardine are recipes: a
+The guppy, platy, angelfish, royal gramma, sardine and harlequin rasbora
+are recipes: a
 `fish.json` in their folder says what the fish is, and
 `scripts/blender/fishbuild.py` builds it in Blender. The platy's, cut
 short:
@@ -288,9 +289,11 @@ short:
 - `texture`: its size and where each part lies on it.
 - `strains`: each paints the body with a stack of layers (`fill`,
   `patch`, `edge`, `marks`, `noise`, `noiseLines`, `eyeLine`, `rays`,
-  `gillCurve`, `scales`) and each fin with a rayed web and layers over it
-  (`tint`, `dots`, `noiseLines`, `marks`). `finPaint` holds fins every
-  strain paints the same.
+  `gillCurve`, `shape`, `scales`) and each fin with a rayed web and layers
+  over it (`tint`, `dots`, `noiseLines`, `marks`, `shape`). A `shape` is
+  any polygon of side-view points with a soft edge: the harlequin
+  rasbora's black wedge, the stripes on its tail. `finPaint` holds fins
+  every strain paints the same.
 
 Every field is in `src/scene/fishRecipe.ts`, which a test checks every
 recipe against; the layers are drawn by `scripts/blender/fishpaint.py`.
@@ -318,7 +321,8 @@ it under the drawing with the sliders (centre, width, opacity, and
 _facing left_ for a fish looking the other way). Then drag the points
 until the outline follows the photograph: the body's outline, each fin's
 outline and where it starts and ends, the roots of the pectoral and
-pelvic fins, the eye.
+pelvic fins, the eye, and the corners of the open strain's shapes (in
+pink).
 
 On the right, _Shape and fins_ holds the numbers you type rather than
 drag (thickness, roundness, the eye's size, the fins' angles), and

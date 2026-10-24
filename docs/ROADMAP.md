@@ -471,9 +471,13 @@ bones and the mouth shape key.
 
 ### K3. Proof and docs
 
-- [ ] A harlequin rasbora made with the designer alone, no code; it joins
-      the iwagumi (J5).
-- [ ] `docs/FISH_MODELS.md` (+ Italian): making a fish with the maker.
+- [x] A harlequin rasbora made without code of its own: a recipe, built by
+      the fish maker's server and checked on its page, now the 3D model of
+      the species already in the planted tank (12 of them). It needed one
+      thing the format lacked, a polygon with a soft edge for its black
+      wedge: the generic `shape` layer, on bodies and fins, its corners
+      dragged on the page. It joins the iwagumi in J5.
+- [x] `docs/FISH_MODELS.md` (+ Italian): making a fish with the maker.
 
 Not in this block: painting on a model made by someone else (projection
 on its own UVs).

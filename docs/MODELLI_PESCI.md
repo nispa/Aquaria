@@ -175,7 +175,8 @@ costruisce a mano.
 
 ### Da una ricetta
 
-Guppy, platy, pesce angelo, royal gramma e sardina sono ricette: un
+Guppy, platy, pesce angelo, royal gramma, sardina e rasbora arlecchino
+sono ricette: un
 `fish.json` nella loro cartella dice com'è il pesce, e
 `scripts/blender/fishbuild.py` lo costruisce in Blender. Quella del
 platy, accorciata:
@@ -292,9 +293,11 @@ platy, accorciata:
 - `texture`: la misura e dove sta ogni parte.
 - `strains`: ogni ceppo dipinge il corpo con una pila di strati (`fill`,
   `patch`, `edge`, `marks`, `noise`, `noiseLines`, `eyeLine`, `rays`,
-  `gillCurve`, `scales`) e ogni pinna con una trama raggiata e strati
-  sopra (`tint`, `dots`, `noiseLines`, `marks`). `finPaint` contiene le
-  pinne che tutti i ceppi dipingono uguali.
+  `gillCurve`, `shape`, `scales`) e ogni pinna con una trama raggiata e
+  strati sopra (`tint`, `dots`, `noiseLines`, `marks`, `shape`). Una
+  `shape` è un poligono qualsiasi di punti visti di lato, con il bordo
+  sfumato: il cuneo nero della rasbora arlecchino, le strisce sulla sua
+  coda. `finPaint` contiene le pinne che tutti i ceppi dipingono uguali.
 
 Ogni campo sta in `src/scene/fishRecipe.ts`, con cui un test controlla
 ogni ricetta; gli strati li disegna `scripts/blender/fishpaint.py`.
@@ -322,7 +325,8 @@ sotto il disegno con i cursori (centro, larghezza, trasparenza, e
 _facing left_ per un pesce girato dall'altra parte). Poi trascina i punti
 finché il profilo segue la foto: il profilo del corpo, quello di ogni
 pinna e dove comincia e finisce, le radici delle pinne pettorali e
-pelviche, l'occhio.
+pelviche, l'occhio, e gli angoli delle forme del ceppo aperto (in
+rosa).
 
 A destra, _Shape and fins_ contiene i numeri che si scrivono invece di
 trascinarli (spessore, rotondità, la misura dell'occhio, gli angoli delle

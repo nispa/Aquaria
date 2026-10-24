@@ -525,6 +525,8 @@
           "accent": "#1c1c1c"
         }
       },
+      "model": "harlequin-rasbora",
+      "coloring": "classic",
       "length": {
         "mean": 0.04,
         "standardDeviation": 0.004

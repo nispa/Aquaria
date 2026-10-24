@@ -1,0 +1,44 @@
+{
+  "name": "Harlequin rasbora",
+  "file": "model.glb",
+  "forward": "+x",
+  "up": "+y",
+  "swimAmplitude": 0.08,
+  "mouth": {
+    "morphTarget": "MouthOpen"
+  },
+  "eyes": {
+    "bones": ["Eye.L", "Eye.R"],
+    "turn": 22
+  },
+  "gills": {
+    "edge": 0.296,
+    "top": 0.053,
+    "bottom": -0.117,
+    "curve": 4
+  },
+  "fins": {
+    "pectoral": {
+      "root": [
+        [0.303, -0.057],
+        [0.308, -0.105]
+      ],
+      "side": 0.071,
+      "front": 0.32,
+      "back": 0.212,
+      "top": -0.044,
+      "bottom": -0.126
+    }
+  },
+  "colorings": {
+    "classic": {
+      "name": "Classic",
+      "texture": "colorings/classic.webp"
+    }
+  },
+  "credit": {
+    "author": "Aquaria (fish.json, built by scripts/blender/fishbuild.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/public/assets/species/harlequin-rasbora/fish.json",
+    "license": "CC0-1.0"
+  }
+}
