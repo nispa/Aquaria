@@ -1,0 +1,551 @@
+{
+  "name": "Platy",
+  "description": "A platy (Xiphophorus maculatus), a classic of planted tanks: a short, deep, chunky body with a small upturned mouth and a round belly, a rounded fan of a tail, a rounded dorsal fin and a small anal fin. Three strains.",
+  "body": {
+    "top": [
+      [0.3, 0.018],
+      [0.285, 0.04],
+      [0.25, 0.07],
+      [0.19, 0.105],
+      [0.11, 0.128],
+      [0.03, 0.128],
+      [-0.05, 0.105],
+      [-0.11, 0.075],
+      [-0.16, 0.058]
+    ],
+    "bottom": [
+      [0.3, 0.004],
+      [0.285, -0.022],
+      [0.25, -0.058],
+      [0.18, -0.1],
+      [0.09, -0.125],
+      [0.0, -0.118],
+      [-0.06, -0.092],
+      [-0.11, -0.066],
+      [-0.16, -0.052]
+    ],
+    "thickness": {
+      "half": 0.06,
+      "rise": 0.3,
+      "power": 0.5,
+      "taper": 0.55,
+      "taperFrom": 0.35,
+      "min": 0.014
+    },
+    "roundness": 0.8
+  },
+  "eye": {
+    "x": 0.235,
+    "z": 0.03,
+    "radius": 0.027,
+    "depth": 0.5,
+    "rim": "#3a2a20",
+    "iris": "#e0a830",
+    "pupil": "#080808",
+    "irisEdge": [55, 65],
+    "pupilEdge": [28, 34]
+  },
+  "mouth": {
+    "reach": 0.04,
+    "drop": 0.018
+  },
+  "gills": {
+    "edge": 0.165,
+    "top": 0.072,
+    "bottom": -0.035
+  },
+  "fins": [
+    {
+      "id": "caudal",
+      "type": "tail",
+      "root": 0.006,
+      "baseHeight": 0.09,
+      "outline": [
+        [-0.165, 0.045],
+        [-0.24, 0.115],
+        [-0.31, 0.14],
+        [-0.37, 0.115],
+        [-0.4, 0.05],
+        [-0.405, 0.0],
+        [-0.4, -0.05],
+        [-0.37, -0.115],
+        [-0.31, -0.14],
+        [-0.24, -0.115],
+        [-0.165, -0.045]
+      ],
+      "steps": [180, 40],
+      "bulge": 0.006,
+      "ruffle": 0.004
+    },
+    {
+      "id": "dorsal",
+      "type": "body",
+      "upper": true,
+      "start": 0.07,
+      "end": -0.085,
+      "outline": [
+        [0.05, 0.19],
+        [0.0, 0.215],
+        [-0.06, 0.205],
+        [-0.1, 0.15],
+        [-0.105, 0.095]
+      ],
+      "steps": [120, 24]
+    },
+    {
+      "id": "anal",
+      "type": "body",
+      "upper": false,
+      "start": -0.005,
+      "end": -0.075,
+      "outline": [
+        [-0.02, -0.16],
+        [-0.06, -0.17],
+        [-0.09, -0.12]
+      ],
+      "steps": [60, 24],
+      "bulge": 0.003
+    },
+    {
+      "id": "pelvic",
+      "type": "pelvic",
+      "root": [0.08, 0.025, -0.115],
+      "base": [-0.02, 0.0],
+      "edge": {
+        "fan": {
+          "length": 0.05,
+          "angles": [-20, -70]
+        }
+      },
+      "out": 0.012,
+      "steps": [16, 6]
+    },
+    {
+      "id": "pectoral",
+      "type": "pectoral",
+      "root": [0.19, -0.035],
+      "base": [-0.004, 0.04],
+      "length": 0.072,
+      "angles": [20, -40]
+    }
+  ],
+  "texture": {
+    "size": 1024,
+    "ownStep": 4,
+    "parts": {
+      "body": [0.0, 0.0, 1.0, 0.42],
+      "caudal": [0.0, 0.44, 0.5, 0.56],
+      "dorsal": [0.52, 0.44, 0.3, 0.28],
+      "anal": [0.84, 0.44, 0.16, 0.16],
+      "pelvic": [0.84, 0.62, 0.12, 0.1],
+      "pectoral": [0.52, 0.74, 0.12, 0.1]
+    }
+  },
+  "materials": {
+    "skin": {
+      "roughness": 0.4,
+      "metallic": 0.1
+    },
+    "fins": {
+      "roughness": 0.5,
+      "metallic": 0.0
+    },
+    "eyes": {
+      "roughness": 0.05,
+      "metallic": 0.0
+    }
+  },
+  "strains": [
+    {
+      "id": "red-wagtail",
+      "name": "Red Wagtail",
+      "body": [
+        {
+          "type": "fill",
+          "color": "#ff4f14"
+        },
+        {
+          "type": "patch",
+          "color": "#c8300c",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [0.1, 0.85]
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#ffa060",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [-0.2, -0.85]
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#121212",
+          "amount": 0.85,
+          "bands": [
+            {
+              "axis": "x",
+              "range": [-0.1, -0.155]
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#f0e6dc",
+          "amount": 0.25,
+          "bands": [
+            {
+              "axis": "x",
+              "range": [0.145, 0.185]
+            },
+            {
+              "axis": "absZ",
+              "range": [0.03, 0.09],
+              "invert": true,
+              "offset": 0.01
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#2a120c",
+          "bands": [
+            {
+              "axis": "x",
+              "range": [0.285, 0.3]
+            }
+          ]
+        },
+        {
+          "type": "scales",
+          "size": 0.018,
+          "rim": 0.08
+        }
+      ],
+      "fins": {
+        "caudal": {
+          "rayed": {
+            "web": "#141212",
+            "ray": "#3a2a26",
+            "root": "#e8401a",
+            "alphaRoot": 0.92,
+            "alphaEdge": 0.6,
+            "rays": 22,
+            "rootShare": 0.12,
+            "edgeColor": "#3a2a26"
+          }
+        },
+        "dorsal": {
+          "rayed": {
+            "web": "#141212",
+            "ray": "#3a2a26",
+            "root": "#e8401a",
+            "alphaRoot": 0.92,
+            "alphaEdge": 0.6,
+            "rays": 22,
+            "rootShare": 0.12,
+            "edgeColor": "#3a2a26"
+          }
+        },
+        "anal": {
+          "rayed": {
+            "web": "#141212",
+            "ray": "#3a2a26",
+            "root": "#e8401a",
+            "alphaRoot": 0.92,
+            "alphaEdge": 0.6,
+            "rays": 22,
+            "rootShare": 0.12,
+            "edgeColor": "#3a2a26"
+          }
+        },
+        "pelvic": {
+          "rayed": {
+            "web": "#ffb080",
+            "ray": "#ffd0a8",
+            "root": "#ff8a50",
+            "alphaRoot": 0.55,
+            "alphaEdge": 0.25,
+            "rays": 6
+          }
+        },
+        "pectoral": {
+          "rayed": {
+            "web": "#ffb080",
+            "ray": "#ffd0a8",
+            "root": "#ff8a50",
+            "alphaRoot": 0.55,
+            "alphaEdge": 0.25,
+            "rays": 6
+          }
+        }
+      }
+    },
+    {
+      "id": "mickey-mouse",
+      "name": "Mickey Mouse",
+      "body": [
+        {
+          "type": "fill",
+          "color": "#f6b83a"
+        },
+        {
+          "type": "patch",
+          "color": "#d68a18",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [0.1, 0.85]
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#fde6a8",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [-0.2, -0.85]
+            }
+          ]
+        },
+        {
+          "type": "marks",
+          "color": "#111111",
+          "amount": 0.95,
+          "marks": [
+            [-0.1, 0.0, 0.026],
+            [-0.132, 0.03, 0.015],
+            [-0.132, -0.03, 0.015]
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#f0e6dc",
+          "amount": 0.25,
+          "bands": [
+            {
+              "axis": "x",
+              "range": [0.145, 0.185]
+            },
+            {
+              "axis": "absZ",
+              "range": [0.03, 0.09],
+              "invert": true,
+              "offset": 0.01
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#4a2a10",
+          "bands": [
+            {
+              "axis": "x",
+              "range": [0.285, 0.3]
+            }
+          ]
+        },
+        {
+          "type": "scales",
+          "size": 0.018,
+          "rim": 0.08
+        }
+      ],
+      "fins": {
+        "caudal": {
+          "rayed": {
+            "web": "#f8c860",
+            "ray": "#e0a030",
+            "root": "#f0a030",
+            "alphaRoot": 0.7,
+            "alphaEdge": 0.35,
+            "rays": 22,
+            "rootShare": 0.12
+          }
+        },
+        "dorsal": {
+          "rayed": {
+            "web": "#f8c860",
+            "ray": "#e0a030",
+            "root": "#f0a030",
+            "alphaRoot": 0.7,
+            "alphaEdge": 0.35,
+            "rays": 22,
+            "rootShare": 0.12
+          }
+        },
+        "anal": {
+          "rayed": {
+            "web": "#f8c860",
+            "ray": "#e0a030",
+            "root": "#f0a030",
+            "alphaRoot": 0.7,
+            "alphaEdge": 0.35,
+            "rays": 22,
+            "rootShare": 0.12
+          }
+        },
+        "pelvic": {
+          "rayed": {
+            "web": "#ffe0a0",
+            "ray": "#fff0c8",
+            "root": "#f6b83a",
+            "alphaRoot": 0.5,
+            "alphaEdge": 0.2,
+            "rays": 6
+          }
+        },
+        "pectoral": {
+          "rayed": {
+            "web": "#ffe0a0",
+            "ray": "#fff0c8",
+            "root": "#f6b83a",
+            "alphaRoot": 0.5,
+            "alphaEdge": 0.2,
+            "rays": 6
+          }
+        }
+      }
+    },
+    {
+      "id": "blue",
+      "name": "Blue",
+      "body": [
+        {
+          "type": "fill",
+          "color": "#7f9fbe"
+        },
+        {
+          "type": "patch",
+          "color": "#36506e",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [0.1, 0.85]
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#d6e2ec",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [-0.2, -0.85]
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#5f9de0",
+          "amount": 0.55,
+          "bands": [
+            {
+              "axis": "absUp",
+              "range": [0.15, 0.6],
+              "invert": true
+            },
+            {
+              "axis": "x",
+              "range": [0.2, 0.05]
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#f0e6dc",
+          "amount": 0.25,
+          "bands": [
+            {
+              "axis": "x",
+              "range": [0.145, 0.185]
+            },
+            {
+              "axis": "absZ",
+              "range": [0.03, 0.09],
+              "invert": true,
+              "offset": 0.01
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#2a3442",
+          "bands": [
+            {
+              "axis": "x",
+              "range": [0.285, 0.3]
+            }
+          ]
+        },
+        {
+          "type": "scales",
+          "size": 0.018,
+          "rim": 0.08
+        }
+      ],
+      "fins": {
+        "caudal": {
+          "rayed": {
+            "web": "#b8cfe0",
+            "ray": "#8aa8c4",
+            "root": "#9ab8d0",
+            "alphaRoot": 0.55,
+            "alphaEdge": 0.25,
+            "rays": 22,
+            "rootShare": 0.12
+          }
+        },
+        "dorsal": {
+          "rayed": {
+            "web": "#b8cfe0",
+            "ray": "#8aa8c4",
+            "root": "#9ab8d0",
+            "alphaRoot": 0.55,
+            "alphaEdge": 0.25,
+            "rays": 22,
+            "rootShare": 0.12
+          }
+        },
+        "anal": {
+          "rayed": {
+            "web": "#b8cfe0",
+            "ray": "#8aa8c4",
+            "root": "#9ab8d0",
+            "alphaRoot": 0.55,
+            "alphaEdge": 0.25,
+            "rays": 22,
+            "rootShare": 0.12
+          }
+        },
+        "pelvic": {
+          "rayed": {
+            "web": "#dbe7f0",
+            "ray": "#ffffff",
+            "root": "#9ab8d0",
+            "alphaRoot": 0.45,
+            "alphaEdge": 0.18,
+            "rays": 6
+          }
+        },
+        "pectoral": {
+          "rayed": {
+            "web": "#dbe7f0",
+            "ray": "#ffffff",
+            "root": "#9ab8d0",
+            "alphaRoot": 0.45,
+            "alphaEdge": 0.18,
+            "rays": 6
+          }
+        }
+      }
+    }
+  ]
+}

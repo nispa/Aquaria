@@ -5,8 +5,9 @@ each part (the body, each fin) gets a rectangle, and its own parameters
 (the body's s and a, a fin's u and v) run across it. A painter is a
 function of those parameters, written with numpy so a whole rectangle is
 painted at once; it returns sRGB colors with alpha, as the image stores
-them. One fish script paints the same atlas once per coloring (a strain)
-and saves each as a WebP image that Aquaria lays on the model.
+them. fishbuild.py paints the same atlas once per coloring (a strain),
+with the layers of fishpaint.py, and saves each as a WebP image that
+Aquaria lays on the model.
 """
 
 import math
@@ -232,13 +233,13 @@ def save_webp(pixels, path, quality=90):
 PECTORAL_JOIN = 0.017
 
 
-def print_manifest_values(objects, body, roundness, pectoral_part, pectoral_base, gill_edge_x=None, gill_top=None, gill_bottom=None):
-    """Prints the fish-frame numbers model.json needs for the gills and the pectoral fins (Blender x, z in).
+def manifest_values(objects, body, roundness, pectoral_part, pectoral_base, gill_edge_x=None, gill_top=None, gill_bottom=None):
+    """The fish-frame numbers model.json needs for the pectoral fins and, if given, the gills (Blender x, z in).
 
     The fin's `side` is set beyond the widest skin inside its box by the
     width Aquaria blends a fin into the body, so the flank never swings
-    with the fin; the fin's base nearer the body
-    than that stays put, as a fin's root does.
+    with the fin; the fin's base nearer the body than that stays put, as a
+    fin's root does.
     """
     to_frame, length = fish_frame(objects)
     verts = pectoral_part[0]
@@ -250,19 +251,25 @@ def print_manifest_values(objects, body, roundness, pectoral_part, pectoral_base
     side = float(widest) / length + PECTORAL_JOIN
     front, high = to_frame(max(xs) + 0.01, max(zs) + 0.01)
     back, low = to_frame(min(xs) - 0.01, min(zs) - 0.01)
+    values = {
+        "fins": {
+            "pectoral": {
+                "root": [list(to_frame(top.x, top.z)), list(to_frame(bottom.x, bottom.z))],
+                "side": round(side, 3),
+                "front": front,
+                "back": back,
+                "top": high,
+                "bottom": low,
+            }
+        }
+    }
     if gill_edge_x is not None:
-        print("gills:", {"edge": to_frame(gill_edge_x, 0)[0], "top": to_frame(0, gill_top)[1], "bottom": to_frame(0, gill_bottom)[1]})
-    print(
-        "fins.pectoral:",
-        {
-            "root": [list(to_frame(top.x, top.z)), list(to_frame(bottom.x, bottom.z))],
-            "side": round(side, 3),
-            "front": front,
-            "back": back,
-            "top": high,
-            "bottom": low,
-        },
-    )
+        values["gills"] = {
+            "edge": to_frame(gill_edge_x, 0)[0],
+            "top": to_frame(0, gill_top)[1],
+            "bottom": to_frame(0, gill_bottom)[1],
+        }
+    return values
 
 
 def fish_frame(objects):
@@ -273,6 +280,6 @@ def fish_frame(objects):
     centre, length = (low + high) / 2, high.x - low.x
 
     def to_frame(x, z):
-        return round((x - centre.x) / length, 3), round((z - centre.z) / length, 3)
+        return round(float((x - centre.x) / length), 3), round(float((z - centre.z) / length), 3)
 
     return to_frame, length

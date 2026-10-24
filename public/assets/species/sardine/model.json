@@ -39,8 +39,8 @@
     }
   },
   "credit": {
-    "author": "Aquaria (scripts/blender/sardine.py)",
-    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/sardine.py",
+    "author": "Aquaria (fish.json, built by scripts/blender/fishbuild.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/public/assets/species/sardine/fish.json",
     "license": "CC0-1.0"
   }
 }

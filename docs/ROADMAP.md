@@ -333,7 +333,7 @@ species with no coloring looks as today.
       array, not one draw per coloring.
 - [x] Fauna cards show the species' first coloring; docs in
       `docs/FISH_MODELS.md`: how to paint colorings in code
-      (`scripts/blender/guppy.py`, `paintkit.py`). The guppy wears four
+      (`fish.json` recipes, `paintkit.py`). The guppy wears four
       strains, the platy three.
 
 ## I. Ready-made aquariums
@@ -433,20 +433,25 @@ bones and the mouth shape key.
 
 ### K1. A fish as data
 
-- [ ] A recipe, `fish.json`: the body (top and bottom outline, thickness,
-      roundness), the fins (dorsal, anal, caudal: delta, forked or fan;
-      pectoral, pelvic), the eye and the mouth, and the strains, each a
-      stack of paint layers; validated (Zod in the repository, the same
-      checks in the builder).
-- [ ] Paint layers from those already written: countershading, bands
-      (the guppy's tuxedo, the gramma's split), round marks (Mickey
-      Mouse), speckles (Blue Grass), snakeskin (Cobra), stripes and bars,
-      fin rays and rims, the line through the eye, scales.
-- [ ] One generic builder, `scripts/blender/fishbuild.py <recipe>`: it
-      writes `model.glb`, `colorings/*.webp` and the `model.json` values
-      (gills, pectoral fins) the scripts print today.
-- [ ] The guppy, platy, royal gramma, angelfish and sardine as recipes,
-      coming out the same as their scripts, which are then removed.
+- [x] A recipe, `fish.json`: the body (top and bottom outline, thickness,
+      roundness), the fins (body, tail, pectoral, pelvic, filament), the
+      eye and the mouth, and the strains, each a stack of paint layers;
+      validated by `src/scene/fishRecipe.ts` (a test checks every recipe).
+- [x] Paint layers from those already written (`fishpaint.py`): patches
+      of bands (countershading, cheeks, lips), edges (the guppy's tuxedo,
+      the gramma's split), round marks (Mickey Mouse, the sardine's
+      spots), speckles (Blue Grass), snakeskin (Cobra), noise, the line
+      through the eye, radiating lines, the gill blush, scales; on fins a
+      rayed web with tints, dots, snakeskin and marks. Stripes and bars
+      come with the first fish that needs them.
+- [x] One generic builder, `scripts/blender/fishbuild.py <recipe>`: it
+      writes `model.glb`, `colorings/*.webp` and `model-values.json` (the
+      gills, pectoral fins and colorings for `model.json`).
+- [x] The guppy, platy, royal gramma, angelfish and sardine as recipes:
+      their paint comes out the same to the texel (the guppy's pectoral
+      fin, now a plain rayed web, differs slightly), their shapes within a
+      ten-thousandth of a body length, their `model.json` values the
+      same; the scripts are removed.
 
 ### K2. The designer
 

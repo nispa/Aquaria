@@ -1,7 +1,7 @@
 """Shared pieces for the Blender scripts that build Aquaria's fish.
 
-Each fish script (angelfish.py, guppy.py) traces its body and fins and
-calls these helpers to color, rig and export it; docs/FISH_MODELS.md
+fishbuild.py builds a fish from its recipe with these helpers (shapes,
+fins, rig, export), as the shrimp's script does by hand; docs/FISH_MODELS.md
 tells what Aquaria expects of a model. Blender's +X is the snout, +Z the
 dorsal fin, +Y the fish's left; sizes are in body lengths.
 """

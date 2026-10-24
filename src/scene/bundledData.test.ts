@@ -15,6 +15,7 @@ import { checkSceneObjects, parseObjectIndex } from "./objectCatalog";
 import { bundledObjects } from "./objectFixtures";
 import { objectMaterialUrl, objectModelUrl } from "./objectManifest";
 import { MODEL_MANIFEST_FILE, modelIdsOf, parseModelManifest } from "./modelManifest";
+import { parseFishRecipe } from "./fishRecipe";
 import { parseCatalog, parseScene } from "./parse";
 import { parseSceneIndex } from "./sceneIndex";
 import { parseLookIndex, parseSceneLook, sceneLookUrl } from "./sceneLook";
@@ -157,6 +158,12 @@ describe("bundled data files", () => {
     const manifest = parseModelManifest(readJson(`${MODELS}${id}/${MODEL_MANIFEST_FILE}`), id);
 
     expect(existsSync(new URL(`${MODELS}${id}/${manifest.file}`, import.meta.url))).toBe(true);
+  });
+
+  it.each(
+    modelFolders.filter((id) => existsSync(new URL(`${MODELS}${id}/fish.json`, import.meta.url))),
+  )("ships a valid fish recipe for the %s model", (id) => {
+    expect(() => parseFishRecipe(readJson(`${MODELS}${id}/fish.json`), id)).not.toThrow();
   });
 
   it.each(modelFolders)("credits the %s model in ASSETS.md", (id) => {

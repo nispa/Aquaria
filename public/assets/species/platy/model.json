@@ -47,8 +47,8 @@
     }
   },
   "credit": {
-    "author": "Aquaria (scripts/blender/platy.py)",
-    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/platy.py",
+    "author": "Aquaria (fish.json, built by scripts/blender/fishbuild.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/public/assets/species/platy/fish.json",
     "license": "CC0-1.0"
   }
 }

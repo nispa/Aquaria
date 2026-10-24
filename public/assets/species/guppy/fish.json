@@ -1,0 +1,446 @@
+{
+  "name": "Guppy",
+  "description": "A male fancy guppy (Poecilia reticulata): a small, slender body with an upturned mouth and a big eye, a delta tail nearly as long as the body with a fluttering edge, a long dorsal flag swept back, the gonopodium under the belly. Four strains.",
+  "body": {
+    "top": [
+      [0.36, 0.02],
+      [0.34, 0.038],
+      [0.3, 0.058],
+      [0.25, 0.078],
+      [0.18, 0.095],
+      [0.08, 0.1],
+      [0.0, 0.088],
+      [-0.06, 0.066],
+      [-0.1, 0.05]
+    ],
+    "bottom": [
+      [0.36, 0.008],
+      [0.34, -0.018],
+      [0.3, -0.045],
+      [0.25, -0.075],
+      [0.16, -0.1],
+      [0.06, -0.1],
+      [0.0, -0.082],
+      [-0.06, -0.058],
+      [-0.1, -0.045]
+    ],
+    "thickness": {
+      "half": 0.05,
+      "rise": 0.25,
+      "power": 0.5,
+      "taper": 0.6,
+      "taperFrom": 0.3,
+      "min": 0.012
+    },
+    "roundness": 0.9
+  },
+  "eye": {
+    "x": 0.285,
+    "z": 0.025,
+    "radius": 0.03,
+    "depth": 0.45,
+    "rim": "#c9ccc4",
+    "iris": "#d9d7c8",
+    "pupil": "#080808",
+    "irisEdge": [55, 65],
+    "pupilEdge": [30, 36]
+  },
+  "mouth": { "reach": 0.05, "drop": 0.02 },
+  "gills": { "edge": 0.182, "top": 0.062, "bottom": -0.062 },
+  "fins": [
+    {
+      "id": "caudal",
+      "type": "tail",
+      "root": 0.006,
+      "baseHeight": 0.07,
+      "outline": [
+        [-0.105, 0.04],
+        [-0.24, 0.13],
+        [-0.4, 0.225],
+        [-0.47, 0.25],
+        [-0.5, 0.12],
+        [-0.505, 0.0],
+        [-0.5, -0.12],
+        [-0.47, -0.25],
+        [-0.4, -0.225],
+        [-0.24, -0.13],
+        [-0.105, -0.04]
+      ],
+      "steps": [200, 48],
+      "bulge": 0.01,
+      "ruffle": 0.012
+    },
+    {
+      "id": "dorsal",
+      "type": "body",
+      "upper": true,
+      "start": 0.05,
+      "end": -0.08,
+      "outline": [
+        [-0.02, 0.15],
+        [-0.12, 0.21],
+        [-0.24, 0.215],
+        [-0.2, 0.15],
+        [-0.12, 0.09]
+      ],
+      "steps": [120, 24]
+    },
+    {
+      "id": "gonopodium",
+      "type": "body",
+      "upper": false,
+      "start": -0.01,
+      "end": -0.045,
+      "outline": [
+        [-0.03, -0.12],
+        [-0.075, -0.13],
+        [-0.055, -0.095]
+      ],
+      "steps": [40, 24],
+      "bulge": 0.0
+    },
+    {
+      "id": "pectoral",
+      "type": "pectoral",
+      "root": [0.2, -0.03],
+      "base": [-0.004, 0.04],
+      "length": 0.075,
+      "angles": [20, -40]
+    }
+  ],
+  "texture": {
+    "size": 1024,
+    "ownStep": 4,
+    "parts": {
+      "body": [0.0, 0.0, 1.0, 0.42],
+      "caudal": [0.0, 0.44, 0.62, 0.56],
+      "dorsal": [0.64, 0.44, 0.36, 0.3],
+      "gonopodium": [0.64, 0.76, 0.12, 0.1],
+      "pectoral": [0.78, 0.76, 0.1, 0.1]
+    }
+  },
+  "materials": {
+    "skin": { "roughness": 0.42, "metallic": 0.1 },
+    "fins": { "roughness": 0.5, "metallic": 0.0 },
+    "eyes": { "roughness": 0.05, "metallic": 0.0 }
+  },
+  "finPaint": {
+    "pectoral": {
+      "rayed": {
+        "web": "#efe8e0",
+        "ray": "#ffffff",
+        "root": "#efe8e0",
+        "alphaRoot": 0.45,
+        "alphaEdge": 0.15,
+        "rays": 7
+      }
+    }
+  },
+  "strains": [
+    {
+      "id": "half-black-red",
+      "name": "Half Black Red",
+      "body": [
+        { "type": "fill", "color": "#d8d2ca" },
+        { "type": "patch", "color": "#a8a296", "bands": [{ "axis": "up", "range": [0.1, 0.85] }] },
+        {
+          "type": "patch",
+          "color": "#efe9e2",
+          "bands": [{ "axis": "up", "range": [-0.2, -0.85] }]
+        },
+        {
+          "type": "patch",
+          "color": "#e8ecef",
+          "amount": 0.35,
+          "bands": [
+            { "axis": "x", "range": [0.162, 0.202] },
+            { "axis": "absZ", "range": [0.03, 0.08], "invert": true }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#e6c3bd",
+          "amount": 0.25,
+          "bands": [{ "axis": "x", "range": [0.3, 0.1] }]
+        },
+        {
+          "type": "edge",
+          "color": "#141117",
+          "at": 0.08,
+          "width": 0.03,
+          "below": 0.25,
+          "noise": { "z": 40, "x": 10, "seed": 3, "amount": -0.03 }
+        },
+        { "type": "scales", "size": 0.016, "rim": 0.07 }
+      ],
+      "fins": {
+        "caudal": {
+          "rayed": {
+            "web": "#cf1820",
+            "ray": "#8e0c12",
+            "root": "#2a0a0e",
+            "alphaRoot": 0.9,
+            "alphaEdge": 0.72,
+            "rays": 34
+          }
+        },
+        "dorsal": {
+          "rayed": {
+            "web": "#cf1820",
+            "ray": "#8e0c12",
+            "root": "#2a0a0e",
+            "alphaRoot": 0.9,
+            "alphaEdge": 0.72,
+            "rays": 34
+          }
+        },
+        "gonopodium": {
+          "rayed": {
+            "web": "#3a3438",
+            "ray": "#24202a",
+            "root": "#141117",
+            "alphaRoot": 0.75,
+            "alphaEdge": 0.6,
+            "rays": 6
+          }
+        }
+      }
+    },
+    {
+      "id": "blue-grass",
+      "name": "Blue Grass",
+      "body": [
+        { "type": "fill", "color": "#b8c4cc" },
+        { "type": "patch", "color": "#7f8c96", "bands": [{ "axis": "up", "range": [0.1, 0.85] }] },
+        {
+          "type": "patch",
+          "color": "#e6eaec",
+          "bands": [{ "axis": "up", "range": [-0.2, -0.85] }]
+        },
+        {
+          "type": "patch",
+          "color": "#e8ecef",
+          "amount": 0.35,
+          "bands": [
+            { "axis": "x", "range": [0.162, 0.202] },
+            { "axis": "absZ", "range": [0.03, 0.08], "invert": true }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#6fa8d8",
+          "amount": 0.35,
+          "bands": [{ "axis": "x", "range": [0.25, 0.05] }]
+        },
+        {
+          "type": "edge",
+          "color": "#1a2438",
+          "at": 0.08,
+          "width": 0.03,
+          "below": 0.25,
+          "noise": { "z": 40, "x": 10, "seed": 3, "amount": -0.03 }
+        },
+        { "type": "scales", "size": 0.016, "rim": 0.07 }
+      ],
+      "fins": {
+        "caudal": {
+          "rayed": {
+            "web": "#86bde6",
+            "ray": "#5f93c4",
+            "root": "#1a2438",
+            "alphaRoot": 0.82,
+            "alphaEdge": 0.58,
+            "rays": 30
+          },
+          "layers": [
+            {
+              "type": "dots",
+              "color": "#0c0c10",
+              "cell": 0.014,
+              "radius": 0.0045,
+              "seed": 3,
+              "chance": [0.55, 0.4],
+              "fade": [0.08, 0.2]
+            }
+          ]
+        },
+        "dorsal": {
+          "rayed": {
+            "web": "#86bde6",
+            "ray": "#5f93c4",
+            "root": "#1a2438",
+            "alphaRoot": 0.82,
+            "alphaEdge": 0.58,
+            "rays": 30
+          },
+          "layers": [
+            {
+              "type": "dots",
+              "color": "#0c0c10",
+              "cell": 0.014,
+              "radius": 0.0045,
+              "seed": 5,
+              "chance": [0.55, 0.4],
+              "fade": [0.08, 0.2]
+            }
+          ]
+        },
+        "gonopodium": {
+          "rayed": {
+            "web": "#9aa6b0",
+            "ray": "#7f8c96",
+            "root": "#1a2438",
+            "alphaRoot": 0.7,
+            "alphaEdge": 0.55,
+            "rays": 6
+          }
+        }
+      }
+    },
+    {
+      "id": "full-red",
+      "name": "Full Red",
+      "body": [
+        { "type": "fill", "color": "#d4262c" },
+        { "type": "patch", "color": "#a8161c", "bands": [{ "axis": "up", "range": [0.1, 0.85] }] },
+        {
+          "type": "patch",
+          "color": "#e8705e",
+          "bands": [{ "axis": "up", "range": [-0.2, -0.85] }]
+        },
+        {
+          "type": "patch",
+          "color": "#e6d6cf",
+          "amount": 0.85,
+          "bands": [{ "axis": "x", "range": [0.142, 0.222] }]
+        },
+        {
+          "type": "patch",
+          "color": "#e8ecef",
+          "amount": 0.35,
+          "bands": [
+            { "axis": "x", "range": [0.162, 0.202] },
+            { "axis": "absZ", "range": [0.03, 0.08], "invert": true }
+          ]
+        },
+        { "type": "scales", "size": 0.016, "rim": 0.07 }
+      ],
+      "fins": {
+        "caudal": {
+          "rayed": {
+            "web": "#e0222a",
+            "ray": "#a8121a",
+            "root": "#b8161c",
+            "alphaRoot": 0.9,
+            "alphaEdge": 0.72,
+            "rays": 34
+          }
+        },
+        "dorsal": {
+          "rayed": {
+            "web": "#e0222a",
+            "ray": "#a8121a",
+            "root": "#b8161c",
+            "alphaRoot": 0.9,
+            "alphaEdge": 0.72,
+            "rays": 34
+          }
+        },
+        "gonopodium": {
+          "rayed": {
+            "web": "#d4262c",
+            "ray": "#a8161c",
+            "root": "#a8161c",
+            "alphaRoot": 0.75,
+            "alphaEdge": 0.6,
+            "rays": 6
+          }
+        }
+      }
+    },
+    {
+      "id": "yellow-cobra",
+      "name": "Yellow Cobra",
+      "body": [
+        { "type": "fill", "color": "#c9b84a" },
+        { "type": "patch", "color": "#8d8a34", "bands": [{ "axis": "up", "range": [0.1, 0.85] }] },
+        {
+          "type": "patch",
+          "color": "#ece2a8",
+          "bands": [{ "axis": "up", "range": [-0.2, -0.85] }]
+        },
+        {
+          "type": "patch",
+          "color": "#e8ecef",
+          "amount": 0.35,
+          "bands": [
+            { "axis": "x", "range": [0.162, 0.202] },
+            { "axis": "absZ", "range": [0.03, 0.08], "invert": true }
+          ]
+        },
+        {
+          "type": "noiseLines",
+          "color": "#3a3416",
+          "scale": 60,
+          "seed": 11,
+          "width": [0.012, 0.03],
+          "amount": 0.75,
+          "where": [{ "axis": "up", "range": [-0.7, -0.2] }]
+        },
+        { "type": "scales", "size": 0.016, "rim": 0.07 }
+      ],
+      "fins": {
+        "caudal": {
+          "rayed": {
+            "web": "#ecc838",
+            "ray": "#c49a1c",
+            "root": "#6e5c14",
+            "alphaRoot": 0.88,
+            "alphaEdge": 0.66,
+            "rays": 30
+          },
+          "layers": [
+            {
+              "type": "noiseLines",
+              "color": "#2a2410",
+              "scale": 40,
+              "seed": 21,
+              "width": [0.015, 0.035],
+              "amount": 0.8
+            }
+          ]
+        },
+        "dorsal": {
+          "rayed": {
+            "web": "#ecc838",
+            "ray": "#c49a1c",
+            "root": "#6e5c14",
+            "alphaRoot": 0.88,
+            "alphaEdge": 0.66,
+            "rays": 30
+          },
+          "layers": [
+            {
+              "type": "noiseLines",
+              "color": "#2a2410",
+              "scale": 40,
+              "seed": 23,
+              "width": [0.015, 0.035],
+              "amount": 0.8
+            }
+          ]
+        },
+        "gonopodium": {
+          "rayed": {
+            "web": "#d8c860",
+            "ray": "#b4a040",
+            "root": "#6e5c14",
+            "alphaRoot": 0.7,
+            "alphaEdge": 0.55,
+            "rays": 6
+          }
+        }
+      }
+    }
+  ]
+}

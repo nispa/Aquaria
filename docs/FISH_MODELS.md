@@ -36,8 +36,8 @@ The platy's, for example:
   "eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 22 },
   "gills": { "edge": 0.299, "top": 0.069, "bottom": -0.081, "curve": 4 },
   "credit": {
-    "author": "Aquaria (scripts/blender/platy.py)",
-    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/platy.py",
+    "author": "Aquaria (fish.json, built by scripts/blender/fishbuild.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/public/assets/species/platy/fish.json",
     "license": "CC0-1.0"
   }
 }
@@ -169,21 +169,146 @@ animation, `scripts/blender/barramundi.py` shapes it by hand.
 
 ## Making a fish in Blender
 
-The guppy, platy, angelfish, royal gramma, sardine and red cherry shrimp
-are made entirely by scripts in `scripts/blender/`, which share their
-building blocks in `fishkit.py` (shapes, fins, rig, export) and
-`paintkit.py` (painting their textures). They are the best examples. Run
-one into a folder of your own, then compress its model into the species'
-folder, copy its `colorings/` if it has any, and paste the values it
-prints into `model.json`:
+### From a recipe
+
+The guppy, platy, angelfish, royal gramma and sardine are recipes: a
+`fish.json` in their folder says what the fish is, and
+`scripts/blender/fishbuild.py` builds it in Blender. The platy's, cut
+short:
+
+```jsonc
+{
+  "name": "Platy",
+  "body": {
+    "top": [
+      [0.3, 0.018],
+      [0.25, 0.07],
+      [0.11, 0.128],
+      /* … */ [-0.16, 0.058],
+    ],
+    "bottom": [
+      [0.3, 0.004],
+      [0.25, -0.058],
+      [0.09, -0.125],
+      /* … */ [-0.16, -0.052],
+    ],
+    "thickness": {
+      "half": 0.06,
+      "rise": 0.3,
+      "power": 0.5,
+      "taper": 0.55,
+      "taperFrom": 0.35,
+      "min": 0.014,
+    },
+    "roundness": 0.8,
+  },
+  "eye": {
+    "x": 0.235,
+    "z": 0.03,
+    "radius": 0.027,
+    "depth": 0.5,
+    "rim": "#3a2a20",
+    "iris": "#e0a830",
+    "pupil": "#080808",
+    "irisEdge": [55, 65],
+    "pupilEdge": [28, 34],
+  },
+  "fins": [
+    {
+      "id": "dorsal",
+      "type": "body",
+      "upper": true,
+      "start": 0.07,
+      "end": -0.085,
+      "outline": [
+        [0.05, 0.19],
+        [0.0, 0.215],
+        [-0.06, 0.205],
+        [-0.1, 0.15],
+        [-0.105, 0.095],
+      ],
+    },
+    {
+      "id": "pectoral",
+      "type": "pectoral",
+      "root": [0.19, -0.035],
+      "base": [-0.004, 0.04],
+      "length": 0.072,
+      "angles": [20, -40],
+    },
+    // … the tail, the anal and pelvic fins
+  ],
+  "strains": [
+    {
+      "id": "mickey-mouse",
+      "name": "Mickey Mouse",
+      "body": [
+        { "type": "fill", "color": "#f6b83a" },
+        { "type": "patch", "color": "#d68a18", "bands": [{ "axis": "up", "range": [0.1, 0.85] }] },
+        {
+          "type": "marks",
+          "color": "#111111",
+          "amount": 0.95,
+          "marks": [
+            [-0.1, 0.0, 0.026],
+            [-0.132, 0.03, 0.015],
+            [-0.132, -0.03, 0.015],
+          ],
+        },
+        { "type": "scales", "size": 0.018, "rim": 0.08 },
+      ],
+      "fins": {
+        "dorsal": {
+          "rayed": {
+            "web": "#f8c860",
+            "ray": "#e0a030",
+            "root": "#f0a030",
+            "alphaRoot": 0.7,
+            "alphaEdge": 0.35,
+            "rays": 22,
+          },
+        } /* … */,
+      },
+    },
+  ],
+}
+```
+
+- `body`: the outline seen from the side, top and bottom, as (x, z)
+  points from the snout to the caudal peduncle, in body lengths (Blender's
+  +X is the snout, +Z the back); how thick it is (half the thickness at
+  the widest, how far back it grows, how much it tapers) and how round in
+  section.
+- `eye`, `mouth` (the shape key's reach and drop) and `gills` (where the
+  gill cover ends, for `model.json`).
+- `fins`: each with an id, its rectangle in the texture, and a type:
+  `body` (a dorsal, anal or gonopodium along the top or the bottom),
+  `tail`, `pectoral`, `pelvic` (a fan or a blade) or `filament` (the
+  angelfish's).
+- `texture`: its size and where each part lies on it.
+- `strains`: each paints the body with a stack of layers (`fill`,
+  `patch`, `edge`, `marks`, `noise`, `noiseLines`, `eyeLine`, `rays`,
+  `gillCurve`, `scales`) and each fin with a rayed web and layers over it
+  (`tint`, `dots`, `noiseLines`, `marks`). `finPaint` holds fins every
+  strain paints the same.
+
+Every field is in `src/scene/fishRecipe.ts`, which a test checks every
+recipe against; the layers are drawn by `scripts/blender/fishpaint.py`.
+Build into a folder of your own, compress the model into the species'
+folder, copy `colorings/`, and merge `model-values.json` (gills, pectoral
+fins, colorings) into `model.json`:
 
 ```bash
-blender --background --python scripts/blender/platy.py -- out/platy
+blender --background --python scripts/blender/fishbuild.py -- public/assets/species/platy/fish.json out/platy
 pnpm dlx @gltf-transform/cli@4.5.1 optimize out/platy/model.glb public/assets/species/platy/model.glb --compress meshopt --simplify false
 ```
 
-Without a folder the script writes straight into
-`public/assets/species/<id>/`, uncompressed.
+Without a folder the builder writes into the recipe's own folder,
+uncompressed. The red cherry shrimp is still a script of its own,
+`scripts/blender/shrimp.py`, on the same building blocks
+(`fishkit.py`, `paintkit.py`).
+
+### By hand
 
 If you model by hand:
 
@@ -257,20 +382,19 @@ texture array.
 - The fish's card shows the first coloring. To look at another one on
   the grid: `/model-viewer.html?id=guppy&coloring=1`.
 
-**Painting them in code.** `scripts/blender/guppy.py` lays the guppy out
-on one square texture: the body unrolled (along it, and once round it),
-each fin in its own rectangle (`Atlas` in `scripts/blender/paintkit.py`).
-Then it paints that atlas once per strain with numpy: countershading,
-faint scales, rays, fin edges that thin out instead of ending, dots and
-snakeskin from noise. A new strain is a new painter function and a line
-in `STRAINS`; `scripts/blender/platy.py` does the same for the platy's
-Red Wagtail, Mickey Mouse and Blue. Run one and it writes `model.glb`
-and `colorings/*.webp`, and prints the gills and pectoral values for
-`model.json`, since the fish frame changes whenever the outline does.
+**Painting them in code.** A recipe lays the fish out on one square
+texture: the body unrolled (along it, and once round it), each fin in its
+own rectangle (`Atlas` in `scripts/blender/paintkit.py`). The builder
+paints that atlas once per strain with numpy: countershading, faint
+scales, rays, fin edges that thin out instead of ending, dots and
+snakeskin from noise. A new strain is one more entry in the recipe's
+`strains`. The builder writes `model.glb`, `colorings/*.webp` and the
+gills and pectoral values for `model.json`, since the fish frame changes
+whenever the outline does.
 
 A fish with a single look paints the same way and wears it as its only
 coloring: the royal gramma (`"coloring": "classic"`), the angelfish
-(`"albino"`) and the sardine (`"silver"`). The scripts put only a tiny
+(`"albino"`) and the sardine (`"silver"`). The builder puts only a tiny
 copy of the texture inside `model.glb`, for a species that wears no
 coloring.
 

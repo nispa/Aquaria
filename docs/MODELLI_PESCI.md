@@ -37,8 +37,8 @@ Quello del platy, per esempio:
   "eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 22 },
   "gills": { "edge": 0.299, "top": 0.069, "bottom": -0.081, "curve": 4 },
   "credit": {
-    "author": "Aquaria (scripts/blender/platy.py)",
-    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/platy.py",
+    "author": "Aquaria (fish.json, built by scripts/blender/fishbuild.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/public/assets/species/platy/fish.json",
     "license": "CC0-1.0"
   }
 }
@@ -173,21 +173,146 @@ costruisce a mano.
 
 ## Fare un pesce in Blender
 
-Guppy, platy, pesce angelo, royal gramma, sardina e gamberetto red cherry
-sono fatti interamente da script in `scripts/blender/`, che condividono i
-pezzi comuni in `fishkit.py` (forme, pinne, armatura, esportazione) e
-`paintkit.py` (la pittura delle texture). Sono gli esempi migliori.
-Lancialo verso una cartella tua, poi comprimi il modello nella cartella
-della specie, copia le sue `colorings/` se ne ha, e incolla in
-`model.json` i valori che stampa:
+### Da una ricetta
+
+Guppy, platy, pesce angelo, royal gramma e sardina sono ricette: un
+`fish.json` nella loro cartella dice com'è il pesce, e
+`scripts/blender/fishbuild.py` lo costruisce in Blender. Quella del
+platy, accorciata:
+
+```jsonc
+{
+  "name": "Platy",
+  "body": {
+    "top": [
+      [0.3, 0.018],
+      [0.25, 0.07],
+      [0.11, 0.128],
+      /* … */ [-0.16, 0.058],
+    ],
+    "bottom": [
+      [0.3, 0.004],
+      [0.25, -0.058],
+      [0.09, -0.125],
+      /* … */ [-0.16, -0.052],
+    ],
+    "thickness": {
+      "half": 0.06,
+      "rise": 0.3,
+      "power": 0.5,
+      "taper": 0.55,
+      "taperFrom": 0.35,
+      "min": 0.014,
+    },
+    "roundness": 0.8,
+  },
+  "eye": {
+    "x": 0.235,
+    "z": 0.03,
+    "radius": 0.027,
+    "depth": 0.5,
+    "rim": "#3a2a20",
+    "iris": "#e0a830",
+    "pupil": "#080808",
+    "irisEdge": [55, 65],
+    "pupilEdge": [28, 34],
+  },
+  "fins": [
+    {
+      "id": "dorsal",
+      "type": "body",
+      "upper": true,
+      "start": 0.07,
+      "end": -0.085,
+      "outline": [
+        [0.05, 0.19],
+        [0.0, 0.215],
+        [-0.06, 0.205],
+        [-0.1, 0.15],
+        [-0.105, 0.095],
+      ],
+    },
+    {
+      "id": "pectoral",
+      "type": "pectoral",
+      "root": [0.19, -0.035],
+      "base": [-0.004, 0.04],
+      "length": 0.072,
+      "angles": [20, -40],
+    },
+    // … the tail, the anal and pelvic fins
+  ],
+  "strains": [
+    {
+      "id": "mickey-mouse",
+      "name": "Mickey Mouse",
+      "body": [
+        { "type": "fill", "color": "#f6b83a" },
+        { "type": "patch", "color": "#d68a18", "bands": [{ "axis": "up", "range": [0.1, 0.85] }] },
+        {
+          "type": "marks",
+          "color": "#111111",
+          "amount": 0.95,
+          "marks": [
+            [-0.1, 0.0, 0.026],
+            [-0.132, 0.03, 0.015],
+            [-0.132, -0.03, 0.015],
+          ],
+        },
+        { "type": "scales", "size": 0.018, "rim": 0.08 },
+      ],
+      "fins": {
+        "dorsal": {
+          "rayed": {
+            "web": "#f8c860",
+            "ray": "#e0a030",
+            "root": "#f0a030",
+            "alphaRoot": 0.7,
+            "alphaEdge": 0.35,
+            "rays": 22,
+          },
+        } /* … */,
+      },
+    },
+  ],
+}
+```
+
+- `body`: il profilo visto di lato, sopra e sotto, come punti (x, z) dal
+  muso al peduncolo caudale, in lunghezze del corpo (il +X di Blender è il
+  muso, il +Z il dorso); quanto è spesso (metà dello spessore nel punto
+  più largo, fin dove cresce, quanto si assottiglia) e quanto è tondo in
+  sezione.
+- `eye`, `mouth` (quanto si allunga e quanto scende la shape key) e
+  `gills` (dove finisce l'opercolo, per `model.json`).
+- `fins`: ognuna con un id, il suo rettangolo nella texture, e un tipo:
+  `body` (dorsale, anale o gonopodio, lungo il dorso o il ventre), `tail`,
+  `pectoral`, `pelvic` (a ventaglio o a lama) o `filament` (quelle del
+  pesce angelo).
+- `texture`: la misura e dove sta ogni parte.
+- `strains`: ogni ceppo dipinge il corpo con una pila di strati (`fill`,
+  `patch`, `edge`, `marks`, `noise`, `noiseLines`, `eyeLine`, `rays`,
+  `gillCurve`, `scales`) e ogni pinna con una trama raggiata e strati
+  sopra (`tint`, `dots`, `noiseLines`, `marks`). `finPaint` contiene le
+  pinne che tutti i ceppi dipingono uguali.
+
+Ogni campo sta in `src/scene/fishRecipe.ts`, con cui un test controlla
+ogni ricetta; gli strati li disegna `scripts/blender/fishpaint.py`.
+Costruiscilo in una cartella tua, comprimi il modello nella cartella della
+specie, copia `colorings/` e unisci `model-values.json` (branchie, pinne
+pettorali, colorazioni) a `model.json`:
 
 ```bash
-blender --background --python scripts/blender/platy.py -- out/platy
+blender --background --python scripts/blender/fishbuild.py -- public/assets/species/platy/fish.json out/platy
 pnpm dlx @gltf-transform/cli@4.5.1 optimize out/platy/model.glb public/assets/species/platy/model.glb --compress meshopt --simplify false
 ```
 
-Senza cartella lo script scrive direttamente in
-`public/assets/species/<id>/`, senza comprimere.
+Senza cartella il costruttore scrive nella cartella della ricetta, senza
+comprimere. Il gamberetto red cherry è ancora uno script a sé,
+`scripts/blender/shrimp.py`, sugli stessi pezzi comuni (`fishkit.py`,
+`paintkit.py`).
+
+### A mano
 
 Se modelli a mano:
 
@@ -262,22 +387,20 @@ sulla GPU: le texture diventano gli strati di un texture array.
 - La scheda del pesce mostra la prima colorazione. Per guardarne un'altra
   sulla griglia: `/model-viewer.html?id=guppy&coloring=1`.
 
-**Dipingerle col codice.** `scripts/blender/guppy.py` stende il guppy su
-una texture quadrata: il corpo srotolato (lungo il pesce e tutto intorno),
-ogni pinna in un suo rettangolo (`Atlas` in `scripts/blender/paintkit.py`).
-Poi dipinge quell'atlante una volta per ceppo con numpy: dorso scuro e
-pancia chiara, squame appena accennate, raggi, bordi delle pinne che
-sfumano invece di finire netti, puntini e pelle di serpente dal rumore. Un
-ceppo nuovo è una funzione di pittura in più e una riga in `STRAINS`;
-`scripts/blender/platy.py` fa lo stesso per i ceppi del platy: Red
-Wagtail, Mickey Mouse e Blue. Lanciato, ognuno scrive `model.glb` e
-`colorings/*.webp` e stampa i valori di branchie e pinne pettorali per
-`model.json`, perché il riferimento del pesce cambia ogni volta che
-cambia il profilo.
+**Dipingerle col codice.** Una ricetta stende il pesce su una texture
+quadrata: il corpo srotolato (lungo il pesce e tutto intorno), ogni pinna
+in un suo rettangolo (`Atlas` in `scripts/blender/paintkit.py`). Il
+costruttore dipinge quell'atlante una volta per ceppo con numpy: dorso
+scuro e pancia chiara, squame appena accennate, raggi, bordi delle pinne
+che sfumano invece di finire netti, puntini e pelle di serpente dal
+rumore. Un ceppo nuovo è una voce in più negli `strains` della ricetta.
+Il costruttore scrive `model.glb`, `colorings/*.webp` e i valori di
+branchie e pinne pettorali per `model.json`, perché il riferimento del
+pesce cambia ogni volta che cambia il profilo.
 
 Un pesce con un aspetto solo si dipinge allo stesso modo e lo porta come
 unica colorazione: il royal gramma (`"coloring": "classic"`), il pesce
-angelo (`"albino"`) e la sardina (`"silver"`). Gli script mettono dentro
+angelo (`"albino"`) e la sardina (`"silver"`). Il costruttore mette dentro
 `model.glb` solo una copia minuscola della texture, per una specie che
 non porta colorazioni.
 

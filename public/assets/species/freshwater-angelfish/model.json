@@ -39,8 +39,8 @@
     }
   },
   "credit": {
-    "author": "Aquaria (scripts/blender/angelfish.py)",
-    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/angelfish.py",
+    "author": "Aquaria (fish.json, built by scripts/blender/fishbuild.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/public/assets/species/freshwater-angelfish/fish.json",
     "license": "CC0-1.0"
   }
 }

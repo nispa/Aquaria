@@ -1,0 +1,284 @@
+{
+  "name": "Sardine",
+  "description": "A sardine (Sardina pilchardus): a slender, streamlined body, round in section, with a pointed head, a big eye and a deep, forked tail; a dark blue-green back, bright silver flanks and a white belly, a row of dark spots along the upper flank and faint radiating lines on the gill cover.",
+  "body": {
+    "top": [
+      [0.38, 0.004],
+      [0.35, 0.03],
+      [0.3, 0.052],
+      [0.2, 0.072],
+      [0.08, 0.078],
+      [-0.04, 0.07],
+      [-0.14, 0.05],
+      [-0.21, 0.03],
+      [-0.25, 0.022]
+    ],
+    "bottom": [
+      [0.38, -0.008],
+      [0.35, -0.03],
+      [0.3, -0.05],
+      [0.2, -0.07],
+      [0.08, -0.078],
+      [-0.04, -0.068],
+      [-0.14, -0.046],
+      [-0.21, -0.028],
+      [-0.25, -0.02]
+    ],
+    "thickness": {
+      "half": 0.055,
+      "rise": 0.3,
+      "power": 0.6,
+      "taper": 0.65,
+      "taperFrom": 0.4,
+      "min": 0.012
+    },
+    "roundness": 0.7
+  },
+  "eye": {
+    "x": 0.29,
+    "z": 0.012,
+    "radius": 0.026,
+    "depth": 0.55,
+    "rim": "#d5dde2",
+    "iris": "#e2e6e8",
+    "pupil": "#060606",
+    "irisEdge": [55, 65],
+    "pupilEdge": [30, 36]
+  },
+  "mouth": {
+    "reach": 0.05,
+    "drop": 0.022
+  },
+  "fins": [
+    {
+      "id": "dorsal",
+      "type": "body",
+      "upper": true,
+      "start": 0.1,
+      "end": -0.05,
+      "outline": [
+        [0.07, 0.14],
+        [0.0, 0.13],
+        [-0.04, 0.085]
+      ],
+      "steps": [60, 24]
+    },
+    {
+      "id": "anal",
+      "type": "body",
+      "upper": false,
+      "start": -0.1,
+      "end": -0.21,
+      "outline": [
+        [-0.13, -0.075],
+        [-0.19, -0.07],
+        [-0.21, -0.035]
+      ],
+      "steps": [40, 24]
+    },
+    {
+      "id": "caudal",
+      "type": "tail",
+      "root": 0.006,
+      "baseHeight": 0.04,
+      "outline": [
+        [-0.26, 0.03],
+        [-0.42, 0.13],
+        [-0.52, 0.17],
+        [-0.42, 0.06],
+        [-0.37, 0.0],
+        [-0.42, -0.06],
+        [-0.52, -0.17],
+        [-0.42, -0.13],
+        [-0.26, -0.03]
+      ]
+    },
+    {
+      "id": "pelvic",
+      "type": "pelvic",
+      "root": [0.02, 0.02, -0.07],
+      "base": [-0.02, 0.0],
+      "edge": {
+        "line": [
+          [-0.07, -0.025],
+          [-0.07, -0.015]
+        ]
+      },
+      "out": 0.01,
+      "steps": [8, 6]
+    },
+    {
+      "id": "pectoral",
+      "type": "pectoral",
+      "root": [0.22, -0.035],
+      "base": [-0.004, 0.03],
+      "length": 0.085,
+      "angles": [15, -35]
+    }
+  ],
+  "texture": {
+    "size": 1024,
+    "ownStep": 8,
+    "parts": {
+      "body": [0.0, 0.0, 1.0, 0.46],
+      "caudal": [0.0, 0.48, 0.4, 0.3],
+      "dorsal": [0.42, 0.48, 0.16, 0.14],
+      "anal": [0.6, 0.48, 0.16, 0.1],
+      "pelvic": [0.78, 0.48, 0.1, 0.08],
+      "pectoral": [0.42, 0.64, 0.12, 0.1]
+    }
+  },
+  "materials": {
+    "skin": {
+      "roughness": 0.25,
+      "metallic": 0.45
+    },
+    "fins": {
+      "roughness": 0.4,
+      "metallic": 0.0
+    },
+    "eyes": {
+      "roughness": 0.05,
+      "metallic": 0.0
+    }
+  },
+  "strains": [
+    {
+      "id": "silver",
+      "name": "Silver",
+      "body": [
+        {
+          "type": "fill",
+          "color": "#d5dde2"
+        },
+        {
+          "type": "patch",
+          "color": "#3f8c96",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [0.2, 0.5]
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#1f4f5f",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [0.45, 0.85]
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#f4f6f7",
+          "bands": [
+            {
+              "axis": "up",
+              "range": [-0.2, -0.8]
+            }
+          ]
+        },
+        {
+          "type": "marks",
+          "color": "#24323a",
+          "amount": 0.85,
+          "axis": "up",
+          "ySquash": 0.06,
+          "softness": 0.5,
+          "marks": [
+            [0.17, 0.32, 0.016],
+            [0.11, 0.32, 0.011],
+            [0.05, 0.32, 0.011],
+            [-0.01, 0.32, 0.011],
+            [-0.07, 0.32, 0.011]
+          ]
+        },
+        {
+          "type": "rays",
+          "color": "#3f8c96",
+          "centre": [0.26, 0.0],
+          "count": 22,
+          "power": 6,
+          "amount": 0.35,
+          "where": [
+            {
+              "axis": "x",
+              "range": [0.19, 0.22]
+            },
+            {
+              "axis": "x",
+              "range": [0.25, 0.27],
+              "invert": true
+            },
+            {
+              "axis": "absUp",
+              "range": [0.5, 0.6],
+              "invert": true
+            }
+          ]
+        },
+        {
+          "type": "scales",
+          "size": 0.014,
+          "rim": 0.1
+        }
+      ],
+      "fins": {
+        "dorsal": {
+          "rayed": {
+            "web": "#c2ccd2",
+            "ray": "#a8b4bc",
+            "root": "#c2ccd2",
+            "alphaRoot": 0.7,
+            "alphaEdge": 0.35,
+            "rays": 10
+          }
+        },
+        "anal": {
+          "rayed": {
+            "web": "#c2ccd2",
+            "ray": "#a8b4bc",
+            "root": "#c2ccd2",
+            "alphaRoot": 0.7,
+            "alphaEdge": 0.35,
+            "rays": 10
+          }
+        },
+        "caudal": {
+          "rayed": {
+            "web": "#c2ccd2",
+            "ray": "#8a9ca6",
+            "root": "#c2ccd2",
+            "alphaRoot": 0.8,
+            "alphaEdge": 0.8,
+            "rays": 24,
+            "edgeColor": "#5e7480"
+          }
+        },
+        "pelvic": {
+          "rayed": {
+            "web": "#c2ccd2",
+            "ray": "#a8b4bc",
+            "root": "#c2ccd2",
+            "alphaRoot": 0.7,
+            "alphaEdge": 0.35,
+            "rays": 10
+          }
+        },
+        "pectoral": {
+          "rayed": {
+            "web": "#c2ccd2",
+            "ray": "#ffffff",
+            "root": "#c2ccd2",
+            "alphaRoot": 0.4,
+            "alphaEdge": 0.15,
+            "rays": 8
+          }
+        }
+      }
+    }
+  ]
+}
