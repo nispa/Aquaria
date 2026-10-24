@@ -4,8 +4,8 @@ A strain paints the body with a stack of layers, each a color laid where
 its pattern says, and each fin with a rayed web and layers of its own. The
 layer types are the patterns the hand-written fish scripts used (the
 guppy's tuxedo and grass, the platy's Mickey Mouse mark, the gramma's
-split, the sardine's spots…), with their numbers taken out into the
-recipe. Every pattern is a share 0..1 per texel, computed with numpy over a
+split, the sardine's spots, the rasbora's wedge as a shape…), with their
+numbers taken out into the recipe. Every pattern is a share 0..1 per texel, computed with numpy over a
 whole rectangle of the atlas.
 
 Coordinates: on the body x along it (snout positive), z height, `up` the
@@ -72,6 +72,26 @@ def _marks(spec, x, y):
     return share
 
 
+def _shape(spec, x, z):
+    """Inside a polygon of (x, z) points (1), its edge fading inwards over `softness` (0 outside)."""
+    points = spec["points"]
+    softness = spec.get("softness", 0.01)
+    inside = np.zeros(np.shape(x), dtype=bool)
+    nearest = np.full(np.shape(x), np.inf)
+    for index, (ax, az) in enumerate(points):
+        bx, bz = points[(index + 1) % len(points)]
+        # A ray towards +x crosses this side: each crossing flips inside and out.
+        crosses = (az > z) != (bz > z)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            at = ax + (bx - ax) * (z - az) / (bz - az)
+        inside ^= crosses & (x < at)
+        dx, dz = bx - ax, bz - az
+        length = dx * dx + dz * dz or 1e-12
+        t = np.clip(((x - ax) * dx + (z - az) * dz) / length, 0.0, 1.0)
+        nearest = np.minimum(nearest, np.hypot(x - (ax + t * dx), z - (az + t * dz)))
+    return np.where(inside, paint.smoothstep(0.0, softness, nearest), 0.0)
+
+
 def _noise_lines(spec, x, z):
     noise = paint.fbm(x * spec["scale"], z * spec["scale"], spec["seed"], octaves=spec.get("octaves", 2))
     low, high = spec["width"]
@@ -94,6 +114,8 @@ def _pattern(layer, coords, eye):
         return paint.smoothstep(low, high, noise)
     if kind == "noiseLines":
         return _noise_lines(layer, x, z)
+    if kind == "shape":
+        return _shape(layer, x, z)
     if kind == "eyeLine":
         low, high = layer["width"]
         line = 1 - paint.smoothstep(low, high, abs(z - (eye["z"] + (x - eye["x"]) * layer["slope"])))
@@ -185,6 +207,8 @@ def fin_painter(spec, points):
                 share = _noise_lines(layer, x, z) * layer.get("amount", 1.0)
             elif kind == "marks":
                 share = _marks(layer, x, z) * layer.get("amount", 1.0)
+            elif kind == "shape":
+                share = _shape(layer, x, z) * layer.get("amount", 1.0)
             else:
                 raise ValueError(f"Unknown fin layer {kind!r}.")
             alpha = out[..., 3] if layer.get("alpha") is None else layer["alpha"]

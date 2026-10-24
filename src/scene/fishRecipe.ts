@@ -157,6 +157,8 @@ const patternShapes = {
   eyeLine: { slope: z.number(), width: range, x: range },
   rays: { centre: sidePoint, count: z.number().positive(), power: z.number().positive() },
   gillCurve: { x: z.number(), curve: z.number(), width: range },
+  /** A polygon of side-view points, its edge fading inwards over `softness` (body lengths). */
+  shape: { points: z.array(sidePoint).min(3), softness: z.number().min(0).max(0.2).optional() },
 } as const;
 
 const pattern = z.discriminatedUnion("type", [
@@ -168,6 +170,7 @@ const pattern = z.discriminatedUnion("type", [
   z.object({ type: z.literal("eyeLine"), ...patternShapes.eyeLine, ...strength }),
   z.object({ type: z.literal("rays"), ...patternShapes.rays, ...strength }),
   z.object({ type: z.literal("gillCurve"), ...patternShapes.gillCurve, ...strength }),
+  z.object({ type: z.literal("shape"), ...patternShapes.shape, ...strength }),
 ]);
 
 const colored = { color: hexColor, ...strength };
@@ -199,6 +202,7 @@ const coloredLayer = z.discriminatedUnion("type", [
   z.object({ type: z.literal("eyeLine"), ...patternShapes.eyeLine, ...colored }),
   z.object({ type: z.literal("rays"), ...patternShapes.rays, ...colored }),
   z.object({ type: z.literal("gillCurve"), ...patternShapes.gillCurve, ...colored }),
+  z.object({ type: z.literal("shape"), ...patternShapes.shape, ...colored }),
 ]);
 
 const bodyLayer = z.union([
@@ -243,6 +247,13 @@ const finLayer = z.discriminatedUnion("type", [
     type: z.literal("marks"),
     color: hexColor,
     ...marksShape,
+    amount: z.number().min(0).max(2).optional(),
+    alpha: share.optional(),
+  }),
+  z.object({
+    type: z.literal("shape"),
+    color: hexColor,
+    ...patternShapes.shape,
     amount: z.number().min(0).max(2).optional(),
     alpha: share.optional(),
   }),
@@ -383,6 +394,16 @@ export const BODY_LAYER_TEMPLATES: Readonly<Record<string, BodyLayer>> = {
     width: [0, 0.05],
     amount: 0.5,
   },
+  shape: {
+    type: "shape",
+    color: "#141414",
+    points: [
+      [0.02, 0.05],
+      [-0.15, 0],
+      [0.02, -0.05],
+    ],
+    softness: 0.01,
+  },
   scales: { type: "scales", size: 0.016, rim: 0.07 },
 };
 
@@ -400,4 +421,13 @@ export const FIN_LAYER_TEMPLATES: Readonly<Record<string, FinLayer>> = {
   },
   noiseLines: { type: "noiseLines", color: "#202020", scale: 40, seed: 1, width: [0.015, 0.035] },
   marks: { type: "marks", color: "#111111", marks: [[0, 0, 0.02]] },
+  shape: {
+    type: "shape",
+    color: "#111111",
+    points: [
+      [-0.2, 0.05],
+      [-0.3, 0],
+      [-0.2, -0.05],
+    ],
+  },
 };

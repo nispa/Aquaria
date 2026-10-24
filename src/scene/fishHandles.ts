@@ -12,7 +12,7 @@ export interface Handle {
   readonly id: string;
   readonly at: SidePoint;
   /** What it shapes, for its color on the page. */
-  readonly kind: "body" | "eye" | "gill" | "fin";
+  readonly kind: "body" | "eye" | "gill" | "fin" | "paint";
   /** Moves along x only (where a fin starts or ends along the body, the tail's base, the gill edge). */
   readonly alongX?: boolean;
 }
@@ -63,8 +63,23 @@ function finHandles(recipe: FishRecipe, fin: Fin): Handle[] {
   }
 }
 
-/** Every point the page lets you drag. */
-export function recipeHandles(recipe: FishRecipe): Handle[] {
+/** The corners of a strain's shapes: "paint.<strain>.<layer>.<corner>". */
+function paintHandles(recipe: FishRecipe, strainIndex: number): Handle[] {
+  const strain = recipe.strains[strainIndex];
+  if (strain === undefined) return [];
+  return strain.body.flatMap((layer, layerIndex) =>
+    layer.type === "shape"
+      ? layer.points.map((at, corner) => ({
+          id: `paint.${String(strainIndex)}.${String(layerIndex)}.${String(corner)}`,
+          at,
+          kind: "paint" as const,
+        }))
+      : [],
+  );
+}
+
+/** Every point the page lets you drag; with a strain, the corners of its shapes too. */
+export function recipeHandles(recipe: FishRecipe, strainIndex?: number): Handle[] {
   const outline = (side: "top" | "bottom"): Handle[] =>
     recipe.body[side].map((at, index) => ({
       id: `body.${side}.${String(index)}`,
@@ -87,6 +102,7 @@ export function recipeHandles(recipe: FishRecipe): Handle[] {
           },
         ]),
     ...recipe.fins.flatMap((fin) => finHandles(recipe, fin)),
+    ...(strainIndex === undefined ? [] : paintHandles(recipe, strainIndex)),
   ];
 }
 
@@ -141,6 +157,10 @@ export function moveHandle(recipe: FishRecipe, handle: Handle, to: SidePoint): F
     next.eye.z = z;
   } else if (group === "gills" && next.gills !== undefined) {
     next.gills.edge = x;
+  } else if (group === "paint") {
+    const [strain, layer, corner] = part.map(Number);
+    const shape = next.strains[strain ?? -1]?.body[layer ?? -1];
+    if (shape?.type === "shape" && corner !== undefined) shape.points[corner] = [x, z];
   } else if (group === "fin") {
     const [id, ...rest] = part;
     const fin = next.fins.find((each) => each.id === id);

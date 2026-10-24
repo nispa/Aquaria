@@ -20,6 +20,8 @@ export interface PhotoPlacement {
 
 export interface SideView {
   setRecipe(recipe: FishRecipe): void;
+  /** The strain whose shapes are drawn and dragged. */
+  setStrain(index: number): void;
   setPhoto(photo: HTMLImageElement | undefined, placement: PhotoPlacement): void;
   dispose(): void;
 }
@@ -43,20 +45,28 @@ const COLORS = {
   eye: "#ffffff",
   gill: "#f0a0a0",
   active: "#ffe14d",
+  paint: "#ff7ad9",
 } as const;
 const HANDLE_COLORS: Readonly<Record<Handle["kind"], string>> = {
   body: COLORS.body,
   eye: COLORS.eye,
   gill: COLORS.gill,
   fin: COLORS.fin,
+  paint: COLORS.paint,
 };
 
+/**
+ * @param onChange gets each new recipe while a point is dragged, then once
+ * more with `finished` when it is let go.
+ */
 export function createSideView(
   canvas: HTMLCanvasElement,
-  onChange: (recipe: FishRecipe) => void,
+  onChange: (recipe: FishRecipe, finished: boolean) => void,
 ): SideView {
   const context = canvas.getContext("2d");
   let recipe: FishRecipe | undefined;
+  let strain = 0;
+  let moved = false;
   let photo: HTMLImageElement | undefined;
   let placement: PhotoPlacement = { x: 0, z: 0, width: 1, opacity: 0.5, flip: false };
   let dragging: Handle | undefined;
@@ -179,12 +189,17 @@ export function createSideView(
       context.stroke();
       context.setLineDash([]);
     }
+    context.setLineDash([3, 3]);
+    for (const layer of recipe.strains[strain]?.body ?? []) {
+      if (layer.type === "shape") polygon(layer.points, COLORS.paint, "transparent");
+    }
+    context.setLineDash([]);
     const [ex, ey] = toCanvas([eye.x, eye.z]);
     context.strokeStyle = COLORS.eye;
     context.beginPath();
     context.arc(ex, ey, eye.radius * frame().scale, 0, Math.PI * 2);
     context.stroke();
-    for (const handle of recipeHandles(recipe)) {
+    for (const handle of recipeHandles(recipe, strain)) {
       const [hx, hy] = toCanvas(handle.at);
       const active = handle.id === dragging?.id || handle.id === hovered?.id;
       context.fillStyle = active ? COLORS.active : HANDLE_COLORS[handle.kind];
@@ -202,7 +217,7 @@ export function createSideView(
     if (recipe === undefined) return undefined;
     let best: Handle | undefined;
     let bestDistance = GRAB_RADIUS;
-    for (const handle of recipeHandles(recipe)) {
+    for (const handle of recipeHandles(recipe, strain)) {
       const [hx, hy] = toCanvas(handle.at);
       const distance = Math.hypot(hx - px, hy - py);
       if (distance <= bestDistance) {
@@ -231,12 +246,15 @@ export function createSideView(
       return;
     }
     recipe = moveHandle(recipe, dragging, toFrame(px, py));
-    dragging = recipeHandles(recipe).find((handle) => handle.id === dragging?.id);
+    dragging = recipeHandles(recipe, strain).find((handle) => handle.id === dragging?.id);
+    moved = true;
     draw();
-    onChange(recipe);
+    onChange(recipe, false);
   };
   const onUp = (): void => {
     dragging = undefined;
+    if (moved && recipe !== undefined) onChange(recipe, true);
+    moved = false;
     draw();
   };
   canvas.addEventListener("pointerdown", onDown);
@@ -248,6 +266,10 @@ export function createSideView(
   return {
     setRecipe(next) {
       recipe = next;
+      draw();
+    },
+    setStrain(index) {
+      strain = index;
       draw();
     },
     setPhoto(next, nextPlacement) {

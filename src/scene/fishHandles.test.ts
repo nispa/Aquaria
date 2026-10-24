@@ -55,6 +55,37 @@ describe("moveHandle", () => {
     expect([moved.eye.x, moved.eye.z]).toEqual([0.24, 0.04]);
   });
 
+  it("offers the corners of the open strain's shapes, and moves them", () => {
+    const strain = platy.strains[0];
+    const shaped = structuredClone(platy);
+    shaped.strains[0] = {
+      ...(strain ?? { id: "x", name: "x", body: [] }),
+      body: [
+        ...(strain?.body ?? []),
+        {
+          type: "shape",
+          color: "#111111",
+          points: [
+            [0, 0.05],
+            [-0.15, 0],
+            [0, -0.05],
+          ],
+        },
+      ],
+    };
+    const layer = (strain?.body.length ?? 0).toString();
+    const corner = recipeHandles(shaped, 0).find((each) => each.id === `paint.0.${layer}.1`);
+    const moved = corner === undefined ? shaped : moveHandle(shaped, corner, [-0.12, 0.01]);
+
+    expect(moved.strains[0]?.body.at(-1)).toMatchObject({
+      points: [
+        [0, 0.05],
+        [-0.12, 0.01],
+        [0, -0.05],
+      ],
+    });
+  });
+
   it("leaves the recipe it was given untouched", () => {
     const eye = handle("eye");
     if (eye !== undefined) moveHandle(platy, eye, [0.1, 0.1]);

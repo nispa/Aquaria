@@ -93,8 +93,13 @@ async function start(): Promise<void> {
   const say = (text: string): void => {
     status.textContent = text;
   };
-  const side = createSideView(canvas, (next) => {
+  // A drag gives a new recipe: once it is let go, the panel shows that one.
+  const side = createSideView(canvas, (next, finished) => {
     recipe = next;
+    if (finished) {
+      renderShape();
+      renderPaint();
+    }
   });
   const showViewer = (): void => {
     viewer.src = `/model-viewer.html?id=${id}&coloring=${String(strainIndex)}&spread=0.3&t=${String(Date.now())}`;
@@ -200,6 +205,9 @@ async function start(): Promise<void> {
       paint.firstElementChild ?? element("summary", "maker__heading", "Strains"),
     );
     if (recipe === undefined) return;
+    // Layers added, moved or removed, another strain: the drawing follows.
+    side.setStrain(strainIndex);
+    side.setRecipe(recipe);
     const strains = recipe.strains;
     const strainPicker = element("select", "maker__select");
     strains.forEach((strain, index) => {
@@ -210,6 +218,7 @@ async function start(): Promise<void> {
     });
     strainPicker.addEventListener("change", () => {
       strainIndex = Number(strainPicker.value);
+      side.setStrain(strainIndex);
       renderPaint();
       showViewer();
     });
@@ -336,6 +345,7 @@ async function start(): Promise<void> {
     strainIndex = 0;
     const loaded = await fetchJson(`/assets/species/${next}/fish.json`);
     recipe = parseFishRecipe(loaded, next);
+    side.setStrain(strainIndex);
     side.setRecipe(recipe);
     renderShape();
     renderPaint();
