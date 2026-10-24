@@ -161,8 +161,8 @@ built-in GPU.
   fish do during the day.
 - [Playing with the fish](docs/INTERACTION.md): what the mouse and the
   keys do to them.
-- [3D fish models](docs/FISH_MODELS.md): adding a model, or making one in
-  Blender.
+- [3D fish models](docs/FISH_MODELS.md): adding a model, or making and
+  painting one in Blender, with strains of the same fish.
 - [Plants and objects](docs/OBJECTS.md): a new plant or object is a folder
   of files.
 - [Effects made of files](docs/EFFECTS.md): a new post-processing effect is

@@ -16,6 +16,7 @@ farne uno in Blender.
 public/assets/species/<id>/
   model.json   come Aquaria deve usare il modello
   model.glb    il modello, texture comprese
+  colorings/   facoltativa: una texture per colorazione (vedi Colorazioni)
 ```
 
 Va bene anche un `.gltf` con accanto il suo `.bin` e le texture. La specie
@@ -34,7 +35,7 @@ Quello del platy, per esempio:
   "swimAmplitude": 0.08,
   "mouth": { "morphTarget": "MouthOpen" },
   "eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 22 },
-  "gills": { "edge": 0.3, "top": 0.07, "bottom": -0.08, "curve": 4 },
+  "gills": { "edge": 0.299, "top": 0.069, "bottom": -0.081, "curve": 4 },
   "credit": {
     "author": "Aquaria (scripts/blender/platy.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/platy.py",
@@ -43,21 +44,26 @@ Quello del platy, per esempio:
 }
 ```
 
+(Il file vero ha anche `fins` e `colorings`, spiegati più sotto.)
+
 - `forward` e `up`: quali assi del modello puntano verso il muso e verso
   il dorso. Aquaria ruota, centra e scala il modello alla lunghezza della
   specie, quindi va bene qualsiasi misura e orientamento.
 - `swimAmplitude`: quanto si muove la coda, in lunghezze del corpo (di
   partenza 0.07). Il modello non ha bisogno di un'animazione di nuoto: lo
   piega Aquaria.
-- `mouth`, `eyes`, `gills`, `fins`: facoltativi, vedi sotto. Senza, la bocca resta
-  chiusa, gli occhi fermi e le branchie immobili.
+- `mouth`, `eyes`, `gills`, `fins`: facoltativi, vedi sotto. Senza, la
+  bocca resta chiusa, gli occhi fermi e branchie e pinne immobili.
+- `colorings`: facoltativo, vedi
+  [Colorazioni](#colorazioni-un-modello-tanti-ceppi).
 - `credit`: chi l'ha fatto, da dove viene e la licenza. Sono accettate solo
   licenze che permettono riuso, modifiche e uso commerciale: `CC0-1.0`,
   `CC-BY-3.0`, `CC-BY-4.0`, `MIT`, `Apache-2.0`, `BSD-2-Clause`,
   `BSD-3-Clause`, `0BSD`, `Unlicense`. Il modello va elencato anche in
   `ASSETS.md`; un test lo controlla.
 
-Il modello tiene i suoi materiali e le sue texture.
+Il modello tiene i suoi materiali e le sue texture, a meno che la sua
+specie non porti una colorazione.
 
 ## Guardarlo: il pesce sul piano millimetrato
 
@@ -140,7 +146,10 @@ disegnato. A un modello basta dire dove sono, come il pesce pagliaccio:
   contiene tutta la pinna e nessun'altra.
 - `side`: quanto lontano dal centro del corpo (z, dalla vista dall'alto)
   comincia la pinna. Nel riquadro si muove solo quello che sporge oltre:
-  il fianco resta fermo. Mettilo appena fuori dalla pelle.
+  il fianco resta fermo. Aquaria sfuma la pinna nel corpo negli ultimi
+  0.015 prima di `side`, quindi mettilo circa 0.017 oltre il punto più
+  largo della pelle nel riquadro, non sulla pelle: lì il fianco si muove
+  con la pinna come un'ala (dall'alto, con **Pectoral spread** a 1).
 - `root`: l'estremità alta e quella bassa della base della pinna, la linea
   attorno a cui ruota.
 - `rest`: di quanti gradi la pinna del modello si stacca dal corpo
@@ -154,7 +163,7 @@ le può avere come lastre separate dal corpo: il riquadro le trova lo
 stesso. La lastra deve partire dalla pelle, non da dentro, o `side` non
 la distingue dal fianco: `pectoral_fin` in `scripts/blender/fishkit.py`
 appoggia la base sulla pelle e la inclina in fuori di 30 gradi, come sul
-gramma reale.
+gramma reale, e gli script stampano tutto il blocco `fins.pectoral`.
 
 Un pesce che allunga la bocca in avanti quando la apre, come l'orata o il
 barramundi, con `jaw` viene male. Gli serve una vera posa a bocca aperta
@@ -166,11 +175,19 @@ costruisce a mano.
 
 Guppy, platy, pesce angelo, royal gramma, sardina e gamberetto red cherry
 sono fatti interamente da script in `scripts/blender/`, che condividono i
-pezzi comuni in `fishkit.py`. Sono gli esempi migliori. Per lanciarne uno:
+pezzi comuni in `fishkit.py` (forme, pinne, armatura, esportazione) e
+`paintkit.py` (la pittura delle texture). Sono gli esempi migliori.
+Lancialo verso una cartella tua, poi comprimi il modello nella cartella
+della specie, copia le sue `colorings/` se ne ha, e incolla in
+`model.json` i valori che stampa:
 
 ```bash
-blender --background --python scripts/blender/platy.py
+blender --background --python scripts/blender/platy.py -- out/platy
+pnpm dlx @gltf-transform/cli@4.5.1 optimize out/platy/model.glb public/assets/species/platy/model.glb --compress meshopt --simplify false
 ```
+
+Senza cartella lo script scrive direttamente in
+`public/assets/species/<id>/`, senza comprimere.
 
 Se modelli a mano:
 
@@ -253,17 +270,20 @@ pancia chiara, squame appena accennate, raggi, bordi delle pinne che
 sfumano invece di finire netti, puntini e pelle di serpente dal rumore. Un
 ceppo nuovo è una funzione di pittura in più e una riga in `STRAINS`;
 `scripts/blender/platy.py` fa lo stesso per i ceppi del platy: Red
-Wagtail, Mickey Mouse e Blue. Lanciato, ognuno scrive `model.glb` e `colorings/*.webp` e stampa i valori di
-branchie e pinne pettorali per `model.json`, perché il riferimento del
-pesce cambia ogni volta che cambia il profilo. Il `side` delle pettorali
-che stampa sta oltre il punto più largo della pelle nel riquadro della
-pinna, di quanto Aquaria sfuma la pinna nel corpo, così il fianco non si
-muove mai con la pinna.
+Wagtail, Mickey Mouse e Blue. Lanciato, ognuno scrive `model.glb` e
+`colorings/*.webp` e stampa i valori di branchie e pinne pettorali per
+`model.json`, perché il riferimento del pesce cambia ogni volta che
+cambia il profilo.
 
 Un pesce con un aspetto solo si dipinge allo stesso modo, senza
-colorazioni: royal gramma, angelfish e sardina mettono la loro unica
+colorazioni: royal gramma, pesce angelo e sardina mettono la loro unica
 texture dentro `model.glb`, compressa in WebP con `--texture-compress webp`
 nel comando `optimize` qui sopra.
+
+Il WebP tiene piccolo lo scaricamento, ma sulla GPU una texture viene
+spacchettata: una colorazione 1024 × 1024 occupa circa 5 MB di memoria
+video con le sue mipmap, e una specie la paga una volta per ogni
+colorazione che porta.
 
 ## Animali che camminano
 

@@ -50,7 +50,8 @@ non riscrivere un percorso. I dettagli sono in [Stili di nuoto](NUOTO.md).
 Il corpo segue il movimento: la simulazione calcola quanto il pesce sta
 girando, quanto batte la coda, se ha la bocca aperta, e lo shader piega e
 anima il modello con quei pochi numeri. Per questo un intero branco della
-stessa specie si disegna in un colpo solo.
+stessa specie si disegna in un colpo solo, anche se mescola più ceppi:
+ogni pesce legge la sua colorazione da un unico texture array.
 
 ## Dati, controllati all'ingresso
 
@@ -72,8 +73,10 @@ vettori e array.
 
 Lo stesso vale per la scheda grafica: la risoluzione segue quello che la
 scheda riesce a fare, gli effetti pesanti si accendono solo se c'è
-margine, e le texture sono file KTX2 che restano compressi nella memoria
-video.
+margine, e le texture dell'arredamento sono file KTX2 che restano
+compressi nella memoria video. Fanno eccezione i pesci dipinti dai nostri
+script Blender: le loro piccole texture WebP vengono spacchettate sulla
+GPU, pochi megabyte per specie.
 
 ## Effetti come plug-in
 

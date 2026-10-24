@@ -164,7 +164,7 @@ scegliere ancora la scheda integrata.
 - [Giocare con i pesci](docs/INTERAZIONE.md): cosa fanno loro mouse e
   tasti.
 - [Modelli 3D dei pesci](docs/MODELLI_PESCI.md): aggiungere un modello, o
-  farne uno in Blender.
+  farne e dipingerne uno in Blender, con più ceppi dello stesso pesce.
 - [Piante e oggetti](docs/OGGETTI.md): una pianta o un oggetto nuovo è una
   cartella di file.
 - [Effetti fatti di file](docs/EFFETTI.md): un nuovo effetto di

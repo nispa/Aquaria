@@ -15,6 +15,7 @@ This page covers adding a model you found, and making one in Blender.
 public/assets/species/<id>/
   model.json   how Aquaria should use the model
   model.glb    the model, textures included
+  colorings/   optional: one texture per coloring (see Colorings)
 ```
 
 A `.gltf` with its `.bin` and textures next to it works too. The species
@@ -33,7 +34,7 @@ The platy's, for example:
   "swimAmplitude": 0.08,
   "mouth": { "morphTarget": "MouthOpen" },
   "eyes": { "bones": ["Eye.L", "Eye.R"], "turn": 22 },
-  "gills": { "edge": 0.3, "top": 0.07, "bottom": -0.08, "curve": 4 },
+  "gills": { "edge": 0.299, "top": 0.069, "bottom": -0.081, "curve": 4 },
   "credit": {
     "author": "Aquaria (scripts/blender/platy.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/platy.py",
@@ -42,20 +43,24 @@ The platy's, for example:
 }
 ```
 
+(The real file also has `fins` and `colorings`, explained below.)
+
 - `forward` and `up`: which axes of the model point to the snout and to
   the back. Aquaria turns, centres and scales the model to the species'
   length, so any size and orientation will do.
 - `swimAmplitude`: how far the tail sweeps, in body lengths (default 0.07).
   The model needs no swimming animation: Aquaria bends it.
-- `mouth`, `eyes`, `gills`, `fins`: optional, see below. Without them the mouth
-  stays shut, the eyes stay still and the gills do not move.
+- `mouth`, `eyes`, `gills`, `fins`: optional, see below. Without them the
+  mouth stays shut, the eyes stay still and the gills and fins do not move.
+- `colorings`: optional, see [Colorings](#colorings-one-model-many-strains).
 - `credit`: who made it, where it comes from, and the license. Only
   licenses that allow reuse, changes and commercial use are accepted:
   `CC0-1.0`, `CC-BY-3.0`, `CC-BY-4.0`, `MIT`, `Apache-2.0`, `BSD-2-Clause`,
   `BSD-3-Clause`, `0BSD`, `Unlicense`. List the model in `ASSETS.md` too;
   a test checks it.
 
-The model keeps its own materials and textures.
+The model keeps its own materials and textures, unless its species wears
+a coloring.
 
 ## Looking at it: the fish on the grid
 
@@ -138,7 +143,10 @@ A model only has to say where they are, like the clownfish:
   the whole fin and no other.
 - `side`: how far from the middle of the body (z, on the view from above)
   the fin starts. In the box only what stands out beyond it moves: the
-  flank stays still. Set it just outside the skin.
+  flank stays still. Aquaria blends the fin into the body over the last
+  0.015 before `side`, so set it about 0.017 beyond the widest skin in the
+  box, not on the skin: there, the flank swings out with the fin like a
+  wing (seen from above, with **Pectoral spread** at 1).
 - `root`: the top and bottom ends of the fin's base, the line it swings
   about.
 - `rest`: how many degrees the model's fin stands out from the body
@@ -152,7 +160,7 @@ can have them as sheets apart from the body: the box finds them all the
 same. The sheet must start on the skin, not inside it, or `side` cannot
 tell it from the flank: `pectoral_fin` in `scripts/blender/fishkit.py`
 sets its base on the skin and leans it out by 30 degrees, as on the
-royal gramma.
+royal gramma, and the scripts print the whole `fins.pectoral` block.
 
 A fish whose mouth pushes forward when it opens, like the seabream or the
 barramundi, looks wrong with `jaw`. It needs a real open-mouth pose made in
@@ -163,11 +171,19 @@ animation, `scripts/blender/barramundi.py` shapes it by hand.
 
 The guppy, platy, angelfish, royal gramma, sardine and red cherry shrimp
 are made entirely by scripts in `scripts/blender/`, which share their
-building blocks in `fishkit.py`. They are the best examples. To run one:
+building blocks in `fishkit.py` (shapes, fins, rig, export) and
+`paintkit.py` (painting their textures). They are the best examples. Run
+one into a folder of your own, then compress its model into the species'
+folder, copy its `colorings/` if it has any, and paste the values it
+prints into `model.json`:
 
 ```bash
-blender --background --python scripts/blender/platy.py
+blender --background --python scripts/blender/platy.py -- out/platy
+pnpm dlx @gltf-transform/cli@4.5.1 optimize out/platy/model.glb public/assets/species/platy/model.glb --compress meshopt --simplify false
 ```
+
+Without a folder the script writes straight into
+`public/assets/species/<id>/`, uncompressed.
 
 If you model by hand:
 
@@ -248,16 +264,18 @@ Then it paints that atlas once per strain with numpy: countershading,
 faint scales, rays, fin edges that thin out instead of ending, dots and
 snakeskin from noise. A new strain is a new painter function and a line
 in `STRAINS`; `scripts/blender/platy.py` does the same for the platy's
-Red Wagtail, Mickey Mouse and Blue. Run one and it writes `model.glb` and `colorings/*.webp`,
-and prints the gills and pectoral values for `model.json`, since the
-fish frame changes whenever the outline does. The pectoral `side` it
-prints sits beyond the widest skin in the fin's box by the width Aquaria
-blends a fin into the body, so the flank never swings with the fin.
+Red Wagtail, Mickey Mouse and Blue. Run one and it writes `model.glb`
+and `colorings/*.webp`, and prints the gills and pectoral values for
+`model.json`, since the fish frame changes whenever the outline does.
 
 A fish with a single look paints the same way without colorings: the
 royal gramma, the angelfish and the sardine put their one texture inside
 `model.glb`, compressed to WebP with `--texture-compress webp` in the
 `optimize` command above.
+
+WebP keeps the download small, but on the GPU a texture is unpacked:
+a 1024 × 1024 coloring takes about 5 MB of video memory with its
+mipmaps, and a species takes that once per coloring it wears.
 
 ## Animals that walk
 

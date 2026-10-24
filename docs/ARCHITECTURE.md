@@ -48,7 +48,8 @@ goes into the details.
 The body follows the motion: the simulation works out how much the fish
 is turning, how hard the tail beats, whether the mouth is open, and the
 shader bends and animates the model from those few numbers. That is why a
-whole school of the same species can be drawn in one go.
+whole school of the same species can be drawn in one go, even one that
+mixes strains: each fish reads its own coloring from one texture array.
 
 ## Data, checked at the door
 
@@ -68,8 +69,10 @@ shows as a stutter. So the code that runs every frame never creates new
 objects: it reuses the same vectors and arrays.
 
 The same goes for the GPU: the resolution follows what the GPU can do, the
-heavier effects are switched on only if there is room, and textures are
-KTX2 files that stay compressed in video memory.
+heavier effects are switched on only if there is room, and the scenery's
+textures are KTX2 files that stay compressed in video memory. The fish
+painted by our own Blender scripts are the exception: their small WebP
+textures are unpacked on the GPU, a few megabytes per species.
 
 ## Effects as plug-ins
 

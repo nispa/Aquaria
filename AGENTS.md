@@ -181,7 +181,8 @@ Shaders:
 - A species is an entry in `public/species.json`. It has a built-in
   procedural body (always, the light fallback) and optionally a 3D model: a
   folder in `public/assets/species/<id>/` with a glTF file and a
-  `model.json` manifest (orientation, swimming, mouth morph target, credit),
+  `model.json` manifest (orientation, swimming, mouth morph target,
+  colorings the species can wear, credit),
   validated by `src/scene/modelManifest.ts`; how to make one in Blender
   (mouth shape key, eye bones; jaw, painted eyes and gills read off
   `/model-viewer.html` for models from elsewhere): `docs/FISH_MODELS.md`. The viewer switches models on
