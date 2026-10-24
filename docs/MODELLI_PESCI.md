@@ -317,6 +317,8 @@ comprimere. Il gamberetto red cherry è ancora uno script a sé,
 
 ### Con il fish maker
 
+![Il fish maker con la rasbora arlecchino: la vista di lato con i suoi punti, sotto il modello costruito da Blender, a destra la ricetta](fish-maker.jpg)
+
 Con `pnpm dev` apri `/fish-designer.html` (anche da `/debug.html`). A
 sinistra la ricetta è disegnata di lato su una griglia in lunghezze del
 corpo: il corpo in blu, le pinne in arancione, l'occhio e il bordo
@@ -332,8 +334,16 @@ A destra, _Shape and fins_ contiene i numeri che si scrivono invece di
 trascinarli (spessore, rotondità, la misura dell'occhio, gli angoli delle
 pinne), e _Strains_ la pittura: gli strati del corpo di un ceppo dal primo
 all'ultimo, che puoi spostare, togliere o aggiungere, e il pittore di
-ogni pinna. _Copy as a new fish_ comincia una specie nuova da quella
-aperta.
+ogni pinna.
+
+![La sezione Strains: gli strati del corpo in ordine, il cuneo nero della rasbora aperto come shape con i suoi angoli](fish-maker-strains.jpg)
+
+_Copy as a new fish_ comincia una specie nuova da quella aperta: scrivi
+il suo id, premi il pulsante, e la riga sopra Save mostra la cartella in
+cui verrà scritta. Un id scritto ma non confermato blocca Save, così il
+pesce da cui sei partito non viene mai sovrascritto. _Paste a recipe_ e
+_Open the pasted recipe_ portano dentro una ricetta scritta altrove;
+_Copy the recipe_ mette negli appunti quella aperta.
 
 **Save** controlla la ricetta e la scrive. **Build** la salva, lancia
 Blender (`$BLENDER`, oppure il più recente installato dove lo mettono gli
@@ -342,6 +352,61 @@ cartella della specie, scrive le colorazioni, unisce i valori misurati a
 `model.json` e mostra il risultato nel model viewer sotto il disegno. Una
 specie nuova ha bisogno anche della sua voce in `public/species.json`
 prima che il viewer e la vasca la possano mostrare.
+
+### Con un assistente AI
+
+Un assistente che legge le immagini e scrive JSON, come Claude, può
+disegnare una prima versione della ricetta partendo da una foto; il fish
+maker è il posto dove la confronti con la stessa foto e la correggi. Ci
+sono due strade.
+
+- **Un assistente che lavora nel repository**, come Claude Code: legge
+  da solo il formato (`src/scene/fishRecipe.ts`) e le ricette che ci
+  sono, scrive `public/assets/species/<id>/fish.json`, e può costruirla
+  e guardare il risultato. Poi aprila nel fish maker.
+- **Un assistente in una chat**: dagli la foto, una ricetta d'esempio e il
+  formato, poi incolla la sua risposta nel fish maker (_Paste a recipe_,
+  _Open the pasted recipe_).
+
+Passo per passo:
+
+1. Trova una foto del pesce di lato, il più dritta possibile, con le
+   pinne aperte. Resta sul tuo computer; nel repository va solo la
+   ricetta.
+2. Chiedi la ricetta. Un prompt che funziona:
+
+```text
+Ecco la foto di un barbo ciliegia, visto di lato. Fai una ricetta di pesce
+per Aquaria (fish.json).
+
+Segui il formato di src/scene/fishRecipe.ts e la ricetta d'esempio che ti
+allego (la rasbora arlecchino). Le coordinate sono in lunghezze del
+corpo: x lungo il pesce, il muso a circa +0.36, il peduncolo caudale fra
+-0.15 e -0.25, la punta della coda verso -0.5; z verso l'alto, il centro
+del corpo vicino a 0.
+
+Traccia il profilo di sopra e di sotto con 8-10 punti ciascuno, ogni
+pinna come contorno, la posizione e la misura dell'occhio. Dipingi un
+ceppo, "classic": un fill, il dorso più scuro e la pancia più chiara
+(patch su "up"), i segni che vedi (shape per strisce e macchie), poi le
+squame. Pinne trasparenti, con i raggi.
+
+Rispondi solo con il JSON.
+```
+
+3. Apri la ricetta nel fish maker, metti sotto la stessa foto e trascina
+   quello che l'assistente ha sbagliato: di solito il corpo è vicino, le
+   pinne, l'occhio e la forcella della coda meno. Build.
+4. Mostragli il risultato: uno screenshot del model viewer e la ricetta
+   (_Copy the recipe_), con quello che non va in parole semplici ("il
+   cuneo nero comincia troppo avanti", "la coda è troppo pallida").
+   Incolla la sua risposta e rifai Build. Quando Save rifiuta una
+   ricetta, mandagli il messaggio: dice quale campo.
+5. Per altri ceppi, dagli una foto di ogni forma di colore e chiedigli un
+   ceppo per ciascuna, con la stessa forma.
+6. Salva, poi dai alla specie `"model"` e `"coloring"` in
+   `public/species.json` e scrivi il modello in `ASSETS.md`, come per ogni
+   nostro pesce.
 
 ### A mano
 

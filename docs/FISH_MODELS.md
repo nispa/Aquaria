@@ -313,6 +313,8 @@ uncompressed. The red cherry shrimp is still a script of its own,
 
 ### With the fish maker
 
+![The fish maker with the harlequin rasbora: the side view with its points, the model Blender built below, the recipe on the right](fish-maker.jpg)
+
 With `pnpm dev`, open `/fish-designer.html` (also from `/debug.html`). On
 the left the recipe is drawn from the side over a grid in body lengths:
 the body in blue, the fins in orange, the eye and the edge of the gill
@@ -327,8 +329,16 @@ pink).
 On the right, _Shape and fins_ holds the numbers you type rather than
 drag (thickness, roundness, the eye's size, the fins' angles), and
 _Strains_ the paint: a strain's body layers from first to last, which you
-move, remove or add, and each fin's painter. _Copy as a new fish_ starts a
-new species from the one open.
+move, remove or add, and each fin's painter.
+
+![The Strains section: the body layers in order, the rasbora's black wedge open as a shape with its corners](fish-maker-strains.jpg)
+
+_Copy as a new fish_ starts a new species from the one open: type its id,
+press the button, and the line above Save shows the folder it will be
+written to. A typed id that was not taken stops Save, so the fish you
+copied from is never written over. _Paste a recipe_ and _Open the pasted
+recipe_ bring in a recipe written elsewhere; _Copy the recipe_ puts the
+one open on the clipboard.
 
 **Save** checks the recipe and writes it. **Build** saves it, runs Blender
 (`$BLENDER`, or the newest one installed where installers put it, or
@@ -337,6 +347,60 @@ writes the colorings, lays the measured values over `model.json`, and
 shows the result in the model viewer under the drawing. A new species
 also needs its entry in `public/species.json` before the viewer and the
 tank can show it.
+
+### With an AI assistant
+
+An assistant that reads pictures and writes JSON, such as Claude, can
+draw a first version of a recipe from a photograph; the fish maker is
+where you check it against the same photograph and correct it. There are
+two ways.
+
+- **An assistant that works in the repository**, such as Claude Code:
+  it reads the format (`src/scene/fishRecipe.ts`) and the recipes there
+  by itself, writes `public/assets/species/<id>/fish.json`, and can build
+  it and look at the result. Then open it in the fish maker.
+- **An assistant in a chat**: give it the photograph, an example recipe
+  and the format, then paste its answer into the fish maker (_Paste a
+  recipe_, _Open the pasted recipe_).
+
+Step by step:
+
+1. Find a photograph of the fish from the side, as straight as you can,
+   fins spread. It stays on your computer; only the recipe goes into the
+   repository.
+2. Ask for the recipe. A prompt that works:
+
+```text
+Here is a photograph of a cherry barb, seen from its side. Make an Aquaria
+fish recipe (fish.json) for it.
+
+Follow the format in src/scene/fishRecipe.ts and the example recipe I
+attach (the harlequin rasbora). Coordinates are in body lengths: x along
+the fish, the snout at about +0.36, the caudal peduncle between -0.15 and
+-0.25, the tip of the tail near -0.5; z up, the middle of the body near 0.
+
+Trace the top and bottom of the body with 8 to 10 points each, every fin
+as an outline, the eye's place and size. Paint one strain, "classic":
+a fill, a darker back and a lighter belly (patches on "up"), the marks
+you see (shapes for stripes and blotches), then scales. Fins see-through,
+with rays.
+
+Answer with the JSON only.
+```
+
+3. Open the recipe in the fish maker, lay the same photograph under it,
+   and drag what the assistant misjudged: it is usually close on the body
+   and off on the fins, the eye and the tail's fork. Build.
+4. Show it the result: a screenshot of the model viewer and the recipe
+   (_Copy the recipe_), with what is wrong in plain words ("the black
+   wedge starts too far forward", "the tail is too pale"). Paste its
+   answer and Build again. When Save refuses a recipe, send it the
+   message: it names the field.
+5. For more strains, give it a photograph of each color form and ask for
+   one strain each, with the same shape.
+6. Save, then give the species `"model"` and `"coloring"` in
+   `public/species.json` and list the model in `ASSETS.md`, as for any
+   fish of ours.
 
 ### By hand
 
