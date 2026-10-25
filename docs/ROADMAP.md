@@ -422,11 +422,13 @@ tuned against reference photographs, with every parameter a slider.
 - [x] Nano reef: a clownfish pair in a magnificent anemone, a few
       corals, the Clownfish lagoon look; 1 m wide rather than 60 cm, and
       the scene phones open (`phone` in `scenes/index.json`).
-- [ ] Clownfish lagoon (120 cm): the soft anemones of I3 and the clownfish
+- [x] Clownfish lagoon (120 cm): the soft anemones of I3 and the clownfish
       of I4 in front, coral garden and sand; Clownfish lagoon look.
-- [ ] Planted tank and Iwagumi: see block J.
-- [ ] Home reef (250 cm): today's scene with the coral scans and live
-      rock.
+- [x] Planted tank and Iwagumi: see block J.
+- [x] Home reef (250 cm): today's scene with the coral scans and live
+      rock. At the `large` size (240 × 110 × 100 cm) by `resizeScene`,
+      coral scans on live rock with coralline algae, a dark back panel,
+      no bubble streams.
 - [x] Hero (public, 6 m) is the starting scene (29f5a82); Aquaria stays
       in the list.
 - [ ] Each with its caption, gallery picture, card picture and visual
@@ -586,6 +588,40 @@ veined leaves in two tones, light through them, swaying.
       (its 800 carpet tufts; 30 at `medium` and `small`). Carpet blades
       now have three points across instead of five (40% lighter models,
       little faster): what is left goes to I6.
+
+## L. Tanks that look real
+
+Asked on 2026-10-25, looking at the Clownfish lagoon and the Home reef:
+the tanks look bare and fake. A darker back panel, actinic light, coral
+scans and coralline algae help (I5), but data alone stops there. Measured
+against photographs of real reef tanks, like the Hero. Order: L1, L2, L3,
+L4.
+
+### L1. Live rock
+
+- [ ] Porous, jagged rock instead of one smooth mound and round boulders:
+      many pieces stacked into arches, ledges and caves, with holes;
+      sculpted in Blender like the Seiryu stones, or a rock generator of
+      its own.
+- [ ] Coralline algae and encrusting growth that follow the rock's
+      hollows and edges, not round patches.
+
+### L2. Coral cover
+
+- [ ] Small and encrusting corals (zoanthids, encrusting montipora,
+      polyps) scattered by the hundred, so the rock disappears under
+      them as in a mature tank; instanced, light enough for phones.
+- [ ] Colonies at the scale of a home tank: many small ones, a few large.
+
+### L3. Sand
+
+- [ ] Grain, coral rubble and small shells; contact shadows where rock
+      and corals meet the sand.
+
+### L4. Movement
+
+- [ ] Soft corals (leather, xenia, zoanthid polyps) swaying in the
+      current, on the strands of I3.
 
 ## Ideas to discuss
 

@@ -19,7 +19,9 @@ const KINDS: Readonly<Record<string, string>> = {
   "nano-reef": "Demo · a small reef for phones: a pink anemone and a pair of clownfish",
   aquaria: "Demo · the Aquaria showcase tank (a fantasy mix of sea and fresh water)",
   reef: "Open sea · tropical coral reef (saltwater)",
-  "home-reef": "Aquarium · marine reef tank (saltwater)",
+  "clownfish-lagoon":
+    "Aquarium · clownfish living in soft anemones, a coral garden behind (saltwater)",
+  "home-reef": "Aquarium · home reef tank under LED spots (saltwater)",
   "planted-tank": "Aquarium · planted tank around a driftwood centrepiece (freshwater)",
   iwagumi: "Aquarium · Iwagumi: Seiryu stones on a hairgrass carpet (freshwater)",
 };

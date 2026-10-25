@@ -1,0 +1,221 @@
+{
+  "id": "clownfish-lagoon",
+  "name": "Clownfish lagoon",
+  "seed": 20261025,
+  "look": "lagoon",
+  "size": "medium",
+  "tank": {
+    "width": 1.2,
+    "height": 0.6,
+    "depth": 0.5
+  },
+  "water": {
+    "color": "#0a4c5a",
+    "fogDensity": 0.02,
+    "surface": 0.5,
+    "bubbles": true
+  },
+  "light": {
+    "color": "#fff1d6",
+    "intensity": 1.25,
+    "caustics": {
+      "intensity": 1.1,
+      "scale": 4.0
+    }
+  },
+  "current": {
+    "direction": [1, 0, 0.15],
+    "strength": 0.01,
+    "turbulence": 0.3
+  },
+  "backdrop": {
+    "type": "panel",
+    "top": "#1f8c9c",
+    "bottom": "#02202a"
+  },
+  "floor": {
+    "color": "#c8bc9c",
+    "rise": 0.1,
+    "dunes": 0.6,
+    "material": {
+      "id": "fine-sand",
+      "tileSize": 0.8
+    }
+  },
+  "lights": {
+    "channels": {
+      "white": {
+        "level": 1
+      },
+      "blue": {
+        "level": 0.3
+      },
+      "violet": {
+        "level": 0.05
+      }
+    },
+    "moon": 0.05
+  },
+  "rockwork": {
+    "bands": [3, 4],
+    "height": [0.05, 0.14],
+    "coverage": 0.75,
+    "thickness": 0.16,
+    "rocks": 0,
+    "color": "#6f7468",
+    "material": {
+      "id": "reef-rock",
+      "tileSize": 0.25,
+      "displacement": 0.008
+    },
+    "growth": {
+      "patch": 0.12
+    }
+  },
+  "flora": [
+    {
+      "kind": "magnificent-anemone",
+      "name": "Magnificent anemone",
+      "count": 1,
+      "bands": [0, 1],
+      "height": [0.12, 0.12],
+      "color": ["#ffffff"],
+      "at": [
+        {
+          "x": -0.24,
+          "z": -0.16,
+          "variant": 1
+        }
+      ]
+    },
+    {
+      "kind": "bubble-tip-anemone",
+      "name": "Bubble-tip anemone",
+      "count": 1,
+      "bands": [0, 1],
+      "height": [0.1, 0.1],
+      "color": ["#ffffff"],
+      "at": [
+        {
+          "x": 0.22,
+          "z": -0.2,
+          "variant": 0
+        }
+      ]
+    },
+    {
+      "kind": "carpet-anemone",
+      "name": "Carpet anemone",
+      "count": 1,
+      "bands": [0, 1],
+      "height": [0.035, 0.035],
+      "color": ["#ffffff"],
+      "at": [
+        {
+          "x": 0.02,
+          "z": -0.12,
+          "variant": 2
+        }
+      ]
+    },
+    {
+      "kind": "turtle-grass",
+      "name": "Seagrass",
+      "count": 10,
+      "bands": [1, 3],
+      "height": [0.07, 0.12],
+      "color": ["#5e9a34"]
+    },
+    {
+      "kind": "sea-lettuce",
+      "name": "Sea lettuce",
+      "count": 4,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "height": [0.04, 0.06],
+      "color": ["#5fae2e"]
+    }
+  ],
+  "props": [
+    {
+      "kind": "staghorn-coral",
+      "count": 4,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "color": ["#ff8a3c", "#d9a0e0", "#f2c14e"],
+      "size": [0.1, 0.16]
+    },
+    {
+      "kind": "finger-coral",
+      "count": 2,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "color": ["#f0a0b8", "#9ad0e8"],
+      "size": [0.08, 0.12]
+    },
+    {
+      "kind": "cauliflower-coral",
+      "count": 2,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "color": ["#e88aa0", "#ffb07a"],
+      "size": [0.08, 0.11]
+    },
+    {
+      "kind": "maze-coral",
+      "count": 1,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "color": ["#c9a070"],
+      "size": [0.09, 0.09]
+    },
+    {
+      "kind": "sheet-coral",
+      "count": 1,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "color": ["#e0a868"],
+      "size": [0.1, 0.12]
+    },
+    {
+      "kind": "glove-sponge",
+      "count": 1,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "color": ["#6f7fd8"],
+      "size": [0.07, 0.07]
+    },
+    {
+      "kind": "mushroom-coral",
+      "count": 3,
+      "bands": [1, 2],
+      "color": ["#8ac070", "#d0a060"],
+      "size": [0.05, 0.07]
+    },
+    {
+      "kind": "shell",
+      "count": 3,
+      "color": ["#f3e6d4"],
+      "bands": [0, 2],
+      "size": [0.025, 0.04]
+    }
+  ],
+  "fauna": [
+    {
+      "species": "clownfish",
+      "count": 4
+    },
+    {
+      "species": "three-bar-damsel",
+      "count": 5
+    },
+    {
+      "species": "royal-gramma",
+      "count": 1
+    },
+    {
+      "species": "hermit-crab",
+      "count": 2
+    }
+  ]
+}

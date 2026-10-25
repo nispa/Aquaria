@@ -10,7 +10,7 @@
     },
     {
       "name": "Aquariums",
-      "scenes": ["home-reef", "planted-tank", "iwagumi"]
+      "scenes": ["clownfish-lagoon", "home-reef", "planted-tank", "iwagumi"]
     }
   ],
   "phone": "nano-reef"

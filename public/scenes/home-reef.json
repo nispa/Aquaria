@@ -4,14 +4,15 @@
   "look": "reef-led",
   "seed": 20260930,
   "tank": {
-    "width": 6,
-    "height": 2.6,
-    "depth": 2.4
+    "width": 2.4,
+    "height": 1.1,
+    "depth": 1
   },
   "water": {
-    "color": "#0b5f8a",
-    "fogDensity": 0.07,
-    "surface": 0.2
+    "color": "#073e5c",
+    "fogDensity": 0.06,
+    "surface": 0.15,
+    "bubbles": false
   },
   "light": {
     "color": "#f2f6ff",
@@ -27,9 +28,9 @@
     "turbulence": 0.4
   },
   "backdrop": {
-    "type": "gradient",
-    "top": "#1b7fb0",
-    "bottom": "#03253a"
+    "type": "panel",
+    "top": "#0b3556",
+    "bottom": "#010910"
   },
   "floor": {
     "color": "#b9b09c",
@@ -40,18 +41,36 @@
   },
   "flora": [
     {
-      "kind": "bush",
-      "count": 16,
-      "bands": [1, 4],
-      "height": [0.35, 0.8],
-      "color": ["#6fc24a", "#4fa33a", "#8fd65a"]
+      "kind": "magnificent-anemone",
+      "name": "Anemone",
+      "count": 1,
+      "bands": [0, 2],
+      "height": [0.12, 0.12],
+      "color": ["#ffffff"],
+      "on": "rockwork"
     },
     {
-      "kind": "anemone",
-      "count": 10,
+      "kind": "bubble-tip-anemone",
+      "count": 2,
       "bands": [1, 3],
-      "height": [0.1, 0.2],
-      "color": ["#c98fd6", "#8fd67a", "#e8a0c0"],
+      "height": [0.07, 0.1],
+      "color": ["#ffffff"],
+      "on": "rockwork"
+    },
+    {
+      "kind": "bush",
+      "count": 4,
+      "bands": [1, 4],
+      "height": [0.08, 0.18],
+      "color": ["#6fc24a", "#4fa33a", "#8fd65a"],
+      "on": "rockwork"
+    },
+    {
+      "kind": "sea-lettuce",
+      "count": 5,
+      "bands": [0, 4],
+      "height": [0.04, 0.07],
+      "color": ["#5fae2e"],
       "on": "rockwork"
     }
   ],
@@ -59,66 +78,107 @@
     {
       "kind": "rock",
       "name": "Loose rocks",
-      "count": 10,
-      "color": "#8a7d70",
+      "count": 3,
+      "color": "#857468",
       "bands": [0, 1],
+      "size": [0.12, 0.22],
       "material": {
         "id": "reef-rock",
         "tileSize": 0.45,
-        "displacement": 0.07
+        "displacement": 0.05
       }
     },
     {
-      "kind": "branch-coral",
-      "name": "Branching corals",
-      "count": 40,
-      "color": ["#9a6fc2", "#c9a27a", "#e08fb0", "#7fa6d9", "#b5d67a"],
-      "on": "rockwork"
-    },
-    {
-      "kind": "brain-coral",
-      "name": "Brain corals",
-      "count": 14,
-      "color": ["#b89a5e", "#d9783c", "#8fae6a", "#c98f6a"],
-      "on": "rockwork",
-      "material": {
-        "id": "reef-rock",
-        "tileSize": 0.35
-      }
-    },
-    {
-      "kind": "table-coral",
+      "kind": "staghorn-coral",
+      "name": "Staghorn",
       "count": 6,
-      "color": ["#b58ad6", "#c9a27a", "#8fb8d9"],
-      "on": "rockwork"
+      "on": "rockwork",
+      "color": ["#ff8a3c", "#ffa055", "#c9a0e0", "#8fd0a0"],
+      "size": [0.14, 0.26]
     },
     {
-      "kind": "mushroom-coral",
-      "count": 14,
-      "color": ["#e06a8a", "#6ad0a0", "#d98a4a"],
-      "on": "rockwork"
+      "kind": "grooved-brain-coral",
+      "name": "Brain corals",
+      "count": 3,
+      "on": "rockwork",
+      "color": ["#c9b27a", "#a8b87a", "#d08a6a"],
+      "size": [0.1, 0.16]
     },
     {
-      "kind": "leather-coral",
-      "count": 5,
-      "color": ["#d9c79a", "#b8c77a"],
-      "on": "rockwork"
+      "kind": "cauliflower-coral",
+      "count": 9,
+      "on": "rockwork",
+      "color": ["#e88aa0", "#ffb07a", "#c9a0e0", "#f0c0d0"],
+      "size": [0.07, 0.14]
+    },
+    {
+      "kind": "finger-coral",
+      "count": 6,
+      "on": "rockwork",
+      "color": ["#8fd0d8", "#a090e0", "#d8c080"],
+      "size": [0.1, 0.18]
+    },
+    {
+      "kind": "sheet-coral",
+      "count": 4,
+      "on": "rockwork",
+      "color": ["#e0a868", "#c8b878", "#a0c078"],
+      "size": [0.1, 0.18]
+    },
+    {
+      "kind": "maze-coral",
+      "count": 3,
+      "on": "rockwork",
+      "color": ["#c9a070", "#b8b07a", "#7ab090"],
+      "size": [0.1, 0.15]
+    },
+    {
+      "kind": "tabletop-coral",
+      "count": 2,
+      "on": "rockwork",
+      "color": ["#9fc0a8", "#b8c890"],
+      "size": [0.22, 0.3]
+    },
+    {
+      "kind": "glove-sponge",
+      "count": 3,
+      "on": "rockwork",
+      "color": ["#6f7fd8", "#d8803a", "#c84a4a"],
+      "size": [0.07, 0.12]
     },
     {
       "kind": "fan-coral",
-      "count": 6,
+      "count": 2,
+      "on": "rockwork",
       "color": ["#7a4fa8", "#c2553f"],
-      "on": "rockwork"
+      "size": [0.25, 0.35]
+    },
+    {
+      "kind": "mushroom-coral",
+      "count": 8,
+      "on": "rockwork",
+      "color": ["#e06a8a", "#6ad0a0", "#d98a4a", "#7a6ad8"],
+      "bands": [0, 4],
+      "size": [0.04, 0.07]
+    },
+    {
+      "kind": "pebble",
+      "name": "Rubble",
+      "count": 30,
+      "color": ["#e8dcc8", "#d8b8c0", "#c8c0b0", "#f0e8dc"],
+      "bands": [0, 2]
     },
     {
       "kind": "shell",
-      "count": 5,
-      "color": ["#f3e6d4", "#e8d2b8"]
+      "count": 4,
+      "color": ["#f3e6d4", "#e8d2b8"],
+      "bands": [0, 2]
     },
     {
       "kind": "starfish",
-      "count": 2,
+      "count": 1,
       "color": "#e8612c",
+      "bands": [0, 2],
       "material": {
         "id": "reef-rock",
         "tileSize": 0.12
@@ -140,34 +200,53 @@
     },
     {
       "species": "royal-gramma",
-      "count": 1
+      "count": 2
     },
     {
       "species": "three-bar-damsel",
-      "count": 8
+      "count": 6
     },
     {
       "species": "hermit-crab",
-      "count": 2
+      "count": 3
     }
   ],
   "rockwork": {
     "bands": [1, 3],
-    "height": [0.35, 1.05],
+    "height": [0.228, 0.683],
     "coverage": 0.9,
-    "thickness": 1.1,
-    "rocks": 70,
-    "color": "#8a7d70",
+    "thickness": 0.458,
+    "rocks": 12,
+    "color": "#857468",
     "material": {
       "id": "reef-rock",
       "tileSize": 0.6,
       "displacement": 0.06
+    },
+    "growth": {
+      "algae": 0.4,
+      "algaeColor": "#5e6e3c",
+      "coralline": 0.45,
+      "corallineColor": "#86607a",
+      "patch": 0.12
     }
   },
   "lights": {
+    "channels": {
+      "white": {
+        "level": 0.75
+      },
+      "blue": {
+        "level": 0.95
+      },
+      "violet": {
+        "level": 0.3
+      }
+    },
     "fixture": {
       "type": "spots",
-      "spots": 8
+      "spots": 4
     }
-  }
+  },
+  "size": "large"
 }
