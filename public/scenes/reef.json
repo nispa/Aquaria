@@ -2,6 +2,7 @@
   "id": "reef",
   "name": "Tropical reef",
   "seed": 20260929,
+  "look": "tropical",
   "tank": {
     "width": 5.4,
     "height": 3,
@@ -9,7 +10,9 @@
   },
   "water": {
     "color": "#0a5a7a",
-    "fogDensity": 0.13
+    "fogDensity": 0.05,
+    "surface": 0.8,
+    "bubbles": true
   },
   "light": {
     "color": "#fff4dc",
@@ -26,11 +29,11 @@
   },
   "backdrop": {
     "type": "gradient",
-    "top": "#1a86a8",
-    "bottom": "#021a2a"
+    "top": "#1aa0b8",
+    "bottom": "#02202c"
   },
   "floor": {
-    "color": "#d8c49a",
+    "color": "#e2d2a8",
     "material": {
       "id": "fine-sand",
       "tileSize": 1.2
@@ -52,32 +55,52 @@
   },
   "flora": [
     {
-      "kind": "kelp",
-      "count": 10,
+      "kind": "ribbon-kelp",
+      "count": 6,
       "bands": [3, 4],
-      "height": [1.4, 2.7],
-      "color": "#5a9a3e"
+      "height": [1.2, 2.4],
+      "color": ["#7a9a34", "#5f8a2e"]
     },
     {
-      "kind": "seagrass",
-      "count": 45,
-      "bands": [0, 4],
-      "height": [0.15, 0.4],
-      "color": "#79ad4e"
+      "kind": "turtle-grass",
+      "count": 60,
+      "bands": [0, 2],
+      "height": [0.15, 0.35],
+      "color": ["#5e9a34", "#6fa83c"],
+      "name": "Seagrass"
     },
     {
-      "kind": "anemone",
+      "kind": "sea-lettuce",
+      "count": 12,
+      "bands": [0, 3],
+      "height": [0.08, 0.16],
+      "color": ["#5fae2e"]
+    },
+    {
+      "kind": "bubble-tip-anemone",
       "count": 3,
       "bands": [0, 2],
-      "height": [0.12, 0.22],
-      "color": "#d98fb0"
+      "height": [0.14, 0.22],
+      "color": ["#ffffff"],
+      "name": "Anemones"
+    },
+    {
+      "kind": "sea-lettuce",
+      "count": 16,
+      "bands": [2, 3],
+      "height": [0.07, 0.12],
+      "color": ["#5fae2e"],
+      "on": "rockwork",
+      "name": "Sea lettuce on the rock"
     }
   ],
   "props": [
     {
       "kind": "rock",
-      "count": 7,
-      "color": "#8f8577",
+      "count": 6,
+      "color": "#7e8580",
+      "bands": [0, 2],
+      "size": [0.3, 0.6],
       "material": {
         "id": "reef-rock",
         "tileSize": 0.45,
@@ -85,28 +108,33 @@
       }
     },
     {
-      "kind": "brain-coral",
-      "count": 4,
-      "color": "#b8a05a",
-      "material": {
-        "id": "reef-rock",
-        "tileSize": 0.35
-      }
+      "kind": "staghorn-coral",
+      "count": 2,
+      "color": ["#ff8a3c", "#ffa055"],
+      "bands": [1, 2],
+      "size": [0.3, 0.5]
     },
     {
-      "kind": "branch-coral",
-      "count": 5,
-      "color": "#e0876a"
+      "kind": "grooved-brain-coral",
+      "count": 3,
+      "color": ["#c9b27a", "#a8b87a"]
+    },
+    {
+      "kind": "tabletop-coral",
+      "count": 2,
+      "color": ["#9fc0a8", "#b8c890"]
     },
     {
       "kind": "fan-coral",
       "count": 3,
-      "color": "#8e3b8a"
+      "color": ["#7a4fa8", "#5a6fc8"],
+      "size": [0.6, 1.0],
+      "bands": [2, 4]
     },
     {
       "kind": "shell",
       "count": 6,
-      "color": "#efe2cf"
+      "color": ["#f3e6d4", "#e8d2b8"]
     },
     {
       "kind": "starfish",
@@ -116,20 +144,74 @@
         "id": "reef-rock",
         "tileSize": 0.12
       }
+    },
+    {
+      "kind": "cauliflower-coral",
+      "count": 10,
+      "color": ["#e88aa0", "#ffb07a", "#c9a0e0"],
+      "on": "rockwork",
+      "size": [0.2, 0.35],
+      "bands": [2, 3],
+      "name": "Cauliflower corals on the rock"
+    },
+    {
+      "kind": "finger-coral",
+      "count": 8,
+      "color": ["#8fd0d8", "#a090e0", "#d8c080"],
+      "on": "rockwork",
+      "size": [0.2, 0.35],
+      "bands": [2, 3],
+      "name": "Finger corals on the rock"
+    },
+    {
+      "kind": "sheet-coral",
+      "count": 6,
+      "color": ["#e0a868", "#c8b878"],
+      "on": "rockwork",
+      "size": [0.25, 0.4],
+      "bands": [2, 3],
+      "name": "Plates on the rock"
+    },
+    {
+      "kind": "maze-coral",
+      "count": 5,
+      "color": ["#c9a070", "#b8b07a"],
+      "on": "rockwork",
+      "size": [0.2, 0.32],
+      "bands": [2, 3],
+      "name": "Brain corals on the rock"
+    },
+    {
+      "kind": "staghorn-coral",
+      "count": 6,
+      "color": ["#ff8a3c", "#f2c14e"],
+      "on": "rockwork",
+      "size": [0.3, 0.5],
+      "bands": [2, 3],
+      "name": "Staghorn on the rock"
+    },
+    {
+      "kind": "glove-sponge",
+      "count": 4,
+      "color": ["#d8803a", "#6f7fd8"],
+      "on": "rockwork",
+      "size": [0.2, 0.32],
+      "bands": [2, 3],
+      "name": "Sponges on the rock"
     }
   ],
   "fauna": [
     {
       "species": "blue-tang",
-      "count": 2
+      "count": 4
     },
     {
       "species": "yellow-tang",
-      "count": 2
+      "count": 3
     },
     {
       "species": "moorish-idol",
-      "count": 1
+      "count": 2
     },
     {
       "species": "butterflyfish",
@@ -140,8 +222,12 @@
       "count": 2
     },
     {
+      "species": "royal-gramma",
+      "count": 2
+    },
+    {
       "species": "sardine",
-      "count": 30
+      "count": 20
     }
   ],
   "visitors": [
@@ -152,5 +238,21 @@
       "distance": [1.5, 4],
       "every": [40, 110]
     }
-  ]
+  ],
+  "rockwork": {
+    "bands": [2, 3],
+    "height": [0.35, 0.8],
+    "coverage": 0.7,
+    "thickness": 0.9,
+    "rocks": 14,
+    "color": "#76786a",
+    "material": {
+      "id": "reef-rock",
+      "tileSize": 0.45,
+      "displacement": 0.05
+    },
+    "growth": {
+      "patch": 0.18
+    }
+  }
 }

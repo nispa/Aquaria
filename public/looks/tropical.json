@@ -1,0 +1,39 @@
+{
+  "name": "Tropical reef",
+  "exposure": 0.85,
+  "snow": 0.6,
+  "sun": [0.25, 0.85, -0.6],
+  "features": {
+    "waves": true,
+    "frame": false
+  },
+  "effects": {
+    "underwater": {
+      "strength": 1,
+      "absorption": [0.3, 0.12, 0.1],
+      "deep": "#02202e",
+      "horizon": "#0b5a72",
+      "surface": "#3fc0d0",
+      "brightness": 1.05,
+      "sunColor": "#fff4dc",
+      "sunGlow": 3,
+      "sunFocus": 100,
+      "shafts": 0.8,
+      "shaftCount": 40,
+      "clearWater": 1.4,
+      "depthDarkening": 0.05
+    },
+    "volumetric-light": {
+      "exposure": 0.7,
+      "threshold": 1.0,
+      "density": 1.0,
+      "decay": 0.97
+    },
+    "finish": {
+      "vignette": 0.5,
+      "contrast": 1.12,
+      "saturation": 1.25,
+      "tint": "#f2fcff"
+    }
+  }
+}

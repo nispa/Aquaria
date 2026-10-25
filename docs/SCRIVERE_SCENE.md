@@ -309,6 +309,11 @@ faretti LED: acqua limpida che perde prima i rossi, la fluorescenza dei
 coralli accesa, poca neve marina, niente onde né raggi di sole. La scena
 tiene la sua fila di faretti e una `surface` bassa (0.2).
 
+Il Tropical reef usa `public/looks/tropical.json`, mare aperto poco
+profondo sotto un sole alto: acqua turchese che conserva più colore di
+quella dell'Hero (`absorption` 0.3, 0.12, 0.1), raggi di sole, onde sulla
+superficie e poca neve marina (0.6).
+
 I look elencati in `public/looks/index.json` si possono anche scegliere
 nella sezione Look del pannello, per qualunque scena, con uno slider per
 ogni impostazione.

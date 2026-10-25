@@ -107,7 +107,7 @@ scene and look.
 | Hero (`hero`, default)        | Open water: reef pillars, corals, kelp and schools | 6 × 3.2 × 3.2 m  |
 | Aquaria (`aquaria`)           | A show tank, sea and fresh water mixed for the fun | 6 × 3.2 × 3.2 m  |
 | Nano reef (`nano-reef`)       | A small reef with an anemone; phones open this one | 1 × 0.75 × 0.7 m |
-| Tropical reef (`reef`)        | Open sea, a coral reef                             | 5.4 × 3 × 4 m    |
+| Tropical reef (`reef`)        | Shallow open sea: live rock, corals and seagrass   | 5.4 × 3 × 4 m    |
 | Home reef (`home-reef`)       | A marine reef aquarium                             | 6 × 2.6 × 2.4 m  |
 | Planted tank (`planted-tank`) | A freshwater tank with plants, shrimps and a crab  | 2.4 × 1.1 × 1 m  |
 | Iwagumi (`iwagumi`)           | A freshwater aquascape of stones and carpet plants | 2.2 × 1.1 × 1 m  |

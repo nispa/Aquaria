@@ -300,6 +300,11 @@ spots: clear water that loses its reds first, the coral fluorescence on,
 little marine snow, no waves and no sunbeams. The scene keeps its row of
 spots and a low `surface` (0.2).
 
+The Tropical reef wears `public/looks/tropical.json`, shallow open sea
+under a high sun: turquoise water that keeps more of its colour than the
+Hero's (`absorption` 0.3, 0.12, 0.1), sunbeams, waves on the surface and
+a light marine snow (0.6).
+
 The looks listed in `public/looks/index.json` can also be chosen in the
 panel's Look section for any scene, with a slider for every setting.
 
