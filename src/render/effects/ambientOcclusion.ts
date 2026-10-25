@@ -31,11 +31,13 @@ export const ambientOcclusionEffect = defineEffect({
       distanceFallOff: 1,
       scale: 1,
     });
-    // Ambient occlusion from un-swayed plants would darken empty water.
+    // Ambient occlusion from un-swayed plants would darken empty water, and
+    // where the surface meets the backdrop it would draw a dark line.
     hideDuringRender(pass, [
       context.shaderAnimated.plants,
       context.shaderAnimated.particles,
       ...context.overlays,
+      ...context.paintedWater,
     ]);
     return {
       pass,

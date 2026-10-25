@@ -523,6 +523,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
     sunPosition: sun.position,
     shaderAnimated: { plants: floraGroup, particles: particleGroup },
     overlays: [environment.lightShafts, fixture.cones],
+    paintedWater: environment.paintedWater,
   };
 
   let composer: EffectComposer | undefined;

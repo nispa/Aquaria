@@ -30,6 +30,12 @@ export interface EffectContext {
    * must skip them too, or they would occlude or blur like solid walls.
    */
   readonly overlays: readonly Object3D[];
+  /**
+   * The water surface and the open-water backdrop: far shells with water
+   * painted on them. Passes that shade by nearby geometry (ambient
+   * occlusion) skip them, or the edge where they meet shows as a dark line.
+   */
+  readonly paintedWater: readonly Object3D[];
 }
 
 /**

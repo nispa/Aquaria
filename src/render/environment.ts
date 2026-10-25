@@ -54,6 +54,11 @@ export interface Environment {
   readonly object: Group;
   /** Additive light-shaft planes, so depth passes can skip them. */
   readonly lightShafts: Object3D;
+  /**
+   * The surface and the open-water backdrop: water painted on far shells,
+   * not things that shade each other, so ambient occlusion can skip them.
+   */
+  readonly paintedWater: readonly Object3D[];
   setLightShaftsVisible(visible: boolean): void;
   /** The surface moved by waves (the "waves" feature), or the plain rippling one. */
   setWavesVisible(visible: boolean): void;
@@ -384,8 +389,9 @@ export function createEnvironment(
   const plainSurface = surface(scene, water, tracker);
   const wavySurface = waveSurface(scene, water, tracker);
   wavySurface.visible = false;
+  const openWater = isClosed(scene) ? undefined : backdrop(scene, water, tracker);
   object.add(
-    isClosed(scene) ? panel(scene, water, tracker) : backdrop(scene, water, tracker),
+    openWater ?? panel(scene, water, tracker),
     floor(scene, floorHeight, water, surfaces, tracker),
     plainSurface,
     wavySurface,
@@ -395,6 +401,7 @@ export function createEnvironment(
   return {
     object,
     lightShafts: shafts,
+    paintedWater: [plainSurface, wavySurface, ...(openWater === undefined ? [] : [openWater])],
     setLightShaftsVisible(visible) {
       shafts.visible = visible;
     },
