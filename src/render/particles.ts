@@ -12,6 +12,7 @@ import { MAX_MARINE_SNOW } from "../scene/sceneLook";
 import type { Scene } from "../scene/schema";
 import { bubbleStreamsFromProps, type BubbleStream } from "../sim/bubbles";
 import type { Prop } from "../sim/layout";
+import type { PearlSpot } from "../sim/pearling";
 import { createRefractiveBubbles } from "./refractiveBubbles";
 import type { WaterUniforms } from "./uniforms";
 
@@ -32,6 +33,13 @@ const BUBBLES_PER_STREAM = 40;
 const MAX_BUBBLE_STREAMS = 3;
 /** Bubble rise speed, m/s. */
 const BUBBLE_SPEED = 0.45;
+/** Seed of the pearls' draws, apart from the scene's so the snow and bubbles stay put. */
+const PEARL_SEED = 5_300_011;
+/** Pearls: diameter, m, at the smallest and largest, and how fast they rise, m/s. */
+const PEARL_SIZE = [0.003, 0.006] as const;
+const PEARL_SPEED = 0.12;
+/** Seconds a pearl grows on its leaf before it lets go, at the shortest. */
+const PEARL_HOLD = 2;
 /** Extra room around the tank where particles wrap, m. */
 const WRAP_MARGIN = 1;
 
@@ -47,6 +55,8 @@ export interface Particles {
   setBufferHeight(heightPixels: number, verticalFovDegrees: number): void;
   /** How much marine snow drifts: 0 none, 1 the open sea's, up to MAX_MARINE_SNOW. */
   setSnow(amount: number): void;
+  /** Which share of the pearls is forming and rising now, 0..1 (see sim/pearling). */
+  setPearling(share: number): void;
   dispose(): void;
 }
 
@@ -198,6 +208,85 @@ function spriteBubbles(
   return points;
 }
 
+/**
+ * Pearls: tiny oxygen bubbles that grow on a leaf for a few seconds, let go
+ * and rise to the surface. `uPearling` says which share of them is on.
+ */
+function pearlBubbles(
+  scene: Scene,
+  spots: readonly PearlSpot[],
+  water: WaterUniforms,
+): Points<BufferGeometry, ShaderMaterial> {
+  const rng = createRng(PEARL_SEED);
+  const origins = new Float32Array(spots.length * 3);
+  const seeds = new Float32Array(spots.length);
+  const thresholds = new Float32Array(spots.length);
+  spots.forEach((spot, index) => {
+    origins.set([spot.x, spot.y, spot.z], index * 3);
+    seeds[index] = rng.next();
+    thresholds[index] = rng.next();
+  });
+  const geometry = new BufferGeometry();
+  geometry.setAttribute("position", new BufferAttribute(origins, 3));
+  geometry.setAttribute("aSeed", new BufferAttribute(seeds, 1));
+  geometry.setAttribute("aThreshold", new BufferAttribute(thresholds, 1));
+  const material = new ShaderMaterial({
+    uniforms: {
+      ...water,
+      uHeight: { value: scene.tank.height },
+      uPearling: { value: 0 },
+      uPixelScale: { value: 1 },
+    },
+    transparent: true,
+    depthWrite: false,
+    blending: NormalBlending,
+    vertexShader: /* glsl */ `
+      attribute float aSeed;
+      attribute float aThreshold;
+      uniform float uTime;
+      uniform vec3 uCurrent;
+      uniform float uHeight;
+      uniform float uPearling;
+      uniform float uPixelScale;
+      varying float vFade;
+      void main() {
+        float shown = step(aThreshold, uPearling);
+        float speed = ${PEARL_SPEED.toFixed(3)} * (0.8 + aSeed * 0.6);
+        float travel = max(uHeight - position.y, 0.01);
+        float hold = ${PEARL_HOLD.toFixed(1)} * (1.0 + aSeed * 2.5);
+        float period = hold + travel / speed;
+        float phase = mod(uTime + aSeed * period * 7.0, period);
+        float rise = max(phase - hold, 0.0) * speed;
+        float grown = clamp(phase / hold, 0.0, 1.0);
+        vec3 world = position + vec3(0.0, rise, 0.0);
+        world.xz += uCurrent.xz * rise * 3.0;
+        world.x += sin(rise * 9.0 + aSeed * 30.0) * 0.006 * min(rise * 20.0, 1.0);
+        vec4 view = viewMatrix * vec4(world, 1.0);
+        float size = mix(${PEARL_SIZE[0].toFixed(4)}, ${PEARL_SIZE[1].toFixed(4)}, fract(aSeed * 7.13));
+        gl_PointSize = max(size * mix(0.4, 1.0, grown) * uPixelScale / -view.z, 2.5);
+        vFade = shown * smoothstep(travel, travel - 0.05, rise);
+        // Off pearls are moved out of the view instead of drawn clear.
+        gl_Position = shown > 0.5 ? projectionMatrix * view : vec4(2.0, 2.0, 2.0, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform vec3 uLightColor;
+      varying float vFade;
+      void main() {
+        float d = length(gl_PointCoord - 0.5) * 2.0;
+        if (d > 1.0) discard;
+        float glint = smoothstep(0.5, 0.0, length(gl_PointCoord - vec2(0.38, 0.32)));
+        float alpha = (0.55 + 0.45 * glint) * vFade;
+        gl_FragColor = vec4(uLightColor, alpha);
+        #include <colorspace_fragment>
+      }
+    `,
+  });
+  const points = new Points(geometry, material);
+  points.frustumCulled = false;
+  return points;
+}
+
 /** Pixels per meter at one meter from the camera: gl_PointSize = size * scale / depth. */
 function pixelScale(heightPixels: number, verticalFovDegrees: number): number {
   return heightPixels / (2 * Math.tan(((verticalFovDegrees / 2) * Math.PI) / 180));
@@ -208,6 +297,8 @@ export function createParticles(
   props: readonly Prop[],
   water: WaterUniforms,
   rng: Rng,
+  /** Where pearls form on the leaves; none when the scene's plants do not pearl. */
+  pearlSpots: readonly PearlSpot[] = [],
 ): Particles {
   const object = new Group();
   object.name = "particles";
@@ -227,8 +318,9 @@ export function createParticles(
     rng.fork(),
   );
   refractive.mesh.visible = false;
-  object.add(snow, bubbleStreams, refractive.mesh);
-  const materials = [snow.material, bubbleStreams.material];
+  const pearls = pearlBubbles(scene, pearlSpots, water);
+  object.add(snow, bubbleStreams, refractive.mesh, pearls);
+  const materials = [snow.material, bubbleStreams.material, pearls.material];
 
   return {
     object,
@@ -248,8 +340,13 @@ export function createParticles(
     setSnow(amount) {
       snow.geometry.setDrawRange(0, snowCount(amount));
     },
+    setPearling(share) {
+      const uniform = pearls.material.uniforms.uPearling;
+      if (uniform !== undefined) uniform.value = share;
+      pearls.visible = share > 0 && pearlSpots.length > 0;
+    },
     dispose() {
-      for (const points of [snow, bubbleStreams]) {
+      for (const points of [snow, bubbleStreams, pearls]) {
         points.geometry.dispose();
         points.material.dispose();
       }

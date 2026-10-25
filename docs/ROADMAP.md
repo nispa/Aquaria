@@ -510,9 +510,9 @@ are the long part. After block K.
 - [x] A floor profile in the scene: `floor.rise` (towards the back, a
       share of the tank height) and `floor.dunes`, with dunes scaled to
       the tank instead of ±12 cm. Mounds and terraces are left out.
-- [ ] Particles per scene: marine snow for the sea; almost none in fresh
-      water, and oxygen bubbles rising from the leaves in the afternoon
-      (pearling).
+- [x] Particles per scene: marine snow for the sea; almost none in fresh
+      water (the look's `snow`), and oxygen bubbles rising from the leaves
+      in the afternoon (`water.pearling`, `sim/pearling.ts`).
 - [x] A background panel: backdrop `panel` (frosted white, black, or a
       gradient) on the back glass, where the floor ends; the side glass
       mirrors the floor. Worn by the Planted tank and the Iwagumi.

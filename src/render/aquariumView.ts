@@ -47,6 +47,7 @@ import { createBlockwork } from "../sim/blockwork";
 import { layoutFlora, layoutProps, propTraitsOf, type RockSurface } from "../sim/layout";
 import type { ObstacleField } from "../sim/obstacles";
 import { createRockwork, LOOSE_ROCK, type Rockwork } from "../sim/rockwork";
+import { pearlingStrength, pearlSpots } from "../sim/pearling";
 import { floorOf } from "../sim/terrain";
 import type { Simulation } from "../sim/simulation";
 import { createVisitorRenderer } from "./visitorRenderer";
@@ -72,6 +73,10 @@ import { createTankFrame } from "./tankFrame";
 import { createTorchLight } from "./torchLight";
 
 const VERTICAL_FOV = 38;
+/** Most pearls on the leaves of a tank whose plants pearl; `water.pearling` shows a share of them. */
+const MAX_PEARLS = 600;
+/** Pearl spots draw from their own seed, so the plants' layout stays as it was. */
+const PEARL_SEED_OFFSET = 4409;
 /** Sun placement relative to the tank: above, slightly to the right and in front. */
 const SUN_OFFSET = { x: 2, aboveSurface: 6, z: 3 } as const;
 /** Distance of the sun from the middle of the tank when a look sets its direction, m. */
@@ -478,7 +483,15 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       propGroup.add(rockwork.object);
     }
     // Bubbles rise from the rocks, so they follow the props.
-    particles = createParticles(scene, items, water, createRng(particleSeed));
+    particles = createParticles(
+      scene,
+      items,
+      water,
+      createRng(particleSeed),
+      scene.water.pearling > 0
+        ? pearlSpots(plants, floor, MAX_PEARLS, createRng(scenerySeeds.flora + PEARL_SEED_OFFSET))
+        : [],
+    );
     particles.setBubbleStyle(currentLook.has("refractive-bubbles") ? "refractive" : "sprite");
     particles.setBufferHeight(renderHeight, VERTICAL_FOV);
     particles.setSnow(sceneLook?.snow ?? DEFAULT_MARINE_SNOW);
@@ -673,6 +686,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       visitors.update(simulation.visitors, simulation.timeSeconds - animatedTime);
       animatedTime = simulation.timeSeconds;
       particles?.update(simulation.timeSeconds);
+      particles?.setPearling(scene.water.pearling * pearlingStrength(lights, currentHour));
       instances.forEach((instance) => {
         instance.update?.();
       });

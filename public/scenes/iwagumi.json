@@ -12,7 +12,8 @@
     "color": "#2c3a38",
     "fogDensity": 0.12,
     "surface": 0.08,
-    "bubbles": false
+    "bubbles": false,
+    "pearling": 0.5
   },
   "light": {
     "color": "#f6fff4",

@@ -485,6 +485,11 @@ export const sceneSchema = z
       waves: wavesSchema.default(DEFAULT_WAVES),
       /** Bubble streams rising from rocks; planted aquariums usually have none. */
       bubbles: z.boolean().default(true),
+      /**
+       * How much the plants pearl on a bright afternoon, 0..1: tiny oxygen
+       * bubbles rising from the leaves of a planted tank (see sim/pearling).
+       */
+      pearling: unit.default(0),
     }),
     light: z.object({
       color: hexColor,

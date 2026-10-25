@@ -88,9 +88,13 @@ Breve ma completa:
 ```
 
 - `seed` decide la disposizione casuale. Stesso seed, stessa vasca.
-- `water.fogDensity` è quanto è torbida l'acqua. `water.surface` (da 0 a
-  1. è quanto si vede la superficie da sotto; tienilo basso negli acquari.
-     `water.bubbles: false` toglie le colonne di bolle.
+- `water.fogDensity` è quanto è torbida l'acqua. `water.surface` (da 0
+  a 1) è quanto si vede la superficie da sotto; tienilo basso negli
+  acquari. `water.bubbles: false` toglie le colonne di bolle.
+- `water.pearling` (da 0 a 1) è quanto perlano le piante: in un pomeriggio
+  luminoso, dopo circa tre ore di luce, bollicine di ossigeno minuscole si
+  formano sulle foglie, si staccano e salgono. `0.6` nella Planted tank;
+  predefinito `0`.
 - `current` piega le piante, muove le particelle e spinge un poco i pesci.
 
 ### Piante e oggetti

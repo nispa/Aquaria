@@ -87,6 +87,9 @@ A short but complete one:
 - `water.fogDensity` is how murky the water is. `water.surface` (0 to 1)
   is how much you see of the surface from below; keep it low for
   aquariums. `water.bubbles: false` removes the bubble streams.
+- `water.pearling` (0 to 1) is how much the plants pearl: on a bright
+  afternoon, after about three hours of light, tiny oxygen bubbles form
+  on the leaves, let go and rise. `0.6` in the Planted tank; default `0`.
 - `current` bends the plants, moves the particles and pushes the fish a
   little.
 

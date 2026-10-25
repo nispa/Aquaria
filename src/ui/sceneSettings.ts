@@ -198,6 +198,9 @@ export function createSceneSettings(
       checkRow("Bubbles", draft.water.bubbles, (bubbles) => {
         changed({ ...draft, water: { ...draft.water, bubbles } });
       }),
+      numberRow("Pearling", draft.water.pearling, UNIT, 0.05, (pearling) => {
+        changed({ ...draft, water: { ...draft.water, pearling } });
+      }),
       ...backdropRows,
       colorRow("Floor", draft.floor.color, (color) => {
         changed({ ...draft, floor: { ...draft.floor, color } });
