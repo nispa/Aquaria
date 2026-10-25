@@ -11,6 +11,7 @@ import {
   PlaneGeometry,
   Quaternion,
   Vector3,
+  Vector4,
   type BufferGeometry,
 } from "three";
 import type { Logger } from "../core/logger";
@@ -36,7 +37,7 @@ import {
 import { causticsPatch } from "./shaders/causticsPatch";
 import { fluorescencePatch } from "./shaders/fluorescencePatch";
 import { patchMaterial } from "./shaders/patch";
-import { plantPatch, type LeafStyle } from "./shaders/plantPatch";
+import { MAX_PARTING, plantPatch, type LeafStyle, type StrandUniforms } from "./shaders/plantPatch";
 import type { WaterUniforms } from "./uniforms";
 import { variantOf } from "./variants";
 
@@ -183,6 +184,12 @@ const MODEL_LEAF: LeafStyle = { veins: 0, veinStrength: 0 };
 
 export interface FloraRenderer {
   readonly object: Group;
+  /**
+   * The fish the tentacles of anemones part around, (x, y, z, radius) in m:
+   * write the first ones (see anemoneParting), then say how many.
+   */
+  readonly parting: readonly Vector4[];
+  setPartingCount(count: number): void;
   /** Resolves when every model-only plant has loaded or failed. */
   settled(): Promise<void>;
   dispose(): void;
@@ -201,6 +208,10 @@ export function createFloraRenderer(
 ): FloraRenderer {
   const object = new Group();
   object.name = "flora";
+  const strands: StrandUniforms = {
+    uParting: { value: Array.from({ length: MAX_PARTING }, () => new Vector4()) },
+    uPartingCount: { value: 0 },
+  };
   const disposables: { dispose(): void }[] = [];
   const loading: Promise<void>[] = [];
   let disposed = false;
@@ -245,6 +256,7 @@ export function createFloraRenderer(
             MODEL_LEAF,
             first.tipColor === undefined ? undefined : new Color(first.tipColor),
             first.swaySpeed,
+            geometry.hasAttribute("aStrand") ? strands : undefined,
           ),
           causticsPatch(water),
         ]);
@@ -367,6 +379,10 @@ export function createFloraRenderer(
 
   return {
     object,
+    parting: strands.uParting.value,
+    setPartingCount(count) {
+      strands.uPartingCount.value = Math.min(count, MAX_PARTING);
+    },
     settled: () => Promise.all(loading).then(() => undefined),
     dispose() {
       disposed = true;

@@ -84,8 +84,12 @@ def leaf_spot(mesh, vertex, u, v):
     vertex[mesh.verts.layers.int["on_leaf"]] = 1
 
 
-def plant_object(name, mesh, colors, sway, material):
-    """An object from a bmesh whose points carry a color (RGB) and a sway weight."""
+def plant_object(name, mesh, colors, sway, material, extra=None):
+    """An object from a bmesh whose points carry a color (RGB) and a sway weight.
+
+    `extra` names more per-point values to export, e.g. {"_STRAND": {point: 0.3}}:
+    glTF keeps custom attributes whose names start with an underscore.
+    """
     u_layer = mesh.verts.layers.float.get("leaf_u")
     v_layer = mesh.verts.layers.float.get("leaf_v")
     on_leaf = mesh.verts.layers.int.get("on_leaf")
@@ -102,6 +106,10 @@ def plant_object(name, mesh, colors, sway, material):
     for vertex in mesh.verts:
         color_layer.data[vertex.index].color = list(colors[vertex]) + [1.0]
         sway_layer.data[vertex.index].value = sway[vertex]
+    for attribute, values in (extra or {}).items():
+        layer = data.attributes.new(attribute, "FLOAT", "POINT")
+        for vertex in mesh.verts:
+            layer.data[vertex.index].value = values.get(vertex, 0.0)
     data.color_attributes.active_color = color_layer
     for polygon in data.polygons:
         polygon.use_smooth = True

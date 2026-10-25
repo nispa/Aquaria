@@ -77,6 +77,12 @@ conosciuto con un valore sbagliato ferma il caricamento e dice dove.
 | `speed`     | `1`       | Quanto in fretta ondeggia (1 = normale)         |
 | `attribute` | `"_SWAY"` | Dove il modello dice quanto ondeggia ogni punto |
 
+Un modello i cui punti portano anche `_STRAND`, un valore da 0 a 1 per
+tentacolo, muove i tentacoli uno per uno: ognuno con fase e ritmo propri,
+in un'onda dalla radice alla punta, mentre l'animale intero si apre e si
+chiude piano; e li apre attorno a un pesce che ci si tuffa. Gli anemoni di
+`scripts/blender/anemone.py` lo hanno.
+
 ### `collision`: i pesci ci girano attorno
 
 Un ellissoide approssimato. Ogni valore è una parte della misura

@@ -96,6 +96,25 @@ function floatGeometry(geometry: BufferGeometry): void {
   }
 }
 
+/** The glTF attribute giving each tentacle of a plant its own value (anemone.py). */
+export const STRAND_ATTRIBUTE = "_STRAND";
+
+/**
+ * Per-vertex strand values (0..1, one per tentacle) for the plant shader
+ * (`aStrand`), when the model has them: each tentacle then moves on its
+ * own. GLTFLoader lowercases custom attribute names.
+ */
+export function strandAttribute(geometry: BufferGeometry): BufferAttribute | undefined {
+  const name = [STRAND_ATTRIBUTE, STRAND_ATTRIBUTE.toLowerCase()].find((each) =>
+    geometry.hasAttribute(each),
+  );
+  if (name === undefined) return undefined;
+  const source = geometry.getAttribute(name);
+  const values = new Float32Array(source.count);
+  for (let index = 0; index < source.count; index += 1) values[index] = source.getX(index);
+  return new BufferAttribute(values, 1);
+}
+
 /**
  * Per-vertex sway weights (0..1) for the plant shader (`aSway`). Reads the
  * glTF attribute `attributeName` (or its lowercased name, as `GLTFLoader`
@@ -225,6 +244,8 @@ function prepareVariant(
     part.geometry.applyMatrix4(normalize);
     if (category === "plant") {
       part.geometry.setAttribute("aSway", swayAttribute(part.geometry, swayAttributeName));
+      const strands = strandAttribute(part.geometry);
+      if (strands !== undefined) part.geometry.setAttribute("aStrand", strands);
       ensureAcrossAttribute(part.geometry);
     }
     if (!part.geometry.hasAttribute("normal")) part.geometry.computeVertexNormals();

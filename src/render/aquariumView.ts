@@ -52,6 +52,7 @@ import { floorOf } from "../sim/terrain";
 import type { Simulation } from "../sim/simulation";
 import { createVisitorRenderer } from "./visitorRenderer";
 import type { EffectDefinition, EffectInstance } from "./effects/types";
+import { partingFish, type PartingAnemone } from "./anemoneParting";
 import { createEnvironment } from "./environment";
 import { createWaterEnvironment } from "./environmentLight";
 import { createAssetLoaders } from "./assetLoaders";
@@ -384,6 +385,8 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   let rockwork: RockworkRenderer | undefined;
   let ridge: Rockwork | undefined;
   let places: readonly Place[] = [];
+  /** The anemones whose tentacles part around the fish among them. */
+  let anemones: readonly PartingAnemone[] = [];
   let obstacles: readonly Obstacle[] = [];
   let particles: Particles | undefined;
   const frameCamera = (): void => {
@@ -467,6 +470,14 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       ridge ?? blockTops,
     );
     places = placesOf(plants, [...(ridge?.rocks ?? []), ...items], floor);
+    anemones = places
+      .filter((place) => place.tags.includes("anemone"))
+      .map((place) => ({
+        x: place.x,
+        z: place.z,
+        base: place.base ?? floor(place.x, place.z),
+        height: place.height,
+      }));
     obstacles = obstaclesOf([...(ridge?.rocks ?? []), ...items], floor);
     flora = createFloraRenderer(plants, water, loaders.loadModel, logger, options.shapes, floor);
     props = createPropRenderer(
@@ -686,6 +697,9 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       visitors.update(simulation.visitors, simulation.timeSeconds - animatedTime);
       animatedTime = simulation.timeSeconds;
       particles?.update(simulation.timeSeconds);
+      if (flora !== undefined && anemones.length > 0) {
+        flora.setPartingCount(partingFish(simulation.fish, anemones, flora.parting));
+      }
       particles?.setPearling(scene.water.pearling * pearlingStrength(lights, currentHour));
       instances.forEach((instance) => {
         instance.update?.();

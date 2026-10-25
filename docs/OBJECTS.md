@@ -76,6 +76,12 @@ the loading and says where.
 | `speed`     | `1`       | How fast it sways (1 = normal)                 |
 | `attribute` | `"_SWAY"` | Where the model says how much each point sways |
 
+A model whose points also carry `_STRAND`, one value from 0 to 1 per
+tentacle, moves its tentacles one by one: each at its own phase and pace,
+in a wave from root to tip, while the whole animal slowly opens and
+closes; and they part around a fish that dives in. The anemones of
+`scripts/blender/anemone.py` have it.
+
 ### `collision`: fish swim around it
 
 A rough ellipsoid. Each value is a share of the object's size.

@@ -392,12 +392,14 @@ tuned against reference photographs, with every parameter a slider.
 
 ### I3. Soft anemones
 
-- [ ] Tentacles that move one by one, not the whole anemone: each its own
+- [x] Tentacles that move one by one, not the whole anemone: each its own
       phase and rhythm (a per-tentacle attribute baked by
       `scripts/blender/anemone.py`), bending along all its length, softer
-      at the tips, with a slow pulse of the whole anemone.
-- [ ] They part around a fish passing through and close behind it
-      (positions of the nearest fish as shader uniforms, no allocations).
+      at the tips, with a slow pulse of the whole anemone. `_STRAND` in the
+      model, `strands` in `render/shaders/plantPatch.ts`.
+- [x] They part around a fish passing through and close behind it
+      (positions of the nearest fish as shader uniforms, no allocations;
+      `render/anemoneParting.ts`).
 - [ ] Long-tentacle morphs besides the bubble tip (e.g. a carpet and a
       long-tentacle anemone), from the same script; the clownfish host in
       all of them by the `anemone` tag.

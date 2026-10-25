@@ -10,12 +10,35 @@ import {
   Vector3,
 } from "three";
 import { describe, expect, it } from "vitest";
-import { extractModelTraits, prepareObjectModel, swayAttribute } from "./objectModel";
+import {
+  extractModelTraits,
+  prepareObjectModel,
+  strandAttribute,
+  swayAttribute,
+} from "./objectModel";
 
 function boundsOf(geometry: BufferGeometry): Box3 {
   geometry.computeBoundingBox();
   return geometry.boundingBox ?? new Box3();
 }
+
+describe("strandAttribute", () => {
+  it("reads each tentacle's strand value, as GLTFLoader names it", () => {
+    const geometry = new BufferGeometry();
+    geometry.setAttribute("position", new Float32BufferAttribute([0, 0, 0, 0, 1, 0], 3));
+    geometry.setAttribute("_strand", new Float32BufferAttribute([0.25, 0.25], 1));
+
+    const strands = strandAttribute(geometry);
+
+    expect([strands?.getX(0), strands?.getX(1)]).toEqual([0.25, 0.25]);
+  });
+
+  it("finds none on a plant whose model has no strands", () => {
+    const geometry = new PlaneGeometry(1, 1);
+
+    expect(strandAttribute(geometry)).toBeUndefined();
+  });
+});
 
 describe("swayAttribute", () => {
   it("reads a custom glTF attribute and clamps it to 0..1", () => {

@@ -14,6 +14,9 @@ orange to red, the tentacles come in colour morphs: green with pink tips,
 rose, or brown with green tips. Each morph is a variant, laid side by side
 so Aquaria picks one per anemone (docs/OBJECTS.md). `_SWAY` is 0 on the
 column and disc and grows along each tentacle, so only tentacles move.
+`_STRAND` is one value per tentacle (0..1, the same all along it): Aquaria
+gives each tentacle its own phase and rhythm from it, so they move one by
+one, and parts them around a fish that dives in.
 
 Run with Blender 5.2 in the background, from the repository root:
 
@@ -131,7 +134,7 @@ def column_and_disc(mesh, colors, sway, morph, column_height, disc_radius):
         bridge(mesh, lower, upper)
 
 
-def tentacle(mesh, colors, sway, rng, species, morph, root, out):
+def tentacle(mesh, colors, sway, strands, strand, rng, species, morph, root, out):
     """A tapering tube, swollen into a bulb below its tip (if any), curving up and out."""
     stops = [
         (0.0, linear(morph[1])),
@@ -176,6 +179,7 @@ def tentacle(mesh, colors, sway, rng, species, morph, root, out):
         for point in points:
             colors[point] = color
             sway[point] = t**1.2
+            strands[point] = strand
         if previous is not None:
             bridge(mesh, previous, points)
         previous = points
@@ -189,6 +193,7 @@ def tentacle(mesh, colors, sway, rng, species, morph, root, out):
         cap = mesh.verts.new(position - heading * (length / TENTACLE_SEGMENTS) * 0.6)
     colors[cap] = ramp(stops, 1.0)
     sway[cap] = 1.0
+    strands[cap] = strand
     for k in range(TENTACLE_SIDES):
         mesh.faces.new((previous[k], previous[(k + 1) % TENTACLE_SIDES], cap))
 
@@ -197,6 +202,7 @@ def build_anemone(rng, offset, species, morph, material, name):
     mesh = bmesh.new()
     colors = {}
     sway = {}
+    strands = {}
     column_height = species["column_height"]
     disc_radius = species["disc_radius"]
     column_and_disc(mesh, colors, sway, morph, column_height, disc_radius)
@@ -207,9 +213,11 @@ def build_anemone(rng, offset, species, morph, material, name):
         distance = disc_radius * (0.25 + 0.72 * math.sqrt(share))
         angle = index * 2.39996 + rng.uniform(-0.1, 0.1)
         root = Vector((math.cos(angle) * distance, math.sin(angle) * distance, column_height * 1.05))
-        tentacle(mesh, colors, sway, rng, species, morph, root, out=math.sqrt(share))
+        # The golden ratio spreads neighbours' values apart, without drawing from rng.
+        strand = (index * 0.6180339887) % 1.0
+        tentacle(mesh, colors, sway, strands, strand, rng, species, morph, root, out=math.sqrt(share))
     bmesh.ops.translate(mesh, verts=mesh.verts, vec=Vector((offset, 0, 0)))
-    anemone = plant_object(name, mesh, colors, sway, material)
+    anemone = plant_object(name, mesh, colors, sway, material, extra={"_STRAND": strands})
     mesh.free()
     return anemone
 
