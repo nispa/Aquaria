@@ -504,7 +504,7 @@
   "fauna": [
     {
       "species": "blue-tang",
-      "count": 12
+      "count": 6
     },
     {
       "species": "clownfish",
@@ -523,12 +523,8 @@
       "count": 3
     },
     {
-      "species": "neon-tetra",
-      "count": 40
-    },
-    {
       "species": "sardine",
-      "count": 45
+      "count": 20
     }
   ],
   "visitors": [

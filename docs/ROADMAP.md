@@ -437,11 +437,17 @@ tuned against reference photographs, with every parameter a slider.
 
 ### I6. Light enough for phones
 
-- [ ] Lighter versions where phones need them: coral scans at a few
-      thousand triangles further away (levels of detail), coarser block
-      rock, fewer seagrass tufts; measured on the Redmi Note 14 Pro.
-- [ ] The Hero scene runs at a usable frame rate on that phone; state the
-      numbers before and after.
+Aquaria is made for LED walls, not phones (the user, 2026-10-25): a phone
+opens the Nano reef, two clownfish and little scenery, and that is enough.
+
+- [x] What costs on the phone, measured on the Redmi Note 14 Pro
+      (production build, 540p, 30 fps cap): the Hero at 4 fps, the same
+      scene without fish at 30, without coral scans at 6 to 10, without
+      block rock at 11 to 17. The fish are the cost, not the corals; no
+      levels of detail needed. Nano reef and Tropical reef at 30.
+- [x] The Hero with fewer fish, asked by the user: no neon tetras (fresh
+      water), 20 sardines instead of 45, 6 blue tangs instead of 12.
+      On the phone 8 to 10 fps instead of 4.
 
 ## K. Fish maker
 
