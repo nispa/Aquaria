@@ -400,9 +400,10 @@ tuned against reference photographs, with every parameter a slider.
 - [x] They part around a fish passing through and close behind it
       (positions of the nearest fish as shader uniforms, no allocations;
       `render/anemoneParting.ts`).
-- [ ] Long-tentacle morphs besides the bubble tip (e.g. a carpet and a
+- [x] Long-tentacle morphs besides the bubble tip (e.g. a carpet and a
       long-tentacle anemone), from the same script; the clownfish host in
-      all of them by the `anemone` tag.
+      all of them by the `anemone` tag. `carpet-anemone` and
+      `long-tentacle-anemone`, three colour morphs each.
 
 ### I4. Clownfish living in their anemone
 
