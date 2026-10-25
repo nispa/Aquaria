@@ -44,6 +44,7 @@ import { patchMaterial, type ShaderPatch } from "./shaders/patch";
 import { surfacePatch } from "./shaders/surfacePatch";
 import type { SurfaceLibrary } from "./surfaceLibrary";
 import type { WaterUniforms } from "./uniforms";
+import { variantOf } from "./variants";
 
 interface PropStyle {
   /** Distinct shapes per kind; each prop picks one from its own seed. */
@@ -246,7 +247,7 @@ export function createPropRenderer(
       }
       continue;
     }
-    const variant = createRng(prop.seed).int(0, PROP_STYLES[prop.generator].variants - 1);
+    const variant = variantOf(prop, PROP_STYLES[prop.generator].variants);
     const key = `${prop.kind}|${prop.color}|${variant}|${surfaceKey(prop.material)}`;
     groups.set(key, [...(groups.get(key) ?? []), { prop, generator: prop.generator, variant }]);
   }
@@ -275,7 +276,7 @@ export function createPropRenderer(
     if (first === undefined || variants.length === 0) return;
     const byVariant = new Map<number, Prop[]>();
     for (const prop of members) {
-      const variantIndex = createRng(prop.seed).int(0, variants.length - 1);
+      const variantIndex = variantOf(prop, variants.length);
       byVariant.set(variantIndex, [...(byVariant.get(variantIndex) ?? []), prop]);
     }
     const surface = first.material;

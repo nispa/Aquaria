@@ -38,6 +38,7 @@ import { fluorescencePatch } from "./shaders/fluorescencePatch";
 import { patchMaterial } from "./shaders/patch";
 import { plantPatch, type LeafStyle } from "./shaders/plantPatch";
 import type { WaterUniforms } from "./uniforms";
+import { variantOf } from "./variants";
 
 export interface BladeStyle {
   /** Blades per plant. */
@@ -224,7 +225,7 @@ export function createFloraRenderer(
     if (first === undefined || variants.length === 0) return;
     const byVariant = new Map<number, Plant[]>();
     for (const plant of members) {
-      const variantIndex = createRng(plant.seed).int(0, variants.length - 1);
+      const variantIndex = variantOf(plant, variants.length);
       byVariant.set(variantIndex, [...(byVariant.get(variantIndex) ?? []), plant]);
     }
     for (const [variantIndex, variantMembers] of byVariant) {

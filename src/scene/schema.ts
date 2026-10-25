@@ -353,6 +353,11 @@ const spot = {
   y: z.number().min(0).optional(),
   /** Turn around the vertical axis, degrees. */
   rotation: z.number().optional(),
+  /**
+   * Which of the object's shapes it takes (0, 1, 2…), e.g. the leaning
+   * stone of an iwagumi; one drawn at random when absent.
+   */
+  variant: z.number().int().min(0).optional(),
 };
 
 const flora = z.object({

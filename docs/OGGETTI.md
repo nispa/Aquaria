@@ -111,6 +111,10 @@ valori.
 | `size`   | nessuno    | Intervallo di misura in metri (oggetti)     |
 | `height` | nessuno    | Intervallo di altezza in metri (piante)     |
 
+`clearance` (metri, predefinito `0.2`) è quanto sta lontano dal vetro e
+dalle pareti laterali: hairgrass e muschio dicono `0.02`, così un tappeto
+arriva fino al vetro.
+
 ### `tint`: il colore tinge il modello
 
 Il colore dell'elemento moltiplica i colori del modello. Pensato per le

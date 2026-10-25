@@ -108,6 +108,10 @@ A scene entry can override any of it.
 | `size`   | none       | Size range in meters (objects)             |
 | `height` | none       | Height range in meters (plants)            |
 
+`clearance` (meters, default `0.2`) is how far it keeps from the glass and
+the side walls: hairgrass and moss say `0.02`, so a carpet grows right up
+to the glass.
+
 ### `tint`: the color tints the model
 
 The item's color multiplies the model's own colors. Made for the coral

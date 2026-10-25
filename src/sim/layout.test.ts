@@ -481,6 +481,28 @@ describe("placement at chosen spots", () => {
 
     expect([stone?.elevation, stone?.size]).toEqual([undefined, 0.2]);
   });
+
+  it("gives an item the shape variant its spot names", () => {
+    const [stone] = layoutProps(
+      objects,
+      tank,
+      [{ kind: "rock", count: 1, color: "#888888", at: [{ x: 0, z: -1, variant: 2 }] }],
+      createRng(1),
+    );
+
+    expect(stone?.variant).toBe(2);
+  });
+
+  it("leaves the shape variant to the item's seed when its spot names none", () => {
+    const [stone] = layoutProps(
+      objects,
+      tank,
+      [{ kind: "rock", count: 1, color: "#888888", at: [{ x: 0, z: -1 }] }],
+      createRng(1),
+    );
+
+    expect(stone?.variant).toBeUndefined();
+  });
 });
 
 describe("tip color", () => {
@@ -562,6 +584,40 @@ describe("model objects", () => {
     source: "https://example.com/model",
     license: "CC0-1.0",
   };
+
+  it("lets a plant that keeps little clearance grow up to the glass, as a carpet does", () => {
+    const { manifest } = parseObjectManifest(
+      {
+        name: "Carpet",
+        category: "plant",
+        model: "model.glb",
+        traits: { placement: { clearance: 0.02 } },
+        credit,
+      },
+      "carpet",
+    );
+    const catalog = createObjectCatalog([["carpet", manifest]]);
+
+    const plants = layoutFlora(
+      catalog,
+      tank,
+      [{ kind: "carpet", count: 200, bands: [0, 0], height: [0.05, 0.05], color: "#4a8a3a" }],
+      createRng(1),
+    );
+
+    expect(Math.max(...plants.map((plant) => plant.z))).toBeGreaterThan(-0.1);
+  });
+
+  it("keeps objects away from the glass by default", () => {
+    const props = layoutProps(
+      objects,
+      tank,
+      [{ kind: "rock", count: 50, bands: [0, 0], color: "#888888" }],
+      createRng(1),
+    );
+
+    expect(Math.max(...props.map((prop) => prop.z))).toBeLessThanOrEqual(-0.2);
+  });
 
   it("places a plant made of a 3D model alone, with its sway settings", () => {
     const { manifest } = parseObjectManifest(

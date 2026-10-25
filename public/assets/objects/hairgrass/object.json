@@ -12,6 +12,7 @@
     },
     "tags": ["plant"],
     "placement": {
+      "clearance": 0.02,
       "on": ["sand"],
       "height": [0.04, 0.09]
     }

@@ -23,5 +23,10 @@ export const placement = defineTrait({
     size: orderedPair(meters, "size").optional(),
     /** Height range, m (plants). */
     height: orderedPair(meters, "height").optional(),
+    /**
+     * How far it keeps from the glass and the side walls, m, when it goes
+     * where chance puts it: a carpet grows right up to the glass.
+     */
+    clearance: z.number().min(0).max(1).default(0.2),
   }),
 });

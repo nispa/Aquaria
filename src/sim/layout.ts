@@ -50,6 +50,8 @@ export interface Plant {
   readonly swayPhase: number;
   /** Seeds the renderer's per-plant details (blade jitter), independent of other plants. */
   readonly seed: number;
+  /** The shape variant its spot names; else the renderer draws one from `seed`. */
+  readonly variant?: number;
   /** Height of the base above the sand, m, when growing on rockwork. */
   readonly elevation?: number;
   /** Color the leaves turn towards the top, when the entry sets one. */
@@ -79,6 +81,8 @@ export interface Prop {
   readonly rotation: number;
   /** Seeds the renderer's per-prop details (shape variant), independent of other props. */
   readonly seed: number;
+  /** The shape variant its spot names; else the renderer draws one from `seed`. */
+  readonly variant?: number;
   /** Photographic surface, when the scene entry sets one. */
   readonly material?: SurfaceMaterialSpec;
   /** Height of the base above the sand, m, when set on rockwork. */
@@ -89,8 +93,6 @@ export interface Prop {
   readonly tint?: number;
 }
 
-/** Keeps objects a little away from the glass and the side walls. */
-const EDGE_CLEARANCE = 0.2;
 const SEED_RANGE = 2 ** 32;
 
 /** Size range of an object whose placement trait sets none, m. */
@@ -186,8 +188,8 @@ function tankHalfWidth(tank: TankSize): HalfWidthAt {
  * visible width at its own depth, so the sides of the back are not left empty.
  * Items keep their depth and relative position (-1..1) when the view changes.
  */
-function spreadX(across: number, z: number, halfWidthAt: HalfWidthAt): number {
-  return across * Math.max(halfWidthAt(z) - EDGE_CLEARANCE, 0);
+function spreadX(across: number, z: number, halfWidthAt: HalfWidthAt, clearance: number): number {
+  return across * Math.max(halfWidthAt(z) - clearance, 0);
 }
 
 /** Where one item goes: x, z and its height above the sand when on rockwork. */
@@ -195,6 +197,7 @@ interface Spot {
   readonly x: number;
   readonly z: number;
   readonly elevation?: number;
+  readonly variant?: number;
 }
 
 /**
@@ -222,6 +225,8 @@ function drawSpot(
   depth: { readonly near: number; readonly far: number },
   halfWidthAt: HalfWidthAt,
   rock: RockSurface | undefined,
+  /** How far it keeps from the glass and the side walls, m (the placement trait). */
+  clearance: number,
 ): Spot {
   for (let attempt = 0; rock !== undefined && attempt < ROCK_SPOT_TRIES; attempt += 1) {
     const point = rock.randomPoint(entryRng);
@@ -230,8 +235,8 @@ function drawSpot(
     if (z <= depth.near && z >= depth.far) return { x, z, elevation: rock.heightAt(x, z) };
   }
   const across = entryRng.range(-1, 1);
-  const z = entryRng.range(depth.far, Math.min(depth.near, -EDGE_CLEARANCE));
-  return { x: spreadX(across, z, halfWidthAt), z };
+  const z = entryRng.range(depth.far, Math.min(depth.near, -clearance));
+  return { x: spreadX(across, z, halfWidthAt, clearance), z };
 }
 
 /** A chosen spot (see the scene's `at`), as a spot to place an item on. */
@@ -240,6 +245,7 @@ interface ChosenSpot {
   readonly z: number;
   readonly y?: number | undefined;
   readonly rotation?: number | undefined;
+  readonly variant?: number | undefined;
 }
 
 /**
@@ -248,7 +254,12 @@ interface ChosenSpot {
  */
 function spotAt(chosen: ChosenSpot, rock: RockSurface | undefined): Spot {
   const elevation = chosen.y ?? rock?.heightAt(chosen.x, chosen.z) ?? 0;
-  return elevation > 0 ? { x: chosen.x, z: chosen.z, elevation } : { x: chosen.x, z: chosen.z };
+  return {
+    x: chosen.x,
+    z: chosen.z,
+    ...(elevation > 0 ? { elevation } : {}),
+    ...(chosen.variant === undefined ? {} : { variant: chosen.variant }),
+  };
 }
 
 const DEGREES = Math.PI / 180;
@@ -282,6 +293,7 @@ export function layoutFlora(
     const entryRng = generators[index] ?? rng;
     const plant = plantOf(spec.kind, objects.get(spec.kind));
     if (plant === undefined) return [];
+    const { clearance } = TRAITS.placement.schema.parse(plant.object.traits.placement ?? {});
     const depth = bandDepthRange(tank, spec.bands);
     const surface = spec.on === "rockwork" ? rockwork : undefined;
     const chosenSpots = spec.at?.slice(0, spec.count);
@@ -289,7 +301,7 @@ export function layoutFlora(
       const chosen = chosenSpots?.[item];
       const spot =
         chosen === undefined
-          ? drawSpot(entryRng, depth, halfWidthAt, surface)
+          ? drawSpot(entryRng, depth, halfWidthAt, surface, clearance)
           : spotAt(chosen, rockwork);
       return {
         kind: spec.kind,
@@ -335,7 +347,7 @@ export function layoutProps(
       const chosen = chosenSpots?.[item];
       const spot =
         chosen === undefined
-          ? drawSpot(entryRng, depth, halfWidthAt, surface)
+          ? drawSpot(entryRng, depth, halfWidthAt, surface, placement.clearance)
           : spotAt(chosen, rockwork);
       return {
         kind: spec.kind,
