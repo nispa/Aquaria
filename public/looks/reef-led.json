@@ -1,0 +1,35 @@
+{
+  "name": "Reef under LEDs",
+  "exposure": 1,
+  "snow": 0.15,
+  "sun": [0.1, 1, 0.2],
+  "features": {
+    "waves": false,
+    "frame": false,
+    "fluorescence": true,
+    "volumetric-light": false,
+    "light-shafts": false
+  },
+  "effects": {
+    "underwater": {
+      "strength": 0.6,
+      "absorption": [0.22, 0.08, 0.05],
+      "deep": "#02101c",
+      "horizon": "#0a3552",
+      "surface": "#5fa8d8",
+      "brightness": 1,
+      "sunColor": "#f2f6ff",
+      "sunGlow": 0.4,
+      "sunFocus": 30,
+      "shafts": 0,
+      "clearWater": 1.2,
+      "depthDarkening": 0.03
+    },
+    "finish": {
+      "vignette": 0.2,
+      "contrast": 1.08,
+      "saturation": 1.25,
+      "tint": "#f4f8ff"
+    }
+  }
+}

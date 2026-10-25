@@ -1,6 +1,7 @@
 {
   "id": "home-reef",
   "name": "Home reef",
+  "look": "reef-led",
   "seed": 20260930,
   "tank": {
     "width": 6,
@@ -9,7 +10,8 @@
   },
   "water": {
     "color": "#0b5f8a",
-    "fogDensity": 0.07
+    "fogDensity": 0.07,
+    "surface": 0.2
   },
   "light": {
     "color": "#f2f6ff",

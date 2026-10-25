@@ -379,8 +379,9 @@ species are needed.
 Each a file in `public/looks/`, listed in the panel's Look section and
 tuned against reference photographs, with every parameter a slider.
 
-- [ ] Reef under LEDs: crystal clear water, little absorption, white and
-      actinic blue spots, coral fluorescence, no surface waves.
+- [x] Reef under LEDs: crystal clear water, little absorption, white and
+      actinic blue spots, coral fluorescence, no surface waves
+      (`looks/reef-led.json`, worn by the Home reef).
 - [x] Planted freshwater: see J2.
 - [x] Open sea: the Hero look as it is (`looks/hero.json`).
 - [x] Clownfish lagoon: shallow, sunny turquoise water, bright caustics on

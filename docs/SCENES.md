@@ -278,6 +278,11 @@ not enough for that: the scene also gives the water a dark grey-green
 near-black backdrop and a `"sun"` fixture, so no row of spots shows above
 the water.
 
+The Home reef wears `public/looks/reef-led.json`, a reef tank under LED
+spots: clear water that loses its reds first, the coral fluorescence on,
+little marine snow, no waves and no sunbeams. The scene keeps its row of
+spots and a low `surface` (0.2).
+
 The looks listed in `public/looks/index.json` can also be chosen in the
 panel's Look section for any scene, with a slider for every setting.
 

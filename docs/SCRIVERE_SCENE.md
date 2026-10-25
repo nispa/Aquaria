@@ -286,6 +286,11 @@ dall'alto. Il look da solo non basta: la scena dà anche all'acqua un
 `surface` calma (0.08), uno sfondo quasi nero e una plafoniera `"sun"`,
 così sopra l'acqua non si vede una fila di faretti.
 
+La Home reef usa `public/looks/reef-led.json`, una vasca di barriera sotto
+faretti LED: acqua limpida che perde prima i rossi, la fluorescenza dei
+coralli accesa, poca neve marina, niente onde né raggi di sole. La scena
+tiene la sua fila di faretti e una `surface` bassa (0.2).
+
 I look elencati in `public/looks/index.json` si possono anche scegliere
 nella sezione Look del pannello, per qualunque scena, con uno slider per
 ogni impostazione.
