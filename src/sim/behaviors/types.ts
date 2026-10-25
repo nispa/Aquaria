@@ -65,6 +65,8 @@ export interface SwimContext {
   readonly room: Box3;
   /** Body length of the individual, m. */
   readonly length: number;
+  /** How big it is next to its kind: its length over the species' mean length. */
+  readonly size: number;
   /** Cruise speed of its species, m/s: what a `speed` of 1 means. */
   readonly cruise: number;
   readonly rng: Rng;

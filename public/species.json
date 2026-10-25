@@ -90,17 +90,18 @@
         "style": "hover",
         "speed": 0.3,
         "roamBodyLengths": 1.5,
-        "home": "anemone"
+        "home": "anemone",
+        "dive": { "inSeconds": [5, 12], "outSeconds": [3, 8] }
       },
       "activities": {
         "inspect": {
-          "weight": 0.5,
+          "weight": 0.2,
           "tags": {
             "anemone": 1
           }
         },
         "peck": {
-          "weight": 0.4,
+          "weight": 0.2,
           "tags": {
             "anemone": 1
           }

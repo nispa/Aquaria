@@ -524,6 +524,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
     velocity: new Vector3(),
     room: new Box3(),
     length: 0,
+    size: 1,
     cruise: 0,
     rng,
     places: createPlaceFinder(
@@ -540,6 +541,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
     swimContext.velocity = member.velocity;
     swimContext.room = group.room;
     swimContext.length = member.length;
+    swimContext.size = member.length / group.species.length.mean;
     swimContext.cruise = group.species.speed.cruise;
     return swimContext;
   };
@@ -732,7 +734,12 @@ export function createSimulation(options: SimulationOptions): Simulation {
       return true;
     }
     if (member.swim.anchored) {
-      nestlePoint(member.swim, member.length, member.refuge);
+      nestlePoint(
+        member.swim,
+        member.length,
+        member.refuge,
+        group.species.swim.style === "hover" ? group.species.swim : undefined,
+      );
       member.refugeSize = 0;
       return true;
     }

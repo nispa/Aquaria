@@ -90,6 +90,27 @@ cominciato.
 | `roamBodyLengths`     | 4        | Quanto si allontana prima di tornare |
 | `heightChangeSeconds` | 10       | Ogni quanto cambia un po' altezza    |
 | `home`                | nessuno  | Etichetta del posto sopra cui stare  |
+| `dive`                | nessuno  | Ogni tanto si tuffa nella sua casa   |
+
+Con `dive`, un pesce con una casa ci entra, come un pesce pagliaccio nel
+suo anemone: resta tra i tentacoli per `inSeconds`, `depthBodyLengths`
+(0.6) sotto la cima, girandosi piano per strofinarcisi, poi esce a
+guardarsi intorno per `outSeconds`. Spaventato, si nasconde così a fondo.
+Il pesce pagliaccio:
+
+```json
+"swim": {
+  "style": "hover",
+  "speed": 0.3,
+  "roamBodyLengths": 1.5,
+  "home": "anemone",
+  "dive": { "inSeconds": [5, 12], "outSeconds": [3, 8] }
+}
+```
+
+Sopra la sua casa, un pesce più grande dei suoi simili le sta più vicino:
+il più grande della coppia resta accanto all'anemone, il più piccolo si
+allontana di più.
 
 ### `glide`: otto lenti
 

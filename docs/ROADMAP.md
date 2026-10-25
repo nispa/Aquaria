@@ -407,13 +407,15 @@ tuned against reference photographs, with every parameter a slider.
 
 ### I4. Clownfish living in their anemone
 
-- [ ] A host fish dips into its anemone, rubs along the tentacles and
+- [x] A host fish dips into its anemone, rubs along the tentacles and
       comes out a little way to look around, then goes back (the `hover`
-      style around its home, with a dive into it).
-- [ ] A pair shares an anemone, the larger one keeping close to it;
-      startled, they hide deep among the tentacles.
-- [ ] Drawn among the tentacles, partly hidden by them, without popping
-      in front or behind.
+      style around its home, with a dive into it: `dive`).
+- [x] A pair shares an anemone, the larger one keeping close to it;
+      startled, they hide deep among the tentacles (`hostRoam`, the
+      swim context's `size`).
+- [x] Drawn among the tentacles, partly hidden by them, without popping
+      in front or behind: the depth test already does it, the tentacles
+      being opaque; checked in the nano reef.
 
 ### I5. The aquariums
 

@@ -1,6 +1,7 @@
+import { Vector3 } from "three";
 import { describe, expect, it } from "vitest";
 import { collect, headingGap, startStyle } from "./harness";
-import { hoverStyle } from "./hover";
+import { hostRoam, hoverStyle, nestlePoint } from "./hover";
 
 describe("hover", () => {
   it("drifts far slower than cruise speed", () => {
@@ -134,5 +135,60 @@ describe("nestling", () => {
     const heights = collect(hosted, 60, (state) => state.height);
 
     expect(Math.min(...heights)).toBeLessThan(anemone.height);
+  });
+});
+
+describe("diving into the host", () => {
+  const anemone = { x: 0, z: -1, height: 0.2, tags: ["anemone"] };
+  const dive = {
+    inSeconds: [2, 2] as [number, number],
+    outSeconds: [2, 2] as [number, number],
+    depthBodyLengths: 0.6,
+  };
+
+  it("dives in among the tentacles of its host, below its top", () => {
+    const hosted = startStyle(hoverStyle, { home: "anemone", dive }, 1, [anemone]);
+
+    const heights = collect(hosted, 20, (state) => state.height);
+
+    expect(Math.min(...heights)).toBeLessThan(anemone.height - hosted.context.length * 0.3);
+  });
+
+  it("comes out again to keep station above its host", () => {
+    const hosted = startStyle(hoverStyle, { home: "anemone", dive }, 1, [anemone]);
+
+    const heights = collect(hosted, 20, (state) => state.height);
+
+    expect(Math.max(...heights)).toBeGreaterThan(anemone.height);
+  });
+
+  it("moves slowly while among the tentacles, rubbing along them", () => {
+    const hosted = startStyle(hoverStyle, { home: "anemone", dive }, 1, [anemone]);
+    const speeds: number[] = [];
+
+    hosted.run(20, (state) => {
+      if (state.height < anemone.height) speeds.push(state.speed);
+    });
+
+    expect(Math.max(...speeds)).toBeLessThanOrEqual(hosted.params.speed);
+  });
+
+  it("hides deep among the tentacles when startled", () => {
+    const hosted = startStyle(hoverStyle, { home: "anemone", dive }, 1, [anemone]);
+    const refuge = nestlePoint(hosted.state, hosted.context.length, new Vector3(), hosted.params);
+
+    expect(refuge.y).toBeLessThan(anemone.height - hosted.context.length * 0.3);
+  });
+});
+
+describe("hostRoam", () => {
+  it("keeps the larger fish of a pair closer to their host", () => {
+    const params = { roamBodyLengths: 1.5 };
+
+    expect(hostRoam(params, 0.1, 1.1)).toBeLessThan(hostRoam(params, 0.1, 0.9));
+  });
+
+  it("is the style's roam for a fish of the species' usual size", () => {
+    expect(hostRoam({ roamBodyLengths: 1.5 }, 0.1, 1)).toBeCloseTo(0.15);
   });
 });

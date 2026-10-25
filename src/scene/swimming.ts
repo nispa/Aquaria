@@ -68,6 +68,20 @@ const hover = z.strictObject({
    * scene has none, the fish keeps station where it started.
    */
   home: tagSchema.optional(),
+  /**
+   * How a fish with a home dives into it, as a clownfish into its anemone:
+   * it stays among the tentacles for `inSeconds`, `depthBodyLengths` below
+   * the top, slowly turning to rub along them, then comes out to look
+   * around for `outSeconds`. Startled, it hides that deep. Without it, the
+   * fish keeps station above its home and only nestles now and then.
+   */
+  dive: z
+    .strictObject({
+      inSeconds: seconds(4, 10),
+      outSeconds: seconds(3, 8),
+      depthBodyLengths: positive.default(0.6),
+    })
+    .optional(),
 });
 
 /** Slow and graceful: wide figure eights while rising and sinking. Angelfish, idols. */

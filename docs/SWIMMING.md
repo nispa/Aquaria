@@ -87,6 +87,25 @@ the scene has no anemone, it stays where it started.
 | `roamBodyLengths`     | 4        | How far it strays before going back   |
 | `heightChangeSeconds` | 10       | How often its height changes a little |
 | `home`                | none     | Tag of the place to stay over         |
+| `dive`                | none     | Dives into its home now and then      |
+
+With `dive`, a fish with a home goes into it, as a clownfish into its
+anemone: it stays among the tentacles for `inSeconds`, `depthBodyLengths`
+(0.6) below the top, turning slowly to rub along them, then comes out to
+look around for `outSeconds`. Startled, it hides that deep. The clownfish:
+
+```json
+"swim": {
+  "style": "hover",
+  "speed": 0.3,
+  "roamBodyLengths": 1.5,
+  "home": "anemone",
+  "dive": { "inSeconds": [5, 12], "outSeconds": [3, 8] }
+}
+```
+
+Over a host, a fish larger than its kind keeps closer to it: the larger of
+a pair stays by the anemone, the smaller strays further.
 
 ### `glide`: slow figure eights
 

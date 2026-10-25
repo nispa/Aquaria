@@ -45,6 +45,7 @@ export function startStyle<Id extends SwimStyleId>(
     velocity: new Vector3(CRUISE, 0, 0),
     room: new Box3(new Vector3(-2, 0, -2), new Vector3(2, 2, 0)),
     length: BODY_LENGTH,
+    size: 1,
     cruise: CRUISE,
     rng: createRng(seed),
     places: createPlaceFinder(
@@ -115,6 +116,7 @@ export function startActivity<Id extends ActivityId>(
     velocity: new Vector3(CRUISE, 0, 0),
     room: new Box3(new Vector3(-2, 0, -2), new Vector3(2, 2, 0)),
     length: BODY_LENGTH,
+    size: 1,
     cruise: CRUISE,
     rng: createRng(seed),
     places: createPlaceFinder(
