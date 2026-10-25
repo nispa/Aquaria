@@ -1,4 +1,5 @@
 import {
+  BufferGeometry,
   Color,
   DoubleSide,
   Euler,
@@ -14,7 +15,6 @@ import {
   Vector2,
   Vector3,
   type AnimationClip,
-  type BufferGeometry,
   type Material,
   type Object3D,
 } from "three";
@@ -175,6 +175,24 @@ function createInstancedMesh(
   // Instances roam the whole tank; the per-mesh bounding sphere would be wrong.
   mesh.frustumCulled = false;
   return mesh;
+}
+
+/**
+ * A geometry of its own over the vertex data of a shared one: each species
+ * adds its own instance attributes, while the GPU keeps one copy of the
+ * shape (three.js uploads a buffer once per attribute object).
+ */
+function sharedShape(shape: BufferGeometry): BufferGeometry {
+  const geometry = new BufferGeometry();
+  for (const [name, attribute] of Object.entries(shape.attributes)) {
+    geometry.setAttribute(name, attribute);
+  }
+  geometry.setIndex(shape.index);
+  geometry.morphAttributes = shape.morphAttributes;
+  geometry.morphTargetsRelative = shape.morphTargetsRelative;
+  for (const group of shape.groups)
+    geometry.addGroup(group.start, group.count, group.materialIndex);
+  return geometry;
 }
 
 function proceduralMaterial(body: Species["body"], water: WaterUniforms): MeshPhysicalMaterial {
@@ -388,7 +406,28 @@ export function createFishRenderer(
   const loading: Promise<void>[] = [];
   /** Walking models as loaded: their bodies share these geometries and materials. */
   const loadedWalkers: Object3D[] = [];
+  /** Model shapes by file, downloaded once for every species that wears them. */
+  const shapes = new Map<string, Promise<readonly FishModelPart[]>>();
   let disposed = false;
+
+  const shapeOf = (url: string, manifest: ModelManifest): Promise<readonly FishModelPart[]> => {
+    const known = shapes.get(url);
+    if (known !== undefined) return known;
+    const shape = models.load(url).then((root) => {
+      const parts = prepareFishModel(root, manifest);
+      const loadedTextures = disposeLoadedScene(root);
+      if (disposed) {
+        for (const part of parts) part.geometry.dispose();
+        for (const texture of loadedTextures) texture.dispose();
+      } else {
+        geometries.push(...parts.map((part) => part.geometry));
+        textures.push(...loadedTextures);
+      }
+      return parts;
+    });
+    shapes.set(url, shape);
+    return shape;
+  };
 
   const addMesh = (
     instances: SpeciesInstances,
@@ -455,17 +494,14 @@ export function createFishRenderer(
       loadWalking(instances, url, manifest, loadAnimated);
       return;
     }
-    const done = Promise.all([models.load(url), loadColorings(entry, modelId, manifest)])
-      .then(([root, colorings]) => {
-        const parts = prepareFishModel(root, manifest);
-        const loadedTextures = disposeLoadedScene(root);
-        if (colorings !== undefined) loadedTextures.push(colorings);
+    const done = Promise.all([shapeOf(url, manifest), loadColorings(entry, modelId, manifest)])
+      .then(([shape, colorings]) => {
         if (disposed) {
-          for (const part of parts) part.geometry.dispose();
-          for (const texture of loadedTextures) texture.dispose();
+          colorings?.dispose();
           return;
         }
-        textures.push(...loadedTextures);
+        if (colorings !== undefined) textures.push(colorings);
+        const parts = shape.map((part) => ({ ...part, geometry: sharedShape(part.geometry) }));
         addModelParts(entry.id, instances, parts, manifest, colorings);
         instances.modelState = "ready";
         showBody(instances);

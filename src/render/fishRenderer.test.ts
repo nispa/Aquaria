@@ -71,6 +71,8 @@ interface SetupOptions {
   readonly loadAnimated?: AnimatedModelLoader;
   readonly manifests?: ReadonlyMap<string, ModelManifest>;
   readonly modelsOn?: boolean;
+  /** The second fixture species wears the same model folder. */
+  readonly shared?: boolean;
 }
 
 /** The first fixture species has a 3D model, "box-fish". */
@@ -81,9 +83,11 @@ function setup({
   coloring,
   manifests = withManifest,
   modelsOn = true,
+  shared = false,
 }: SetupOptions = {}) {
   const input = catalogFixture();
   input.species[0]!.model = "box-fish";
+  if (shared) input.species[1]!.model = "box-fish";
   if (coloring !== undefined) input.species[0]!.coloring = coloring.map((id) => ({ id }));
   const catalog = parseCatalog(input);
   const entries: LogEntry[] = [];
@@ -111,7 +115,11 @@ function setup({
   const swim = () => {
     renderer.update(species === undefined ? [] : [posedFish(species)]);
   };
-  return { id, catalog, entries, loads, renderer, shown, swim };
+  /** Puts one fish of every species in the tank. */
+  const swimAll = () => {
+    renderer.update(catalog.species.map((each) => posedFish(each)));
+  };
+  return { id, catalog, entries, loads, renderer, shown, swim, swimAll };
 }
 
 describe("createFishRenderer", () => {
@@ -205,6 +213,29 @@ describe("createFishRenderer", () => {
       false,
       "warn",
     ]);
+  });
+
+  it("downloads a model two species share once", async () => {
+    const { loads, renderer, swimAll } = setup({ shared: true });
+
+    swimAll();
+    await renderer.settled();
+
+    expect(loads).toHaveLength(1);
+  });
+
+  it("keeps one copy of a shared model's shape on the GPU", async () => {
+    const { catalog, renderer, swimAll } = setup({ shared: true });
+
+    swimAll();
+    await renderer.settled();
+    const [first, second] = catalog.species.map(
+      ({ id }) => renderer.object.getObjectByName(`${id}/model`) as Mesh,
+    );
+
+    expect(first?.geometry.getAttribute("position")).toBe(
+      second?.geometry.getAttribute("position"),
+    );
   });
 
   it("keeps the procedural body when the model has no manifest, with a warning", () => {

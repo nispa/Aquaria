@@ -324,8 +324,9 @@ species with no coloring looks as today.
 - [ ] Colorings as a pattern mask or plain colors per material, and a
       credit for colorings that come from elsewhere.
 - [x] A species names its model and coloring (`model`, `coloring`).
-- [ ] Several species share one folder, so the shape is downloaded and
-      kept on the GPU once (today each species loads its own copy).
+- [x] Several species share one folder, so the shape is downloaded and
+      kept on the GPU once: each species gets its own geometry over the
+      same vertex buffers (`sharedShape` in `render/fishRenderer.ts`).
 - [x] Strains: a species may list several colorings with weights; each
       fish wears one and keeps it, so a school mixes them (picked from
       the fish's id, like its fin beat, so the seeded draws stay as they

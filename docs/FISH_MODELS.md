@@ -475,6 +475,9 @@ texture array.
   leaves the model in its own colors, with a warning.
 - The fish's card shows the first coloring. To look at another one on
   the grid: `/model-viewer.html?id=guppy&coloring=1`.
+- Several species can name the same `model` folder, each with its own
+  colorings: kin of one shape, like two tangs. The model is downloaded
+  once and its shape kept once on the GPU.
 
 **Painting them in code.** A recipe lays the fish out on one square
 texture: the body unrolled (along it, and once round it), each fin in its

@@ -482,6 +482,9 @@ sulla GPU: le texture diventano gli strati di un texture array.
   carica, lascia il modello con i suoi colori, con un avviso.
 - La scheda del pesce mostra la prima colorazione. Per guardarne un'altra
   sulla griglia: `/model-viewer.html?id=guppy&coloring=1`.
+- Più specie possono indicare la stessa cartella `model`, ognuna con le
+  sue colorazioni: parenti della stessa forma, come due pesci chirurgo. Il
+  modello si scarica una volta e la sua forma sta una volta sola sulla GPU.
 
 **Dipingerle col codice.** Una ricetta stende il pesce su una texture
 quadrata: il corpo srotolato (lungo il pesce e tutto intorno), ogni pinna
