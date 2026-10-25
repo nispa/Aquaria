@@ -24,6 +24,7 @@ import type { Logger } from "../core/logger";
 import type { BlockCell } from "../scene/blockEditing";
 import type { BlockGrid } from "../scene/blocks";
 import type { Plant, Prop } from "../sim/layout";
+import type { FloorHeight } from "../sim/terrain";
 import { createAssetLoaders } from "./assetLoaders";
 import { blockMesh } from "./blockMesh";
 import { blockyMesh, isometricView } from "./editorFraming";
@@ -45,6 +46,8 @@ export interface EditorViewOptions {
   readonly grid: BlockGrid;
   /** The blocks being edited; the editor changes them, then calls `refresh`. */
   readonly cells: Uint8Array;
+  /** The scene's floor, which plants and objects stand on; the editor draws it flat, as the blocks' ground. */
+  readonly floor: FloorHeight;
   readonly floorColor: string;
   readonly rockColor: string;
   readonly backgroundColor: string;
@@ -286,8 +289,23 @@ export function createEditorView(options: EditorViewOptions): EditorView {
     setScenery(plants, items) {
       flora?.dispose();
       props?.dispose();
-      flora = createFloraRenderer(plants, water, loaders.loadModel, options.logger);
-      props = createPropRenderer(items, water, surfaces, loaders.loadModel, options.logger);
+      flora = createFloraRenderer(
+        plants,
+        water,
+        loaders.loadModel,
+        options.logger,
+        undefined,
+        options.floor,
+      );
+      props = createPropRenderer(
+        items,
+        water,
+        surfaces,
+        loaders.loadModel,
+        options.logger,
+        undefined,
+        options.floor,
+      );
       sceneryGroup.clear();
       sceneryGroup.add(flora.object, props.object);
     },

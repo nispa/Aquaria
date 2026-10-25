@@ -48,7 +48,7 @@ import {
 import { propTop } from "../sim/obstacles";
 import { looseRocksEntries, ridgeCells } from "../sim/ridgeBlocks";
 import { createRockwork, LOOSE_ROCK } from "../sim/rockwork";
-import { floorHeight } from "../sim/terrain";
+import { floorOf } from "../sim/terrain";
 import { createEditorBar, DEFAULT_DENSITY, type EditorTool } from "../ui/editorBar";
 import { createPalette } from "../ui/palette";
 import type { SceneryPortraitRequest } from "../ui/sceneryCards";
@@ -178,6 +178,7 @@ function itemWidth(object: ObjectManifest, tankHeight: number): number {
 export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
   const { canvas, scene, objects } = options;
   const { tank } = scene;
+  const floor = floorOf(tank, scene.floor);
   const size = scene.blocks?.size ?? DEFAULT_BLOCK_SIZE;
   const grid = blockGrid(tank, size);
   const cells =
@@ -189,6 +190,7 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
     tank,
     grid,
     cells,
+    floor,
     floorColor: scene.floor.color,
     rockColor: scene.blocks?.color ?? DEFAULT_BLOCKS.color,
     backgroundColor: scene.water.color,
@@ -222,10 +224,7 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
 
   // The rock as plants and objects see it: the tops of the block columns.
   const elevationAt = (x: number, z: number, height = Infinity): number =>
-    Math.max(
-      supportBelow(tank, grid, cells, x, z, floorHeight(x, z) + height) - floorHeight(x, z),
-      0,
-    );
+    Math.max(supportBelow(tank, grid, cells, x, z, floor(x, z) + height) - floor(x, z), 0);
   const blockTops: RockSurface = {
     randomPoint(rng: Rng) {
       // Every column with a block in it, whatever its layer.
@@ -268,7 +267,7 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
   const balls = (): { ball: ItemBall; box: ItemBox; ref: ItemRef }[] => [
     ...plants.flatMap((plant) => {
       if (plant.source === undefined) return [];
-      const base = floorHeight(plant.x, plant.z) + (plant.elevation ?? 0);
+      const base = floor(plant.x, plant.z) + (plant.elevation ?? 0);
       const middle = { x: plant.x, y: base + plant.height / 2, z: plant.z };
       const ball = { ...middle, radius: Math.max(plant.height / 2, MIN_PICK_RADIUS) };
       const box = {
@@ -280,7 +279,7 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
     }),
     ...props.flatMap((prop) => {
       if (prop.source === undefined) return [];
-      const base = floorHeight(prop.x, prop.z) + (prop.elevation ?? 0);
+      const base = floor(prop.x, prop.z) + (prop.elevation ?? 0);
       const top = propTop(prop);
       const middle = { x: prop.x, y: base + top / 2, z: prop.z };
       const ball = { ...middle, radius: Math.max(prop.size / 2, top / 2, MIN_PICK_RADIUS) };
@@ -334,7 +333,7 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
     const x = inside(pick.point.x, -tank.width / 2, pick.hit.column);
     const z = inside(pick.point.z, -tank.depth, pick.hit.row);
     const top = pick.up ? pick.point.y : supportBelow(tank, grid, cells, x, z, Infinity);
-    return { x, z, y: Math.max(top - floorHeight(x, z), 0) };
+    return { x, z, y: Math.max(top - floor(x, z), 0) };
   };
 
   const blockTarget = (spot: ViewSpot): BlockCell | undefined => {
@@ -541,7 +540,7 @@ export function openSceneEditor(options: SceneEditorOptions): SceneEditor {
       () => tank.width / 2,
       propTraitsOf(objects.get(LOOSE_ROCK), LOOSE_ROCK),
     );
-    ridgeCells(tank, grid, ridge).forEach((cell, index) => {
+    ridgeCells(tank, grid, ridge, floor).forEach((cell, index) => {
       if (cell === 1) cells[index] = 1;
     });
     if (scene.blocks === undefined) {

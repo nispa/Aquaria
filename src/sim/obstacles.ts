@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import type { Prop } from "./layout";
-import { floorHeight } from "./terrain";
+import { floorHeight, type FloorHeight } from "./terrain";
 
 /**
  * Obstacles: the solid objects of the scenery (rocks, corals, wood) that
@@ -42,10 +42,10 @@ export interface Obstacle {
   readonly reach: number;
 }
 
-/** The obstacle a prop is, standing where the renderer stands it. */
-export function obstacleOf(prop: Prop): Obstacle {
+/** The obstacle a prop is, standing where the renderer stands it, on the scene's floor. */
+export function obstacleOf(prop: Prop, floor: FloorHeight = floorHeight): Obstacle {
   const { shape } = prop;
-  const base = floorHeight(prop.x, prop.z) + (prop.elevation ?? 0) + shape.sink * prop.size;
+  const base = floor(prop.x, prop.z) + (prop.elevation ?? 0) + shape.sink * prop.size;
   const middle = base + shape.lift * prop.size;
   const radii = new Vector3(shape.across, shape.up, shape.along).multiplyScalar(prop.size);
   return {
@@ -64,8 +64,8 @@ export function propTop(prop: Pick<Prop, "shape" | "size">): number {
 }
 
 /** Every solid prop as an obstacle; fish swim through the others. */
-export function obstaclesOf(props: readonly Prop[]): Obstacle[] {
-  return props.filter((prop) => prop.solid).map(obstacleOf);
+export function obstaclesOf(props: readonly Prop[], floor: FloorHeight = floorHeight): Obstacle[] {
+  return props.filter((prop) => prop.solid).map((prop) => obstacleOf(prop, floor));
 }
 
 /** Where fish find the obstacles around them. */

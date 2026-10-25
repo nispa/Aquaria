@@ -47,7 +47,7 @@ import { createBlockwork } from "../sim/blockwork";
 import { layoutFlora, layoutProps, propTraitsOf, type RockSurface } from "../sim/layout";
 import type { ObstacleField } from "../sim/obstacles";
 import { createRockwork, LOOSE_ROCK, type Rockwork } from "../sim/rockwork";
-import { floorHeight } from "../sim/terrain";
+import { floorOf } from "../sim/terrain";
 import type { Simulation } from "../sim/simulation";
 import { createVisitorRenderer } from "./visitorRenderer";
 import type { EffectDefinition, EffectInstance } from "./effects/types";
@@ -311,7 +311,8 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
   const loaders = createAssetLoaders(renderer, fishTextureLimit(options.renderHeight));
   const surfaces = createSurfaceLibrary((url) => loaders.textures.loadAsync(url), logger);
   surfaces.setAnisotropy(renderer.capabilities.getMaxAnisotropy());
-  const environment = createEnvironment(scene, water, surfaces, rng.fork());
+  const floor = floorOf(scene.tank, scene.floor);
+  const environment = createEnvironment(scene, floor, water, surfaces, rng.fork());
   const fish = createFishRenderer(
     catalog,
     water,
@@ -414,7 +415,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       ? undefined
       : {
           randomPoint: (rng) => blockwork.randomTop(rng),
-          heightAt: (x, z) => Math.max(blockwork.topAt(x, z) - floorHeight(x, z), 0),
+          heightAt: (x, z) => Math.max(blockwork.topAt(x, z) - floor(x, z), 0),
         };
 
   const buildScenery = (): void => {
@@ -433,7 +434,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
         (camera.position.z - z) * Math.tan(((VERTICAL_FOV / 2) * Math.PI) / 180) * camera.aspect,
         scene.tank.width / 2,
       );
-    tankFrame.layout(halfWidthAt(0));
+    tankFrame.layout(halfWidthAt(0), floor);
     ridge =
       scene.rockwork === undefined
         ? undefined
@@ -460,9 +461,9 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       halfWidthAt,
       ridge ?? blockTops,
     );
-    places = placesOf(plants, [...(ridge?.rocks ?? []), ...items]);
-    obstacles = obstaclesOf([...(ridge?.rocks ?? []), ...items]);
-    flora = createFloraRenderer(plants, water, loaders.loadModel, logger, options.shapes);
+    places = placesOf(plants, [...(ridge?.rocks ?? []), ...items], floor);
+    obstacles = obstaclesOf([...(ridge?.rocks ?? []), ...items], floor);
+    flora = createFloraRenderer(plants, water, loaders.loadModel, logger, options.shapes, floor);
     props = createPropRenderer(
       [...(ridge?.rocks ?? []), ...items],
       water,
@@ -470,9 +471,10 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       loaders.loadModel,
       logger,
       options.shapes,
+      floor,
     );
     if (ridge !== undefined && scene.rockwork !== undefined) {
-      rockwork = createRockworkRenderer(ridge, scene.rockwork, water, surfaces);
+      rockwork = createRockworkRenderer(ridge, scene.rockwork, water, surfaces, floor);
       propGroup.add(rockwork.object);
     }
     // Bubbles rise from the rocks, so they follow the props.
@@ -641,7 +643,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       out.copy(point).project(camera);
       return out.z < 1 && Math.abs(out.x) <= 1 && Math.abs(out.y) <= 1;
     },
-    seabedHeight: (x, z) => floorHeight(x, z) + (ridge?.heightAt(x, z) ?? 0),
+    seabedHeight: (x, z) => floor(x, z) + (ridge?.heightAt(x, z) ?? 0),
     places: () => places,
     obstacles: () => obstacles,
     rockField: () => blockwork?.field,

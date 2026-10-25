@@ -2,7 +2,7 @@ import type { Box3, Vector3 } from "three";
 import type { Rng } from "../core/rng";
 import type { Plant, Prop } from "./layout";
 import { propTop } from "./obstacles";
-import { floorHeight } from "./terrain";
+import { floorHeight, type FloorHeight } from "./terrain";
 import type { SeabedHeight } from "./steering";
 
 /**
@@ -24,9 +24,13 @@ export interface Place {
   readonly tags: readonly string[];
 }
 
-/** The places of a laid-out scenery: every plant and prop with at least one tag. */
-export function placesOf(plants: readonly Plant[], props: readonly Prop[]): Place[] {
-  const baseOf = (x: number, z: number, elevation = 0): number => floorHeight(x, z) + elevation;
+/** The places of a laid-out scenery on the scene's floor: every plant and prop with at least one tag. */
+export function placesOf(
+  plants: readonly Plant[],
+  props: readonly Prop[],
+  floor: FloorHeight = floorHeight,
+): Place[] {
+  const baseOf = (x: number, z: number, elevation = 0): number => floor(x, z) + elevation;
   return [
     ...plants.map(({ x, z, height, tags, elevation }) => ({
       x,

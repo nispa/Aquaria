@@ -206,7 +206,13 @@ const vector3 = z
   .refine(([x, y, z]) => x !== 0 || y !== 0 || z !== 0, "direction must not be a zero vector.");
 
 const backdrop = z.discriminatedUnion("type", [
+  /** Open water: the floor runs on into the distance, towards a far gradient. */
   z.object({ type: z.literal("gradient"), top: hexColor, bottom: hexColor }),
+  /**
+   * A home tank: a panel glued to the back glass (black, frosted white or a
+   * gradient), where the floor ends.
+   */
+  z.object({ type: z.literal("panel"), top: hexColor, bottom: hexColor }),
   z.object({
     type: z.literal("image"),
     /** Layers from far to near; `distance` is relative (1 = far wall). */
@@ -493,7 +499,17 @@ export const sceneSchema = z
       turbulence: unit,
     }),
     backdrop,
-    floor: z.object({ color: hexColor, material: surfaceMaterial.optional() }),
+    floor: z.object({
+      color: hexColor,
+      material: surfaceMaterial.optional(),
+      /**
+       * How high the floor climbs from the front glass to the back, as a
+       * share of the tank height: 0.15 for the slope of a planted tank.
+       */
+      rise: z.number().min(0).max(0.5).default(0),
+      /** The sand dunes: 1 for the usual ones of a tank this size, 0 for a flat floor. */
+      dunes: z.number().min(0).max(2).default(1),
+    }),
     /** LED channels and daily cycle; the recommended reef setup when absent. */
     lights: lightsSchema,
     rockwork: rockwork.optional(),

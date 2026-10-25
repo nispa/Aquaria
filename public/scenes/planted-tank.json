@@ -28,12 +28,14 @@
     "turbulence": 0.3
   },
   "backdrop": {
-    "type": "gradient",
+    "type": "panel",
     "top": "#16201c",
     "bottom": "#050806"
   },
   "floor": {
     "color": "#5a4a3a",
+    "rise": 0.15,
+    "dunes": 0.5,
     "material": {
       "id": "aqua-soil",
       "tileSize": 0.35

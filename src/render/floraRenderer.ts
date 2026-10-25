@@ -17,7 +17,7 @@ import type { Logger } from "../core/logger";
 import { createRng } from "../core/rng";
 import type { PlantGenerator } from "../scene/schema";
 import type { Plant } from "../sim/layout";
-import { floorHeight } from "../sim/terrain";
+import { floorHeight, type FloorHeight } from "../sim/terrain";
 import {
   disposeLoadedObjectModel,
   modelMaterial,
@@ -195,6 +195,8 @@ export function createFloraRenderer(
   logger?: Logger,
   /** Where generated shapes come from (render/shapeLibrary); built here by default. */
   shapes?: ShapeSource,
+  /** The scene's floor, which every plant stands on. */
+  floor: FloorHeight = floorHeight,
 ): FloraRenderer {
   const object = new Group();
   object.name = "flora";
@@ -249,11 +251,7 @@ export function createFloraRenderer(
         mesh.frustumCulled = false;
         mesh.receiveShadow = true;
         variantMembers.forEach((plant, instance) => {
-          position.set(
-            plant.x,
-            floorHeight(plant.x, plant.z) + (plant.elevation ?? 0) - 0.02,
-            plant.z,
-          );
+          position.set(plant.x, floor(plant.x, plant.z) + (plant.elevation ?? 0) - 0.02, plant.z);
           rotation.setFromEuler(euler.set(0, plant.rotation, 0));
           scale.setScalar(plant.height);
           matrix.compose(position, rotation, scale);
@@ -343,7 +341,7 @@ export function createFloraRenderer(
         const x = plant.x + rng.range(-style.spread, style.spread);
         const z = plant.z + rng.range(-style.spread, style.spread);
         const height = plant.height * rng.range(0.7, 1);
-        position.set(x, floorHeight(x, z) + (plant.elevation ?? 0) - 0.02, z);
+        position.set(x, floor(x, z) + (plant.elevation ?? 0) - 0.02, z);
         // Yaw first, then lean: blades lean a little, tentacles splay outwards.
         euler.set(
           rng.range(style.tilt[0], style.tilt[1]),

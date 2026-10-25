@@ -187,6 +187,28 @@ describe("parseScene", () => {
     expect(scene.backdrop.type).toBe("image");
   });
 
+  it("accepts a background panel on the back glass", () => {
+    const input = sceneFixture();
+    input.backdrop = { type: "panel", top: "#101010", bottom: "#000000" };
+
+    const scene = parseScene(input, catalog);
+
+    expect(scene.backdrop.type).toBe("panel");
+  });
+
+  it("lays a level floor with the usual dunes when the scene says nothing", () => {
+    const scene = parseScene(sceneFixture(), catalog);
+
+    expect(scene.floor).toMatchObject({ rise: 0, dunes: 1 });
+  });
+
+  it("rejects a floor rising more than half the tank height", () => {
+    const input = sceneFixture();
+    input.floor = { ...input.floor, rise: 0.6 };
+
+    expect(() => parseScene(input, catalog)).toThrow(/floor\.rise/);
+  });
+
   it("rejects input that is not an object", () => {
     expect(() => parseScene("reef", catalog)).toThrow(SceneValidationError);
   });

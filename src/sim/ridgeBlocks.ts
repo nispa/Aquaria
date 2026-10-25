@@ -2,7 +2,7 @@ import { cellIndex, cellCount, type BlockGrid } from "../scene/blocks";
 import { MAX_PROPS_PER_ENTRY, type PropSpec, type RockworkSpec } from "../scene/schema";
 import type { Prop } from "./layout";
 import { LOOSE_ROCK, type Rockwork } from "./rockwork";
-import { floorHeight } from "./terrain";
+import { floorHeight, type FloorHeight } from "./terrain";
 
 /**
  * Turning a procedural reef ridge into rock built from blocks, so the scene
@@ -17,8 +17,16 @@ interface TankSize {
 
 const DEGREES_PER_RADIAN = 180 / Math.PI;
 
-/** The cells of the grid under the ridge's surface, measured at the middle of each column. */
-export function ridgeCells(tank: TankSize, grid: BlockGrid, ridge: Rockwork): Uint8Array {
+/**
+ * The cells of the grid under the ridge's surface on the scene's floor,
+ * measured at the middle of each column.
+ */
+export function ridgeCells(
+  tank: TankSize,
+  grid: BlockGrid,
+  ridge: Rockwork,
+  floor: FloorHeight = floorHeight,
+): Uint8Array {
   const cells = new Uint8Array(cellCount(grid));
   for (let row = 0; row < grid.rows; row += 1) {
     for (let column = 0; column < grid.columns; column += 1) {
@@ -26,7 +34,7 @@ export function ridgeCells(tank: TankSize, grid: BlockGrid, ridge: Rockwork): Ui
       const z = -tank.depth + (row + 0.5) * grid.size;
       const height = ridge.heightAt(x, z);
       if (height <= 0) continue;
-      const layers = Math.min(Math.round((floorHeight(x, z) + height) / grid.size), grid.layers);
+      const layers = Math.min(Math.round((floor(x, z) + height) / grid.size), grid.layers);
       for (let layer = 0; layer < layers; layer += 1) {
         cells[cellIndex(grid, column, layer, row)] = 1;
       }

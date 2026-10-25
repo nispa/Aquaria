@@ -23,6 +23,17 @@ const SCHOOL_FROM = 8;
 /** ...never shrinks below this many. */
 const MIN_SCHOOL = 3;
 
+/** Tanks of these sizes stand in a room, closed by a panel on the back glass. */
+const HOME_SIZES: readonly TankSize[] = ["nano", "small", "medium"];
+/** The panel of a home tank whose open water was a picture, not a gradient. */
+const BLACK_PANEL = { type: "panel", top: "#0b0d0e", bottom: "#020303" } as const;
+
+/** A home tank shows a panel where open water ran on; other backdrops stay. */
+function backdropAt(backdrop: Scene["backdrop"], size: TankSize): Scene["backdrop"] {
+  if (backdrop.type === "panel" || !HOME_SIZES.includes(size)) return backdrop;
+  return backdrop.type === "gradient" ? { ...backdrop, type: "panel" } : BLACK_PANEL;
+}
+
 const volumeOf = (tank: TankMeasures): number => tank.width * tank.height * tank.depth;
 
 /** The size whose volume a tank is closest to. */
@@ -54,7 +65,8 @@ const clampCount = (count: number, original: number, limit: number): number =>
  * them, in proportion to the square root of the volume (a school keeps at
  * least three); plants and objects keep their density, so their number
  * follows the floor area; plants follow the height, stones and woods the
- * volume, a little. Chosen spots move with the tank. Returns the scene
+ * volume, a little. Chosen spots move with the tank. A home tank (nano
+ * to medium) is closed by a panel on its back glass. Returns the scene
  * itself when it already has that size or cannot be resized.
  */
 export function resizeScene(scene: Scene, size: TankSize): Scene {
@@ -98,6 +110,7 @@ export function resizeScene(scene: Scene, size: TankSize): Scene {
     ...scene,
     size,
     tank: { ...target },
+    backdrop: backdropAt(scene.backdrop, size),
     fauna: kept,
     flora: scene.flora.map((entry) => {
       const count = clampCount(entry.count * area, entry.count, MAX_FLORA_PER_ENTRY);

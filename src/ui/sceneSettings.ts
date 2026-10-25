@@ -55,6 +55,13 @@ const TANK = {
 const TANK_STEP = 0.05;
 const SEED_RANGE = [0, 99999] as const;
 const UNIT = [0, 1] as const;
+/** A share of the tank height, as the scene schema allows. */
+const FLOOR_RISE = [0, 0.5] as const;
+const FLOOR_DUNES = [0, 2] as const;
+const BACKGROUNDS = [
+  ["gradient", "Open water"],
+  ["panel", "Panel on the back glass"],
+] as const;
 const LIGHT_RANGE = [0, 3] as const;
 const CAUSTIC_SIZE = [0.2, 6] as const;
 const CURRENT_RANGE = [0, 0.3] as const;
@@ -104,20 +111,25 @@ export function createSceneSettings(
 
   const backdrop = draft.backdrop;
   const backdropRows =
-    backdrop.type === "gradient"
-      ? [
+    backdrop.type === "image"
+      ? []
+      : [
+          selectRow("Background", BACKGROUNDS, backdrop.type, (type) => {
+            if (draft.backdrop.type !== "image" && (type === "gradient" || type === "panel")) {
+              changed({ ...draft, backdrop: { ...draft.backdrop, type } });
+            }
+          }),
           colorRow("Background top", backdrop.top, (top) => {
-            if (draft.backdrop.type === "gradient") {
+            if (draft.backdrop.type !== "image") {
               changed({ ...draft, backdrop: { ...draft.backdrop, top } });
             }
           }),
           colorRow("Background bottom", backdrop.bottom, (bottom) => {
-            if (draft.backdrop.type === "gradient") {
+            if (draft.backdrop.type !== "image") {
               changed({ ...draft, backdrop: { ...draft.backdrop, bottom } });
             }
           }),
-        ]
-      : [];
+        ];
 
   let rock: RockLook = {
     color: draft.blocks?.color ?? DEFAULT_ROCK_COLOR,
@@ -193,6 +205,12 @@ export function createSceneSettings(
       ...materialRows(state.materials, draft.floor.material, false, (material) => {
         const floor = without(draft.floor, "material");
         changed({ ...draft, floor: material === undefined ? floor : { ...floor, material } });
+      }),
+      numberRow("Floor rise", draft.floor.rise, FLOOR_RISE, 0.01, (rise) => {
+        changed({ ...draft, floor: { ...draft.floor, rise } });
+      }),
+      numberRow("Dunes", draft.floor.dunes, FLOOR_DUNES, 0.1, (dunes) => {
+        changed({ ...draft, floor: { ...draft.floor, dunes } });
       }),
     ),
     section(

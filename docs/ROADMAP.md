@@ -362,12 +362,12 @@ species are needed.
       another (`scene/tankSize.ts`): fewer fish (square root of the
       volume), plants and objects by floor area, true sizes kept. Scenes
       with block rock keep their tank.
-- [ ] The floor's relief follows the tank: the sand dunes are ±12 cm
-      whatever the size (`FLOOR_AMPLITUDE` in `sim/terrain.ts`), too
-      much for a 60 cm tank. See J1.
-- [ ] A small tank needs its own back and floor: today the sand and the
-      backdrop run on far behind a nano tank as in open water. See J1's
-      background panel.
+- [x] The floor's relief follows the tank: the dunes shrink, in height
+      and length, in tanks lower than a large one (`floorOf` in
+      `sim/terrain.ts`).
+- [x] A small tank has its own back and floor: a `nano`, `small` or
+      `medium` tank seen from an open-water scene gets a panel on its
+      back glass in the backdrop's colors, and the sand ends there.
 
 ### I2. Four realistic looks
 
@@ -506,13 +506,17 @@ are the long part. After block K.
 
 ### J1. What the engine lacks
 
-- [ ] A floor profile in the scene: rising towards the back, mounds and
-      terraces, with dunes scaled to the tank instead of ±12 cm.
+- [x] A floor profile in the scene: `floor.rise` (towards the back, a
+      share of the tank height) and `floor.dunes`, with dunes scaled to
+      the tank instead of ±12 cm. Mounds and terraces are left out.
 - [ ] Particles per scene: marine snow for the sea; almost none in fresh
       water, and oxygen bubbles rising from the leaves in the afternoon
       (pearling).
-- [ ] A home tank's look: rimless glass with visible edges, a background
-      panel (frosted white, black, or a gradient), a slim lamp above.
+- [x] A background panel: backdrop `panel` (frosted white, black, or a
+      gradient) on the back glass, where the floor ends; the side glass
+      mirrors the floor. Worn by the Planted tank and the Iwagumi.
+- [ ] A home tank's look: rimless glass with visible edges, a slim lamp
+      above.
 
 ### J2. The Planted freshwater look
 

@@ -1,5 +1,5 @@
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from "three";
-import { floorHeight } from "../sim/terrain";
+import type { FloorHeight } from "../sim/terrain";
 
 /** Width of the posts, m, and their depth. */
 const POST = 0.1;
@@ -19,8 +19,8 @@ const STAND_COLOR = "#07090a";
 
 export interface TankFrame {
   readonly object: Group;
-  /** Sets the posts near the edges of what the camera sees at the glass. */
-  layout(visibleHalfWidth: number): void;
+  /** Sets the posts near the edges of what the camera sees at the glass, the stand over the floor. */
+  layout(visibleHalfWidth: number, floor: FloorHeight): void;
   dispose(): void;
 }
 
@@ -54,7 +54,7 @@ export function createTankFrame(tank: { readonly height: number }): TankFrame {
   object.visible = false;
   return {
     object,
-    layout(visibleHalfWidth) {
+    layout(visibleHalfWidth, floor) {
       for (const mesh of posts) {
         mesh.position.x = Number(mesh.userData.side) * visibleHalfWidth * POST_REACH;
       }
@@ -62,7 +62,7 @@ export function createTankFrame(tank: { readonly height: number }): TankFrame {
       // Over the highest sand in front of the glass, so no dune pokes through.
       let top = 0;
       for (let x = -visibleHalfWidth * 2; x <= visibleHalfWidth * 2; x += SAND_SAMPLE) {
-        for (let z = 0; z <= STAND_DEPTH; z += SAND_SAMPLE) top = Math.max(top, floorHeight(x, z));
+        for (let z = 0; z <= STAND_DEPTH; z += SAND_SAMPLE) top = Math.max(top, floor(x, z));
       }
       standMesh.position.y = top + STAND_CLEARANCE - STAND_HEIGHT / 2;
     },

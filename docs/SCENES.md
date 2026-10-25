@@ -56,6 +56,10 @@ a little. Chosen spots (`at`) move with the tank. Give a prop a `size` so
 it can follow: without one it keeps its default. A scene whose rock is
 built of blocks has a fixed shape and keeps its tank.
 
+A `nano`, `small` or `medium` tank stands in a room, so an open-water scene
+seen at one of those sizes gets a panel on its back glass, in the colors
+of its backdrop (see [The floor and the back](#the-floor-and-the-back)).
+
 ## A scene
 
 A short but complete one:
@@ -142,6 +146,34 @@ sands and gravels (`fine-sand`, `coarse-sand`, `aquarium-gravel`,
 `black-gravel`, `aqua-soil`), rocks (`reef-rock`, `limestone`, `dark-slate`,
 `layered-rock`, `basalt`, `red-rock`, `mossy-rock`) and woods (`driftwood`,
 `rough-bark`, `mossy-wood`).
+
+### The floor and the back
+
+The sand has gentle dunes. In a tank lower than a `large` one they shrink
+with it, so a nano tank does not get 12 cm dunes. Two fields of `floor`
+change its shape:
+
+```json
+"floor": { "color": "#5a4a3a", "rise": 0.15, "dunes": 0.5 }
+```
+
+- `rise` lifts the floor towards the back, as a share of the tank height:
+  `0.15` in the Planted tank is 16 cm at the back of a 110 cm tank. It
+  starts flat at the glass and levels out at the back. Default `0`.
+- `dunes` is how strong the dunes are: `1` is the usual (default), `0` a
+  flat floor, `2` twice as high.
+
+`backdrop` says what is behind the tank. A `gradient` is open water: the
+sand runs on into the distance, towards a far wall of color. A `panel` is
+a home tank: a panel glued to the back glass, and the sand ends there.
+
+```json
+"backdrop": { "type": "panel", "top": "#16201c", "bottom": "#050806" }
+```
+
+`top` and `bottom` are the colors at the surface and at the sand; give
+them the same color for a plain panel (black, or frosted white). The side
+glass mirrors the floor, so the sand also runs on a little to each side.
 
 ### Rock
 

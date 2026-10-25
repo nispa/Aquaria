@@ -14,7 +14,7 @@ import {
 } from "three";
 import type { Rng } from "../core/rng";
 import type { Scene } from "../scene/schema";
-import { floorHeight } from "../sim/terrain";
+import type { FloorHeight } from "../sim/terrain";
 import { CAUSTICS_GLSL } from "./shaders/caustics";
 import { causticsPatch } from "./shaders/causticsPatch";
 import { patchMaterial, type ShaderPatch } from "./shaders/patch";
@@ -38,6 +38,12 @@ const LIGHT_SHAFT_COUNT = 7;
 const FLOOR_FRONT_OVERHANG = 2;
 /** Gap between the far end of the sand and the backdrop, m (hidden by fog). */
 const BACKDROP_GAP = 1;
+/** How far the back panel reaches above the surface and below the sand, m. */
+const PANEL_OVERHANG = 0.3;
+/** The sand tucks this far under the back panel, m, so no gap shows at the seam. */
+const PANEL_TUCK = 0.01;
+/** Grid cells across and along the floor. */
+const FLOOR_SEGMENTS = { across: 240, along: 120 } as const;
 /** Grid cells along each side of the wave surface: fine enough for the shortest waves near the tank. */
 const WAVE_SEGMENTS = 256;
 /** Where the sun glares through the surface: over the middle, towards the back, in tank sizes. */
@@ -78,22 +84,39 @@ const SAND_GRAIN: ShaderPatch = {
   ],
 };
 
+/** Whether the scene is a closed home tank, with a panel on its back glass. */
+const isClosed = (scene: Scene): boolean => scene.backdrop.type === "panel";
+
+/** x folded back inside the tank's walls, as the side glass mirrors the floor. */
+export function mirrored(x: number, halfWidth: number): number {
+  const period = 4 * halfWidth;
+  const folded = (((x + halfWidth) % period) + period) % period;
+  return folded <= 2 * halfWidth ? folded - halfWidth : 3 * halfWidth - folded;
+}
+
 function floor(
   scene: Scene,
+  height: FloorHeight,
   water: WaterUniforms,
   surfaces: SurfaceLibrary,
   tracker: Tracker,
 ): Mesh {
-  const width = span(scene.tank.width);
-  // The sand stops just short of the backdrop: where the two meet, depth-based
-  // effects (ambient occlusion) would draw a crease along the horizon.
-  const depth = scene.tank.depth + BACKDROP_DISTANCE + FLOOR_FRONT_OVERHANG - BACKDROP_GAP;
-  const geometry = new PlaneGeometry(width, depth, 240, 120);
+  const closed = isClosed(scene);
+  const halfWidth = scene.tank.width / 2;
+  // A closed tank's side glass mirrors its floor: a little to each side is enough.
+  const width = closed ? scene.tank.width * EXTENT : span(scene.tank.width);
+  // Open water: the sand stops just short of the backdrop, since where the two
+  // meet, depth-based effects (ambient occlusion) would draw a crease along
+  // the horizon. A closed tank's sand ends under its back panel.
+  const behind = closed ? PANEL_TUCK : BACKDROP_DISTANCE - BACKDROP_GAP;
+  const depth = scene.tank.depth + behind + FLOOR_FRONT_OVERHANG;
+  const geometry = new PlaneGeometry(width, depth, FLOOR_SEGMENTS.across, FLOOR_SEGMENTS.along);
   geometry.rotateX(-Math.PI / 2);
   geometry.translate(0, 0, -depth / 2 + FLOOR_FRONT_OVERHANG);
   const positions = geometry.getAttribute("position");
   for (let index = 0; index < positions.count; index += 1) {
-    positions.setY(index, floorHeight(positions.getX(index), positions.getZ(index)));
+    const x = positions.getX(index);
+    positions.setY(index, height(closed ? mirrored(x, halfWidth) : x, positions.getZ(index)));
   }
   geometry.computeVertexNormals();
   const sand = scene.floor.material;
@@ -252,6 +275,50 @@ function backdrop(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
   return mesh;
 }
 
+/**
+ * The panel on the back glass of a closed tank, a gradient from the sand to
+ * the surface. Wider than the tank, as the side glass mirrors it. It is a
+ * solid wall: it hides the surface and the shafts behind it.
+ */
+function panel(scene: Scene, water: WaterUniforms, tracker: Tracker): Mesh {
+  const top = scene.backdrop.type === "panel" ? scene.backdrop.top : scene.water.color;
+  const bottom = scene.backdrop.type === "panel" ? scene.backdrop.bottom : scene.water.color;
+  const height = scene.tank.height + 2 * PANEL_OVERHANG;
+  const geometry = new PlaneGeometry(scene.tank.width * EXTENT, height);
+  const material = new ShaderMaterial({
+    uniforms: {
+      ...water,
+      uTop: { value: new Color(top) },
+      uBottom: { value: new Color(bottom) },
+      uOverhang: { value: PANEL_OVERHANG / height },
+    },
+    vertexShader: /* glsl */ `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform vec3 uTop;
+      uniform vec3 uBottom;
+      uniform float uDaylight;
+      uniform float uOverhang;
+      varying vec2 vUv;
+      void main() {
+        float up = smoothstep(uOverhang, 1.0 - uOverhang, vUv.y);
+        gl_FragColor = vec4(mix(uBottom, uTop, up) * uDaylight, 1.0);
+        #include <colorspace_fragment>
+      }
+    `,
+  });
+  const mesh = new Mesh(geometry, material);
+  mesh.position.set(0, scene.tank.height / 2, -scene.tank.depth);
+  tracker.geometries.push(geometry);
+  tracker.materials.push(material);
+  return mesh;
+}
+
 /** Soft additive light shafts slanting down from the surface. */
 function lightShafts(scene: Scene, water: WaterUniforms, rng: Rng, tracker: Tracker): Group {
   const group = new Group();
@@ -305,6 +372,7 @@ function lightShafts(scene: Scene, water: WaterUniforms, rng: Rng, tracker: Trac
 
 export function createEnvironment(
   scene: Scene,
+  floorHeight: FloorHeight,
   water: WaterUniforms,
   surfaces: SurfaceLibrary,
   rng: Rng,
@@ -317,8 +385,8 @@ export function createEnvironment(
   const wavySurface = waveSurface(scene, water, tracker);
   wavySurface.visible = false;
   object.add(
-    backdrop(scene, water, tracker),
-    floor(scene, water, surfaces, tracker),
+    isClosed(scene) ? panel(scene, water, tracker) : backdrop(scene, water, tracker),
+    floor(scene, floorHeight, water, surfaces, tracker),
     plainSurface,
     wavySurface,
     shafts,

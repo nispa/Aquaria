@@ -14,7 +14,7 @@ import type { Logger } from "../core/logger";
 import { createRng, type Rng } from "../core/rng";
 import type { PropGenerator } from "../scene/schema";
 import type { Prop } from "../sim/layout";
-import { floorHeight } from "../sim/terrain";
+import { floorHeight, type FloorHeight } from "../sim/terrain";
 import {
   disposeLoadedObjectModel,
   modelMaterial,
@@ -215,6 +215,8 @@ export function createPropRenderer(
   logger?: Logger,
   /** Where generated shapes come from (render/shapeLibrary); built here by default. */
   shapes?: ShapeSource,
+  /** The scene's floor, which every prop stands on. */
+  floor: FloorHeight = floorHeight,
 ): PropRenderer {
   const object = new Group();
   object.name = "props";
@@ -257,7 +259,7 @@ export function createPropRenderer(
   const starfish: { mesh: InstancedMesh; props: Prop[] }[] = [];
 
   const place = (mesh: InstancedMesh, index: number, prop: Prop, turn: number): void => {
-    const base = floorHeight(prop.x, prop.z) + (prop.elevation ?? 0);
+    const base = floor(prop.x, prop.z) + (prop.elevation ?? 0);
     position.set(prop.x, base + prop.shape.sink * prop.size, prop.z);
     rotation.setFromEuler(euler.set(0, prop.rotation + turn, 0));
     scale.setScalar(prop.size);

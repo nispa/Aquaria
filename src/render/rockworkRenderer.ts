@@ -1,7 +1,7 @@
 import { Color, Mesh, MeshStandardMaterial, PlaneGeometry } from "three";
 import type { RockworkSpec } from "../scene/schema";
 import type { Rockwork } from "../sim/rockwork";
-import { floorHeight } from "../sim/terrain";
+import type { FloorHeight } from "../sim/terrain";
 import { causticsPatch } from "./shaders/causticsPatch";
 import { growthPatch } from "./shaders/growthPatch";
 import { patchMaterial, type ShaderPatch } from "./shaders/patch";
@@ -49,6 +49,7 @@ export function createRockworkRenderer(
   spec: RockworkSpec,
   water: WaterUniforms,
   surfaces: SurfaceLibrary,
+  floor: FloorHeight,
 ): RockworkRenderer {
   const { xMin, xMax, zMin, zMax } = rockwork.footprint;
   const width = xMax - xMin;
@@ -66,7 +67,7 @@ export function createRockworkRenderer(
     const x = positions.getX(index);
     const z = positions.getZ(index);
     const height = rockwork.heightAt(x, z);
-    positions.setY(index, floorHeight(x, z) + (height > 0 ? height : -EDGE_SINK));
+    positions.setY(index, floor(x, z) + (height > 0 ? height : -EDGE_SINK));
   }
   geometry.computeVertexNormals();
 

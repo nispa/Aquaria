@@ -189,6 +189,31 @@ describe("resizeScene", () => {
     expect(rockwork?.rocks).toBeLessThan(40);
   });
 
+  it("closes an open-water scene in a home tank, its gradient on a back panel", () => {
+    const scene = planted({ backdrop: { type: "gradient", top: "#1f8c9c", bottom: "#01121a" } });
+
+    expect(resizeScene(scene, "small").backdrop).toEqual({
+      type: "panel",
+      top: "#1f8c9c",
+      bottom: "#01121a",
+    });
+  });
+
+  it("leaves an open-water scene open in a large tank", () => {
+    const scene = planted({
+      tank: { width: 1.2, height: 0.6, depth: 0.5 },
+      backdrop: { type: "gradient", top: "#1f8c9c", bottom: "#01121a" },
+    });
+
+    expect(resizeScene(scene, "large").backdrop.type).toBe("gradient");
+  });
+
+  it("keeps a home tank's panel at any size", () => {
+    const scene = planted({ backdrop: { type: "panel", top: "#111111", bottom: "#000000" } });
+
+    expect(resizeScene(scene, "ocean").backdrop.type).toBe("panel");
+  });
+
   it("refuses a scene built of blocks, which have a fixed shape", () => {
     const scene: Scene = { ...planted(), blocks: { size: 0.5, runs: [0], color: "#777" } };
 

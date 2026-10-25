@@ -59,6 +59,11 @@ scelti (`at`) si spostano con la vasca. Dai a un oggetto una `size` perché
 possa seguirla: senza, tiene quella predefinita. Una scena con la roccia
 fatta di blocchi ha una forma fissa e tiene la sua vasca.
 
+Una vasca `nano`, `small` o `medium` sta in una stanza, quindi una scena di
+acqua aperta vista in una di queste dimensioni riceve un pannello sul vetro
+di fondo, con i colori del suo sfondo (vedi
+[Il fondo e il retro](#il-fondo-e-il-retro)).
+
 ## Una scena
 
 Breve ma completa:
@@ -145,6 +150,36 @@ ancora la tinta. Le texture disponibili sono le cartelle di
 `aquarium-gravel`, `black-gravel`, `aqua-soil`), rocce (`reef-rock`,
 `limestone`, `dark-slate`, `layered-rock`, `basalt`, `red-rock`,
 `mossy-rock`) e legni (`driftwood`, `rough-bark`, `mossy-wood`).
+
+### Il fondo e il retro
+
+La sabbia ha dune leggere. In una vasca più bassa di una `large` si
+rimpiccioliscono con lei, così una nano non ha dune di 12 cm. Due campi di
+`floor` cambiano la sua forma:
+
+```json
+"floor": { "color": "#5a4a3a", "rise": 0.15, "dunes": 0.5 }
+```
+
+- `rise` alza il fondo verso il retro, come parte dell'altezza della vasca:
+  `0.15` nella Planted tank sono 16 cm in fondo a una vasca di 110 cm.
+  Parte piatto al vetro e torna piano in fondo. Predefinito `0`.
+- `dunes` è quanto sono forti le dune: `1` è il solito (predefinito), `0`
+  un fondo piatto, `2` alte il doppio.
+
+`backdrop` dice cosa c'è dietro la vasca. Un `gradient` è acqua aperta: la
+sabbia continua in lontananza, verso un muro di colore lontano. Un `panel`
+è una vasca di casa: un pannello incollato al vetro di fondo, e la sabbia
+finisce lì.
+
+```json
+"backdrop": { "type": "panel", "top": "#16201c", "bottom": "#050806" }
+```
+
+`top` e `bottom` sono i colori alla superficie e alla sabbia; dai lo stesso
+colore a entrambi per un pannello in tinta unita (nero, o bianco satinato).
+I vetri laterali riflettono il fondo, quindi la sabbia continua anche un
+po' ai lati.
 
 ### La roccia
 
