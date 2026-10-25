@@ -599,12 +599,17 @@ L4.
 
 ### L1. Live rock
 
-- [ ] Porous, jagged rock instead of one smooth mound and round boulders:
-      many pieces stacked into arches, ledges and caves, with holes;
-      sculpted in Blender like the Seiryu stones, or a rock generator of
-      its own.
+Built with the scene editor's blocks, which already carry corals on their
+tops and steer fish round their real shape; separate rock pieces made in
+Blender were tried and dropped (one collision ellipsoid per object, no
+support for corals on top).
+
+- [ ] Porous, jagged block rock instead of a smooth, rounded surface:
+      sharp crests, pits and hollows (`render/blockMesh.ts`).
 - [ ] Coralline algae and encrusting growth that follow the rock's
       hollows and edges, not round patches.
+- [ ] The Home reef and the Clownfish lagoon rebuilt with block rock in
+      the editor: arches, ledges and caves, corals on top.
 
 ### L2. Coral cover
 
