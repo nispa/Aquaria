@@ -1,5 +1,5 @@
 import { Color, Mesh, MeshStandardMaterial, PlaneGeometry } from "three";
-import type { RockworkSpec } from "../scene/schema";
+import { growthSchema, type Growth, type RockworkSpec } from "../scene/schema";
 import type { Rockwork } from "../sim/rockwork";
 import type { FloorHeight } from "../sim/terrain";
 import { causticsPatch } from "./shaders/causticsPatch";
@@ -20,7 +20,14 @@ export interface RockworkRenderer {
   dispose(): void;
 }
 
-/** Rock colored, textured and grown over as a scene says, lit by the caustics. */
+/** Rock with pores but no growth set: dark pits, nothing growing. */
+const BARE: Growth = growthSchema.parse({ algae: 0, coralline: 0 });
+
+/**
+ * Rock colored, textured and grown over as a scene says, lit by the caustics;
+ * with `cavity`, its geometry says how deep each point lies in a pore
+ * (`aCavity`), and the growth follows the pores.
+ */
 export function rockMaterial(
   spec: {
     readonly color: string;
@@ -29,12 +36,14 @@ export function rockMaterial(
   },
   water: WaterUniforms,
   surfaces: SurfaceLibrary,
+  cavity = false,
 ): MeshStandardMaterial {
+  const growth = spec.growth ?? (cavity ? BARE : undefined);
   const patches: ShaderPatch[] = [
     ...(spec.material === undefined
       ? []
       : [surfacePatch(surfaces.get(spec.material.id), "triplanar", spec.material)]),
-    ...(spec.growth === undefined ? [] : [growthPatch(spec.growth)]),
+    ...(growth === undefined ? [] : [growthPatch(growth, cavity)]),
     causticsPatch(water),
   ];
   return patchMaterial(

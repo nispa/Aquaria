@@ -604,14 +604,22 @@ tops and steer fish round their real shape; separate rock pieces made in
 Blender were tried and dropped (one collision ellipsoid per object, no
 support for corals on top).
 
-- [ ] Porous, jagged block rock instead of a smooth, rounded surface:
-      sharp crests, pits and hollows (`render/blockMesh.ts`).
-- [ ] Coralline algae and encrusting growth that follow the rock's
-      hollows and edges, not round patches.
+- [x] Porous, jagged block rock instead of a smooth, rounded surface:
+      sharp crests, pits and hollows (`render/blockMesh.ts`): blocks'
+      `pores`, the triangles split as the pits need.
+- [x] Coralline algae and encrusting growth that follow the rock's
+      hollows and edges, not round patches: the pits' rims (`aCavity`
+      in the growth shader).
 - [ ] The Home reef and the Clownfish lagoon rebuilt with block rock in
       the editor: arches, ledges and caves, corals on top.
 
 ### L2. Coral cover
+
+The coral scans look dead (user, 2026-10-25): they are bleached museum
+skeletons tinted back, every pore and no life. Corals become procedural
+again, made in Blender like the fish and plants, with painted textures:
+living tissue over the skeleton, polyps, colour running from base to tip,
+fluorescence; the scans are left out of the tanks.
 
 - [ ] Small and encrusting corals (zoanthids, encrusting montipora,
       polyps) scattered by the hundred, so the rock disappears under

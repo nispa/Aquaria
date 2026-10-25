@@ -129,6 +129,8 @@ export function blockyMesh(
     positions: new Float32Array(positions),
     normals: new Float32Array(normals),
     indices: new Uint32Array(indices),
+    // Plain cubes for editing: no pores.
+    cavity: new Float32Array(positions.length / 3),
   };
 }
 

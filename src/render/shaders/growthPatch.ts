@@ -15,14 +15,31 @@ import type { ShaderPatch } from "./patch";
  * - uGrowthCoralline (0..1): share of the rock crusted with coralline algae.
  * - uGrowthCorallineColor (linear RGB): their color.
  * - uGrowthScale (1/m): patches per meter, the inverse of the patch size.
+ *
+ * With `cavity`, the vertex attribute aCavity (0..1, how deep a point lies in
+ * a pore of live rock) darkens the pits, crusts their rims with coralline and
+ * keeps the algae out of them.
  */
 
 /** Darkest a downward-facing crevice gets, as a share of its color. */
 const CREVICE_SHADE = 0.6;
+/** The bottom of a pore, as a share of its color. */
+const PORE_SHADE = 0.25;
 
-export function growthPatch(growth: Growth): ShaderPatch {
+export function growthPatch(growth: Growth, cavity = false): ShaderPatch {
+  const pores = cavity
+    ? /* glsl */ `
+          // Coralline crusts the rims of the pores; algae stay out of them.
+          float rim = smoothstep(0.02, 0.15, vCavity) * (1.0 - smoothstep(0.3, 0.6, vCavity));
+          crust = max(crust, rim * (0.4 + 0.6 * uGrowthCoralline) * (0.6 + 0.4 * fine));
+          algae *= 1.0 - smoothstep(0.05, 0.3, vCavity);`
+    : "";
+  const poreShade = cavity
+    ? /* glsl */ `
+          diffuseColor.rgb *= mix(1.0, ${PORE_SHADE.toFixed(2)}, smoothstep(0.25, 0.9, vCavity));`
+    : "";
   return {
-    name: "growth",
+    name: cavity ? "growth-cavity" : "growth",
     uniforms: {
       uGrowthAlgae: { value: growth.algae },
       uGrowthAlgaeColor: { value: new Color(growth.algaeColor) },
@@ -33,6 +50,8 @@ export function growthPatch(growth: Growth): ShaderPatch {
     vertexHead: /* glsl */ `
       varying vec3 vGrowthPosition;
       varying vec3 vGrowthNormal;
+      ${cavity ? "attribute float aCavity;" : ""}
+      ${cavity ? "varying float vCavity;" : ""}
     `,
     vertex: [
       [
@@ -41,6 +60,7 @@ export function growthPatch(growth: Growth): ShaderPatch {
         #include <project_vertex>
         vGrowthPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;
         vGrowthNormal = normalize(mat3(modelMatrix) * objectNormal);
+        ${cavity ? "vCavity = aCavity;" : ""}
         `,
       ],
     ],
@@ -52,6 +72,7 @@ export function growthPatch(growth: Growth): ShaderPatch {
       uniform float uGrowthScale;
       varying vec3 vGrowthPosition;
       varying vec3 vGrowthNormal;
+      ${cavity ? "varying float vCavity;" : ""}
 
       float growthHash(vec3 p) {
         return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453);
@@ -88,10 +109,12 @@ export function growthPatch(growth: Growth): ShaderPatch {
             1.0 - uGrowthCoralline + 0.12,
             broad * 0.65 + fine * 0.35
           ) * (1.0 - algae);
+          ${pores}
           diffuseColor.rgb = mix(diffuseColor.rgb, uGrowthAlgaeColor * (0.7 + 0.6 * fine), algae);
           diffuseColor.rgb = mix(diffuseColor.rgb, uGrowthCorallineColor * (0.8 + 0.4 * fine), crust * 0.85);
           // Crevices under overhangs get little light.
           diffuseColor.rgb *= mix(1.0, ${CREVICE_SHADE.toFixed(2)}, smoothstep(0.0, -0.8, up));
+          ${poreShade}
         }
         `,
       ],

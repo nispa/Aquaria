@@ -14,6 +14,15 @@ export interface BlockMesh {
   readonly positions: Float32Array;
   /** Three vertices per triangle, counterclockwise seen from outside. */
   readonly indices: Uint32Array;
+  /** How deep each vertex lies in a pore, 0 (none) .. 1 (its bottom). */
+  readonly cavity: Float32Array;
+}
+
+/** Pores of live rock: pits scattered one per cell, as deep as `depth`, m. */
+export interface BlockPores {
+  readonly depth: number;
+  /** Side of the cells the pits are scattered over, m: about twice a pit's width. */
+  readonly cell: number;
 }
 
 export interface BlockMeshOptions {
@@ -22,6 +31,9 @@ export interface BlockMeshOptions {
   /** Largest shift of the surface by noise, m. */
   readonly roughness: number;
   readonly seed: number;
+  /** Times every triangle is split into four, so pores have points to dig. */
+  readonly subdivisions?: number;
+  readonly pores?: BlockPores;
 }
 
 /** How far a vertex moves toward its neighbours' middle in one pass. */
@@ -64,6 +76,79 @@ function roughNoise(x: number, y: number, z: number, seed: number): number {
     seed + 1,
   );
   return (coarse + fine * DETAIL_WEIGHT) / (1 + DETAIL_WEIGHT);
+}
+
+/** A pit reaches this far from its middle, in cells. */
+const PORE_RADIUS = 0.5;
+/** Pits are steeper than a bowl: depth falls with the distance to this power. */
+const PORE_SHAPE = 1.5;
+const HASH_FEATURE_Y = 0x5bd1e995;
+const HASH_FEATURE_Z = 0x27d4eb2d;
+
+/** Distance from (x, y, z) to the nearest pit middle, in cells (cellular noise). */
+function poreDistance(x: number, y: number, z: number, seed: number): number {
+  const x0 = Math.floor(x);
+  const y0 = Math.floor(y);
+  const z0 = Math.floor(z);
+  let nearest = Infinity;
+  for (let dz = -1; dz <= 1; dz += 1) {
+    for (let dy = -1; dy <= 1; dy += 1) {
+      for (let dx = -1; dx <= 1; dx += 1) {
+        const hash =
+          Math.imul(x0 + dx, HASH_X) ^
+          Math.imul(y0 + dy, HASH_Y) ^
+          Math.imul(z0 + dz, HASH_Z) ^
+          seed;
+        const px = x0 + dx + hashToUnit(hash);
+        const py = y0 + dy + hashToUnit(hash ^ HASH_FEATURE_Y);
+        const pz = z0 + dz + hashToUnit(hash ^ HASH_FEATURE_Z);
+        nearest = Math.min(nearest, Math.hypot(x - px, y - py, z - pz));
+      }
+    }
+  }
+  return nearest;
+}
+
+/** Points closer than this share of a pore cell can follow a pit's shape. */
+const POINTS_PER_PORE = 0.6;
+/** Most splits: each one makes four times the triangles. */
+const MAX_SUBDIVISIONS = 3;
+
+/**
+ * How many times to split the triangles of rock made of blocks of `size`, m,
+ * so its points lie close enough to dig pores of `cell`, m.
+ */
+export function poreSubdivisions(size: number, cell: number): number {
+  const needed = Math.ceil(Math.log2(size / (cell * POINTS_PER_PORE)));
+  return Math.min(Math.max(needed, 0), MAX_SUBDIVISIONS);
+}
+
+/** Splits every triangle into four at the middles of its edges, shared between neighbours. */
+function subdivide(positions: number[], indices: number[]): number[] {
+  const middles = new Map<number, number>();
+  const vertices = positions.length / 3;
+  const middle = (a: number, b: number): number => {
+    const key = Math.min(a, b) * vertices + Math.max(a, b);
+    const known = middles.get(key);
+    if (known !== undefined) return known;
+    const index = positions.length / 3;
+    for (let axis = 0; axis < 3; axis += 1) {
+      positions.push(((positions[a * 3 + axis] ?? 0) + (positions[b * 3 + axis] ?? 0)) / 2);
+    }
+    middles.set(key, index);
+    return index;
+  };
+  const next: number[] = [];
+  for (let index = 0; index < indices.length; index += 3) {
+    const a = indices[index] ?? 0;
+    const b = indices[index + 1] ?? 0;
+    const c = indices[index + 2] ?? 0;
+    const ab = middle(a, b);
+    const bc = middle(b, c);
+    const ca = middle(c, a);
+    next.push(a, ab, ca, ab, b, bc, ca, bc, c, ab, bc, ca);
+  }
+  return next;
 }
 
 /** The 12 edges of a grid cube, as pairs of corner numbers (bit 0 x, 1 y, 2 z). */
@@ -209,9 +294,15 @@ export function blockMesh(
   }
 
   relax(positions, neighbours, cubes, options.smoothing, { cornerX, cornerY, cornerZ });
-  if (options.roughness > 0) roughen(positions, indices, options);
+  let triangles = indices;
+  for (let pass = 0; pass < (options.subdivisions ?? 0); pass += 1) {
+    triangles = subdivide(positions, triangles);
+  }
+  if (options.roughness > 0) roughen(positions, triangles, options);
+  const cavity = new Float32Array(positions.length / 3);
+  if (options.pores !== undefined) dig(positions, triangles, cavity, options.pores, options.seed);
 
-  return { positions: new Float32Array(positions), indices: new Uint32Array(indices) };
+  return { positions: new Float32Array(positions), indices: new Uint32Array(triangles), cavity };
 }
 
 interface CornerPlace {
@@ -250,8 +341,8 @@ function relax(
   }
 }
 
-/** Shifts every vertex along its normal by noise, at most the roughness. */
-function roughen(positions: number[], indices: readonly number[], options: BlockMeshOptions): void {
+/** Area-weighted vertex normals, not normalized. */
+function vertexNormals(positions: readonly number[], indices: readonly number[]): Float64Array {
   const normals = new Float64Array(positions.length);
   const read = (vertex: number, axis: number): number => positions[vertex * 3 + axis] ?? 0;
   for (let index = 0; index < indices.length; index += 3) {
@@ -273,6 +364,12 @@ function roughen(positions: number[], indices: readonly number[], options: Block
       normals[vertex * 3 + 2] = (normals[vertex * 3 + 2] ?? 0) + nz;
     }
   }
+  return normals;
+}
+
+/** Shifts every vertex along its normal by noise, at most the roughness. */
+function roughen(positions: number[], indices: readonly number[], options: BlockMeshOptions): void {
+  const normals = vertexNormals(positions, indices);
   for (let at = 0; at < positions.length; at += 3) {
     const nx = normals[at] ?? 0;
     const ny = normals[at + 1] ?? 0;
@@ -283,6 +380,35 @@ function roughen(positions: number[], indices: readonly number[], options: Block
     const y = positions[at + 1] ?? 0;
     const z = positions[at + 2] ?? 0;
     const shift = roughNoise(x, y, z, options.seed) * options.roughness;
+    positions[at] = x + (nx / length) * shift;
+    positions[at + 1] = y + (ny / length) * shift;
+    positions[at + 2] = z + (nz / length) * shift;
+  }
+}
+
+/** Digs the pores along the normals, writing how deep each vertex lies in one into `cavity`. */
+function dig(
+  positions: number[],
+  indices: readonly number[],
+  cavity: Float32Array,
+  pores: BlockPores,
+  seed: number,
+): void {
+  const normals = vertexNormals(positions, indices);
+  for (let vertex = 0; vertex < cavity.length; vertex += 1) {
+    const at = vertex * 3;
+    const nx = normals[at] ?? 0;
+    const ny = normals[at + 1] ?? 0;
+    const nz = normals[at + 2] ?? 0;
+    const length = Math.hypot(nx, ny, nz);
+    if (length === 0) continue;
+    const x = positions[at] ?? 0;
+    const y = positions[at + 1] ?? 0;
+    const z = positions[at + 2] ?? 0;
+    const distance = poreDistance(x / pores.cell, y / pores.cell, z / pores.cell, seed);
+    const pit = Math.max(1 - distance / PORE_RADIUS, 0) ** PORE_SHAPE;
+    cavity[vertex] = pit;
+    const shift = -pit * pores.depth;
     positions[at] = x + (nx / length) * shift;
     positions[at + 1] = y + (ny / length) * shift;
     positions[at + 2] = z + (nz / length) * shift;

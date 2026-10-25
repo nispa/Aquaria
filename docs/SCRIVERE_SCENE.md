@@ -218,6 +218,19 @@ scena Hero usa quelli.
 | `corallineColor` | `#b4708e`   | Il suo colore                                       |
 | `patch`          | `0.35`      | Grandezza delle chiazze, m                          |
 
+La roccia fatta di blocchi può anche essere piena di pori, come la roccia
+viva: `pores` scava alveoli nella sua superficie, ne scurisce il fondo e
+ne incrosta i bordi di corallina. `depth` (predefinito 0.015 m) è quanto
+va a fondo un alveolo, `cell` (0.04 m) circa il doppio della sua
+larghezza:
+
+```json
+"blocks": { "size": 0.06, "color": "#6f7468", "pores": { "depth": 0.02, "cell": 0.05 }, "growth": {} }
+```
+
+Aquaria suddivide i triangoli della roccia quante volte servono agli
+alveoli, al massimo tre, quindi i blocchi grandi costano di più.
+
 Le colonne della scena Hero le genera `scripts/hero_pillars.py`: cambia lì
 le colonne e rilancialo su `public/scenes/hero.json`.
 

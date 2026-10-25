@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { blockGrid, cellCount, cellIndex, type BlockGrid } from "../scene/blocks";
-import { blockMesh, type BlockMesh } from "./blockMesh";
+import { blockMesh, poreSubdivisions, type BlockMesh } from "./blockMesh";
 
 const tank = { width: 1, height: 0.5, depth: 1 };
 const grid = blockGrid(tank, 0.1);
@@ -115,6 +115,35 @@ describe("blockMesh", () => {
     expect(second.positions).toEqual(first.positions);
   });
 
+  it("splits every triangle into four when subdivided, and stays closed", () => {
+    const plain = blockMesh(tank, grid, slab, smooth);
+    const fine = blockMesh(tank, grid, slab, { ...smooth, subdivisions: 1 });
+
+    expect(fine.indices.length).toBe(plain.indices.length * 4);
+    expect(new Set(edgeUses(fine))).toEqual(new Set([2]));
+  });
+
+  it("has no cavity where the rock has no pores", () => {
+    const mesh = blockMesh(tank, grid, slab, smooth);
+
+    expect(Math.max(...mesh.cavity)).toBe(0);
+  });
+
+  it("digs pores no deeper than their depth, and says how deep each point lies in one", () => {
+    const pores = { depth: 0.015, cell: 0.04 };
+    const plain = blockMesh(tank, grid, slab, { ...smooth, subdivisions: 1 });
+    const porous = blockMesh(tank, grid, slab, { ...smooth, subdivisions: 1, pores });
+    const shifts = Array.from(porous.positions).map((value, index) =>
+      Math.abs(value - (plain.positions[index] ?? 0)),
+    );
+
+    expect(Math.max(...shifts)).toBeLessThanOrEqual(pores.depth + 1e-6);
+    expect([Math.min(...porous.cavity), Math.max(...porous.cavity)]).toEqual([
+      0,
+      expect.closeTo(1, 0) as number,
+    ]);
+  });
+
   it("keeps a cave open: blocks around a hollow make two surfaces", () => {
     const shell = boxCells(grid, [2, 7], [0, 4], [2, 7]);
     shell.set(
@@ -128,5 +157,19 @@ describe("blockMesh", () => {
     // The hollow's inner surface faces inward, taking volume off the outer one.
     const solid = blockMesh(tank, grid, boxCells(grid, [2, 7], [0, 4], [2, 7]), smooth);
     expect(signedVolume(mesh)).toBeLessThan(signedVolume(solid));
+  });
+});
+
+describe("poreSubdivisions", () => {
+  it("splits large blocks until their points are close enough to dig pores", () => {
+    expect(poreSubdivisions(0.2, 0.04)).toBe(3);
+  });
+
+  it("leaves blocks already fine enough as they are", () => {
+    expect(poreSubdivisions(0.02, 0.04)).toBe(0);
+  });
+
+  it("never splits more than three times, to keep the rock light", () => {
+    expect(poreSubdivisions(1, 0.01)).toBe(3);
   });
 });

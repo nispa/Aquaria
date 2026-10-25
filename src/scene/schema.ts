@@ -314,6 +314,16 @@ const rockwork = z.object({
  * the whole tank, each solid or empty, written as runs of alternating empty
  * and solid cells, the first one empty. The scene editor writes them.
  */
+/**
+ * Pores of live rock: pits dug into the surface of block rock, as deep as
+ * `depth`, about half a `cell` wide, both m. Coralline crusts their rims and
+ * their bottoms are dark.
+ */
+export const poresSchema = z.object({
+  depth: z.number().positive().max(0.1).default(0.015),
+  cell: z.number().positive().max(0.5).default(0.04),
+});
+
 const blocks = z.object({
   /** Edge of one block, m. */
   size: z.number().min(MIN_BLOCK_SIZE).max(MAX_BLOCK_SIZE),
@@ -321,6 +331,8 @@ const blocks = z.object({
   color: hexColor,
   material: surfaceMaterial.optional(),
   growth: growthSchema.optional(),
+  /** Live rock full of pores, instead of smooth rock. */
+  pores: poresSchema.optional(),
 });
 
 /** Largest count per flora entry; also the top of its panel slider. */
