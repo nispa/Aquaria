@@ -551,8 +551,9 @@ veined leaves in two tones, light through them, swaying.
       `moss-cushion`, `scripts/blender/epiphytes.py`). They stand on the
       floor beside the stones and wood: growing on them waits for a
       surface to attach to (J5).
-- [ ] Painted textures (paintkit) for the leaves: today the veins are in
-      the vertex colors only.
+- [x] Painted textures for the leaves: a grey texture of veins
+      (`scripts/blender/leafpaint.py`) multiplied by the colors of the
+      leaf's points, on all seven freshwater plants.
 
 ### J4. Hardscape made in Blender
 

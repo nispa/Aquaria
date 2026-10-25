@@ -165,6 +165,19 @@ scena può mettere il suo. Come farne una nuova:
 5. Per comprimerlo, `npx @gltf-transform/cli optimize model.glb model.glb
 --compress meshopt --join false --flatten false`: senza le ultime due
    opzioni le varianti affiancate si fondono in un'unica pianta larghissima.
+   `--texture-compress webp` tiene piccola una texture dentro il file.
+
+Le piante d'acqua dolce sono fatte così, nel codice
+(`scripts/blender/freshwater_plants.py` ed `epiphytes.py`). I punti di una
+foglia portano i suoi colori, verde alla base e rosso sulle punte della
+Rotala; le venature sono una texture grigia dipinta da
+`scripts/blender/leafpaint.py` (nervatura centrale chiara, venature
+laterali, bordo più chiaro), che Aquaria moltiplica per quei colori. Ogni
+pianta dice com'è venata in `LEAVES`, per esempio la Cryptocoryne:
+
+```python
+"cryptocoryne": dict(midrib=1.0, veins="pinnate", count=7, vein=0.72, slope=0.5, mottle=0.08, rim=0.05),
+```
 
 ## Trasformare in file gli oggetti generati
 

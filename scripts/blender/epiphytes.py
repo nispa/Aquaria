@@ -21,19 +21,20 @@ import os
 import random
 import sys
 
-import bmesh
 import bpy
 from mathutils import Vector
 
 sys.path.insert(0, os.path.dirname(__file__))
 from freshwater_plants import OUTPUT, VARIANTS, add_leaf, clear, render_preview  # noqa: E402
-from plantkit import VARIANT_SPACING, export, leaf_material, linear, mix, plant_object  # noqa: E402
+from leafpaint import LEAVES, leaf_texture  # noqa: E402
+from paintkit import image  # noqa: E402
+from plantkit import VARIANT_SPACING, export, leaf_material, leaf_mesh, linear, mix, plant_object  # noqa: E402
 
 SEED = 20261027
 
 
 def build_anubias(rng, offset, material):
-    mesh = bmesh.new()
+    mesh = leaf_mesh()
     colors, sway = {}, {}
     petiole = linear("#6a8a48")
     upper = linear("#2f6a2c")
@@ -44,7 +45,7 @@ def build_anubias(rng, offset, material):
         direction = Vector((math.cos(heading), math.sin(heading), 0.0))
         origin = Vector((offset, 0.0, 0.0)) + direction * 0.03
         petiole_length = rng.uniform(0.3, 0.5)
-        add_leaf(mesh, colors, sway, origin, heading, 1.1, petiole_length, 0.04, "strap", [(0.0, petiole), (1.0, petiole)], curl=0.1, along=3)
+        add_leaf(mesh, colors, sway, origin, heading, 1.1, petiole_length, 0.04, "strap", [(0.0, petiole), (1.0, petiole)], curl=0.1, along=3, plain=True)
         top = origin + direction * (petiole_length * 0.5) + Vector((0, 0, petiole_length * 0.88))
         stops = [(0.0, [c * shade for c in petiole]), (0.12, [c * shade for c in upper]), (1.0, [c * shade for c in lower])]
         add_leaf(mesh, colors, sway, top, heading, 0.5, 0.55, 0.36, "ovate", stops, curl=0.4, ruffle=0.01, along=10, sway_from=0.5, droop=0.1)
@@ -54,7 +55,7 @@ def build_anubias(rng, offset, material):
 
 
 def build_java_fern(rng, offset, material):
-    mesh = bmesh.new()
+    mesh = leaf_mesh()
     colors, sway = {}, {}
     base = linear("#7a8a40")
     green = linear("#3f6a2a")
@@ -74,7 +75,7 @@ def build_java_fern(rng, offset, material):
 
 
 def build_moss(rng, offset, material):
-    mesh = bmesh.new()
+    mesh = leaf_mesh()
     colors, sway = {}, {}
     base = linear("#3f5a28")
     green = linear("#5fa030")
@@ -105,7 +106,7 @@ def main():
     ]
     for name, build, roughness in plants:
         clear()
-        material = leaf_material(name, roughness)
+        material = leaf_material(name, roughness, image(f"{name}-leaf", leaf_texture(LEAVES[name])))
         for index in range(VARIANTS):
             build(index, material)
         if arguments:

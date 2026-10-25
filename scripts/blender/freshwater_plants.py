@@ -10,8 +10,9 @@ Four plants of a planted tank, each a folder in public/assets/objects/:
 - vallisneria: tall ribbons that twist and fall over at the surface.
 
 Each plant is a variant, laid side by side so Aquaria picks one per plant
-(docs/OBJECTS.md). Leaves carry their colors in the points: a pale midrib,
-side veins a little darker, thin edges lighter where light shines through.
+(docs/OBJECTS.md). Leaves carry their colors in the points, and the veins
+in a texture painted by leafpaint.py: a pale midrib, side veins, a lighter
+rim where light shines through.
 `_SWAY` runs from 0 at the base to 1 at the tips. Sizes are in plant
 heights: Aquaria scales a plant to its height in the scene.
 
@@ -29,21 +30,22 @@ import os
 import random
 import sys
 
-import bmesh
 import bpy
 from mathutils import Vector
 
 sys.path.insert(0, os.path.dirname(__file__))
-from plantkit import VARIANT_SPACING, export, leaf_material, linear, mix, plant_object, ramp  # noqa: E402
+from leafpaint import LEAF_U, LEAVES, leaf_texture  # noqa: E402
+from paintkit import image  # noqa: E402
+from plantkit import VARIANT_SPACING, export, leaf_material, leaf_mesh, leaf_spot, linear, mix, plant_object, ramp  # noqa: E402
 
 OUTPUT = "public/assets/objects/{}/model.glb"
 SEED = 20261026
 VARIANTS = 4
-# Points across a leaf: the midrib and the veins either side.
+# Points across a leaf: the edges, the midrib and halfway between.
 ACROSS = (-1.0, -0.5, 0.0, 0.5, 1.0)
-MIDRIB_LIGHT = 0.35
-VEIN_DARK = 0.18
-EDGE_LIGHT = 0.25
+# The leaf texture is a little grey on the blade (leafpaint.BLADE, sRGB): the
+# points are that much brighter, so the leaf keeps its brightness.
+BRIGHTEN = 1 / 0.92 ** 2.2
 
 
 def leaf_profile(t, shape):
@@ -56,8 +58,11 @@ def leaf_profile(t, shape):
     return max(math.sin(math.pi * t ** 0.7), 0.04) ** 0.9
 
 
-def add_leaf(mesh, colors, sway, origin, heading, pitch, length, width, shape, stops, curl=0.0, ruffle=0.0, twist=0.0, along=8, sway_from=0.0, droop=0.0, rng=None):
-    """One leaf from `origin`, leaving at `heading` (around Z) and `pitch` (up from flat)."""
+def add_leaf(mesh, colors, sway, origin, heading, pitch, length, width, shape, stops, curl=0.0, ruffle=0.0, twist=0.0, along=8, sway_from=0.0, droop=0.0, rng=None, plain=False):
+    """One leaf from `origin`, leaving at `heading` (around Z) and `pitch` (up from flat).
+
+    It lies across the leaf tile of the texture, unless `plain` (a petiole).
+    """
     rows = []
     direction = Vector((math.cos(heading), math.sin(heading), 0.0))
     side = Vector((-math.sin(heading), math.cos(heading), 0.0))
@@ -78,14 +83,11 @@ def add_leaf(mesh, colors, sway, origin, heading, pitch, length, width, shape, s
             lateral = side * math.cos(roll) * s * half
             lift = Vector((0, 0, 1)) * (math.sin(roll) * s * half + wave * width + (1 - abs(s)) * width * 0.04)
             vertex = mesh.verts.new(point + lateral + lift)
-            color = base
-            if s == 0.0:
-                color = mix(base, [1, 1, 1], MIDRIB_LIGHT * 0.4)
-            elif abs(s) == 0.5:
-                color = mix(base, [0, 0, 0], VEIN_DARK)
+            if plain:
+                colors[vertex] = base
             else:
-                color = mix(base, [1, 1, 0.7], EDGE_LIGHT * 0.5)
-            colors[vertex] = color
+                colors[vertex] = [min(c * BRIGHTEN, 1.0) for c in base]
+                leaf_spot(mesh, vertex, (s + 1) / 2 * LEAF_U, t)
             sway[vertex] = sway_from + (1.0 - sway_from) * t**1.3
             row.append(vertex)
         rows.append(row)
@@ -114,7 +116,7 @@ def add_stem(mesh, colors, sway, base, top, color_stops, radius=0.006, jitter=No
 
 
 def build_rotala(rng, offset, material, red_tips):
-    mesh = bmesh.new()
+    mesh = leaf_mesh()
     colors, sway = {}, {}
     green = linear("#3f8a35")
     olive = linear("#7aa840")
@@ -159,7 +161,7 @@ def build_rotala(rng, offset, material, red_tips):
 
 
 def build_hairgrass(rng, offset, material):
-    mesh = bmesh.new()
+    mesh = leaf_mesh()
     colors, sway = {}, {}
     root_color = linear("#a8b870")
     green = linear("#4fa63a")
@@ -191,7 +193,7 @@ def build_hairgrass(rng, offset, material):
 
 
 def build_cryptocoryne(rng, offset, material, bronze):
-    mesh = bmesh.new()
+    mesh = leaf_mesh()
     colors, sway = {}, {}
     if bronze:
         upper = linear("#7a5a2e")
@@ -209,7 +211,7 @@ def build_cryptocoryne(rng, offset, material, bronze):
         petiole_length = 0.38 * tall
         direction = Vector((math.cos(heading), math.sin(heading), 0.0))
         origin = Vector((offset, 0.0, 0.0)) + direction * 0.02
-        add_leaf(mesh, colors, sway, origin, heading, 1.05, petiole_length, 0.025, "strap", [(0.0, petiole), (1.0, petiole)], curl=0.15, along=4, rng=rng)
+        add_leaf(mesh, colors, sway, origin, heading, 1.05, petiole_length, 0.025, "strap", [(0.0, petiole), (1.0, petiole)], curl=0.15, along=4, rng=rng, plain=True)
         stalk_top = origin + direction * (petiole_length * 0.55) + Vector((0, 0, petiole_length * 0.84))
         stops = [(0.0, [c * shade for c in petiole]), (0.15, [c * shade for c in upper]), (0.85, [c * shade for c in lower]), (1.0, [c * shade for c in lower])]
         add_leaf(
@@ -237,7 +239,7 @@ def build_cryptocoryne(rng, offset, material, bronze):
 
 
 def build_vallisneria(rng, offset, material):
-    mesh = bmesh.new()
+    mesh = leaf_mesh()
     colors, sway = {}, {}
     base_color = linear("#c8d090")
     green = linear("#3f9a3a")
@@ -307,7 +309,7 @@ def main():
     ]
     for name, build, roughness in plants:
         clear()
-        material = leaf_material(name, roughness)
+        material = leaf_material(name, roughness, image(f"{name}-leaf", leaf_texture(LEAVES[name])))
         for index in range(VARIANTS):
             build(index, material)
         if arguments:

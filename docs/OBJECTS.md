@@ -158,6 +158,19 @@ set its own. How to make a new one: [Making a new texture](SCENES.md#making-a-ne
 5. To compress it, `npx @gltf-transform/cli optimize model.glb model.glb
 --compress meshopt --join false --flatten false`: without the last two,
    the variants side by side are merged into one wide plant.
+   `--texture-compress webp` keeps a texture small inside the file.
+
+The freshwater plants are made in code this way
+(`scripts/blender/freshwater_plants.py` and `epiphytes.py`). A leaf's
+points carry its colors, green at the base and red at the tips of the
+Rotala; its veins are a grey texture painted by
+`scripts/blender/leafpaint.py` (a pale midrib, side veins, a lighter
+rim), which Aquaria multiplies by those colors. Each plant says how its
+leaves are veined in `LEAVES`, for example the Cryptocoryne:
+
+```python
+"cryptocoryne": dict(midrib=1.0, veins="pinnate", count=7, vein=0.72, slope=0.5, mottle=0.08, rim=0.05),
+```
 
 ## Turning generated objects into files
 

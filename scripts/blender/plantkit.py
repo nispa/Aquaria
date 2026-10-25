@@ -2,7 +2,9 @@
 
 Each plant script (kelp.py, seagrass.py) builds its leaves point by point
 in a bmesh, giving every point a color and a sway weight, and calls these
-helpers to turn them into objects and export them. docs/OBJECTS.md tells
+helpers to turn them into objects and export them. A point may also carry
+where it lies on a leaf (`leaf_spot`), for a texture painted by
+leafpaint.py; the others take its plain strip. docs/OBJECTS.md tells
 what Aquaria expects: one plant per top-level object, side by side, with
 `_SWAY` from 0 at the base to 1 at the tips. Blender's Z is up; sizes are
 in plant heights (Aquaria scales a plant to its height in the scene).
@@ -10,10 +12,13 @@ in plant heights (Aquaria scales a plant to its height in the scene).
 
 import os
 
+import bmesh
 import bpy
 
 # Variants stand this far apart, so Aquaria sees them as separate plants.
 VARIANT_SPACING = 3.0
+# Where on the texture a point that is not on a leaf takes its color: the plain strip.
+PLAIN_UV = (0.975, 0.5)
 
 
 def linear(hex_color):
@@ -36,22 +41,60 @@ def ramp(stops, t):
     return stops[-1][1]
 
 
-def leaf_material(name, roughness):
-    """Double-sided, colored by the points: leaves are seen from both sides."""
+def leaf_material(name, roughness, image=None):
+    """Double-sided, colored by the points: leaves are seen from both sides.
+
+    With an `image` (leafpaint.py), it is the base color texture: Aquaria
+    multiplies it by the points' colors, so the points keep the hue and
+    the texture draws the veins.
+    """
     material = bpy.data.materials.new(name)
     material.use_nodes = True
     material.use_backface_culling = False
     nodes = material.node_tree.nodes
     principled = nodes["Principled BSDF"]
     principled.inputs["Roughness"].default_value = roughness
-    attribute = nodes.new("ShaderNodeVertexColor")
-    attribute.layer_name = "Col"
-    material.node_tree.links.new(attribute.outputs["Color"], principled.inputs["Base Color"])
+    if image is None:
+        attribute = nodes.new("ShaderNodeVertexColor")
+        attribute.layer_name = "Col"
+        material.node_tree.links.new(attribute.outputs["Color"], principled.inputs["Base Color"])
+    else:
+        texture = nodes.new("ShaderNodeTexImage")
+        texture.image = image
+        material.node_tree.links.new(texture.outputs["Color"], principled.inputs["Base Color"])
     return material
+
+
+def leaf_mesh():
+    """An empty bmesh whose points can say where they lie on a leaf.
+
+    The layers are made first: adding one later frees the points already made.
+    """
+    mesh = bmesh.new()
+    mesh.verts.layers.float.new("leaf_u")
+    mesh.verts.layers.float.new("leaf_v")
+    mesh.verts.layers.int.new("on_leaf")
+    return mesh
+
+
+def leaf_spot(mesh, vertex, u, v):
+    """Marks a point as lying at (u, v) on the leaf texture."""
+    vertex[mesh.verts.layers.float["leaf_u"]] = u
+    vertex[mesh.verts.layers.float["leaf_v"]] = v
+    vertex[mesh.verts.layers.int["on_leaf"]] = 1
 
 
 def plant_object(name, mesh, colors, sway, material):
     """An object from a bmesh whose points carry a color (RGB) and a sway weight."""
+    u_layer = mesh.verts.layers.float.get("leaf_u")
+    v_layer = mesh.verts.layers.float.get("leaf_v")
+    on_leaf = mesh.verts.layers.int.get("on_leaf")
+    if on_leaf is not None:
+        uv = mesh.loops.layers.uv.verify()
+        for face in mesh.faces:
+            for loop in face.loops:
+                point = loop.vert
+                loop[uv].uv = (point[u_layer], point[v_layer]) if point[on_leaf] else PLAIN_UV
     data = bpy.data.meshes.new(name)
     mesh.to_mesh(data)
     color_layer = data.color_attributes.new("Col", "FLOAT_COLOR", "POINT")
