@@ -63,49 +63,65 @@
   "flora": [
     {
       "kind": "hairgrass",
-      "name": "Carpet",
+      "name": "Carpet (front)",
       "count": 200,
-      "bands": [0, 3],
-      "height": [0.04, 0.08],
+      "bands": [0, 1],
+      "height": [0.06, 0.09],
+      "color": "#ffffff"
+    },
+    {
+      "kind": "hairgrass",
+      "name": "Carpet (front, 2)",
+      "count": 200,
+      "bands": [0, 2],
+      "height": [0.06, 0.09],
+      "color": "#ffffff"
+    },
+    {
+      "kind": "hairgrass",
+      "name": "Carpet (middle)",
+      "count": 200,
+      "bands": [1, 3],
+      "height": [0.07, 0.1],
       "color": "#ffffff"
     },
     {
       "kind": "hairgrass",
       "name": "Carpet (back)",
-      "count": 160,
-      "bands": [1, 3],
-      "height": [0.05, 0.09],
-      "color": "#ffffff"
-    },
-    {
-      "kind": "cryptocoryne",
-      "name": "Cryptocoryne",
-      "count": 4,
-      "bands": [2, 3],
-      "height": [0.12, 0.2],
+      "count": 200,
+      "bands": [3, 4],
+      "height": [0.07, 0.11],
       "color": "#ffffff"
     },
     {
       "kind": "moss-cushion",
       "name": "Moss",
-      "count": 14,
+      "count": 5,
       "bands": [1, 3],
-      "height": [0.05, 0.09],
-      "color": "#ffffff"
-    },
-    {
-      "kind": "anubias",
-      "count": 3,
-      "bands": [1, 3],
-      "height": [0.1, 0.16],
-      "color": "#ffffff"
-    },
-    {
-      "kind": "java-fern",
-      "count": 3,
-      "bands": [1, 3],
-      "height": [0.15, 0.25],
-      "color": "#ffffff"
+      "height": [0.05, 0.08],
+      "color": "#ffffff",
+      "at": [
+        {
+          "x": -0.42,
+          "z": -0.47
+        },
+        {
+          "x": -0.18,
+          "z": -0.42
+        },
+        {
+          "x": 0.17,
+          "z": -0.44
+        },
+        {
+          "x": -0.72,
+          "z": -0.36
+        },
+        {
+          "x": 0.3,
+          "z": -0.55
+        }
+      ]
     }
   ],
   "props": [
@@ -115,27 +131,70 @@
       "count": 7,
       "color": "#7d888f",
       "bands": [1, 3],
-      "size": [0.12, 0.4]
+      "size": [0.12, 0.4],
+      "at": [
+        {
+          "x": -0.3,
+          "z": -0.58,
+          "variant": 0,
+          "size": 0.5,
+          "rotation": 15
+        },
+        {
+          "x": 0.05,
+          "z": -0.52,
+          "variant": 1,
+          "size": 0.36,
+          "rotation": -40
+        },
+        {
+          "x": -0.62,
+          "z": -0.44,
+          "variant": 2,
+          "size": 0.26,
+          "rotation": 70
+        },
+        {
+          "x": 0.42,
+          "z": -0.64,
+          "variant": 3,
+          "size": 0.3,
+          "rotation": 10
+        },
+        {
+          "x": -0.12,
+          "z": -0.32,
+          "variant": 4,
+          "size": 0.16,
+          "rotation": 200
+        },
+        {
+          "x": 0.2,
+          "z": -0.34,
+          "variant": 5,
+          "size": 0.12,
+          "rotation": 120
+        },
+        {
+          "x": -0.85,
+          "z": -0.66,
+          "variant": 4,
+          "size": 0.14,
+          "rotation": 300
+        }
+      ]
     },
     {
       "kind": "pebble",
-      "count": 35,
+      "count": 14,
       "bands": [0, 1],
       "color": ["#8a857c", "#b8b0a2", "#5a5650", "#d0c8ba"]
     }
   ],
   "fauna": [
     {
-      "species": "neon-tetra",
-      "count": 25
-    },
-    {
-      "species": "platy",
-      "count": 2
-    },
-    {
-      "species": "guppy",
-      "count": 2
+      "species": "harlequin-rasbora",
+      "count": 30
     }
   ]
 }

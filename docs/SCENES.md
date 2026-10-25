@@ -132,7 +132,10 @@ them in `at`; the entry then places one item per spot:
 
 `x` is measured from the middle of the tank, `z` from the glass. A spot may
 also set `height`, `size`, or `y` to raise the item off the sand (in a cave,
-for example). Otherwise it stands on whatever is below it.
+for example). Otherwise it stands on whatever is below it. `variant`
+picks one of the object's shapes (0, 1, 2…) instead of a random one: the
+Iwagumi stands its tall, leaning Seiryu stone (`"variant": 0`) where the
+main stone goes.
 
 ### Surfaces
 

@@ -20,8 +20,8 @@ const KINDS: Readonly<Record<string, string>> = {
   aquaria: "Demo · the Aquaria showcase tank (a fantasy mix of sea and fresh water)",
   reef: "Open sea · tropical coral reef (saltwater)",
   "home-reef": "Aquarium · marine reef tank (saltwater)",
-  "planted-tank": "Aquarium · planted community tank (freshwater)",
-  iwagumi: "Aquarium · Iwagumi aquascape, stones and carpet plants (freshwater)",
+  "planted-tank": "Aquarium · planted tank around a driftwood centrepiece (freshwater)",
+  iwagumi: "Aquarium · Iwagumi: Seiryu stones on a hairgrass carpet (freshwater)",
 };
 
 const SIZE = { width: 1600, height: 900 };

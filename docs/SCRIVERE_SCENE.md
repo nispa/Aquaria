@@ -137,6 +137,9 @@ elencali in `at`; la voce mette un elemento per punto:
 `x` si misura dal centro della vasca, `z` dal vetro. Un punto può avere
 anche `height`, `size`, oppure `y` per sollevare l'elemento dalla sabbia
 (in una grotta, per esempio). Altrimenti poggia su quello che ha sotto.
+`variant` sceglie una delle forme dell'oggetto (0, 1, 2…) invece di una a
+caso: l'Iwagumi mette la sua pietra Seiryu alta e inclinata
+(`"variant": 0`) dove va la pietra principale.
 
 ### Superfici
 

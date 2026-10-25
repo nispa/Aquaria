@@ -66,69 +66,321 @@
       "name": "Carpet (front)",
       "count": 200,
       "bands": [0, 1],
-      "height": [0.04, 0.08],
+      "height": [0.05, 0.08],
+      "color": "#ffffff"
+    },
+    {
+      "kind": "hairgrass",
+      "name": "Carpet (front, 2)",
+      "count": 200,
+      "bands": [0, 2],
+      "height": [0.05, 0.08],
       "color": "#ffffff"
     },
     {
       "kind": "hairgrass",
       "name": "Carpet (middle)",
-      "count": 200,
+      "count": 160,
       "bands": [1, 3],
-      "height": [0.04, 0.08],
-      "color": "#ffffff"
-    },
-    {
-      "kind": "cryptocoryne",
-      "name": "Cryptocoryne",
-      "count": 10,
-      "bands": [1, 3],
-      "height": [0.12, 0.25],
+      "height": [0.06, 0.09],
       "color": "#ffffff"
     },
     {
       "kind": "rotala",
-      "name": "Rotala",
-      "count": 11,
+      "name": "Rotala (red)",
+      "count": 12,
       "bands": [3, 4],
-      "height": [0.4, 0.75],
-      "color": "#ffffff"
+      "height": [0.5, 0.8],
+      "color": "#ffffff",
+      "at": [
+        {
+          "x": -0.792,
+          "z": -0.815,
+          "variant": 0
+        },
+        {
+          "x": -0.92,
+          "z": -0.825,
+          "variant": 2
+        },
+        {
+          "x": -0.538,
+          "z": -0.928,
+          "variant": 0
+        },
+        {
+          "x": -0.524,
+          "z": -0.882,
+          "variant": 2
+        },
+        {
+          "x": -0.949,
+          "z": -0.83,
+          "variant": 0
+        },
+        {
+          "x": -0.954,
+          "z": -0.886,
+          "variant": 2
+        },
+        {
+          "x": -0.812,
+          "z": -0.819,
+          "variant": 0
+        },
+        {
+          "x": -0.521,
+          "z": -0.847,
+          "variant": 2
+        },
+        {
+          "x": -0.15,
+          "z": -0.855,
+          "variant": 0
+        },
+        {
+          "x": 0.066,
+          "z": -0.857,
+          "variant": 2
+        },
+        {
+          "x": -0.159,
+          "z": -0.887,
+          "variant": 0
+        },
+        {
+          "x": -0.155,
+          "z": -0.947,
+          "variant": 2
+        }
+      ]
+    },
+    {
+      "kind": "rotala",
+      "name": "Rotala (green)",
+      "count": 12,
+      "bands": [3, 4],
+      "height": [0.45, 0.75],
+      "color": "#ffffff",
+      "at": [
+        {
+          "x": 0.674,
+          "z": -0.786,
+          "variant": 1
+        },
+        {
+          "x": 0.716,
+          "z": -0.937,
+          "variant": 3
+        },
+        {
+          "x": 0.622,
+          "z": -0.878,
+          "variant": 1
+        },
+        {
+          "x": 0.699,
+          "z": -0.846,
+          "variant": 3
+        },
+        {
+          "x": 0.566,
+          "z": -0.865,
+          "variant": 1
+        },
+        {
+          "x": 0.807,
+          "z": -0.932,
+          "variant": 3
+        },
+        {
+          "x": 0.603,
+          "z": -0.84,
+          "variant": 1
+        },
+        {
+          "x": 0.507,
+          "z": -0.889,
+          "variant": 3
+        },
+        {
+          "x": -0.239,
+          "z": -0.918,
+          "variant": 1
+        },
+        {
+          "x": -0.347,
+          "z": -0.91,
+          "variant": 3
+        },
+        {
+          "x": -0.336,
+          "z": -0.922,
+          "variant": 1
+        },
+        {
+          "x": -0.337,
+          "z": -0.944,
+          "variant": 3
+        }
+      ]
     },
     {
       "kind": "vallisneria",
       "name": "Vallisneria",
       "count": 6,
-      "bands": [3, 4],
-      "height": [0.55, 0.9],
-      "color": "#ffffff"
+      "bands": [4, 4],
+      "height": [0.7, 0.95],
+      "color": "#ffffff",
+      "at": [
+        {
+          "x": -1.05,
+          "z": -0.92
+        },
+        {
+          "x": -0.98,
+          "z": -0.8
+        },
+        {
+          "x": -1.12,
+          "z": -0.7
+        },
+        {
+          "x": 1.05,
+          "z": -0.92
+        },
+        {
+          "x": 0.98,
+          "z": -0.78
+        },
+        {
+          "x": 1.12,
+          "z": -0.68
+        }
+      ]
+    },
+    {
+      "kind": "cryptocoryne",
+      "name": "Cryptocoryne",
+      "count": 8,
+      "bands": [1, 3],
+      "height": [0.14, 0.24],
+      "color": "#ffffff",
+      "at": [
+        {
+          "x": -0.05,
+          "z": -0.42,
+          "variant": 0
+        },
+        {
+          "x": 0.12,
+          "z": -0.36,
+          "variant": 1
+        },
+        {
+          "x": 0.55,
+          "z": -0.45,
+          "variant": 0
+        },
+        {
+          "x": 0.68,
+          "z": -0.55,
+          "variant": 3
+        },
+        {
+          "x": -0.45,
+          "z": -0.5,
+          "variant": 1
+        },
+        {
+          "x": -0.6,
+          "z": -0.4,
+          "variant": 2
+        },
+        {
+          "x": -0.28,
+          "z": -0.58,
+          "variant": 3
+        },
+        {
+          "x": 0.38,
+          "z": -0.62,
+          "variant": 2
+        }
+      ]
     },
     {
       "kind": "anubias",
-      "count": 4,
+      "count": 3,
       "bands": [1, 3],
-      "height": [0.1, 0.16],
-      "color": "#ffffff"
+      "height": [0.12, 0.18],
+      "color": "#ffffff",
+      "at": [
+        {
+          "x": 0.02,
+          "z": -0.55
+        },
+        {
+          "x": 0.45,
+          "z": -0.66
+        },
+        {
+          "x": -0.15,
+          "z": -0.48
+        }
+      ]
     },
     {
       "kind": "java-fern",
-      "count": 4,
+      "count": 3,
       "bands": [2, 3],
-      "height": [0.15, 0.25],
-      "color": "#ffffff"
+      "height": [0.2, 0.3],
+      "color": "#ffffff",
+      "at": [
+        {
+          "x": 0.3,
+          "z": -0.7
+        },
+        {
+          "x": 0.6,
+          "z": -0.72
+        },
+        {
+          "x": -0.2,
+          "z": -0.7
+        }
+      ]
     }
   ],
   "props": [
     {
       "kind": "branching-driftwood",
       "name": "Driftwood",
-      "count": 3,
+      "count": 2,
       "color": "#82654a",
-      "bands": [1, 2],
-      "size": [0.4, 0.8]
+      "bands": [1, 3],
+      "size": [0.4, 0.8],
+      "at": [
+        {
+          "x": 0.22,
+          "z": -0.58,
+          "variant": 0,
+          "size": 0.95,
+          "rotation": 20
+        },
+        {
+          "x": -0.42,
+          "z": -0.48,
+          "variant": 2,
+          "size": 0.4,
+          "rotation": 160
+        }
+      ]
     },
     {
       "kind": "rock",
       "name": "Stones",
-      "count": 5,
+      "count": 2,
       "color": "#55524e",
       "bands": [2, 3],
       "material": {
@@ -136,43 +388,38 @@
         "tileSize": 0.3,
         "displacement": 0.02
       },
-      "size": [0.12, 0.3]
-    },
-    {
-      "kind": "shell",
-      "count": 4,
-      "color": ["#f3e6d4", "#e8d2b8"]
+      "size": [0.12, 0.22],
+      "at": [
+        {
+          "x": -0.62,
+          "z": -0.62,
+          "size": 0.2
+        },
+        {
+          "x": 0.82,
+          "z": -0.5,
+          "size": 0.14
+        }
+      ]
     },
     {
       "kind": "pebble",
-      "count": 20,
+      "count": 12,
       "color": ["#6a6660", "#8a857c", "#4e4b47"]
     }
   ],
   "fauna": [
     {
       "species": "neon-tetra",
-      "count": 20
-    },
-    {
-      "species": "harlequin-rasbora",
-      "count": 12
+      "count": 25
     },
     {
       "species": "freshwater-angelfish",
       "count": 2
     },
     {
-      "species": "guppy",
-      "count": 2
-    },
-    {
-      "species": "dwarf-gourami",
-      "count": 1
-    },
-    {
       "species": "red-cherry-shrimp",
-      "count": 8
+      "count": 12
     },
     {
       "species": "freshwater-crab",

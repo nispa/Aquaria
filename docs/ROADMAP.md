@@ -567,11 +567,13 @@ veined leaves in two tones, light through them, swaying.
 
 ### J5. The scenes
 
-- [ ] Iwagumi: the stones composed, a carpet, one large school; little
-      else.
-- [ ] Planted tank: a driftwood centrepiece, red and green stem plants in
+- [x] Iwagumi: the stones composed, a carpet, one large school; little
+      else. Seven Seiryu stones at chosen spots, the main one by its
+      `variant`; a hairgrass carpet up to the glass (placement
+      `clearance`); 30 harlequin rasboras.
+- [x] Planted tank: a driftwood centrepiece, red and green stem plants in
       contrast at the back, Cryptocoryne in the middle, a carpet in front,
-      neons, angelfish and shrimps.
+      neons, angelfish and shrimps (and the crab).
 - [ ] Each with its caption, gallery picture, card picture and visual
       baseline; measured on the phone (I6).
 
