@@ -596,3 +596,11 @@ Raised by the user, not planned yet.
   neural network of its own, inherited with mutations (neuroevolution),
   so they adapt and evolve like real species; needs birth, death and the
   tank saved between sessions.
+- Mirrored side glass, to propose on 2026-10-26: seen through the front
+  glass, the side glass reflects the whole tank (total internal
+  reflection), which makes a real aquarium look wider than it is. Today
+  only the sand is mirrored. Not in the browser: planar reflections would
+  draw the scene up to twice more each frame, and WebGL and WebGPU have
+  no hardware ray tracing. To be proposed with an engine that does not
+  run in the browser but inside Unreal, reading the same scene and
+  species JSON.
