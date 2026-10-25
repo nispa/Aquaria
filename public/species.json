@@ -854,7 +854,12 @@
         }
       },
       "model": "red-cherry-shrimp",
-      "coloring": "cherry",
+      "coloring": [
+        { "id": "cherry", "weight": 3 },
+        { "id": "blue-dream", "weight": 2 },
+        { "id": "yellow", "weight": 2 },
+        { "id": "black-rose", "weight": 1 }
+      ],
       "maxCount": 20,
       "length": {
         "mean": 0.035,
