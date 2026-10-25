@@ -8,6 +8,24 @@
     "walk": "Walk",
     "speed": 0.8
   },
+  "colorings": {
+    "cherry": {
+      "name": "Red cherry",
+      "materials": { "Shell": "#d41722", "Limbs": "#e04a52" }
+    },
+    "blue-dream": {
+      "name": "Blue dream",
+      "materials": { "Shell": "#1f55c8", "Limbs": "#4a78d8" }
+    },
+    "yellow": {
+      "name": "Yellow",
+      "materials": { "Shell": "#f0b81a", "Limbs": "#f2cc5a" }
+    },
+    "black-rose": {
+      "name": "Black rose",
+      "materials": { "Shell": "#2a2224", "Limbs": "#4a3a3e" }
+    }
+  },
   "credit": {
     "author": "Aquaria (scripts/blender/shrimp.py)",
     "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/shrimp.py",

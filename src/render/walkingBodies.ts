@@ -1,5 +1,6 @@
 import {
   AnimationMixer,
+  Color,
   Euler,
   Group,
   type AnimationAction,
@@ -9,7 +10,7 @@ import {
   type Object3D,
 } from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
-import type { ModelManifest } from "../scene/modelManifest";
+import type { Coloring, ModelManifest } from "../scene/modelManifest";
 import type { Fish } from "../sim/simulation";
 import { animatedModelFrame, clipSeconds, pinRootMotion } from "./animatedModel";
 import { litMaterial } from "./fishModel";
@@ -36,6 +37,15 @@ interface Body {
   readonly hide: AnimationAction | undefined;
   /** 0 out, 1 all the way into its shell. */
   withdrawn: number;
+  /** Its own copies of the materials the colorings name, with their color in each. */
+  readonly tinted: readonly TintedMaterial[];
+  /** The coloring it shows, -1 before the first. */
+  coloring: number;
+}
+
+interface TintedMaterial {
+  readonly material: Material & { color: Color };
+  readonly colors: readonly Color[];
 }
 
 /** Seconds a body takes to pull into its shell, or to come out of it. */
@@ -72,13 +82,48 @@ function lightUp(root: Object3D): void {
   });
 }
 
-/** `count` walking bodies of the loaded `root`, named `name`. */
+const hasColor = (material: Material): material is Material & { color: Color } =>
+  "color" in material && material.color instanceof Color;
+
+/**
+ * Gives a body its own copy of each material the colorings name, so it can
+ * wear its animal's coloring; the colors of a material are, in the order of
+ * `worn`, the one each coloring names, else the material's own.
+ */
+function tintMaterials(body: Object3D, worn: readonly Coloring[]): TintedMaterial[] {
+  const tinted: TintedMaterial[] = [];
+  const own = (material: Material): Material => {
+    if (!hasColor(material)) return material;
+    const named = worn.map((coloring) => coloring.materials?.[material.name]);
+    if (named.every((color) => color === undefined)) return material;
+    const copy = material.clone();
+    tinted.push({
+      material: copy,
+      colors: named.map((color) => (color === undefined ? copy.color.clone() : new Color(color))),
+    });
+    return copy;
+  };
+  body.traverse((node) => {
+    const mesh = node as Partial<Mesh>;
+    if (mesh.isMesh !== true || mesh.material === undefined) return;
+    (node as Mesh).material = Array.isArray(mesh.material)
+      ? mesh.material.map(own)
+      : own(mesh.material);
+  });
+  return tinted;
+}
+
+/**
+ * `count` walking bodies of the loaded `root`, named `name`; each wears the
+ * plain colors of its animal's coloring, from the colorings its species wears.
+ */
 export function createWalkingBodies(
   name: string,
   root: Object3D,
   clips: readonly AnimationClip[],
   manifest: ModelManifest,
   count: number,
+  worn: readonly Coloring[] = [],
 ): WalkingBodies {
   lightUp(root);
   const frame = animatedModelFrame(root, manifest);
@@ -120,7 +165,15 @@ export function createWalkingBodies(
       walk.play();
       mixer.setTime((clip.duration * index) / Math.max(count, 1));
     }
-    bodies.push({ carrier, mixer, walk, hide, withdrawn: 0 });
+    bodies.push({
+      carrier,
+      mixer,
+      walk,
+      hide,
+      withdrawn: 0,
+      tinted: tintMaterials(body, worn),
+      coloring: -1,
+    });
   }
   const turn = new Euler(0, 0, 0, "YZX");
 
@@ -137,6 +190,13 @@ export function createWalkingBodies(
         turn.set(individual.roll, -individual.facing, 0);
         body.carrier.rotation.copy(turn);
         body.carrier.scale.setScalar(individual.length);
+        if (body.coloring !== individual.coloring) {
+          body.coloring = individual.coloring;
+          for (const { material, colors } of body.tinted) {
+            const color = colors[Math.min(individual.coloring, colors.length - 1)];
+            if (color !== undefined) material.color.copy(color);
+          }
+        }
         const speed = individual.still ? 0 : individual.velocity.length();
         if (body.hide !== undefined) {
           const hiding = individual.swim.withdraws && individual.hiding > 0;
@@ -148,7 +208,10 @@ export function createWalkingBodies(
       }
     },
     dispose() {
-      for (const body of bodies) body.mixer.stopAllAction();
+      for (const body of bodies) {
+        body.mixer.stopAllAction();
+        for (const { material } of body.tinted) material.dispose();
+      }
       group.clear();
     },
   };

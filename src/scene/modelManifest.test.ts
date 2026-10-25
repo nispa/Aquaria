@@ -266,6 +266,48 @@ describe("parseModelManifest", () => {
     expect(() => parseModelManifest(input, "guppy")).toThrow(/coloring/);
   });
 
+  it("lets a coloring give plain colors to materials by name", () => {
+    const manifest = parseModelManifest(
+      {
+        name: "Shrimp",
+        credit,
+        colorings: { "blue-dream": { name: "Blue Dream", materials: { Shell: "#1f4fbf" } } },
+      },
+      "shrimp",
+    );
+
+    expect(manifest.colorings?.["blue-dream"]?.materials).toEqual({ Shell: "#1f4fbf" });
+  });
+
+  it("refuses a coloring with neither a texture nor colors", () => {
+    const input = { name: "Shrimp", credit, colorings: { plain: { name: "Plain" } } };
+
+    expect(() => parseModelManifest(input, "shrimp")).toThrow(/texture or material colors/);
+  });
+
+  it("refuses a material color that is not a hex color", () => {
+    const input = {
+      name: "Shrimp",
+      credit,
+      colorings: { blue: { name: "Blue", materials: { Shell: "blue" } } },
+    };
+
+    expect(() => parseModelManifest(input, "shrimp")).toThrow(SceneValidationError);
+  });
+
+  it("credits a coloring that comes from elsewhere", () => {
+    const manifest = parseModelManifest(
+      {
+        name: "Guppy",
+        credit,
+        colorings: { red: { name: "Red", texture: "colorings/red.png", credit } },
+      },
+      "guppy",
+    );
+
+    expect(manifest.colorings?.red?.credit).toEqual(credit);
+  });
+
   it("names the model in its error messages", () => {
     expect(() => parseModelManifest({ credit }, "barramundi")).toThrow(/barramundi/);
   });

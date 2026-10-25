@@ -321,8 +321,12 @@ species with no coloring looks as today.
 - [x] `model.json` lists colorings by id, each a base-color texture;
       validated with Zod, a missing coloring or texture logs a warning and
       falls back to the model's own.
-- [ ] Colorings as a pattern mask or plain colors per material, and a
-      credit for colorings that come from elsewhere.
+- [x] Plain colors per material, and a credit for colorings that come
+      from elsewhere. The red cherry shrimp's model is grey and wears
+      `cherry`; `blue-dream`, `yellow` and `black-rose` come with it.
+- Later: colorings as a pattern mask (one image tinted with two or
+  three colors per strain), when the fish maker recolors live or phones
+  need lighter downloads (I6).
 - [x] A species names its model and coloring (`model`, `coloring`).
 - [x] Several species share one folder, so the shape is downloaded and
       kept on the GPU once: each species gets its own geometry over the
@@ -516,8 +520,11 @@ are the long part. After block K.
 - [x] A background panel: backdrop `panel` (frosted white, black, or a
       gradient) on the back glass, where the floor ends; the side glass
       mirrors the floor. Worn by the Planted tank and the Iwagumi.
-- [ ] A home tank's look: rimless glass with visible edges, a slim lamp
-      above.
+- Later, not now (user, 2026-10-25): a home tank seen whole, optional
+  and set by parameters, never the default view. The camera steps back
+  to show rimless glass with visible edges, silicone in the corners and
+  a slim lamp above; it needs a picture of the room behind the tank to
+  load first.
 
 ### J2. The Planted freshwater look
 

@@ -475,6 +475,20 @@ texture array.
   leaves the model in its own colors, with a warning.
 - The fish's card shows the first coloring. To look at another one on
   the grid: `/model-viewer.html?id=guppy&coloring=1`.
+- A coloring can also give plain colors to materials by name, in place
+  of their base color; their texture and vertex colors still shade them.
+  The red cherry shrimp keeps only light and shade in its vertex colors,
+  and its colorings tint the `Shell` and `Limbs` materials:
+
+  ```json
+  "blue-dream": { "name": "Blue dream", "materials": { "Shell": "#1f55c8", "Limbs": "#4a78d8" } }
+  ```
+
+  A coloring needs a texture, material colors, or both. Animals that walk
+  (shrimps, crabs) wear the plain colors only.
+
+- A coloring made by someone else carries its own `credit` (author,
+  source, license, as the model's), and gets its line in `ASSETS.md`.
 - Several species can name the same `model` folder, each with its own
   colorings: kin of one shape, like two tangs. The model is downloaded
   once and its shape kept once on the GPU.

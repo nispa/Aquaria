@@ -29,9 +29,10 @@ export interface AssetLoaders {
   ) => Promise<{ readonly root: Object3D; readonly clips: readonly AnimationClip[] }>;
   /**
    * Coloring textures (PNG, WebP, JPEG of one size) stacked into one
-   * texture array, the first image the first layer.
+   * texture array, the first image the first layer; a layer without a URL
+   * is left empty (a coloring of plain colors only).
    */
-  readonly loadColorings: (urls: readonly string[]) => Promise<Texture>;
+  readonly loadColorings: (urls: readonly (string | undefined)[]) => Promise<Texture>;
   /** Stops the transcoder workers. */
   dispose(): void;
 }
@@ -69,16 +70,19 @@ async function imagePixels(url: string, limit: number | undefined): Promise<Imag
 }
 
 async function loadTextureArray(
-  urls: readonly string[],
+  urls: readonly (string | undefined)[],
   limit: number | undefined,
 ): Promise<Texture> {
-  const images = await Promise.all(urls.map((url) => imagePixels(url, limit)));
-  const first = images[0];
+  const images = await Promise.all(
+    urls.map((url) => (url === undefined ? Promise.resolve(undefined) : imagePixels(url, limit))),
+  );
+  const first = images.find((image) => image !== undefined);
   if (first === undefined) throw new Error("A coloring needs at least one texture.");
   const { width, height } = first;
   const layer = width * height * RGBA;
   const data = new Uint8Array(layer * images.length);
   for (const [index, image] of images.entries()) {
+    if (image === undefined) continue;
     if (image.width !== width || image.height !== height) {
       throw new Error(
         `${urls[index] ?? ""} is not ${String(width)}×${String(height)} like the first coloring.`,

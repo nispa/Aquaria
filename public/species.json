@@ -854,6 +854,7 @@
         }
       },
       "model": "red-cherry-shrimp",
+      "coloring": "cherry",
       "maxCount": 20,
       "length": {
         "mean": 0.035,

@@ -98,15 +98,31 @@ const relativeImage = z
     "texture must be a .png, .webp or .jpg path inside the model folder.",
   );
 
+/** Who made a model or a coloring, where it comes from, under which license. */
+const creditSchema = z.object({
+  author: z.string().min(1),
+  source: z.url(),
+  license: z.enum(ALLOWED_MODEL_LICENSES),
+});
+
 /**
  * One way the model can be colored: a base-color texture laid on the
- * model's UVs in place of its own, for every material that has a texture.
- * All the colorings of a model have the same size.
+ * model's UVs in place of its own, for every material that has a texture
+ * (all the textures of a model's colorings have the same size), and plain
+ * colors for materials by name, in place of their own base color; their
+ * texture and vertex colors still shade it. A coloring made by someone
+ * else carries its own credit.
  */
-const coloringSchema = z.object({
-  name: z.string().min(1),
-  texture: relativeImage,
-});
+const coloringSchema = z
+  .object({
+    name: z.string().min(1),
+    texture: relativeImage.optional(),
+    materials: z.record(z.string().min(1), hexColor).optional(),
+    credit: creditSchema.optional(),
+  })
+  .refine(({ texture, materials }) => texture !== undefined || materials !== undefined, {
+    message: "A coloring needs a texture or material colors.",
+  });
 
 export type Coloring = z.output<typeof coloringSchema>;
 
@@ -235,11 +251,7 @@ export const modelManifestSchema = z
         message: `A model lists at most ${String(MAX_COLORINGS)} colorings.`,
       })
       .optional(),
-    credit: z.object({
-      author: z.string().min(1),
-      source: z.url(),
-      license: z.enum(ALLOWED_MODEL_LICENSES),
-    }),
+    credit: creditSchema,
   })
   .refine(({ forward, up }) => forward[1] !== up[1], {
     message: "up must be perpendicular to forward.",

@@ -482,6 +482,21 @@ sulla GPU: le texture diventano gli strati di un texture array.
   carica, lascia il modello con i suoi colori, con un avviso.
 - La scheda del pesce mostra la prima colorazione. Per guardarne un'altra
   sulla griglia: `/model-viewer.html?id=guppy&coloring=1`.
+- Una colorazione può anche dare colori pieni ai materiali per nome, al
+  posto del loro colore base; texture e colori dei vertici continuano a
+  sfumarli. Il gamberetto red cherry tiene nei colori dei vertici solo luci
+  e ombre, e le sue colorazioni tingono i materiali `Shell` e `Limbs`:
+
+  ```json
+  "blue-dream": { "name": "Blue dream", "materials": { "Shell": "#1f55c8", "Limbs": "#4a78d8" } }
+  ```
+
+  Una colorazione vuole una texture, i colori dei materiali, o tutti e due.
+  Gli animali che camminano (gamberetti, granchi) portano solo i colori
+  pieni.
+
+- Una colorazione fatta da altri porta il suo `credit` (autore, fonte,
+  licenza, come quello del modello), e ha la sua riga in `ASSETS.md`.
 - Più specie possono indicare la stessa cartella `model`, ognuna con le
   sue colorazioni: parenti della stessa forma, come due pesci chirurgo. Il
   modello si scarica una volta e la sua forma sta una volta sola sulla GPU.

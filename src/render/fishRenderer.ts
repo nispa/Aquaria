@@ -22,6 +22,7 @@ import type { Logger } from "../core/logger";
 import {
   modelFileUrl,
   modelFolderUrl,
+  type Coloring,
   type ModelManifest,
   type PectoralFin,
 } from "../scene/modelManifest";
@@ -60,10 +61,17 @@ export type AnimatedModelLoader = (
 
 /**
  * Loads the textures of a species' colorings, in order, as the layers of
- * one texture array (they have the same size); injected so tests run
- * without a browser.
+ * one texture array (they have the same size); a layer without a URL is
+ * left empty. Injected so tests run without a browser.
  */
-export type ColoringLoader = (urls: readonly string[]) => Promise<Texture>;
+export type ColoringLoader = (urls: readonly (string | undefined)[]) => Promise<Texture>;
+
+/** The colorings a species wears, in its order, and their textures as one array. */
+export interface ColoringDress {
+  readonly worn: readonly Coloring[];
+  /** Absent when none of them has a texture, or the textures could not load. */
+  readonly map?: Texture;
+}
 
 /** The 3D models available to species with a glTF body, by model folder. */
 export interface FishModels {
@@ -298,16 +306,46 @@ function facePatches(manifest: ModelManifest, water: WaterUniforms): ShaderPatch
 const hasMap = (material: Material): boolean =>
   "map" in material && material.map instanceof Texture;
 
+/** The coloring patch of one material, when the colorings worn change it. */
+function coloringPatches(material: Material, dress: ColoringDress | undefined): ShaderPatch[] {
+  if (dress === undefined) return [];
+  const own = "color" in material && material.color instanceof Color ? material.color : undefined;
+  const named = dress.worn.some((coloring) => coloring.materials?.[material.name] !== undefined);
+  const tints =
+    own === undefined || !named
+      ? undefined
+      : dress.worn.map((coloring) => {
+          const color = coloring.materials?.[material.name];
+          return color === undefined ? own.clone() : new Color(color);
+        });
+  const map =
+    dress.map === undefined || !hasMap(material)
+      ? undefined
+      : {
+          texture: dress.map,
+          images: dress.worn.map((coloring) => (coloring.texture === undefined ? 0 : 1)),
+        };
+  return map === undefined && tints === undefined
+    ? []
+    : [
+        fishColoringPatch({
+          ...(map === undefined ? {} : { map }),
+          ...(tints === undefined ? {} : { tints }),
+        }),
+      ];
+}
+
 /**
  * The model's own material, made fadeable and taught to swim, look, eat and
- * breathe as its manifest says; with `colorings`, a material with a texture
- * shows each fish's coloring instead. Exported for the model viewer.
+ * breathe as its manifest says; with a `dress`, each fish shows the coloring
+ * it wears: plain colors for the materials it names, its texture on
+ * materials with one. Exported for the model viewer.
  */
 export function modelMaterial(
   material: Material,
   manifest: ModelManifest,
   water: WaterUniforms,
-  colorings?: Texture,
+  dress?: ColoringDress,
 ): Material {
   const copy = material.clone();
   copy.transparent = true;
@@ -320,9 +358,7 @@ export function modelMaterial(
     ...facePatches(manifest, water),
     fishMotionPatch({ uSwimAmplitude: { value: manifest.swimAmplitude } }),
     ...(manifest.fins?.pectoral === undefined ? [] : [pectoralPatch(manifest.fins.pectoral)]),
-    ...(colorings !== undefined && hasMap(copy)
-      ? [fishColoringPatch({ uColoringMap: { value: colorings } })]
-      : []),
+    ...coloringPatches(copy, dress),
     causticsPatch(water),
   ]);
 }
@@ -349,17 +385,17 @@ function disposeLoadedScene(root: Object3D): Texture[] {
 }
 
 /**
- * The texture files of the colorings a species wears, in its order; none
- * when it wears none, or one its model does not list.
+ * The colorings a species wears, in its order; none when it wears none, or
+ * one its model does not list.
  */
-function coloringUrls(
+function wornColorings(
   species: Species,
   modelId: string,
   manifest: ModelManifest,
   logger: Logger,
-): string[] | undefined {
+): Coloring[] | undefined {
   if (species.coloring === undefined) return undefined;
-  const urls: string[] = [];
+  const worn: Coloring[] = [];
   for (const { id } of species.coloring) {
     const coloring = manifest.colorings?.[id];
     if (coloring === undefined) {
@@ -370,9 +406,9 @@ function coloringUrls(
       });
       return undefined;
     }
-    urls.push(`${modelFolderUrl(modelId)}/${coloring.texture}`);
+    worn.push(coloring);
   }
-  return urls;
+  return worn;
 }
 
 function showBody(instances: SpeciesInstances): void {
@@ -455,11 +491,11 @@ export function createFishRenderer(
     instances: SpeciesInstances,
     parts: readonly FishModelPart[],
     manifest: ModelManifest,
-    colorings: Texture | undefined,
+    dress: ColoringDress | undefined,
   ): void => {
     for (const part of parts) {
       const partMaterials = materialsOf(part.material).map((material) =>
-        modelMaterial(material, manifest, water, colorings),
+        modelMaterial(material, manifest, water, dress),
       );
       geometries.push(part.geometry);
       materials.push(...partMaterials);
@@ -495,14 +531,14 @@ export function createFishRenderer(
       return;
     }
     const done = Promise.all([shapeOf(url, manifest), loadColorings(entry, modelId, manifest)])
-      .then(([shape, colorings]) => {
+      .then(([shape, dress]) => {
         if (disposed) {
-          colorings?.dispose();
+          dress?.map?.dispose();
           return;
         }
-        if (colorings !== undefined) textures.push(colorings);
+        if (dress?.map !== undefined) textures.push(dress.map);
         const parts = shape.map((part) => ({ ...part, geometry: sharedShape(part.geometry) }));
-        addModelParts(entry.id, instances, parts, manifest, colorings);
+        addModelParts(entry.id, instances, parts, manifest, dress);
         instances.modelState = "ready";
         showBody(instances);
       })
@@ -517,22 +553,35 @@ export function createFishRenderer(
     loading.push(done);
   };
 
-  /** The species' colorings as one texture array; undefined (with a warning) if it cannot have them. */
+  /**
+   * The colorings the species wears, with their textures as one array;
+   * undefined (with a warning) if it cannot wear them, no textures if they
+   * have none or they fail to load.
+   */
   const loadColorings = (
     entry: Species,
     modelId: string,
     manifest: ModelManifest,
-  ): Promise<Texture | undefined> => {
-    const urls = coloringUrls(entry, modelId, manifest, logger);
-    if (urls === undefined || models.loadColorings === undefined) return Promise.resolve(undefined);
-    return models.loadColorings(urls).catch((error: unknown) => {
-      logger.warn("Fish colorings could not be loaded; the model wears its own colors", {
-        species: entry.id,
-        urls,
-        error: String(error),
+  ): Promise<ColoringDress | undefined> => {
+    const worn = wornColorings(entry, modelId, manifest, logger);
+    if (worn === undefined) return Promise.resolve(undefined);
+    const urls = worn.map((coloring) =>
+      coloring.texture === undefined ? undefined : `${modelFolderUrl(modelId)}/${coloring.texture}`,
+    );
+    if (urls.every((url) => url === undefined) || models.loadColorings === undefined) {
+      return Promise.resolve({ worn });
+    }
+    return models
+      .loadColorings(urls)
+      .then((map) => ({ worn, map }))
+      .catch((error: unknown) => {
+        logger.warn("Fish coloring textures could not be loaded; the model keeps its own", {
+          species: entry.id,
+          urls,
+          error: String(error),
+        });
+        return { worn };
       });
-      return undefined;
-    });
   };
 
   const loadWalking = (
@@ -542,12 +591,22 @@ export function createFishRenderer(
     loadAnimated: AnimatedModelLoader,
   ): void => {
     const { species: entry } = instances;
+    // Walking bodies wear plain colors only; a coloring's texture is left out.
+    const worn =
+      entry.model === undefined ? undefined : wornColorings(entry, entry.model, manifest, logger);
     const done = loadAnimated(url)
       .then(({ root, clips }) => {
         loadedWalkers.push(root);
         if (disposed) return;
         const count = Math.min(entry.maxCount, MAX_INDIVIDUALS_PER_SPECIES);
-        const walking = createWalkingBodies(`${entry.id}/animated`, root, clips, manifest, count);
+        const walking = createWalkingBodies(
+          `${entry.id}/animated`,
+          root,
+          clips,
+          manifest,
+          count,
+          worn,
+        );
         instances.walking = walking;
         object.add(walking.group);
         instances.modelState = "ready";

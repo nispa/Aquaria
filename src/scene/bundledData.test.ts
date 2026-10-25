@@ -174,7 +174,9 @@ describe("bundled data files", () => {
 
   it.each(modelFolders)("ships the texture of every coloring of the %s model", (id) => {
     const manifest = parseModelManifest(readJson(`${MODELS}${id}/${MODEL_MANIFEST_FILE}`), id);
-    const textures = Object.values(manifest.colorings ?? {}).map(({ texture }) => texture);
+    const textures = Object.values(manifest.colorings ?? {}).flatMap(({ texture }) =>
+      texture === undefined ? [] : [texture],
+    );
 
     expect(
       textures.filter(

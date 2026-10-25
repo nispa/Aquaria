@@ -14,7 +14,11 @@ the model is the project's own work (CC0, like the code that made it):
 - two long antennae that arch up and sweep back over the body (so the
   model's length, snout to tail, is the shrimp's own), two short
   antennules, five pairs of walking legs and small swimmerets;
-- deep cherry red, darker in specks, appendages paler and see-through.
+- light and shade only in the vertex colors (darker on the back and in
+  specks, paler underneath), appendages see-through: the color comes from
+  the colorings in model.json (cherry red, blue, yellow, black), which tint
+  the Shell and Limbs materials, so one model makes every strain. Without
+  a coloring the shrimp is grey, like a glass shrimp.
 
 - a skeleton, a bone for each walking leg, antenna, antennule and
   swimmeret, and a one-second "Walk" clip: the legs step in a wave running
@@ -38,7 +42,6 @@ sys.path.insert(0, os.path.dirname(__file__))
 from fishkit import (  # noqa: E402
     curve,
     export,
-    linear,
     make_object,
     material,
     membrane,
@@ -50,12 +53,13 @@ from fishkit import (  # noqa: E402
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DEFAULT_OUTPUT = os.path.join(ROOT, "public", "assets", "species", "red-cherry-shrimp")
 
-# Colors, sRGB.
-CHERRY = "#c0141e"
-DARK = "#7a0a12"
-PALE = "#e8606a"
-LIMB = "#e04a52"
-EYE = "#0a0606"
+# Light and shade, as a share of the color a coloring gives the material.
+SIDE = 0.8
+BACK = 0.3
+BELLY = 1.0
+FAN_EDGE = 1.0
+FAN_OVERLAP = 0.35
+EYE = 0.02
 
 # The walk: one stride a second, at Blender's 24 frames a second.
 STRIDE_FRAMES = 24
@@ -88,6 +92,11 @@ GROOVE = 0.08
 GROOVE_WIDTH = 0.012
 
 
+def shade(value, alpha=1.0):
+    """A grey vertex color: the material's color, from the coloring, times this."""
+    return [value, value, value, alpha]
+
+
 def speckle(x, z):
     """Dark specks, the cherry's mottling: a fixed pattern, so every build is the same."""
     return smoothstep(0.55, 0.95, math.sin(x * 210 + 1.7) * math.sin(z * 260 + x * 40))
@@ -114,8 +123,8 @@ def body():
             ring.append(len(verts))
             verts.append((x, half_width * side, z))
             back = smoothstep(-0.2, 0.9, up)
-            color = mix(linear(CHERRY), linear(DARK), back * 0.45 + speckle(x, z) * 0.5)
-            colors.append(mix(color, linear(PALE), smoothstep(-0.3, -0.95, up) * 0.6))
+            color = mix(shade(SIDE), shade(BACK), back * 0.45 + speckle(x, z) * 0.5)
+            colors.append(mix(color, shade(BELLY), smoothstep(-0.3, -0.95, up) * 0.6))
         rings.append(ring)
     for a, b in zip(rings, rings[1:]):
         for j in range(around):
@@ -124,7 +133,7 @@ def body():
     for ring, x, flip in ((rings[0], FRONT_X + 0.01, False), (rings[-1], BACK_X - 0.005, True)):
         cap = len(verts)
         verts.append((x, 0.0, curve(MIDLINE, x)))
-        colors.append(linear(CHERRY))
+        colors.append(shade(SIDE))
         for j in range(around):
             k = (j + 1) % around
             faces.append((cap, ring[k], ring[j]) if flip else (cap, ring[j], ring[k]))
@@ -161,12 +170,12 @@ def tapering(root, tip):
 
 
 def limb_color(alpha):
-    return lambda t: linear(LIMB, alpha * (1 - 0.4 * t))
+    return lambda t: shade(1.0, alpha * (1 - 0.4 * t))
 
 
 def rostrum():
     """The pointed beak over the eyes."""
-    return tube([(0.33, 0, 0.04), (0.42, 0, 0.045), (0.5, 0, 0.05)], tapering(0.012, 0.002), lambda t: linear(CHERRY), smooth=2)
+    return tube([(0.33, 0, 0.04), (0.42, 0, 0.045), (0.5, 0, 0.05)], tapering(0.012, 0.002), lambda t: shade(SIDE), smooth=2)
 
 
 def antenna(side):
@@ -204,7 +213,7 @@ def swimmeret(side, x):
 
 def eye(side):
     """A black eye on a short stalk, looking out and forward."""
-    stalk = tube([(0.34, side * 0.02, 0.025), (0.37, side * 0.045, 0.032)], tapering(0.008, 0.008), lambda t: linear(CHERRY), sides=8, smooth=1)
+    stalk = tube([(0.34, side * 0.02, 0.025), (0.37, side * 0.045, 0.032)], tapering(0.008, 0.008), lambda t: shade(SIDE), sides=8, smooth=1)
     centre = Vector((0.375, side * 0.05, 0.034))
     radius = 0.017
     verts, faces, colors = [], [], []
@@ -215,7 +224,7 @@ def eye(side):
             phi = 2 * math.pi * j / segments
             p = centre + Vector((math.sin(theta) * math.cos(phi), math.sin(theta) * math.sin(phi), math.cos(theta))) * radius
             verts.append((p.x, p.y, p.z))
-            colors.append(linear(EYE))
+            colors.append(shade(EYE))
     for i in range(rings):
         for j in range(segments):
             k = (j + 1) % segments
@@ -240,8 +249,8 @@ def tail_fan():
     def color(u, v, p):
         # Five blades: darker where they overlap, paler and clearer at the edge.
         blade = (0.5 + 0.5 * math.cos(u * 5 * 2 * math.pi)) ** 2
-        fan = mix(linear(CHERRY, 0.95), linear(PALE, 0.6), smoothstep(0.5, 1.0, v))
-        return mix(fan, linear(DARK, 0.95), blade * 0.3 * (1 - v))
+        fan = mix(shade(SIDE, 0.95), shade(FAN_EDGE, 0.6), smoothstep(0.5, 1.0, v))
+        return mix(fan, shade(FAN_OVERLAP, 0.95), blade * 0.3 * (1 - v))
 
     return membrane(base, edge, color, steps_u=60, steps_v=12, bulge=0.004)
 

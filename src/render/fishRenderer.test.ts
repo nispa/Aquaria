@@ -7,6 +7,7 @@ import {
   MeshStandardMaterial,
   Texture,
   type Material,
+  type Object3D,
 } from "three";
 import { describe, expect, it } from "vitest";
 import { createLogger, type LogEntry } from "../core/logger";
@@ -51,12 +52,47 @@ const coloredManifest = parseModelManifest(
   "box-fish",
 );
 
+/** The box fish with a body named "Body", and colorings giving it plain colors. */
+const tintedManifest = parseModelManifest(
+  {
+    name: "Box fish",
+    colorings: {
+      red: { name: "Red", texture: "colorings/red.png" },
+      blue: { name: "Blue", materials: { Body: "#1f4fbf" } },
+    },
+    credit: { author: "Someone", source: "https://example.org/fish", license: "CC0-1.0" },
+  },
+  "box-fish",
+);
+
+function namedBoxFish(): Group {
+  const root = new Group();
+  root.add(
+    new Mesh(
+      new BoxGeometry(1, 0.3, 0.1),
+      new MeshStandardMaterial({ name: "Body", map: new Texture() }),
+    ),
+  );
+  return root;
+}
+
 function texturedBoxFish(): Group {
   const root = new Group();
   root.add(
     new Mesh(new BoxGeometry(1, 0.3, 0.1), new MeshStandardMaterial({ map: new Texture() })),
   );
   return root;
+}
+
+/** The base color of the first mesh in a walking body, as hex. */
+function bodyColor(body: Object3D): string | undefined {
+  let found: string | undefined;
+  body.traverse((node) => {
+    if (found === undefined && node instanceof Mesh) {
+      found = (node.material as MeshStandardMaterial).color.getHexString();
+    }
+  });
+  return found;
 }
 
 const patchesOf = (material: Material | Material[]): string =>
@@ -176,7 +212,7 @@ describe("createFishRenderer", () => {
   });
 
   it("dresses the model in the textures of the colorings its species wears", async () => {
-    const urls: string[][] = [];
+    const urls: (string | undefined)[][] = [];
     const { id, renderer, swim } = setup({
       load: () => Promise.resolve(texturedBoxFish()),
       manifests: new Map([["box-fish", coloredManifest]]),
@@ -236,6 +272,57 @@ describe("createFishRenderer", () => {
     expect(first?.geometry.getAttribute("position")).toBe(
       second?.geometry.getAttribute("position"),
     );
+  });
+
+  it("tints the materials a coloring gives plain colors", async () => {
+    const { id, renderer, swim } = setup({
+      load: () => Promise.resolve(namedBoxFish()),
+      manifests: new Map([["box-fish", tintedManifest]]),
+      coloring: ["blue"],
+      loadColorings: () => Promise.resolve(new DataArrayTexture()),
+    });
+
+    swim();
+    await renderer.settled();
+    const model = renderer.object.getObjectByName(`${id}/model`) as Mesh;
+
+    expect(patchesOf(model.material)).toContain("fish-coloring-tint");
+  });
+
+  it("loads no coloring texture when the colorings worn are plain colors", async () => {
+    const urls: (string | undefined)[][] = [];
+    const { renderer, swim } = setup({
+      load: () => Promise.resolve(namedBoxFish()),
+      manifests: new Map([["box-fish", tintedManifest]]),
+      coloring: ["blue"],
+      loadColorings: (textures) => {
+        urls.push([...textures]);
+        return Promise.resolve(new DataArrayTexture());
+      },
+    });
+
+    swim();
+    await renderer.settled();
+
+    expect(urls).toEqual([]);
+  });
+
+  it("leaves a layer empty for a coloring without a texture, which keeps the model's own", async () => {
+    const urls: (string | undefined)[][] = [];
+    const { renderer, swim } = setup({
+      load: () => Promise.resolve(namedBoxFish()),
+      manifests: new Map([["box-fish", tintedManifest]]),
+      coloring: ["red", "blue"],
+      loadColorings: (textures) => {
+        urls.push([...textures]);
+        return Promise.resolve(new DataArrayTexture());
+      },
+    });
+
+    swim();
+    await renderer.settled();
+
+    expect(urls).toEqual([["assets/species/box-fish/colorings/red.png", undefined]]);
   });
 
   it("keeps the procedural body when the model has no manifest, with a warning", () => {
@@ -309,6 +396,40 @@ describe("walking models", () => {
       shown().includes(id),
       bodies?.children.filter((body) => body.visible).length,
     ]).toEqual([true, false, false, 2]);
+  });
+
+  it("paints each walking body in the plain colors of the coloring its animal wears", async () => {
+    const tinted = parseModelManifest(
+      {
+        name: "Box crab",
+        credit: { author: "Someone", source: "https://example.org/crab", license: "CC0-1.0" },
+        animations: { walk: "Walk" },
+        colorings: {
+          red: { name: "Red", materials: { Body: "#ff0000" } },
+          blue: { name: "Blue", materials: { Body: "#0000ff" } },
+        },
+      },
+      "box-fish",
+    );
+    const { id, catalog, renderer, swim } = setup({
+      manifests: new Map([["box-fish", tinted]]),
+      coloring: ["red", "blue"],
+      loadAnimated: () =>
+        Promise.resolve({ root: namedBoxFish(), clips: [new AnimationClip("Walk", 1, [])] }),
+    });
+    const species = catalog.species[0];
+    swim();
+    await renderer.settled();
+
+    renderer.update(
+      species === undefined
+        ? []
+        : [posedFish(species, undefined, 0), posedFish(species, undefined, 1)],
+      0.1,
+    );
+
+    const bodies = renderer.object.getObjectByName(`${id}/animated`)?.children ?? [];
+    expect(bodies.slice(0, 2).map(bodyColor)).toEqual(["ff0000", "0000ff"]);
   });
 
   it("goes back to the procedural body when a walking model is switched off", async () => {
