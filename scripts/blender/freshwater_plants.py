@@ -43,6 +43,9 @@ SEED = 20261026
 VARIANTS = 4
 # Points across a leaf: the edges, the midrib and halfway between.
 ACROSS = (-1.0, -0.5, 0.0, 0.5, 1.0)
+# A blade a millimetre or two wide needs only its edges and midrib: a carpet
+# has hundreds of tufts of them, and phones feel every point.
+ACROSS_BLADE = (-1.0, 0.0, 1.0)
 # The leaf texture is a little grey on the blade (leafpaint.BLADE, sRGB): the
 # points are that much brighter, so the leaf keeps its brightness.
 BRIGHTEN = 1 / 0.92 ** 2.2
@@ -58,7 +61,7 @@ def leaf_profile(t, shape):
     return max(math.sin(math.pi * t ** 0.7), 0.04) ** 0.9
 
 
-def add_leaf(mesh, colors, sway, origin, heading, pitch, length, width, shape, stops, curl=0.0, ruffle=0.0, twist=0.0, along=8, sway_from=0.0, droop=0.0, rng=None, plain=False):
+def add_leaf(mesh, colors, sway, origin, heading, pitch, length, width, shape, stops, curl=0.0, ruffle=0.0, twist=0.0, along=8, sway_from=0.0, droop=0.0, rng=None, plain=False, across=ACROSS):
     """One leaf from `origin`, leaving at `heading` (around Z) and `pitch` (up from flat).
 
     It lies across the leaf tile of the texture, unless `plain` (a petiole).
@@ -78,7 +81,7 @@ def add_leaf(mesh, colors, sway, origin, heading, pitch, length, width, shape, s
         roll = twist * t
         base = ramp(stops, t)
         row = []
-        for s in ACROSS:
+        for s in across:
             wave = ruffle * math.sin(t * 14.0 + s * 2.0) * abs(s) ** 1.5
             lateral = side * math.cos(roll) * s * half
             lift = Vector((0, 0, 1)) * (math.sin(roll) * s * half + wave * width + (1 - abs(s)) * width * 0.04)
@@ -92,7 +95,7 @@ def add_leaf(mesh, colors, sway, origin, heading, pitch, length, width, shape, s
             row.append(vertex)
         rows.append(row)
     for i in range(along):
-        for j in range(len(ACROSS) - 1):
+        for j in range(len(across) - 1):
             mesh.faces.new((rows[i][j], rows[i][j + 1], rows[i + 1][j + 1], rows[i + 1][j]))
 
 
@@ -186,6 +189,7 @@ def build_hairgrass(rng, offset, material):
             scaled,
             curl=rng.uniform(0.6, 1.8),
             along=6,
+            across=ACROSS_BLADE,
         )
     plant = plant_object("hairgrass", mesh, colors, sway, material)
     mesh.free()

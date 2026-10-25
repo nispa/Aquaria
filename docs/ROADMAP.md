@@ -574,8 +574,12 @@ veined leaves in two tones, light through them, swaying.
 - [x] Planted tank: a driftwood centrepiece, red and green stem plants in
       contrast at the back, Cryptocoryne in the middle, a carpet in front,
       neons, angelfish and shrimps (and the crab).
-- [ ] Each with its caption, gallery picture, card picture and visual
-      baseline; measured on the phone (I6).
+- [x] Each with its caption, gallery picture, card picture and visual
+      baseline; measured on the phone (I6). Redmi Note 14 Pro, production
+      build, 540p, 30 fps cap: Planted tank 27 to 30 fps, Iwagumi 25 to 27
+      (its 800 carpet tufts; 30 at `medium` and `small`). Carpet blades
+      now have three points across instead of five (40% lighter models,
+      little faster): what is left goes to I6.
 
 ## Ideas to discuss
 

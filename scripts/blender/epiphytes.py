@@ -25,7 +25,7 @@ import bpy
 from mathutils import Vector
 
 sys.path.insert(0, os.path.dirname(__file__))
-from freshwater_plants import OUTPUT, VARIANTS, add_leaf, clear, render_preview  # noqa: E402
+from freshwater_plants import ACROSS_BLADE, OUTPUT, VARIANTS, add_leaf, clear, render_preview  # noqa: E402
 from leafpaint import LEAVES, leaf_texture  # noqa: E402
 from paintkit import image  # noqa: E402
 from plantkit import VARIANT_SPACING, export, leaf_material, leaf_mesh, linear, mix, plant_object  # noqa: E402
@@ -88,7 +88,7 @@ def build_moss(rng, offset, material):
         stops = [(0.0, [c * shade for c in base]), (0.5, [c * shade for c in green]), (1.0, [c * shade for c in tip])]
         add_leaf(
             mesh, colors, sway, origin, angle + rng.uniform(-1.0, 1.0), rng.uniform(0.9, 1.4), rng.uniform(0.3, 0.55), 0.012, "strap",
-            stops, curl=rng.uniform(0.3, 1.2), twist=rng.uniform(-1.0, 1.0), along=5,
+            stops, curl=rng.uniform(0.3, 1.2), twist=rng.uniform(-1.0, 1.0), along=5, across=ACROSS_BLADE,
         )
     plant = plant_object("moss", mesh, colors, sway, material)
     mesh.free()
