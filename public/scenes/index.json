@@ -1,16 +1,16 @@
 {
   "groups": [
     {
-      "name": "Demo",
-      "scenes": ["hero", "aquaria", "nano-reef"]
+      "name": "Public · 5 to 6 m",
+      "scenes": ["hero", "aquaria", "reef"]
     },
     {
-      "name": "Open sea",
-      "scenes": ["reef"]
+      "name": "Large · 2.2 to 2.4 m",
+      "scenes": ["home-reef", "planted-tank", "iwagumi"]
     },
     {
-      "name": "Aquariums",
-      "scenes": ["clownfish-lagoon", "home-reef", "planted-tank", "iwagumi"]
+      "name": "Medium · 1 to 1.2 m",
+      "scenes": ["clownfish-lagoon", "nano-reef"]
     }
   ],
   "phone": "nano-reef"

@@ -18,6 +18,7 @@ describe("sceneCardList", () => {
         group: "Demo",
         picture: "scenes/thumbnails/aquaria.jpg",
         selected: true,
+        firstOfGroup: true,
       },
       {
         id: "my-night-reef",
@@ -25,8 +26,23 @@ describe("sceneCardList", () => {
         group: "My scenes",
         picture: undefined,
         selected: false,
+        firstOfGroup: true,
       },
     ]);
+  });
+
+  it("marks only the first card of a group, where the panel names the group", () => {
+    const large = {
+      name: "Large",
+      scenes: [
+        { id: "home-reef", name: "Home reef" },
+        { id: "iwagumi", name: "Iwagumi" },
+      ],
+    };
+
+    const cards = sceneCardList([large], "home-reef", picture);
+
+    expect(cards.map((card) => card.firstOfGroup)).toEqual([true, false]);
   });
 });
 

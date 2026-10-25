@@ -3,7 +3,8 @@ import { element } from "./controls";
 /**
  * The scenes as cards in the control panel: a square picture of each tank
  * and its name, one after another in the order of the scene index (the
- * viewer's own last), the open one highlighted, and a last card that opens
+ * viewer's own last), each group under its name (the bundled scenes are
+ * grouped by the size of their tank), the open one highlighted, and a last card that opens
  * the scene editor. Scenes without a picture (the viewer's own) show
  * their initial on water.
  */
@@ -24,6 +25,8 @@ export interface SceneCard extends SceneCardChoice {
   /** URL of the square picture, or undefined for a scene without one. */
   readonly picture: string | undefined;
   readonly selected: boolean;
+  /** Whether the group's name goes before this card. */
+  readonly firstOfGroup: boolean;
 }
 
 /** What every card shows, in order. */
@@ -33,12 +36,13 @@ export function sceneCardList(
   pictureOf: (id: string) => string | undefined,
 ): SceneCard[] {
   return groups.flatMap((group) =>
-    group.scenes.map((scene) => ({
+    group.scenes.map((scene, place) => ({
       id: scene.id,
       name: scene.name,
       group: group.name,
       picture: pictureOf(scene.id),
       selected: scene.id === selected,
+      firstOfGroup: place === 0,
     })),
   );
 }
@@ -89,6 +93,7 @@ export interface SceneCardsOptions {
 export function createSceneCards(options: SceneCardsOptions): HTMLElement {
   const grid = element("div", "scene-cards");
   for (const card of sceneCardList(options.groups, options.selected, options.pictureOf)) {
+    if (card.firstOfGroup) grid.append(element("h4", "scene-cards__group", card.group));
     const button = element("button", "scene-card");
     button.type = "button";
     button.dataset.scene = card.id;

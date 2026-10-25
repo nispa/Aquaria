@@ -26,6 +26,11 @@ Su un telefono Aquaria apre la scena indicata da `phone` in `index.json`
 (il Nano reef, una vasca piccola che un telefono disegna bene), a meno che
 l'URL o l'ultima scelta di chi guarda non ne indichino un'altra.
 
+Il pannello mostra ogni gruppo sotto il suo nome. Le scene incluse sono
+raggruppate per misura della vasca, dalle vasche pubbliche di 5-6 m alle
+medie di circa un metro: `"name": "Large · 2.2 to 2.4 m"` contiene l'Home
+reef, il Planted tank e l'Iwagumi.
+
 Una scena salvata nell'editor resta nel browser, non in questi file. Per
 includerla, usa **Export JSON** nella scheda Scene dell'editor, copia il
 file in `public/scenes/` e aggiungi il suo id a `index.json`.

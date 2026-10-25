@@ -431,8 +431,9 @@ tuned against reference photographs, with every parameter a slider.
       no bubble streams.
 - [x] Hero (public, 6 m) is the starting scene (29f5a82); Aquaria stays
       in the list.
-- [ ] Each with its caption, gallery picture, card picture and visual
-      baseline, grouped by size in the panel.
+- [x] Each with its caption, gallery picture, card picture and visual
+      baseline, grouped by size in the panel (`scenes/index.json`, the
+      group's name over its cards).
 
 ### I6. Light enough for phones
 

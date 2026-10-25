@@ -131,6 +131,15 @@ body {
   margin-top: 6px;
 }
 
+.scene-cards__group {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+
 .scene-card {
   display: flex;
   flex-direction: column;
