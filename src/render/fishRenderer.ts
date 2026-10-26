@@ -36,6 +36,7 @@ import { fishColoringPatch } from "./shaders/fishColoringPatch";
 import { fishInstancePatch } from "./shaders/fishInstancePatch";
 import { fishMotionPatch } from "./shaders/fishMotionPatch";
 import { fishPatch, PATTERN_IDS } from "./shaders/fishPatch";
+import { starfishMotionPatch } from "./shaders/starfishMotionPatch";
 import { fishEyesPatch } from "./shaders/fishEyesPatch";
 import { fishGillsPatch } from "./shaders/fishGillsPatch";
 import { fishJawPatch } from "./shaders/fishJawPatch";
@@ -214,7 +215,10 @@ function proceduralMaterial(body: Species["body"], water: WaterUniforms): MeshPh
         side: DoubleSide,
         transparent: true,
       }),
-      [causticsPatch(water)],
+      // A starfish moves its arms as it creeps; the others walk rigid.
+      body.shape === "starfish"
+        ? [fishInstancePatch(), starfishMotionPatch(), causticsPatch(water)]
+        : [causticsPatch(water)],
     );
   }
 

@@ -162,8 +162,10 @@ posto basso, come una conchiglia, lo becca restando a piedi.
 Un granchio è `"sideways": true, "swims": false`: scappa, si nasconde e
 mangia a piedi, e torna indietro senza girarsi. La stella marina rossa
 striscia allo stesso modo, circa 10 cm al minuto con lunghe pause: il suo
-corpo è la forma procedurale `starfish` (cinque braccia, le punte che si
-piegano mentre va), elencata con le forme dei crostacei. Un paguro è
+corpo è la forma procedurale `starfish`, elencata con le forme dei
+crostacei. Mentre va le braccia si muovono a turno: ognuna si sposta un
+po' di lato, si allunga e si ritira, e la punta si alza, un giro ogni 25 s
+circa; da ferma restano immobili. Un paguro è
 `"swims": false, "fright": "shell"`: quando ha paura si ritira nel guscio
 dove si trova e resta fermo finché non si calma.
 

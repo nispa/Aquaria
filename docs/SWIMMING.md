@@ -135,8 +135,10 @@ changing direction now and then.
 ### `crawl`: walking on the bottom
 
 The red sea star creeps the same way, about 10 cm a minute with long
-stops: its body is the procedural `starfish` shape (five arms, their tips
-bending as it goes), listed with the crustaceans' shapes.
+stops: its body is the procedural `starfish` shape, listed with the
+crustaceans' shapes. Its arms take turns as it goes, each swinging a
+little to one side, reaching out and drawing in, its tip lifting, about
+one round every 25 s; at rest they lie still.
 
 Shrimps, crabs, hermit crabs. The animal walks on the sand and over the
 rock, stops to pick at the ground, then sets off another way. The current
