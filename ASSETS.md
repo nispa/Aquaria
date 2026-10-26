@@ -56,29 +56,31 @@ Aquaria tints it with the object's color (the `tint` trait).
 
 Made in code with Blender by the scripts in `scripts/blender/`.
 
-| Model                 | Path                                           | Source                                                                          | Author  | License |
-| --------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------- | ------- | ------- |
-| Ribbon kelp           | `public/assets/objects/ribbon-kelp/`           | https://github.com/nispa/Aquaria/blob/main/scripts/blender/kelp.py              | Aquaria | CC0     |
-| Turtle grass          | `public/assets/objects/turtle-grass/`          | https://github.com/nispa/Aquaria/blob/main/scripts/blender/seagrass.py          | Aquaria | CC0     |
-| Sea lettuce           | `public/assets/objects/sea-lettuce/`           | https://github.com/nispa/Aquaria/blob/main/scripts/blender/sea_lettuce.py       | Aquaria | CC0     |
-| Bubble-tip anemone    | `public/assets/objects/bubble-tip-anemone/`    | https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py           | Aquaria | CC0     |
-| Magnificent anemone   | `public/assets/objects/magnificent-anemone/`   | https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py           | Aquaria | CC0     |
-| Carpet anemone        | `public/assets/objects/carpet-anemone/`        | https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py           | Aquaria | CC0     |
-| Long-tentacle anemone | `public/assets/objects/long-tentacle-anemone/` | https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py           | Aquaria | CC0     |
-| Zoanthids             | `public/assets/objects/zoanthids/`             | https://github.com/nispa/Aquaria/blob/main/scripts/blender/corals.py            | Aquaria | CC0     |
-| Encrusting montipora  | `public/assets/objects/encrusting-montipora/`  | https://github.com/nispa/Aquaria/blob/main/scripts/blender/corals.py            | Aquaria | CC0     |
-| Acropora              | `public/assets/objects/acropora/`              | https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py          | Aquaria | CC0     |
-| Brain coral (living)  | `public/assets/objects/platygyra/`             | https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py          | Aquaria | CC0     |
-| Torch coral           | `public/assets/objects/torch-coral/`           | https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py          | Aquaria | CC0     |
-| Seiryu stones         | `public/assets/objects/seiryu-stone/`          | https://github.com/nispa/Aquaria/blob/main/scripts/blender/seiryu.py            | Aquaria | CC0     |
-| Branching driftwood   | `public/assets/objects/branching-driftwood/`   | https://github.com/nispa/Aquaria/blob/main/scripts/blender/driftwood.py         | Aquaria | CC0     |
-| Rotala                | `public/assets/objects/rotala/`                | https://github.com/nispa/Aquaria/blob/main/scripts/blender/freshwater_plants.py | Aquaria | CC0     |
-| Dwarf hairgrass       | `public/assets/objects/hairgrass/`             | https://github.com/nispa/Aquaria/blob/main/scripts/blender/freshwater_plants.py | Aquaria | CC0     |
-| Cryptocoryne          | `public/assets/objects/cryptocoryne/`          | https://github.com/nispa/Aquaria/blob/main/scripts/blender/freshwater_plants.py | Aquaria | CC0     |
-| Vallisneria           | `public/assets/objects/vallisneria/`           | https://github.com/nispa/Aquaria/blob/main/scripts/blender/freshwater_plants.py | Aquaria | CC0     |
-| Anubias               | `public/assets/objects/anubias/`               | https://github.com/nispa/Aquaria/blob/main/scripts/blender/epiphytes.py         | Aquaria | CC0     |
-| Java fern             | `public/assets/objects/java-fern/`             | https://github.com/nispa/Aquaria/blob/main/scripts/blender/epiphytes.py         | Aquaria | CC0     |
-| Moss cushion          | `public/assets/objects/moss-cushion/`          | https://github.com/nispa/Aquaria/blob/main/scripts/blender/epiphytes.py         | Aquaria | CC0     |
+| Model                      | Path                                           | Source                                                                          | Author  | License |
+| -------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------- | ------- | ------- |
+| Ribbon kelp                | `public/assets/objects/ribbon-kelp/`           | https://github.com/nispa/Aquaria/blob/main/scripts/blender/kelp.py              | Aquaria | CC0     |
+| Turtle grass               | `public/assets/objects/turtle-grass/`          | https://github.com/nispa/Aquaria/blob/main/scripts/blender/seagrass.py          | Aquaria | CC0     |
+| Sea lettuce                | `public/assets/objects/sea-lettuce/`           | https://github.com/nispa/Aquaria/blob/main/scripts/blender/sea_lettuce.py       | Aquaria | CC0     |
+| Bubble-tip anemone         | `public/assets/objects/bubble-tip-anemone/`    | https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py           | Aquaria | CC0     |
+| Magnificent anemone        | `public/assets/objects/magnificent-anemone/`   | https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py           | Aquaria | CC0     |
+| Carpet anemone             | `public/assets/objects/carpet-anemone/`        | https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py           | Aquaria | CC0     |
+| Long-tentacle anemone      | `public/assets/objects/long-tentacle-anemone/` | https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py           | Aquaria | CC0     |
+| Zoanthids                  | `public/assets/objects/zoanthids/`             | https://github.com/nispa/Aquaria/blob/main/scripts/blender/corals.py            | Aquaria | CC0     |
+| Encrusting montipora       | `public/assets/objects/encrusting-montipora/`  | https://github.com/nispa/Aquaria/blob/main/scripts/blender/corals.py            | Aquaria | CC0     |
+| Acropora                   | `public/assets/objects/acropora/`              | https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py          | Aquaria | CC0     |
+| Brain coral (living)       | `public/assets/objects/platygyra/`             | https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py          | Aquaria | CC0     |
+| Torch coral                | `public/assets/objects/torch-coral/`           | https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py          | Aquaria | CC0     |
+| Cauliflower coral (living) | `public/assets/objects/pocillopora/`           | https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py          | Aquaria | CC0     |
+| Table acropora             | `public/assets/objects/table-acropora/`        | https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py          | Aquaria | CC0     |
+| Seiryu stones              | `public/assets/objects/seiryu-stone/`          | https://github.com/nispa/Aquaria/blob/main/scripts/blender/seiryu.py            | Aquaria | CC0     |
+| Branching driftwood        | `public/assets/objects/branching-driftwood/`   | https://github.com/nispa/Aquaria/blob/main/scripts/blender/driftwood.py         | Aquaria | CC0     |
+| Rotala                     | `public/assets/objects/rotala/`                | https://github.com/nispa/Aquaria/blob/main/scripts/blender/freshwater_plants.py | Aquaria | CC0     |
+| Dwarf hairgrass            | `public/assets/objects/hairgrass/`             | https://github.com/nispa/Aquaria/blob/main/scripts/blender/freshwater_plants.py | Aquaria | CC0     |
+| Cryptocoryne               | `public/assets/objects/cryptocoryne/`          | https://github.com/nispa/Aquaria/blob/main/scripts/blender/freshwater_plants.py | Aquaria | CC0     |
+| Vallisneria                | `public/assets/objects/vallisneria/`           | https://github.com/nispa/Aquaria/blob/main/scripts/blender/freshwater_plants.py | Aquaria | CC0     |
+| Anubias                    | `public/assets/objects/anubias/`               | https://github.com/nispa/Aquaria/blob/main/scripts/blender/epiphytes.py         | Aquaria | CC0     |
+| Java fern                  | `public/assets/objects/java-fern/`             | https://github.com/nispa/Aquaria/blob/main/scripts/blender/epiphytes.py         | Aquaria | CC0     |
+| Moss cushion               | `public/assets/objects/moss-cushion/`          | https://github.com/nispa/Aquaria/blob/main/scripts/blender/epiphytes.py         | Aquaria | CC0     |
 
 ## Fish models
 

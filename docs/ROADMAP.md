@@ -638,10 +638,11 @@ fluorescence; the scans are left out of the tanks.
       (`scripts/blender/corals.py`), lying along the rock (`hug`), 124
       of them on the Home reef. Still to do: star and other polyps.
 - [ ] Colonies at the scale of a home tank: many small ones, a few large.
-      Started (`scripts/blender/colonies.py`): acropora, a living brain
-      coral and the torch coral replace the staghorn and brain scans in
-      the Home reef and the lagoon. Still scans: cauliflower, finger,
-      sheet and table corals, glove sponge.
+      Started (`scripts/blender/colonies.py`): acropora, cauliflower
+      coral (pocillopora), table acropora, a living brain coral and the
+      torch coral replace the staghorn, cauliflower, table and brain
+      scans in the Home reef and the lagoon. Still scans: finger and
+      sheet corals, glove sponge. The table acropora is heavy (850 KB).
 
 ### L3. Sand
 

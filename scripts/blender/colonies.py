@@ -21,7 +21,7 @@ Aquaria picks one per colony (docs/OBJECTS.md):
 
 Run with Blender 5.2 in the background, from the repository root:
 
-    blender --background --python scripts/blender/colonies.py
+    blender --background --python scripts/blender/colonies.py [-- acropora ...]
 
 then compress each model.glb with glTF Transform 4.5.1 (meshopt, --join
 false --flatten false, --texture-compress webp).
@@ -44,27 +44,49 @@ from plantkit import VARIANT_SPACING, export, leaf_material, leaf_mesh, leaf_spo
 SEED = 20261026
 OBJECTS = os.path.join("public", "assets", "objects")
 
-# Acropora, m: a colony about 30 cm across.
-ACRO_TRUNKS = 6
-ACRO_LENGTH = 0.09
-ACRO_RADIUS = 0.011
-ACRO_FORKS = 3
 ACRO_SIDES = 7
 ACRO_SEGMENTS = 5
-# Branches lean from the vertical this much at the base, radians, and fork this far apart.
-ACRO_LEAN = (0.6, 1.05)
-ACRO_FORK = (0.45, 0.75)
-# How far from a tip the tip colour reaches, m.
-ACRO_TIP = 0.03
 # Corallites along a branch per metre of its length, and around it.
 CUPS_ALONG = 120
 CUPS_AROUND = 8
-# Each morph: base, body and tip.
-ACRO_MORPHS = [
-    {"base": "#5a4a6a", "body": "#7a62a8", "tip": "#5ac0f0"},
-    {"base": "#4a5a3a", "body": "#6f9a58", "tip": "#d48ae8"},
-    {"base": "#7a5a48", "body": "#c49a7a", "tip": "#f4a0c0"},
-]
+# Branching corals, m. Each: trunks from the base (starting `stalk` m up,
+# leaning from the vertical by `lean` radians), their length and radius,
+# how often they fork and how far apart (`fork`, radians), how much they
+# turn up as they grow (`rise`; the last forks by `tip_rise` when it is
+# set), how far the tip colour reaches (`tip`),
+# and the morphs: base, body and tip.
+BRANCHING = {
+    # Staghorn and bush acropora: a colony about 30 cm across.
+    "acropora": {
+        "trunks": 6, "stalk": 0.0, "lean": (0.6, 1.05), "length": 0.09, "radius": 0.011,
+        "forks": 3, "fork": (0.45, 0.75), "rise": 0.1, "tip": 0.03,
+        "morphs": [
+            {"base": "#5a4a6a", "body": "#7a62a8", "tip": "#5ac0f0"},
+            {"base": "#4a5a3a", "body": "#6f9a58", "tip": "#d48ae8"},
+            {"base": "#7a5a48", "body": "#c49a7a", "tip": "#f4a0c0"},
+        ],
+    },
+    # Cauliflower coral (Pocillopora): a compact, rounded bush of short, stubby branches.
+    "pocillopora": {
+        "trunks": 9, "stalk": 0.0, "lean": (0.15, 1.0), "length": 0.035, "radius": 0.008,
+        "forks": 3, "fork": (0.35, 0.6), "rise": 0.15, "tip": 0.012,
+        "morphs": [
+            {"base": "#8a5a6a", "body": "#d880a0", "tip": "#f8c0d8"},
+            {"base": "#5a6a48", "body": "#9ab878", "tip": "#e0f0a0"},
+            {"base": "#8a7058", "body": "#d8b090", "tip": "#f8e0c0"},
+        ],
+    },
+    # Table acropora: a short stalk, then branches spreading flat all round, their tips turned up.
+    "table-acropora": {
+        "trunks": 26, "stalk": 0.05, "lean": (1.38, 1.5), "length": 0.055, "radius": 0.0085,
+        "forks": 3, "fork": (0.2, 0.4), "rise": 0.0, "tip_rise": 0.9, "tip": 0.012,
+        "morphs": [
+            {"base": "#6a6a58", "body": "#9ab4a0", "tip": "#d0f0c8"},
+            {"base": "#5a5068", "body": "#9a8ab8", "tip": "#c8e0ff"},
+            {"base": "#6a5a48", "body": "#b8a080", "tip": "#e8d0a0"},
+        ],
+    },
+}
 
 # Brain coral, m: a dome about 22 cm across and 9 cm high.
 BRAIN_RADIUS = 0.11
@@ -126,10 +148,11 @@ def cap(mesh, ring, tip):
 # Acropora
 
 
-def acro_branch(mesh, colors, morph, rng, start, direction, length, radius, depth, travelled):
+def acro_branch(mesh, colors, kind, morph, rng, start, direction, length, radius, depth, travelled):
     """One branch, bending a little upwards as it grows, forking until its last fork ends in a tip."""
     base, body, tip = (linear(morph[key]) for key in ("base", "body", "tip"))
-    terminal = depth == ACRO_FORKS
+    terminal = depth == kind["forks"]
+    rise = kind.get("tip_rise", kind["rise"]) if terminal else kind["rise"]
     rings = []
     point = start.copy()
     heading = direction.normalized()
@@ -138,16 +161,16 @@ def acro_branch(mesh, colors, morph, rng, start, direction, length, radius, dept
         r = radius * (1 - 0.3 * share) * (1 - (0.75 * share**3 if terminal else 0.0))
         ring = ring_around(mesh, point, heading, r, ACRO_SIDES)
         along = travelled + length * share
-        to_tip = length * (1 - share) if terminal else ACRO_TIP * 10
+        to_tip = length * (1 - share) if terminal else kind["tip"] * 10
         color = mix(base, body, min(along / 0.06, 1.0))
-        color = mix(color, tip, 1 - to_tip / ACRO_TIP)
+        color = mix(color, tip, 1 - to_tip / kind["tip"])
         for step, vertex in enumerate(ring):
             colors[vertex] = color
             leaf_spot(mesh, vertex, step / ACRO_SIDES, along * CUPS_ALONG / CUPS_AROUND / 4)
         rings.append(ring)
         if segment < ACRO_SEGMENTS:
             # Branches turn towards the light as they grow, and wander a little.
-            heading = (heading + Vector((rng.uniform(-0.12, 0.12), rng.uniform(-0.12, 0.12), 0.1))).normalized()
+            heading = (heading + Vector((rng.uniform(-0.12, 0.12), rng.uniform(-0.12, 0.12), rise))).normalized()
             point = point + heading * (length / ACRO_SEGMENTS)
     for lower, upper in zip(rings, rings[1:]):
         join_rings(mesh, lower, upper)
@@ -165,28 +188,39 @@ def acro_branch(mesh, colors, morph, rng, start, direction, length, radius, dept
     spin = rng.uniform(0, 2 * math.pi)
     for child in range(children):
         angle = spin + 2 * math.pi * child / children
-        fork = rng.uniform(*ACRO_FORK)
+        fork = rng.uniform(*kind["fork"])
         side = heading.cross(Vector((math.cos(angle), math.sin(angle), 0.0)))
         if side.length < 1e-3:
             side = Vector((1, 0, 0))
         turned = (heading * math.cos(fork) + side.normalized().cross(heading) * math.sin(fork)).normalized()
         # Every branch ends above its base: none grows down into the rock.
         turned.z = max(turned.z, 0.25)
-        acro_branch(mesh, colors, morph, rng, point - heading * radius * 0.5, turned,
+        acro_branch(mesh, colors, kind, morph, rng, point - heading * radius * 0.5, turned,
                     length * rng.uniform(0.7, 0.85), radius * 0.72, depth + 1, travelled + length)
 
 
-def acropora(morph, offset, rng):
+def branching(kind, morph, offset, rng):
+    """A branching colony: trunks from the base (or from the top of a stalk), each forking to its tips."""
     mesh = leaf_mesh()
     colors = {}
+    stalk = kind["stalk"]
+    if stalk > 0:
+        base = linear(morph["base"])
+        lower = ring_around(mesh, Vector((0, 0, -0.004)), Vector((0, 0, 1)), kind["radius"] * 1.6, ACRO_SIDES)
+        upper = ring_around(mesh, Vector((0, 0, stalk)), Vector((0, 0, 1)), kind["radius"] * 1.3, ACRO_SIDES)
+        for step, vertex in enumerate(lower + upper):
+            colors[vertex] = base
+            leaf_spot(mesh, vertex, (step % ACRO_SIDES) / ACRO_SIDES, 0.0 if step < ACRO_SIDES else 0.5)
+        join_rings(mesh, lower, upper)
     spin = rng.uniform(0, 2 * math.pi)
-    for trunk in range(ACRO_TRUNKS):
-        angle = spin + 2 * math.pi * trunk / ACRO_TRUNKS + rng.uniform(-0.3, 0.3)
-        lean = rng.uniform(*ACRO_LEAN)
+    trunks = kind["trunks"]
+    for trunk in range(trunks):
+        angle = spin + 2 * math.pi * (trunk + rng.uniform(-0.3, 0.3)) / trunks
+        lean = rng.uniform(*kind["lean"])
         direction = Vector((math.sin(lean) * math.cos(angle), math.sin(lean) * math.sin(angle), math.cos(lean)))
-        start = Vector((0.012 * math.cos(angle), 0.012 * math.sin(angle), -0.004))
-        acro_branch(mesh, colors, morph, rng, start, direction, ACRO_LENGTH * rng.uniform(0.85, 1.15),
-                    ACRO_RADIUS, 0, 0.0)
+        start = Vector((0.012 * math.cos(angle), 0.012 * math.sin(angle), stalk - 0.004))
+        acro_branch(mesh, colors, kind, morph, rng, start, direction, kind["length"] * rng.uniform(0.85, 1.15),
+                    kind["radius"], 0, 0.0)
     bmesh.ops.translate(mesh, verts=mesh.verts, vec=(offset, 0, 0))
     return mesh, colors
 
@@ -320,13 +354,17 @@ def build(name, builder):
     print("COLONY written", name)
 
 
-def build_acropora():
-    rng = random.Random(SEED)
-    material = leaf_material("acropora", 0.5, image("acropora-corallites", corallite_texture()))
-    for index, morph in enumerate(ACRO_MORPHS):
-        mesh, colors = acropora(morph, index * VARIANT_SPACING * 0.2, rng)
-        plant_object(f"acropora-{index}", mesh, colors, {point: 0.0 for point in mesh.verts}, material)
-        mesh.free()
+def build_branching(name):
+    def builder():
+        rng = random.Random(SEED)
+        kind = BRANCHING[name]
+        material = leaf_material(name, 0.5, image(f"{name}-corallites", corallite_texture()))
+        for index, morph in enumerate(kind["morphs"]):
+            mesh, colors = branching(kind, morph, index * VARIANT_SPACING * 0.2, rng)
+            plant_object(f"{name}-{index}", mesh, colors, {point: 0.0 for point in mesh.verts}, material)
+            mesh.free()
+
+    return builder
 
 
 def build_brain():
@@ -346,6 +384,12 @@ def build_torch():
         mesh.free()
 
 
-build("acropora", build_acropora)
-build("platygyra", build_brain)
-build("torch-coral", build_torch)
+# Only the colonies named after `--`, or all of them.
+ONLY = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
+for name in BRANCHING:
+    if not ONLY or name in ONLY:
+        build(name, build_branching(name))
+if not ONLY or "platygyra" in ONLY:
+    build("platygyra", build_brain)
+if not ONLY or "torch-coral" in ONLY:
+    build("torch-coral", build_torch)

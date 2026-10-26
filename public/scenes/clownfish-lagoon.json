@@ -147,11 +147,11 @@
       "size": [0.08, 0.12]
     },
     {
-      "kind": "cauliflower-coral",
+      "kind": "pocillopora",
       "count": 2,
       "on": "rockwork",
       "bands": [0, 4],
-      "color": ["#e88aa0", "#ffb07a"],
+      "color": ["#ffffff"],
       "size": [0.08, 0.11]
     },
     {

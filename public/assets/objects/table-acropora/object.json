@@ -1,0 +1,29 @@
+{
+  "name": "Table acropora",
+  "category": "object",
+  "model": "model.glb",
+  "color": ["#ffffff", "#f0f4ff", "#fff8f0"],
+  "traits": {
+    "tint": {
+      "strength": 0.15
+    },
+    "collision": {
+      "across": 0.5,
+      "up": 0.3,
+      "along": 0.5,
+      "sink": 0,
+      "lift": 0.1
+    },
+    "tags": ["coral", "shelter"],
+    "placement": {
+      "on": ["rock", "sand"],
+      "bands": [1, 4],
+      "size": [0.2, 0.45]
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py",
+    "license": "CC0-1.0"
+  }
+}

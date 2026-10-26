@@ -125,8 +125,9 @@ the zoanthids say `true`. On the sand it stays upright.
 The zoanthids and the encrusting montipora are made by
 `scripts/blender/corals.py`: polyps whose discs carry the colours, and a
 plate whose tiny polyp pits are a grey texture multiplied by its colours.
-The colonies come from `scripts/blender/colonies.py`: acropora branching
-and forking to tips of another colour, its corallites a painted texture; a
+The colonies come from `scripts/blender/colonies.py`: branching corals
+(acropora, the cauliflower coral `pocillopora`, the `table-acropora`)
+forking to tips of another colour, their corallites a painted texture; a
 living brain coral (`platygyra`) folded into meandering ridges and
 valleys; and the torch coral, a plant whose tentacles sway one by one
 like the anemones'.
