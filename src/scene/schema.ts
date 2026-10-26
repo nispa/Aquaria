@@ -486,6 +486,15 @@ export const sceneSchema = z
       .string()
       .regex(/^[a-z0-9-]+$/, "look is a file name: lowercase letters, digits and dashes.")
       .optional(),
+    /**
+     * A recorded ambience in `public/sounds/` (see scene/soundManifest): the
+     * sea heard from under the water, an aquarium's pump. Without one, the
+     * water's hush is synthesized.
+     */
+    ambience: z
+      .string()
+      .regex(/^[a-z0-9-]+$/, "ambience is a folder name: lowercase letters, digits and dashes.")
+      .optional(),
     /** Tank size in meters: x = width, y = height, z = depth away from the glass. */
     tank: z.object({ width: positive, height: positive, depth: positive }),
     /**

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "../core/rng";
-import { AMBIENCES, nextBubble, SWITCH_SOUNDS } from "./recipes";
+import { AMBIENCES, nextBubble, recordingLevel, SWITCH_SOUNDS } from "./recipes";
 
 describe("bubbles", () => {
   it("rise in pitch, briefly and softly", () => {
@@ -57,6 +57,20 @@ describe("the water's sound by the size of the tank", () => {
     for (const ambience of Object.values(AMBIENCES)) {
       expect(ambience.bubbleLevel[1]).toBeLessThan(0.03);
     }
+  });
+});
+
+describe("a recorded ambience", () => {
+  it("plays fuller in a bigger tank, as more water sounds", () => {
+    expect(recordingLevel(1, "ocean")).toBeGreaterThan(recordingLevel(1, "nano"));
+  });
+
+  it("stays as subtle as the synthesized hush", () => {
+    expect(recordingLevel(1, "ocean")).toBeLessThan(0.3);
+  });
+
+  it("follows the level its manifest asks for", () => {
+    expect(recordingLevel(0.5, "large")).toBeCloseTo(recordingLevel(1, "large") / 2);
   });
 });
 

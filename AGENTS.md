@@ -53,7 +53,8 @@ src/
   scene/     Scene descriptor + species catalog: Zod schemas, loading, validation.
   sim/       Simulation: boids, species behaviors, population manager, current.
   render/    Three.js adapters: scene graph, materials, shaders.
-  audio/     Web Audio adapters: synthesized sounds, recipes as plain data.
+  audio/     Web Audio adapters: synthesized sounds, recipes as plain data,
+             and recorded ambiences (public/sounds/, scene/soundManifest).
     effects/ Post-processing effects, registered by id; each is a panel switch.
   ui/        Control panel, presets, resolution slider, fps counter.
   input/     Pointer (finger on the glass, taps) emitting on the event bus.

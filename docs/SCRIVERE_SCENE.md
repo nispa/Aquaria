@@ -21,6 +21,7 @@ l'acquario si ferma e ti dice quale campo, in quale file.
 | `public/assets/species/<id>/`   | Il modello 3D di una specie ([Modelli 3D](MODELLI_PESCI.md))           |
 | `public/assets/materials/<id>/` | Una texture di superficie: sabbia, roccia, legno                       |
 | `public/looks/<id>.json`        | Un look: esposizione, sole, impostazioni degli effetti ([Look](#look)) |
+| `public/sounds/<id>/`           | Un suono d'ambiente registrato ([Il suono](#il-suono))                 |
 
 Su un telefono Aquaria apre la scena indicata da `phone` in `index.json`
 (il Nano reef, una vasca piccola che un telefono disegna bene), a meno che
@@ -340,6 +341,26 @@ L'effetto `underwater` è quello che fa il mare aperto: il rosso sparisce
 per primo, le cose lontane si sciolgono nella luce dell'acqua e i raggi del
 sole si aprono a ventaglio. Resta spento finché un look non ne imposta la
 `strength`.
+
+### Il suono
+
+L'acqua suona grande quanto la vasca: una vasca di casa ha il fruscio
+leggero della pompa e una bolla ogni tanto, il mare aperto un rombo basso
+sentito da sott'acqua e solo una bolla rara. Una scena può indicare una
+registrazione da suonare al posto del fruscio sintetizzato, una cartella in
+`public/sounds/`:
+
+```json
+"ambience": "underwater-sea"
+```
+
+Con Aquaria ne arrivano tre, tutte CC0: `underwater-sea` (l'Hero, il
+Tropical reef, Aquaria), `aquarium-pump` (la Home reef, la laguna, il Nano
+reef) e `small-stream` (la Planted tank, l'Iwagumi). Una cartella contiene
+il file audio, un loop, e un `sound.json` con nome, file, `level` (0..1) e
+crediti; più la vasca è grande, più suona pieno. Una registrazione che non
+si carica viene saltata con un avviso e il fruscio viene sintetizzato. Ogni
+registrazione è elencata in `ASSETS.md`.
 
 ## Una specie
 

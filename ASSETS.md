@@ -89,6 +89,18 @@ Made in code with Blender by the scripts in `scripts/blender/`.
 | Java fern                  | `public/assets/objects/java-fern/`             | https://github.com/nispa/Aquaria/blob/main/scripts/blender/epiphytes.py         | Aquaria | CC0     |
 | Moss cushion               | `public/assets/objects/moss-cushion/`          | https://github.com/nispa/Aquaria/blob/main/scripts/blender/epiphytes.py         | Aquaria | CC0     |
 
+## Ambient sounds
+
+Each sound is a folder in `public/sounds/` whose `sound.json` repeats the
+author, source and license. The recordings were cut to a loop, mixed to
+mono, levelled and encoded as MP3 for Aquaria.
+
+| Sound         | Path                            | Source                                              | Author                       | License |
+| ------------- | ------------------------------- | --------------------------------------------------- | ---------------------------- | ------- |
+| Under the sea | `public/sounds/underwater-sea/` | https://freesound.org/people/Kinoton/sounds/393819/ | Kinoton                      | CC0     |
+| Aquarium pump | `public/sounds/aquarium-pump/`  | https://freesound.org/people/vquera/sounds/463477/  | vquera                       | CC0     |
+| Small stream  | `public/sounds/small-stream/`   | https://bigsoundbank.com/small-stream-s0823.html    | BigSoundBank (Joseph Sardin) | CC0     |
+
 ## Fish models
 
 Each model is a folder in `public/assets/species/` whose `model.json` repeats

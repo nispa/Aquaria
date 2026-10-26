@@ -2,6 +2,7 @@
   "id": "nano-reef",
   "name": "Nano reef",
   "seed": 20261019,
+  "ambience": "aquarium-pump",
   "look": "lagoon",
   "tank": {
     "width": 1.0,

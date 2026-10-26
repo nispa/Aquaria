@@ -117,6 +117,12 @@ import {
   type SceneIndex,
 } from "../scene/sceneIndex";
 import { canResize, resizeScene, sceneSize } from "../scene/tankSize";
+import {
+  parseSoundManifest,
+  SOUND_MANIFEST_FILE,
+  soundFileUrl,
+  SOUNDS_FOLDER,
+} from "../scene/soundManifest";
 import { readScenePictures, scenePictureUrl, writeScenePicture } from "../scene/scenePictures";
 import type { SceneChoice, SceneChoiceGroup } from "../ui/panel";
 import { createSimulation, type Simulation } from "../sim/simulation";
@@ -221,6 +227,24 @@ function showError(error: unknown): void {
   overlay.append(text);
   document.body.append(overlay);
   document.body.dataset.state = "error";
+}
+
+/** The recorded ambience a scene names, if any; one that cannot be read is skipped with a warning. */
+async function recordedAmbience(
+  id: string | undefined,
+): Promise<{ readonly url: string; readonly level: number } | undefined> {
+  if (id === undefined) return undefined;
+  try {
+    const json = await fetchJson(`${SOUNDS_FOLDER}/${id}/${SOUND_MANIFEST_FILE}`);
+    const manifest = parseSoundManifest(json, id);
+    return { url: soundFileUrl(id, manifest), level: manifest.level };
+  } catch (error) {
+    logger.warn("The scene's recorded ambience could not be read; the hush is synthesized.", {
+      id,
+      error: String(error),
+    });
+    return undefined;
+  }
 }
 
 /** Names for the panel's scene list; a scene that fails to load is listed by its id. */
@@ -632,7 +656,10 @@ async function start(): Promise<void> {
   };
 
   // Sounds: the bubbling all along, and a sound for taps, food and the tools.
-  const sounds = createSoundBoard(createRng((options.seed ?? scene.seed) + SOUND_SEED_OFFSET));
+  const sounds = createSoundBoard(
+    createRng((options.seed ?? scene.seed) + SOUND_SEED_OFFSET),
+    logger,
+  );
   sounds.setVolume(volumeOf(settings));
   sounds.setEnabled(soundOf(settings));
   // Browsers allow sound only after the viewer's first click or key.
@@ -653,6 +680,9 @@ async function start(): Promise<void> {
   const mountScene = (shown: Scene): { simulation: Simulation; view: AquariumView } => {
     sounds.setBubbling(shown.water.bubbles);
     sounds.setTankSize(sceneSize(shown));
+    void recordedAmbience(shown.ambience).then((found) => {
+      sounds.setRecording(found?.url, found?.level);
+    });
     const rng = createRng(options.seed ?? shown.seed);
     // The simulation sees the sizes as drawn; the catalog keeps the real ones.
     const sized = displayCatalog(

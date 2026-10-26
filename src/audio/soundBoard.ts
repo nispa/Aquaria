@@ -1,9 +1,11 @@
+import type { Logger } from "../core/logger";
 import type { Rng } from "../core/rng";
 import type { TankSize } from "../scene/tankMeasures";
 import {
   AMBIENCES,
   FEED_SOUND,
   nextBubble,
+  recordingLevel,
   SWITCH_SOUNDS,
   TAP_SOUND,
   type SwitchSoundId,
@@ -26,6 +28,12 @@ export interface SoundBoard {
   setBubbling(bubbling: boolean): void;
   /** The size of the tank, which the water's sound follows (recipes' AMBIENCES). */
   setTankSize(size: TankSize): void;
+  /**
+   * A recording that loops instead of the synthesized hush, at its
+   * manifest's `level`; undefined goes back to the hush. One that cannot be
+   * loaded is skipped with a warning, and the hush plays.
+   */
+  setRecording(url: string | undefined, level?: number): void;
   /** 0 silent .. 1 full. */
   setVolume(volume: number): void;
   setEnabled(enabled: boolean): void;
@@ -40,12 +48,16 @@ const RAMP_SECONDS = 0.15;
 const SILENT = 0.0001;
 const MS_PER_SECOND = 1000;
 
-export function createSoundBoard(rng: Rng): SoundBoard {
+export function createSoundBoard(rng: Rng, logger?: Logger): SoundBoard {
   let context: AudioContext | undefined;
   let master: GainNode | undefined;
   let hush: GainNode | undefined;
   let hushFilter: BiquadFilterNode | undefined;
   let ambience = AMBIENCES.medium;
+  let size: TankSize = "medium";
+  let recordingUrl: string | undefined;
+  let recordingManifestLevel = 1;
+  let recording: { source: AudioBufferSourceNode; gain: GainNode } | undefined;
   let noise: AudioBuffer | undefined;
   let bubbling = true;
   let volume = 1;
@@ -95,8 +107,9 @@ export function createSoundBoard(rng: Rng): SoundBoard {
     }, bubble.delaySeconds * MS_PER_SECOND);
   };
 
+  // A recording takes the hush's place.
   const hushLevel = (): number =>
-    bubbling ? ambience.hush.bubblingLevel : ambience.hush.stillLevel;
+    recording !== undefined ? 0 : bubbling ? ambience.hush.bubblingLevel : ambience.hush.stillLevel;
 
   const tuneHush = (): void => {
     if (hushFilter === undefined) return;
@@ -108,6 +121,46 @@ export function createSoundBoard(rng: Rng): SoundBoard {
   const ramp = (node: GainNode | undefined, level: number): void => {
     if (context === undefined || node === undefined) return;
     node.gain.setTargetAtTime(level, context.currentTime, RAMP_SECONDS / 3);
+  };
+
+  const stopRecording = (): void => {
+    recording?.source.stop();
+    recording?.source.disconnect();
+    recording?.gain.disconnect();
+    recording = undefined;
+  };
+
+  /** Loads and loops the wanted recording, if it is still wanted once it has arrived. */
+  const startRecording = (): void => {
+    stopRecording();
+    ramp(hush, hushLevel());
+    const url = recordingUrl;
+    if (context === undefined || master === undefined || url === undefined) return;
+    const audio = context;
+    fetch(url)
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`HTTP ${String(response.status)}`);
+        return audio.decodeAudioData(await response.arrayBuffer());
+      })
+      .then((buffer) => {
+        if (url !== recordingUrl || master === undefined) return;
+        const source = audio.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        const gain = audio.createGain();
+        gain.gain.value = SILENT;
+        source.connect(gain).connect(master);
+        source.start();
+        recording = { source, gain };
+        ramp(gain, recordingLevel(recordingManifestLevel, size));
+        ramp(hush, hushLevel());
+      })
+      .catch((error: unknown) => {
+        logger?.warn("The recorded ambience could not be played; the synthesized hush plays.", {
+          url,
+          error: String(error),
+        });
+      });
   };
 
   return {
@@ -134,6 +187,7 @@ export function createSoundBoard(rng: Rng): SoundBoard {
       source.connect(hushFilter).connect(hush).connect(master);
       source.start();
       scheduleBubble();
+      startRecording();
     },
     play(id) {
       if (!enabled || context === undefined) return;
@@ -160,10 +214,18 @@ export function createSoundBoard(rng: Rng): SoundBoard {
       bubbling = next;
       ramp(hush, hushLevel());
     },
-    setTankSize(size) {
-      ambience = AMBIENCES[size];
+    setTankSize(next) {
+      size = next;
+      ambience = AMBIENCES[next];
       tuneHush();
       ramp(hush, hushLevel());
+      ramp(recording?.gain, recordingLevel(recordingManifestLevel, size));
+    },
+    setRecording(url, level = 1) {
+      if (url === recordingUrl && level === recordingManifestLevel) return;
+      recordingUrl = url;
+      recordingManifestLevel = level;
+      startRecording();
     },
     setVolume(next) {
       volume = next;
@@ -174,6 +236,7 @@ export function createSoundBoard(rng: Rng): SoundBoard {
       ramp(master, masterLevel());
     },
     dispose() {
+      stopRecording();
       window.clearTimeout(bubbleTimer);
       void context?.close();
     },

@@ -103,13 +103,13 @@ function installableApp(): Plugin[] {
       // The page reloads when it does (app/main reloadOnNewBuild).
       skipWaiting: true,
       clientsClaim: true,
-      // Textures and models (~50 MB) are cached on first use, not on install:
+      // Textures, models and recorded sounds (~50 MB) are cached on first use, not on install:
       // visitors download only what they see. The pattern must be inline: this
       // function is copied as text into the service worker.
       runtimeCaching: [
         {
           urlPattern: ({ url, sameOrigin }) =>
-            sameOrigin && /\.(?:ktx2|glb|gltf|bin|png|jpe?g|webp)$/.test(url.pathname),
+            sameOrigin && /\.(?:ktx2|glb|gltf|bin|png|jpe?g|webp|mp3|ogg|m4a)$/.test(url.pathname),
           handler: "CacheFirst",
           options: { cacheName: assetCacheName(BUILD) },
         },

@@ -3,6 +3,7 @@
   "name": "Iwagumi",
   "look": "planted",
   "seed": 20261002,
+  "ambience": "small-stream",
   "tank": {
     "width": 2.2,
     "height": 1.1,

@@ -3,8 +3,8 @@ import type { TankSize } from "../scene/tankMeasures";
 
 /**
  * The sounds of the aquarium, as plain numbers: Web Audio plays them (see
- * audio/soundBoard). Every sound is synthesized, so there are no recordings
- * to license and nothing to download.
+ * audio/soundBoard). They are synthesized; only a scene's ambience may be a
+ * recording (scene/soundManifest), played as loud as `recordingLevel` says.
  */
 
 /** One bubble: a short sine that rises as the bubble rises. */
@@ -76,6 +76,23 @@ export const AMBIENCES: Readonly<Record<TankSize, Ambience>> = {
     hush: { filter: "lowpass", hz: 160, q: 0.4, bubblingLevel: 0.016, stillLevel: 0.012 },
   },
 };
+
+/**
+ * A recorded ambience (scene/soundManifest) plays this loud by the size of
+ * the tank: recordings are normalized loud, and more water sounds fuller.
+ */
+const RECORDING_GAIN: Readonly<Record<TankSize, number>> = {
+  nano: 0.1,
+  small: 0.11,
+  medium: 0.13,
+  large: 0.17,
+  ocean: 0.24,
+};
+
+/** How loud a recording with its manifest's `level` plays in a tank of this size. */
+export function recordingLevel(level: number, size: TankSize): number {
+  return level * RECORDING_GAIN[size];
+}
 
 /** The next bubble of the ambient bubbling, drawn from `rng`. */
 export function nextBubble(

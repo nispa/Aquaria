@@ -20,6 +20,7 @@ stops and tells you which field, in which file.
 | `public/assets/species/<id>/`   | A species' 3D model ([3D fish models](FISH_MODELS.md)) |
 | `public/assets/materials/<id>/` | A surface texture: sand, rock, wood                    |
 | `public/looks/<id>.json`        | A look: exposure, sun, effect settings ([Look](#look)) |
+| `public/sounds/<id>/`           | A recorded ambience ([Sound](#sound))                  |
 
 On a phone, Aquaria opens the scene named `phone` in `index.json` (the
 Nano reef, a small tank a phone draws well) unless the URL or the viewer's
@@ -329,6 +330,25 @@ panel's Look section for any scene, with a slider for every setting.
 The `underwater` effect is what makes open water: red fades first, far
 things melt into the water's own light, and sunbeams fan out from the sun.
 It stays off unless a look sets its `strength`.
+
+### Sound
+
+The water sounds as big as the tank: a home tank has the soft rush of its
+pump and a bubble now and then, the open sea a low rumble heard from under
+the water and only a rare bubble. A scene may name a recording to play
+instead of the synthesized rush, a folder in `public/sounds/`:
+
+```json
+"ambience": "underwater-sea"
+```
+
+Three come with Aquaria, all CC0: `underwater-sea` (the Hero, the Tropical
+reef, Aquaria), `aquarium-pump` (the Home reef, the lagoon, the Nano
+reef) and `small-stream` (the Planted tank, the Iwagumi). A folder holds
+the audio file, a loop, and a `sound.json` with its name, file, `level`
+(0..1) and credit; the bigger the tank, the fuller it plays. A recording
+that cannot be loaded is skipped with a warning and the rush is
+synthesized. Every recording is listed in `ASSETS.md`.
 
 ## A species
 

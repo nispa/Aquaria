@@ -3,6 +3,7 @@
   "name": "Home reef",
   "look": "reef-led",
   "seed": 20260930,
+  "ambience": "aquarium-pump",
   "tank": {
     "width": 2.4,
     "height": 1.1,

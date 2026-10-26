@@ -2,6 +2,7 @@
   "id": "aquaria",
   "name": "Aquaria",
   "seed": 20261016,
+  "ambience": "underwater-sea",
   "look": "hero",
   "tank": {
     "width": 6,

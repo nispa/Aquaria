@@ -19,6 +19,12 @@ import { parseFishRecipe } from "./fishRecipe";
 import { parseCatalog, parseScene } from "./parse";
 import { parseSceneIndex } from "./sceneIndex";
 import { parseLookIndex, parseSceneLook, sceneLookUrl } from "./sceneLook";
+import {
+  parseSoundManifest,
+  SOUND_MANIFEST_FILE,
+  soundFileUrl,
+  SOUNDS_FOLDER,
+} from "./soundManifest";
 
 const SCENES = new URL("../../public/scenes/", import.meta.url);
 const sceneFiles = readdirSync(SCENES).filter(
@@ -50,6 +56,11 @@ const effectIds = parseEffectIndex(readJson(`${EFFECTS}index.json`));
 // Reading every object.json validates it: an invalid one throws here.
 const objects = bundledObjects();
 const assetCredits = readFileSync(new URL("../../ASSETS.md", import.meta.url), "utf8");
+const soundFolders = readdirSync(new URL("../../public/sounds/", import.meta.url), {
+  withFileTypes: true,
+})
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name);
 
 describe("bundled data files", () => {
   it("ships a valid species catalog", () => {
@@ -85,6 +96,21 @@ describe("bundled data files", () => {
     expect(() => {
       if (look !== undefined) parseSceneLook(readJson(`../../public/${sceneLookUrl(look)}`), look);
     }).not.toThrow();
+  });
+
+  it.each(sceneFiles)("names a recorded ambience that is shipped in %s, if any", (file) => {
+    const catalog = parseCatalog(readJson("../../public/species.json"));
+    const { ambience } = parseScene(readJson(`../../public/scenes/${file}`), catalog);
+    if (ambience === undefined) return;
+
+    const manifest = parseSoundManifest(
+      readJson(`../../public/${SOUNDS_FOLDER}/${ambience}/${SOUND_MANIFEST_FILE}`),
+      ambience,
+    );
+
+    expect(
+      existsSync(new URL(`../../public/${soundFileUrl(ambience, manifest)}`, import.meta.url)),
+    ).toBe(true);
   });
 
   it.each(objectFolders)("gives the %s object a material that exists, if any", (id) => {
@@ -226,6 +252,15 @@ describe("bundled data files", () => {
       url === undefined || existsSync(new URL(`../../public/${url}`, import.meta.url));
 
     expect([present, credited]).toEqual([true, true]);
+  });
+
+  it.each(soundFolders)("credits the %s sound in ASSETS.md", (id) => {
+    const manifest = parseSoundManifest(
+      readJson(`../../public/${SOUNDS_FOLDER}/${id}/${SOUND_MANIFEST_FILE}`),
+      id,
+    );
+
+    expect(assetCredits).toContain(manifest.credit.source);
   });
 
   it.each(materialIds)("credits the %s material in ASSETS.md", (id) => {

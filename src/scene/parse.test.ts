@@ -202,6 +202,16 @@ describe("parseScene", () => {
     expect(scene.floor).toMatchObject({ rise: 0, dunes: 1 });
   });
 
+  it("plays no recorded ambience unless the scene names one", () => {
+    expect(parseScene(sceneFixture(), catalog).ambience).toBeUndefined();
+  });
+
+  it("rejects an ambience that is not a folder name", () => {
+    const input = { ...sceneFixture(), ambience: "../secret" };
+
+    expect(() => parseScene(input, catalog)).toThrow(/ambience/);
+  });
+
   it("casts no contact shadows on the sand unless the scene asks", () => {
     const scene = parseScene(sceneFixture(), catalog);
 

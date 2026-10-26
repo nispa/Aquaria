@@ -2,6 +2,7 @@
   "id": "clownfish-lagoon",
   "name": "Clownfish lagoon",
   "seed": 20261025,
+  "ambience": "aquarium-pump",
   "look": "lagoon",
   "size": "medium",
   "tank": {

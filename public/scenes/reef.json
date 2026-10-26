@@ -2,6 +2,7 @@
   "id": "reef",
   "name": "Tropical reef",
   "seed": 20260929,
+  "ambience": "underwater-sea",
   "look": "tropical",
   "tank": {
     "width": 5.4,
