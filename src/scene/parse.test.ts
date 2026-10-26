@@ -323,7 +323,7 @@ describe("rockwork", () => {
 
   it("rejects entries placed on rockwork when the scene has none", () => {
     const input = sceneFixture();
-    input.props = [{ kind: "brain-coral", count: 2, color: "#b89a5e", on: "rockwork" }];
+    input.props = [{ kind: "platygyra", count: 2, color: "#b89a5e", on: "rockwork" }];
 
     expect(() => parseScene(input, catalog)).toThrow(/props\.0\.on.*no rockwork/i);
   });
@@ -365,7 +365,7 @@ describe("blocks", () => {
   it("lets entries grow on blocks, as on a ridge", () => {
     const input = sceneFixture();
     input.blocks = { size: 0.5, runs: [CELLS], color: "#8a7d70" };
-    input.props = [{ kind: "brain-coral", count: 2, color: "#b89a5e", on: "rockwork" }];
+    input.props = [{ kind: "platygyra", count: 2, color: "#b89a5e", on: "rockwork" }];
 
     expect(() => parseScene(input, catalog)).not.toThrow();
   });

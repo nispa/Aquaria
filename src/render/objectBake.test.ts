@@ -9,6 +9,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { describe, expect, it } from "vitest";
 import { encodeRuns } from "../scene/blocks";
 import { bundledObjects } from "../scene/objectFixtures";
+import { parseObjectManifest } from "../scene/objectManifest";
 import type { BlocksSpec } from "../scene/schema";
 import { bakeBlockworkGlb, bakeObjectGlb } from "./objectBake";
 import { extractModelTraits, prepareObjectModel } from "./objectModel";
@@ -32,11 +33,19 @@ function meshesOf(root: Object3D): Mesh[] {
 
 describe("bakeObjectGlb", () => {
   const objects = bundledObjects();
+  // No bundled plant is drawn by a recipe any more; this one is, as an object.json may ask.
+  const kelp = parseObjectManifest(
+    {
+      name: "Kelp",
+      category: "plant",
+      color: ["#7a9a34", "#5f8a2e", "#9aa83e"],
+      recipe: { generator: "kelp" },
+      traits: { sway: { amount: 0.18 }, placement: { height: [1.0, 2.2] } },
+    },
+    "kelp",
+  ).manifest;
 
   it("bakes a plant recipe into a valid .glb with 3 variants, PBR material, _SWAY and traits in extras", async () => {
-    const kelp = objects.get("kelp");
-    if (kelp === undefined) throw new Error("Missing bundled kelp object.");
-
     const glb = bakeObjectGlb("kelp", kelp, 3);
     const scene = await parseGlb(glb);
     const meshes = meshesOf(scene);
@@ -58,9 +67,8 @@ describe("bakeObjectGlb", () => {
   });
 
   it("bakes a plant at the height its placement trait gives it", async () => {
-    const kelp = objects.get("kelp");
-    const shortest = kelp?.traits.placement?.height?.[0];
-    if (kelp === undefined || shortest === undefined) throw new Error("Missing kelp height.");
+    const shortest = kelp.traits.placement?.height?.[0];
+    if (shortest === undefined) throw new Error("Missing kelp height.");
 
     const scene = await parseGlb(bakeObjectGlb("kelp", kelp, 1));
     const bounds = new Box3().setFromObject(scene);

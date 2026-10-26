@@ -126,13 +126,6 @@
       "color": ["#ffffff"]
     },
     {
-      "kind": "fan-coral",
-      "count": 3,
-      "color": ["#7a4fa8", "#5a6fc8"],
-      "size": [0.6, 1.0],
-      "bands": [2, 4]
-    },
-    {
       "kind": "shell",
       "count": 6,
       "color": ["#f3e6d4", "#e8d2b8"]

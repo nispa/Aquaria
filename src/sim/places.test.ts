@@ -7,8 +7,8 @@ import { createPlaceFinder, placesOf } from "./places";
 import { floorHeight } from "./terrain";
 
 const plant = (x: number, z: number, tags: readonly string[]): Plant => ({
-  kind: "anemone",
-  generator: "anemone",
+  kind: "bubble-tip-anemone",
+  model: "assets/objects/bubble-tip-anemone/model.glb",
   sway: 0.05,
   color: "#ffffff",
   x,

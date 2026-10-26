@@ -18,7 +18,7 @@ import {
 
 const objects = bundledObjects();
 const rockObject = objects.get("rock");
-const kelpObject = objects.get("kelp");
+const kelpObject = objects.get("ribbon-kelp");
 if (rockObject === undefined || kelpObject === undefined) throw new Error("Missing objects.");
 
 const randomRocks: PropSpec = { kind: "rock", count: 2, color: "#888888" };
@@ -157,7 +157,7 @@ describe("settleItems", () => {
 });
 
 describe("paintItems", () => {
-  const carpet = objects.get("carpet");
+  const carpet = objects.get("hairgrass");
   if (carpet === undefined) throw new Error("Missing objects.");
   const brush = { x: 0, z: -0.5, radius: 0.1, spacing: 0.03 };
   const ground = () => ({});
@@ -202,7 +202,7 @@ describe("paintItems", () => {
     const full: Scenery = {
       flora: [
         {
-          kind: "carpet",
+          kind: "hairgrass",
           count: 200,
           bands: [0, 4],
           height: [0.02, 0.05],
@@ -251,7 +251,7 @@ describe("plants and objects stay apart", () => {
 
   it("does not add to a random entry of the same object", () => {
     const random: FloraSpec = {
-      kind: "kelp",
+      kind: "ribbon-kelp",
       count: 3,
       bands: [0, 4],
       height: [1, 2],

@@ -14,7 +14,7 @@ const objects = bundledObjects();
 
 describe("layoutFlora", () => {
   const spec: FloraSpec = {
-    kind: "kelp",
+    kind: "ribbon-kelp",
     count: 30,
     bands: [2, 4],
     height: [1, 3],
@@ -57,7 +57,9 @@ describe("layoutFlora", () => {
   it("keeps the kind and color of each group", () => {
     const plants = layoutFlora(objects, tank, [spec], createRng(1));
 
-    expect(plants.every((plant) => plant.kind === "kelp" && plant.color === "#3d7a3a")).toBe(true);
+    expect(plants.every((plant) => plant.kind === "ribbon-kelp" && plant.color === "#3d7a3a")).toBe(
+      true,
+    );
   });
 });
 
@@ -68,7 +70,7 @@ describe("layoutProps", () => {
       tank,
       [
         { kind: "rock", count: 5, color: "#666666" },
-        { kind: "starfish", count: 1, color: "#e8683c" },
+        { kind: "shell", count: 1, color: "#e8683c" },
       ],
       createRng(2),
     );
@@ -83,7 +85,7 @@ describe("layoutProps", () => {
     const props = layoutProps(
       objects,
       tank,
-      [{ kind: "starfish", count: 10, color: "#e8683c" }],
+      [{ kind: "shell", count: 10, color: "#e8683c" }],
       createRng(3),
     );
 
@@ -104,14 +106,14 @@ describe("layoutProps", () => {
 
 describe("stable layout", () => {
   const kelp: FloraSpec = {
-    kind: "kelp",
+    kind: "ribbon-kelp",
     count: 5,
     bands: [2, 4],
     height: [1, 3],
     color: "#3d7a3a",
   };
   const grass: FloraSpec = {
-    kind: "seagrass",
+    kind: "turtle-grass",
     count: 8,
     bands: [0, 4],
     height: [0.1, 0.3],
@@ -183,7 +185,7 @@ describe("scenery kinds", () => {
     const props = layoutProps(
       objects,
       tank,
-      [{ kind: "branch-coral", count: 10, color: "#ff8866", bands: [4, 4] }],
+      [{ kind: "acropora", count: 10, color: "#ff8866", bands: [4, 4] }],
       createRng(9),
     );
 
@@ -212,7 +214,7 @@ describe("visible width", () => {
 
   it("spreads plants across the width the camera sees at their depth", () => {
     const kelp: FloraSpec = {
-      kind: "kelp",
+      kind: "ribbon-kelp",
       count: 60,
       bands: [3, 4],
       height: [1, 2],
@@ -249,7 +251,7 @@ describe("color palettes", () => {
     const props = layoutProps(
       objects,
       tank,
-      [{ kind: "branch-coral", count: 30, color: palette }],
+      [{ kind: "acropora", count: 30, color: palette }],
       createRng(4),
     );
 
@@ -261,7 +263,15 @@ describe("color palettes", () => {
     const plants = layoutFlora(
       objects,
       tank,
-      [{ kind: "anemone", count: 30, bands: [0, 2], height: [0.1, 0.2], color: palette }],
+      [
+        {
+          kind: "bubble-tip-anemone",
+          count: 30,
+          bands: [0, 2],
+          height: [0.1, 0.2],
+          color: palette,
+        },
+      ],
       createRng(4),
     );
 
@@ -286,7 +296,7 @@ describe("placement on rock within an entry's bands", () => {
     const corals = layoutProps(
       objects,
       tank,
-      [{ kind: "brain-coral", count: 6, color: "#b89a5e", on: "rockwork", bands: [3, 4] }],
+      [{ kind: "platygyra", count: 6, color: "#b89a5e", on: "rockwork", bands: [3, 4] }],
       createRng(6),
       undefined,
       twoSpots(),
@@ -300,7 +310,16 @@ describe("placement on rock within an entry's bands", () => {
     const plants = layoutFlora(
       objects,
       tank,
-      [{ kind: "kelp", count: 6, bands: [0, 1], height: [1, 2], color: "#3d7a3a", on: "rockwork" }],
+      [
+        {
+          kind: "ribbon-kelp",
+          count: 6,
+          bands: [0, 1],
+          height: [1, 2],
+          color: "#3d7a3a",
+          on: "rockwork",
+        },
+      ],
       createRng(6),
       undefined,
       twoSpots(),
@@ -330,7 +349,7 @@ describe("placement on rockwork", () => {
     const corals = layoutProps(
       objects,
       tank,
-      [{ kind: "brain-coral", count: 20, color: "#b89a5e", on: "rockwork" }],
+      [{ kind: "platygyra", count: 20, color: "#b89a5e", on: "rockwork" }],
       createRng(6),
       undefined,
       rockwork,
@@ -350,7 +369,7 @@ describe("placement on rockwork", () => {
       tank,
       [
         {
-          kind: "anemone",
+          kind: "bubble-tip-anemone",
           count: 10,
           bands: [0, 4],
           height: [0.1, 0.2],
@@ -372,7 +391,7 @@ describe("placement on rockwork", () => {
     const corals = layoutProps(
       objects,
       tank,
-      [{ kind: "brain-coral", count: 5, color: "#b89a5e", on: "rockwork" }],
+      [{ kind: "platygyra", count: 5, color: "#b89a5e", on: "rockwork" }],
       createRng(6),
       undefined,
       bare,
@@ -417,7 +436,7 @@ describe("item sources", () => {
 
 describe("placement at chosen spots", () => {
   const fern: FloraSpec = {
-    kind: "fern",
+    kind: "java-fern",
     count: 2,
     bands: [0, 4],
     height: [0.1, 0.2],
@@ -512,7 +531,7 @@ describe("tip color", () => {
       tank,
       [
         {
-          kind: "stem",
+          kind: "rotala",
           count: 3,
           bands: [2, 4],
           height: [0.2, 0.4],
@@ -530,7 +549,7 @@ describe("tip color", () => {
     const plants = layoutFlora(
       objects,
       tank,
-      [{ kind: "fern", count: 3, bands: [2, 4], height: [0.2, 0.4], color: "#3a8a2a" }],
+      [{ kind: "java-fern", count: 3, bands: [2, 4], height: [0.2, 0.4], color: "#3a8a2a" }],
       createRng(2),
     );
 
@@ -554,7 +573,7 @@ describe("size override", () => {
 describe("tags", () => {
   it("gives every plant its kind's tags", () => {
     const anemones: FloraSpec = {
-      kind: "anemone",
+      kind: "bubble-tip-anemone",
       count: 2,
       bands: [0, 1],
       height: [0.1, 0.2],
@@ -596,12 +615,12 @@ describe("model objects", () => {
       },
       "carpet",
     );
-    const catalog = createObjectCatalog([["carpet", manifest]]);
+    const catalog = createObjectCatalog([["hairgrass", manifest]]);
 
     const plants = layoutFlora(
       catalog,
       tank,
-      [{ kind: "carpet", count: 200, bands: [0, 0], height: [0.05, 0.05], color: "#4a8a3a" }],
+      [{ kind: "hairgrass", count: 200, bands: [0, 0], height: [0.05, 0.05], color: "#4a8a3a" }],
       createRng(1),
     );
 
@@ -681,24 +700,27 @@ describe("model objects", () => {
   it("keeps both the recipe generator and the fallback model when an object has both", () => {
     const { manifest } = parseObjectManifest(
       {
-        name: "Kelp",
-        category: "plant",
+        name: "Boulder",
+        category: "object",
         model: "model.glb",
-        recipe: { generator: "kelp" },
+        recipe: { generator: "rock" },
         credit,
       },
-      "kelp",
+      "boulder",
     );
-    const catalog = createObjectCatalog([["kelp", manifest]]);
+    const catalog = createObjectCatalog([["boulder", manifest]]);
 
-    const [plant] = layoutFlora(
+    const [boulder] = layoutProps(
       catalog,
       tank,
-      [{ kind: "kelp", count: 1, bands: [1, 3], height: [1, 2], color: "#4a8a3a" }],
+      [{ kind: "boulder", count: 1, color: "#888888" }],
       createRng(1),
     );
 
-    expect([plant?.generator, plant?.model]).toEqual(["kelp", "assets/objects/kelp/model.glb"]);
+    expect([boulder?.generator, boulder?.model]).toEqual([
+      "rock",
+      "assets/objects/boulder/model.glb",
+    ]);
   });
 });
 
@@ -743,7 +765,7 @@ describe("encrusting objects lying along the rock", () => {
     const [coral] = layoutProps(
       objects,
       tank,
-      [{ kind: "brain-coral", count: 1, color: "#b89a5e", on: "rockwork" }],
+      [{ kind: "platygyra", count: 1, color: "#b89a5e", on: "rockwork" }],
       createRng(3),
       undefined,
       slope,

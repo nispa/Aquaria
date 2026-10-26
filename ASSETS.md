@@ -32,26 +32,6 @@ the OpenGL normal map; `surface.ktx2` packs displacement (R), roughness (G)
 and the diffuse map's luminance normalized to 0.5 (B), so scenes keep
 choosing the color.
 
-## Coral and sponge models
-
-Scans of dried specimens of the National Museum of Natural History's
-collection, released by the Smithsonian as CC0 (https://3d.si.edu). Each
-object folder in `public/assets/objects/` was made from the scan's "Medium"
-glb by `scripts/blender/coral_scans.py` (stood up, thinned, texture turned
-to light grey with living tissue and growing tips, then meshopt and KTX2);
-Aquaria tints it with the object's color (the `tint` trait).
-
-| Model                                                 | Path                                         | Source                                                           | Author                        | License |
-| ----------------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------- | ----------------------------- | ------- |
-| Grooved brain coral (Diploria labyrinthiformis, scan) | `public/assets/objects/grooved-brain-coral/` | https://n2t.net/ark:/65665/3043336fc-ef60-46be-b406-92f5e71c9f4e | Smithsonian Institution, NMNH | CC0     |
-| Maze coral (Meandrina meandrites, scan)               | `public/assets/objects/maze-coral/`          | https://n2t.net/ark:/65665/3d960a85a-776e-49bd-8ac0-150a1ba46e75 | Smithsonian Institution, NMNH | CC0     |
-| Cauliflower coral (Pocillopora damicornis, scan)      | `public/assets/objects/cauliflower-coral/`   | https://n2t.net/ark:/65665/311440544-0f5f-495a-9836-f6ef7ad55055 | Smithsonian Institution, NMNH | CC0     |
-| Finger coral (Porites compressa conjungens, scan)     | `public/assets/objects/finger-coral/`        | https://n2t.net/ark:/65665/3998383e3-b66c-4207-9c01-3e4c561cb9bd | Smithsonian Institution, NMNH | CC0     |
-| Staghorn coral (Acropora cervicornis, scan)           | `public/assets/objects/staghorn-coral/`      | https://n2t.net/ark:/65665/3147268f9-134a-4e56-abc4-5747d0236cc8 | Smithsonian Institution, NMNH | CC0     |
-| Sheet coral (Agaricia lamarcki, scan)                 | `public/assets/objects/sheet-coral/`         | https://n2t.net/ark:/65665/37d657fef-eacb-46f4-a9c2-d34150352b72 | Smithsonian Institution, NMNH | CC0     |
-| Table coral (Madrepora cytherea, scan)                | `public/assets/objects/tabletop-coral/`      | https://n2t.net/ark:/65665/36558b63e-105b-4818-9190-760802a9abc3 | Smithsonian Institution, NMNH | CC0     |
-| Glove sponge (Spongia graminea tampa, scan)           | `public/assets/objects/glove-sponge/`        | https://n2t.net/ark:/65665/369d11867-94df-4e5c-810d-28cd7fb5b2e7 | Smithsonian Institution, NMNH | CC0     |
-
 ## Plant, stone and wood models
 
 Made in code with Blender by the scripts in `scripts/blender/`.

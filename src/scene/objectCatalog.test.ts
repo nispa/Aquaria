@@ -19,13 +19,14 @@ describe("parseObjectIndex", () => {
 
 describe("object catalog", () => {
   it("finds an object by id", () => {
-    expect(objects.get("table-coral")?.name).toBe("Table corals");
+    expect(objects.get("table-acropora")?.name).toBe("Table acropora");
   });
 
   it("lists the plants and the objects apart", () => {
-    expect([objects.ids("plant").includes("kelp"), objects.ids("object").includes("kelp")]).toEqual(
-      [true, false],
-    );
+    expect([
+      objects.ids("plant").includes("ribbon-kelp"),
+      objects.ids("object").includes("ribbon-kelp"),
+    ]).toEqual([true, false]);
   });
 });
 

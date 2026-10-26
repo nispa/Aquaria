@@ -45,7 +45,8 @@ function boundsOf(kind: Kind): Box3 {
   return bounds;
 }
 
-const kinds = PROP_GENERATORS;
+/** The generators a bundled object still uses. */
+const kinds = PROP_GENERATORS.filter((kind) => objects.get(kind) !== undefined);
 
 describe("prop collision shapes", () => {
   it.each(kinds)("are as wide, deep and tall as the mesh of %s", (kind) => {

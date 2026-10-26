@@ -66,8 +66,9 @@ describe("parseObjectManifest", () => {
       {
         name: "Kelp",
         category: "plant",
-        recipe: { generator: "kelp" },
+        model: "model.glb",
         traits: { sway: {}, glow: {} },
+        credit: { author: "Aquaria", source: "https://example.com/plant", license: "CC0-1.0" },
       },
       "kelp",
     );

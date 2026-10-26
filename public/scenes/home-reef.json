@@ -60,7 +60,7 @@
       "on": "rockwork"
     },
     {
-      "kind": "bush",
+      "kind": "rotala",
       "count": 4,
       "bands": [1, 4],
       "height": [0.08, 0.18],
@@ -174,21 +174,6 @@
       "on": "rockwork",
       "color": ["#ffffff"],
       "size": [0.05, 0.08]
-    },
-    {
-      "kind": "fan-coral",
-      "count": 2,
-      "on": "rockwork",
-      "color": ["#7a4fa8", "#c2553f"],
-      "size": [0.25, 0.35]
-    },
-    {
-      "kind": "mushroom-coral",
-      "count": 8,
-      "on": "rockwork",
-      "color": ["#e06a8a", "#6ad0a0", "#d98a4a", "#7a6ad8"],
-      "bands": [0, 4],
-      "size": [0.04, 0.07]
     },
     {
       "kind": "pebble",

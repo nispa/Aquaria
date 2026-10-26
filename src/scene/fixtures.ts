@@ -43,8 +43,8 @@ export function sceneFixture(): SceneInput {
     current: { direction: [1, 0, 0], strength: 0.05, turbulence: 0.3 },
     backdrop: { type: "gradient", top: "#0e6c8f", bottom: "#021b2b" },
     floor: { color: "#c9b48a" },
-    flora: [{ kind: "kelp", count: 12, bands: [2, 4], height: [1, 3], color: "#3d7a3a" }],
-    props: [{ kind: "starfish", count: 1, color: "#e8683c" }],
+    flora: [{ kind: "ribbon-kelp", count: 12, bands: [2, 4], height: [1, 3], color: "#3d7a3a" }],
+    props: [{ kind: "shell", count: 1, color: "#e8683c" }],
     fauna: [
       { species: "blue-tang", count: 6 },
       { species: "sardine", count: 40 },

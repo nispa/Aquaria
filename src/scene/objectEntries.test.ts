@@ -9,6 +9,7 @@ import {
   withEnvironment,
 } from "./objectEntries";
 import { bundledObjects } from "./objectFixtures";
+import { parseObjectManifest } from "./objectManifest";
 import { parseCatalog, parseScene } from "./parse";
 import { sceneryEntries } from "./scenery";
 
@@ -24,7 +25,20 @@ const manifest = (id: string) => {
 
 describe("floraEntryFor", () => {
   it("takes a plant's color, tips and height from its object", () => {
-    const entry = floraEntryFor("stem", manifest("stem"));
+    const stem = parseObjectManifest(
+      {
+        name: "Stem plant",
+        category: "plant",
+        model: "model.glb",
+        color: "#3f8f3a",
+        tipColor: "#e0553a",
+        traits: { placement: { height: [0.35, 0.75] } },
+        credit: { author: "Aquaria", source: "https://example.com/plant", license: "CC0-1.0" },
+      },
+      "stem",
+    ).manifest;
+
+    const entry = floraEntryFor("stem", stem);
 
     expect(entry).toMatchObject({
       kind: "stem",

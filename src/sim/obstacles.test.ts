@@ -35,9 +35,9 @@ const prop = (kind: string, x: number, z: number, size: number, rotation = 0): P
 
 describe("obstacleOf", () => {
   it("stands a prop on the sand, sunk as the renderer sinks it", () => {
-    const rock = obstacleOf(prop("brain-coral", 1, -2, 0.4));
+    const rock = obstacleOf(prop("platygyra", 1, -2, 0.4));
 
-    const base = floorHeight(1, -2) + traitsOf("brain-coral").shape.sink * 0.4;
+    const base = floorHeight(1, -2) + traitsOf("platygyra").shape.sink * 0.4;
     expect(rock.center.toArray()).toEqual([1, base, -2]);
   });
 
@@ -54,17 +54,17 @@ describe("obstacleOf", () => {
   });
 
   it("scales its kind's shape by its size", () => {
-    const stone = obstacleOf(prop("dragon-stone", 0, -2, 0.2));
+    const stone = obstacleOf(prop("seiryu-stone", 0, -2, 0.2));
 
-    expect(stone.radii.y).toBeCloseTo(traitsOf("dragon-stone").shape.up * 0.2);
+    expect(stone.radii.y).toBeCloseTo(traitsOf("seiryu-stone").shape.up * 0.2);
   });
 });
 
 describe("propTop", () => {
   it("is the top of the prop's shape above the sand, plate and all", () => {
-    const table = obstacleOf(prop("table-coral", 0, -2, 0.5));
+    const table = obstacleOf(prop("table-acropora", 0, -2, 0.5));
 
-    expect(propTop(prop("table-coral", 0, -2, 0.5))).toBeCloseTo(
+    expect(propTop(prop("table-acropora", 0, -2, 0.5))).toBeCloseTo(
       table.center.y + table.radii.y - floorHeight(0, -2),
     );
   });
@@ -106,7 +106,11 @@ describe("an obstacle field", () => {
   });
 
   it("turns with its prop: a fan is thin across its face", () => {
-    const fan = obstacleOf(prop("fan-coral", 0, -2, 1, Math.PI / 2));
+    // A sea fan: a broad, thin face, turned a quarter round.
+    const fan = obstacleOf({
+      ...prop("rock", 0, -2, 1, Math.PI / 2),
+      shape: { across: 0.44, up: 0.92, along: 0.06, sink: -0.02, lift: 0 },
+    });
     const field = createObstacleField([fan]);
     const height = fan.center.y + 0.3;
 

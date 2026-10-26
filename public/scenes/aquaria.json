@@ -113,7 +113,7 @@
   ],
   "props": [
     {
-      "kind": "dragon-stone",
+      "kind": "seiryu-stone",
       "name": "Rock pillars",
       "count": 3,
       "color": "#5d6a6c",
@@ -149,12 +149,6 @@
       "count": 6,
       "color": ["#ffffff"],
       "size": [0.35, 0.6]
-    },
-    {
-      "kind": "fan-coral",
-      "count": 3,
-      "color": ["#7a4fa8", "#5a6fc8"],
-      "size": [0.7, 1.1]
     },
     {
       "kind": "table-acropora",

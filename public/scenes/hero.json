@@ -287,12 +287,6 @@
       "color": ["#ffffff"]
     },
     {
-      "kind": "fan-coral",
-      "count": 5,
-      "color": ["#7a4fa8", "#5a6fc8"],
-      "size": [0.7, 1.1]
-    },
-    {
       "kind": "shell",
       "count": 5,
       "color": ["#f3e6d4", "#e8d2b8"]

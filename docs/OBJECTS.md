@@ -17,23 +17,27 @@ public/assets/objects/<id>/
   model.glb        the 3D model (optional)
 ```
 
-The folder name is the `kind` scenes use, for example `driftwood`.
+The folder name is the `kind` scenes use, for example `rock`.
 
 ## object.json
 
-The driftwood's:
+The rocks':
 
 ```json
 {
-  "name": "Driftwood",
+  "name": "Rocks",
   "category": "object",
-  "color": "#5a4636",
-  "material": { "file": "../../materials/mossy-wood/material.json", "tileSize": 0.35 },
-  "recipe": { "generator": "driftwood" },
+  "color": "#7e8580",
+  "material": {
+    "file": "../../materials/reef-rock/material.json",
+    "tileSize": 0.45,
+    "displacement": 0.07
+  },
+  "recipe": { "generator": "rock" },
   "traits": {
-    "collision": { "across": 0.55, "up": 0.5, "along": 0.48, "sink": -0.02, "lift": 0 },
-    "tags": ["wood", "shelter"],
-    "placement": { "bands": [1, 3], "size": [0.5, 1.1] }
+    "collision": { "across": 0.58, "up": 0.36, "along": 0.58, "sink": 0, "lift": 0 },
+    "tags": ["rock", "algae"],
+    "placement": { "bands": [1, 4], "size": [0.25, 0.75] }
   }
 }
 ```
@@ -140,17 +144,32 @@ like the anemones'.
 
 ### `tint`: the color tints the model
 
-The item's color multiplies the model's own colors. Made for the coral
-scans: bleached museum skeletons with a light grey texture that keeps every
-pore, brought back to a living color by `color`. A tinted model also glows
-under actinic light, like the corals Aquaria draws itself.
+The item's color multiplies the model's own colors, and a tinted model
+glows under actinic light, as living corals do.
 
 | Value      | Default | What it is                                           |
 | ---------- | ------- | ---------------------------------------------------- |
 | `strength` | `1`     | 0 keeps the model's colors, 1 takes the item's color |
 
-The staghorn coral's: `"tint": {}`. Its scan was made into an object by
-`scripts/blender/coral_scans.py`, which says how in its first lines.
+The corals made in Blender keep their own colors, shifted a little, and
+glow: `"tint": { "strength": 0.15 }`.
+
+## Retired objects
+
+The cartoon plants and corals of the first scenes (kelp, seagrass, ferns,
+fan corals…) and the coral scans, which looked dead, are gone. The
+`retired` table of `public/assets/objects/index.json` says what takes their
+place:
+
+```json
+"retired": { "kelp": "ribbon-kelp", "fan-coral": null, "starfish": { "species": "red-sea-star" } }
+```
+
+A scene that still names one, bundled, saved in the browser or imported, is
+brought up to date as it loads (`src/scene/retiredObjects.ts`): the entry
+takes its successor, moving to the plants when the successor is a plant
+(sizes become heights) or to the animals when it is a species; with `null`
+it is dropped. Retired objects are not offered in the editor's palette.
 
 ### Adding a trait
 

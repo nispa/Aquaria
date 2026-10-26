@@ -57,8 +57,8 @@ describe("bubblePosition", () => {
 /** What a starfish and a rock are, as the layout gives them. */
 const looks = {
   starfish: {
-    kind: "starfish",
-    generator: "starfish",
+    kind: "shell",
+    generator: "shell",
     shape: { across: 0.5, up: 0.13, along: 0.5, sink: 0, lift: 0 },
     solid: true,
   },

@@ -10,11 +10,11 @@ const tagsOfObject = (id: string): readonly string[] | undefined => objects.get(
 
 describe("tags of scenery", () => {
   it("gives anemones the anemone and shelter tags", () => {
-    expect(tagsOfObject("anemone")).toEqual(["anemone", "shelter"]);
+    expect(tagsOfObject("bubble-tip-anemone")).toEqual(["anemone", "shelter"]);
   });
 
   it("offers dense plants as shelter, for freshwater fish to hide in", () => {
-    expect([tagsOfObject("bush"), tagsOfObject("fern"), tagsOfObject("stem")]).toEqual([
+    expect([tagsOfObject("rotala"), tagsOfObject("java-fern"), tagsOfObject("rotala")]).toEqual([
       expect.arrayContaining(["shelter"]),
       expect.arrayContaining(["shelter"]),
       expect.arrayContaining(["shelter"]),
@@ -23,9 +23,9 @@ describe("tags of scenery", () => {
 
   it("uses the object's tags for an entry that sets none", () => {
     const scene = parseScene(sceneFixture(), catalog);
-    const entry = scene.props[0] ?? { kind: "starfish", tags: undefined };
+    const entry = scene.props[0] ?? { kind: "shell", tags: undefined };
 
-    expect(tagsOf(entry, objects.get(entry.kind))).toEqual(["starfish"]);
+    expect(tagsOf(entry, objects.get(entry.kind))).toEqual(["shell"]);
   });
 
   it("lets a scene entry set its own tags", () => {
@@ -45,7 +45,7 @@ describe("tags of scenery", () => {
     const input = sceneFixture();
     input.flora = [
       {
-        kind: "kelp",
+        kind: "ribbon-kelp",
         count: 1,
         bands: [0, 1],
         height: [1, 2],

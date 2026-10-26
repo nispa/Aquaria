@@ -19,23 +19,27 @@ public/assets/objects/<id>/
 ```
 
 Il nome della cartella è il `kind` usato nelle scene, per esempio
-`driftwood`.
+`rock`.
 
 ## object.json
 
-Quello del legno:
+Quello delle rocce:
 
 ```json
 {
-  "name": "Driftwood",
+  "name": "Rocks",
   "category": "object",
-  "color": "#5a4636",
-  "material": { "file": "../../materials/mossy-wood/material.json", "tileSize": 0.35 },
-  "recipe": { "generator": "driftwood" },
+  "color": "#7e8580",
+  "material": {
+    "file": "../../materials/reef-rock/material.json",
+    "tileSize": 0.45,
+    "displacement": 0.07
+  },
+  "recipe": { "generator": "rock" },
   "traits": {
-    "collision": { "across": 0.55, "up": 0.5, "along": 0.48, "sink": -0.02, "lift": 0 },
-    "tags": ["wood", "shelter"],
-    "placement": { "bands": [1, 3], "size": [0.5, 1.1] }
+    "collision": { "across": 0.58, "up": 0.36, "along": 0.58, "sink": 0, "lift": 0 },
+    "tags": ["rock", "algae"],
+    "placement": { "bands": [1, 4], "size": [0.25, 0.75] }
   }
 }
 ```
@@ -142,19 +146,33 @@ tentacoli ondeggiano uno per uno come quelli degli anemoni.
 
 ### `tint`: il colore tinge il modello
 
-Il colore dell'elemento moltiplica i colori del modello. Pensato per le
-scansioni dei coralli: scheletri sbiancati di museo con una texture grigio
-chiaro che tiene ogni poro, riportati a un colore vivo da `color`. Un
-modello tinto brilla anche sotto la luce attinica, come i coralli che
-Aquaria disegna da sé.
+Il colore dell'elemento moltiplica i colori del modello, e un modello
+tinto brilla sotto la luce attinica, come i coralli vivi.
 
 | Valore     | Predefinito | Cosa è                                                      |
 | ---------- | ----------- | ----------------------------------------------------------- |
 | `strength` | `1`         | 0 tiene i colori del modello, 1 prende quello dell'elemento |
 
-Quello del corallo staghorn: `"tint": {}`. La sua scansione è diventata un
-oggetto con `scripts/blender/coral_scans.py`, che spiega come nelle prime
-righe.
+I coralli fatti in Blender tengono i loro colori, spostati di poco, e
+brillano: `"tint": { "strength": 0.15 }`.
+
+## Oggetti ritirati
+
+Le piante e i coralli da cartone delle prime scene (kelp, seagrass, felci,
+coralli a ventaglio…) e le scansioni dei coralli, che sembravano morte, non
+ci sono più. La tabella `retired` di `public/assets/objects/index.json` dice
+cosa prende il loro posto:
+
+```json
+"retired": { "kelp": "ribbon-kelp", "fan-coral": null, "starfish": { "species": "red-sea-star" } }
+```
+
+Una scena che ne nomina ancora uno, inclusa, salvata nel browser o
+importata, viene aggiornata mentre si carica (`src/scene/retiredObjects.ts`):
+la voce prende il suo successore, passando alle piante quando il successore
+è una pianta (le dimensioni diventano altezze) o agli animali quando è una
+specie; con `null` viene tolta. Gli oggetti ritirati non sono offerti nella
+tavolozza dell'editor.
 
 ### Aggiungere un tratto
 

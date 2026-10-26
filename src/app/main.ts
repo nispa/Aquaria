@@ -117,6 +117,7 @@ import {
   type SceneIndex,
 } from "../scene/sceneIndex";
 import { canResize, resizeScene, sceneSize } from "../scene/tankSize";
+import { parseRetiredObjects, retireObjects, type RetiredObjects } from "../scene/retiredObjects";
 import {
   parseSoundManifest,
   SOUND_MANIFEST_FILE,
@@ -369,11 +370,13 @@ async function loadModelManifests(catalog: SpeciesCatalog): Promise<Map<string, 
 }
 
 /**
- * The plants and objects of `assets/objects/`. A missing object.json skips
- * its object with a warning; an invalid one is an error, like an invalid scene.
+ * The plants and objects of `assets/objects/`, and those retired with what
+ * takes their place. A missing object.json skips its object with a warning;
+ * an invalid one is an error, like an invalid scene.
  */
-async function loadObjects(): Promise<ObjectCatalog> {
-  const ids = parseObjectIndex(await fetchJson(`${OBJECTS_FOLDER}/index.json`));
+async function loadObjects(): Promise<{ objects: ObjectCatalog; retired: RetiredObjects }> {
+  const index = await fetchJson(`${OBJECTS_FOLDER}/index.json`);
+  const ids = parseObjectIndex(index);
   const entries = await Promise.all(
     ids.map(async (id): Promise<[string, ObjectManifest] | undefined> => {
       let data: unknown;
@@ -388,7 +391,10 @@ async function loadObjects(): Promise<ObjectCatalog> {
       return [id, manifest];
     }),
   );
-  return createObjectCatalog(entries.filter((entry) => entry !== undefined));
+  return {
+    objects: createObjectCatalog(entries.filter((entry) => entry !== undefined)),
+    retired: parseRetiredObjects(index),
+  };
 }
 
 async function fetchText(path: string): Promise<string> {
@@ -578,13 +584,14 @@ async function start(): Promise<void> {
 
   const options = parseLaunchOptions(window.location.search);
   let settings = loadSettings();
-  const [indexData, catalogData, materialIds, objects, fileEffects] = await Promise.all([
-    fetchJson("scenes/index.json"),
-    fetchJson("species.json"),
-    loadMaterialIds(),
-    loadObjects(),
-    loadFileEffects(),
-  ]);
+  const [indexData, catalogData, materialIds, { objects, retired }, fileEffects] =
+    await Promise.all([
+      fetchJson("scenes/index.json"),
+      fetchJson("species.json"),
+      loadMaterialIds(),
+      loadObjects(),
+      loadFileEffects(),
+    ]);
   // Aquaria's own effects, then those made of files.
   const effects = [...EFFECTS, ...fileEffects];
   const catalog = parseCatalog(catalogData);
@@ -603,9 +610,12 @@ async function start(): Promise<void> {
       : fetchJson(`scenes/${sceneId}.json`),
     loadSceneChoices(sceneIndex, customScenes),
   ]);
+  const speciesIds = catalog.species.map((species) => species.id);
+  /** A scene brought up to date: its retired plants and objects replaced (scene/retiredObjects). */
+  const upToDate = (parsed: Scene): Scene => retireObjects(parsed, retired, objects, speciesIds);
   /** A scene validated, down to the plants and objects it names. */
   const parseWithObjects = (input: unknown): Scene => {
-    const parsed = parseScene(input, catalog);
+    const parsed = upToDate(parseScene(input, catalog));
     checkSceneObjects(parsed, objects);
     return parsed;
   };
@@ -1236,8 +1246,9 @@ async function start(): Promise<void> {
           .text()
           .then((json) => {
             const imported = importScene(json, catalog, Object.keys(customScenes));
-            checkSceneObjects(imported.scene, objects);
-            const problem = saveScene(imported.scene, imported.id);
+            const scene = upToDate(imported.scene);
+            checkSceneObjects(scene, objects);
+            const problem = saveScene(scene, imported.id);
             if (problem !== undefined) opened.showStatus(problem);
           })
           .catch((error: unknown) => {

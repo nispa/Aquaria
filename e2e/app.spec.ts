@@ -252,15 +252,15 @@ test("remembers effect choices after a reload", async ({ page }) => {
 test("changes the scenery from the panel", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  // A scene with brain coral: the default one may change.
+  // A scene with living brain coral: the default one may change.
   await openLive(page, "?scene=aquaria&effects=none");
   await waitForState(page);
   await page.keyboard.press("h");
   await openSection(page, "scenery");
 
-  await page.locator('input[data-scenery="brain-coral"]').fill("12");
+  await page.locator('input[data-scenery="platygyra"]').fill("12");
 
-  await expect(page.locator('[data-scenery-card="brain-coral"] output')).toHaveText("12");
+  await expect(page.locator('[data-scenery-card="platygyra"] output')).toHaveText("12");
   expect(errors).toEqual([]);
 });
 
@@ -273,13 +273,13 @@ test("adds a plant the scene does not hold and takes it away again", async ({ pa
   await openSection(page, "scenery");
 
   await page.getByRole("button", { name: "Add to the tank" }).click();
-  await page.getByRole("dialog").getByRole("searchbox").fill("fern");
-  await page.locator('[data-add-scenery="fern"]').click();
+  await page.getByRole("dialog").getByRole("searchbox").fill("java fern");
+  await page.locator('[data-add-scenery="java-fern"]').click();
 
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.locator('[data-scenery-card="fern"] output')).toHaveText("8");
-  await page.getByRole("button", { name: "Take away Ferns" }).click();
-  await expect(page.locator('[data-scenery-card="fern"]')).toHaveCount(0);
+  await expect(page.locator('[data-scenery-card="java-fern"] output')).toHaveText("8");
+  await page.getByRole("button", { name: "Take away Java fern" }).click();
+  await expect(page.locator('[data-scenery-card="java-fern"]')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
@@ -294,14 +294,14 @@ test("keeps an added plant after a reload", async ({ page }) => {
   await page.keyboard.press("h");
   await openSection(page, "scenery");
   await page.getByRole("button", { name: "Add to the tank" }).click();
-  await page.locator('[data-add-scenery="fern"]').click();
+  await page.locator('[data-add-scenery="java-fern"]').click();
 
   await page.reload();
   await waitForState(page);
   await page.keyboard.press("h");
   await openSection(page, "scenery");
 
-  await expect(page.locator('[data-scenery-card="fern"] output')).toHaveText("8");
+  await expect(page.locator('[data-scenery-card="java-fern"] output')).toHaveText("8");
 });
 
 test("resizes the fish from the panel and remembers it", async ({ page }) => {
@@ -792,7 +792,7 @@ test.describe("scene editor", () => {
     await page.getByRole("tab", { name: "Objects" }).click();
     await page
       .getByRole("complementary", { name: "Palette" })
-      .getByRole("button", { name: "Starfish" })
+      .getByRole("button", { name: "Shells" })
       .click();
     await page.mouse.click(box.x + box.width * 0.4, box.y + box.height * 0.75);
     await page.getByRole("button", { name: "Save as a new scene" }).click();
@@ -804,10 +804,10 @@ test.describe("scene editor", () => {
       string,
       { props: { kind: string; at?: unknown[] }[] }
     >;
-    const starfish = Object.values(scenes)
+    const shells = Object.values(scenes)
       .flatMap((scene) => scene.props)
-      .filter((entry) => entry.kind === "starfish" && entry.at !== undefined);
-    expect(starfish.map((entry) => entry.at?.length)).toEqual([1]);
+      .filter((entry) => entry.kind === "shell" && entry.at !== undefined);
+    expect(shells.map((entry) => entry.at?.length)).toEqual([1]);
   });
 
   test("paints a carpet with the brush", async ({ page }) => {
@@ -819,7 +819,7 @@ test.describe("scene editor", () => {
     await page.getByRole("button", { name: "Paint the palette's choice with the brush" }).click();
     await page
       .getByRole("complementary", { name: "Palette" })
-      .getByRole("button", { name: "Carpet plants" })
+      .getByRole("button", { name: "Dwarf hairgrass" })
       .click();
 
     await page.mouse.move(box.x + box.width * 0.35, box.y + box.height * 0.75);
@@ -836,7 +836,7 @@ test.describe("scene editor", () => {
     >;
     const painted = Object.values(scenes)
       .flatMap((scene) => scene.flora)
-      .filter((entry) => entry.kind === "carpet" && entry.at !== undefined);
+      .filter((entry) => entry.kind === "hairgrass" && entry.at !== undefined);
     expect(painted.reduce((sum, entry) => sum + (entry.at?.length ?? 0), 0)).toBeGreaterThan(5);
   });
 
