@@ -1,0 +1,29 @@
+{
+  "name": "Brain coral (living)",
+  "category": "object",
+  "model": "model.glb",
+  "color": ["#ffffff", "#fff4e8", "#f0f0ff"],
+  "traits": {
+    "tint": {
+      "strength": 0.15
+    },
+    "collision": {
+      "across": 0.5,
+      "up": 0.4,
+      "along": 0.5,
+      "sink": -0.05,
+      "lift": 0
+    },
+    "tags": ["coral"],
+    "placement": {
+      "on": ["rock", "sand"],
+      "bands": [0, 4],
+      "size": [0.1, 0.25]
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py",
+    "license": "CC0-1.0"
+  }
+}

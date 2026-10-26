@@ -638,6 +638,10 @@ fluorescence; the scans are left out of the tanks.
       (`scripts/blender/corals.py`), lying along the rock (`hug`), 124
       of them on the Home reef. Still to do: star and other polyps.
 - [ ] Colonies at the scale of a home tank: many small ones, a few large.
+      Started (`scripts/blender/colonies.py`): acropora, a living brain
+      coral and the torch coral replace the staghorn and brain scans in
+      the Home reef and the lagoon. Still scans: cauliflower, finger,
+      sheet and table corals, glove sponge.
 
 ### L3. Sand
 
@@ -648,6 +652,10 @@ fluorescence; the scans are left out of the tanks.
 
 - [ ] Soft corals (leather, xenia, zoanthid polyps) swaying in the
       current, on the strands of I3.
+- [ ] Starfish that creep slowly over the sand and the rock (the
+      user, 2026-10-26), instead of lying still as props: a species with
+      the `crawl` style of the shrimps and crabs, very slow, its arms
+      rippling as it goes.
 
 ## Ideas to discuss
 

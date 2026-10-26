@@ -129,7 +129,11 @@ dritto.
 Gli zoantidi e la montipora incrostante li fa
 `scripts/blender/corals.py`: polipi i cui dischi portano i colori, e una
 lamina i cui minuscoli polipi sono una texture grigia moltiplicata per i
-suoi colori.
+suoi colori. Le colonie vengono da `scripts/blender/colonies.py`: acropora
+che si ramifica fino a punte di un altro colore, con i calici dei polipi
+dipinti in una texture; un corallo cervello vivo (`platygyra`) ripiegato
+in creste e valli a meandri; e il corallo torcia, una pianta i cui
+tentacoli ondeggiano uno per uno come quelli degli anemoni.
 
 ### `tint`: il colore tinge il modello
 

@@ -118,15 +118,24 @@
       "bands": [0, 4],
       "height": [0.04, 0.06],
       "color": ["#5fae2e"]
+    },
+    {
+      "kind": "torch-coral",
+      "name": "Torch corals on the rock",
+      "count": 2,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "height": [0.08, 0.12],
+      "color": ["#ffffff"]
     }
   ],
   "props": [
     {
-      "kind": "staghorn-coral",
+      "kind": "acropora",
       "count": 4,
       "on": "rockwork",
       "bands": [0, 4],
-      "color": ["#ff8a3c", "#d9a0e0", "#f2c14e"],
+      "color": ["#ffffff"],
       "size": [0.1, 0.16]
     },
     {
@@ -146,11 +155,11 @@
       "size": [0.08, 0.11]
     },
     {
-      "kind": "maze-coral",
+      "kind": "platygyra",
       "count": 1,
       "on": "rockwork",
       "bands": [0, 4],
-      "color": ["#c9a070"],
+      "color": ["#ffffff"],
       "size": [0.09, 0.09]
     },
     {
@@ -182,6 +191,22 @@
       "color": ["#f3e6d4"],
       "bands": [0, 2],
       "size": [0.025, 0.04]
+    },
+    {
+      "kind": "zoanthids",
+      "name": "Zoanthids on the rock",
+      "count": 24,
+      "on": "rockwork",
+      "color": ["#ffffff"],
+      "size": [0.05, 0.09]
+    },
+    {
+      "kind": "encrusting-montipora",
+      "name": "Montipora on the rock",
+      "count": 8,
+      "on": "rockwork",
+      "color": ["#ffffff"],
+      "size": [0.06, 0.12]
     }
   ],
   "fauna": [

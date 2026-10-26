@@ -72,6 +72,15 @@
       "height": [0.04, 0.07],
       "color": ["#5fae2e"],
       "on": "rockwork"
+    },
+    {
+      "kind": "torch-coral",
+      "name": "Torch corals on the rock",
+      "count": 6,
+      "on": "rockwork",
+      "bands": [0, 3],
+      "height": [0.1, 0.16],
+      "color": ["#ffffff"]
     }
   ],
   "props": [
@@ -89,19 +98,19 @@
       }
     },
     {
-      "kind": "staghorn-coral",
+      "kind": "acropora",
       "name": "Staghorn",
       "count": 6,
       "on": "rockwork",
-      "color": ["#ff8a3c", "#ffa055", "#c9a0e0", "#8fd0a0"],
-      "size": [0.14, 0.26]
+      "color": ["#ffffff"],
+      "size": [0.16, 0.3]
     },
     {
-      "kind": "grooved-brain-coral",
+      "kind": "platygyra",
       "name": "Brain corals",
       "count": 3,
       "on": "rockwork",
-      "color": ["#c9b27a", "#a8b87a", "#d08a6a"],
+      "color": ["#ffffff"],
       "size": [0.1, 0.16]
     },
     {
@@ -126,10 +135,10 @@
       "size": [0.1, 0.18]
     },
     {
-      "kind": "maze-coral",
+      "kind": "platygyra",
       "count": 3,
       "on": "rockwork",
-      "color": ["#c9a070", "#b8b07a", "#7ab090"],
+      "color": ["#ffffff"],
       "size": [0.1, 0.15]
     },
     {
