@@ -423,7 +423,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       ? undefined
       : {
           randomPoint: (rng) => blockwork.randomTop(rng),
-          heightAt: (x, z) => Math.max(blockwork.topAt(x, z) - floor(x, z), 0),
+          heightAt: (x, z) => Math.max(blockwork.surfaceAt(x, z) - floor(x, z), 0),
         };
 
   const buildScenery = (): void => {

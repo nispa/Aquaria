@@ -22,6 +22,13 @@ export interface Blockwork {
   solidAt(point: Vector3): boolean;
   /** Height of the top of the highest block over (x, z), m; 0 when there is none. */
   topAt(x: number, z: number): number;
+  /**
+   * Height of the rock's surface over (x, z) as the viewer sees it, m: the
+   * blocks smoothed, so lower than `topAt` on a crest and towards the edge
+   * of a column. Things stand here, not floating over the corners. 0 when
+   * there is no block.
+   */
+  surfaceAt(x: number, z: number): number;
   /** A random spot (x, z) on the top of a column of blocks, or undefined when there are no blocks. */
   randomTop(rng: Rng): readonly [number, number] | undefined;
   /** The distance to the rock's surface, as an obstacle (sim/obstacles). */
@@ -30,6 +37,8 @@ export interface Blockwork {
 
 /** Step for estimating the surface normal, as a share of a block. */
 const NORMAL_STEP = 0.5;
+/** Step down from a column's top to its smoothed surface, as a share of a block. */
+const SURFACE_STEP = 0.125;
 
 export function createBlockwork(tank: TankSize, spec: BlocksSpec): Blockwork {
   const grid = blockGrid(tank, spec.size);
@@ -114,6 +123,13 @@ export function createBlockwork(tank: TankSize, spec: BlocksSpec): Blockwork {
     return lower * (1 - fv) + upper * fv + outside(x, y, z);
   };
 
+  const topAt = (x: number, z: number): number => {
+    const column = columnOf(x);
+    const row = rowOf(z);
+    if (!inside(column, 0, row)) return 0;
+    return tops[row * columns + column] ?? 0;
+  };
+
   const step = size * NORMAL_STEP;
   const noBlocks = builtUp.length === 0;
   const field: ObstacleField = {
@@ -144,11 +160,20 @@ export function createBlockwork(tank: TankSize, spec: BlocksSpec): Blockwork {
       const row = rowOf(point.z);
       return inside(column, layer, row) && cells[cellIndex(grid, column, layer, row)] === 1;
     },
-    topAt(x, z) {
-      const column = columnOf(x);
-      const row = rowOf(z);
-      if (!inside(column, 0, row)) return 0;
-      return tops[row * columns + column] ?? 0;
+    topAt,
+    surfaceAt(x, z) {
+      const top = topAt(x, z);
+      if (top === 0) return 0;
+      // Down from the top until inside the rock, then where the distance crosses 0.
+      const down = size * SURFACE_STEP;
+      let above = sample(x, top, z);
+      if (above <= 0) return top;
+      for (let y = top - down; y > 0; y -= down) {
+        const below = sample(x, y, z);
+        if (below <= 0) return y + down * (above / (above - below));
+        above = below;
+      }
+      return 0;
     },
     randomTop(rng) {
       if (noBlocks) return undefined;

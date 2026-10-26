@@ -39,6 +39,32 @@ describe("blockwork", () => {
     expect(blocks.topAt(0.9, -0.1)).toBe(0);
   });
 
+  it("finds the smoothed rock surface at the top of a block's middle", () => {
+    const blocks = build([
+      [2, 0, 3],
+      [2, 1, 3],
+    ]);
+    const spot = middleOf(2, 1, 3);
+
+    expect(blocks.surfaceAt(spot.x, spot.z)).toBeCloseTo(0.5, 2);
+  });
+
+  it("finds the smoothed rock surface lower than the top near the edge of a lone column", () => {
+    const blocks = build([
+      [2, 0, 3],
+      [2, 1, 3],
+    ]);
+    const nearEdge = middleOf(2, 1, 3).x + SIZE * 0.45;
+
+    expect(blocks.surfaceAt(nearEdge, middleOf(2, 1, 3).z)).toBeLessThan(0.4);
+  });
+
+  it("has no rock surface where there are no blocks", () => {
+    const blocks = build([[2, 0, 3]]);
+
+    expect(blocks.surfaceAt(0.9, -0.1)).toBe(0);
+  });
+
   it("picks random spots on the tops of the blocks", () => {
     const blocks = build([
       [1, 0, 1],
