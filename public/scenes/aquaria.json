@@ -37,7 +37,8 @@
     "material": {
       "id": "fine-sand",
       "tileSize": 1.2
-    }
+    },
+    "contact": 0.45
   },
   "lights": {
     "channels": {
@@ -55,7 +56,7 @@
   },
   "flora": [
     {
-      "kind": "kelp",
+      "kind": "ribbon-kelp",
       "name": "Kelp at the sides",
       "count": 7,
       "bands": [3, 4],
@@ -63,26 +64,50 @@
       "color": ["#7a9a34", "#5f8a2e", "#9aa83e"]
     },
     {
-      "kind": "seagrass",
+      "kind": "turtle-grass",
       "count": 30,
       "bands": [0, 4],
       "height": [0.12, 0.35],
-      "color": ["#6fa84a", "#8bbf52"]
+      "color": ["#5e9a34", "#6fa83c"]
     },
     {
-      "kind": "bush",
+      "kind": "rotala",
       "name": "Green algae",
       "count": 8,
       "bands": [1, 3],
       "height": [0.25, 0.6],
-      "color": ["#4f9a3a", "#6fc24a"]
+      "color": ["#ffffff"]
     },
     {
-      "kind": "anemone",
+      "kind": "bubble-tip-anemone",
       "count": 4,
       "bands": [0, 2],
       "height": [0.12, 0.22],
-      "color": ["#d98fb0", "#c98fd6"]
+      "color": ["#ffffff"]
+    },
+    {
+      "kind": "sea-lettuce",
+      "name": "Sea lettuce",
+      "count": 14,
+      "bands": [0, 3],
+      "height": [0.1, 0.18],
+      "color": ["#5fae2e"]
+    },
+    {
+      "kind": "sarcophyton",
+      "name": "Leather corals",
+      "count": 5,
+      "bands": [0, 3],
+      "height": [0.25, 0.4],
+      "color": ["#ffffff"]
+    },
+    {
+      "kind": "xenia",
+      "name": "Xenia",
+      "count": 6,
+      "bands": [0, 3],
+      "height": [0.12, 0.2],
+      "color": ["#ffffff"]
     }
   ],
   "props": [
@@ -112,39 +137,29 @@
       }
     },
     {
-      "kind": "branch-coral",
+      "kind": "acropora",
       "name": "Orange branching corals",
       "count": 12,
-      "color": ["#e8743c", "#d9583a", "#f08a4a"],
+      "color": ["#ffffff"],
       "size": [0.45, 0.85]
     },
     {
-      "kind": "brain-coral",
+      "kind": "platygyra",
       "count": 6,
-      "color": ["#c8a85a", "#b8955a"],
-      "material": {
-        "id": "reef-rock",
-        "tileSize": 0.35
-      },
+      "color": ["#ffffff"],
       "size": [0.35, 0.6]
     },
     {
       "kind": "fan-coral",
-      "count": 5,
+      "count": 3,
       "color": ["#7a4fa8", "#5a6fc8"],
       "size": [0.7, 1.1]
     },
     {
-      "kind": "table-coral",
+      "kind": "table-acropora",
       "count": 4,
-      "color": ["#8fb8c9", "#b0c8a0"],
+      "color": ["#ffffff"],
       "size": [0.45, 0.7]
-    },
-    {
-      "kind": "leather-coral",
-      "count": 5,
-      "color": ["#5f9a8a", "#8fb87a"],
-      "size": [0.3, 0.5]
     },
     {
       "kind": "shell",
@@ -152,13 +167,44 @@
       "color": ["#f3e6d4", "#e8d2b8"]
     },
     {
-      "kind": "starfish",
-      "count": 1,
-      "color": "#e8612c",
-      "material": {
-        "id": "reef-rock",
-        "tileSize": 0.12
-      }
+      "kind": "pocillopora",
+      "name": "Cauliflower corals",
+      "count": 8,
+      "bands": [0, 3],
+      "size": [0.25, 0.45],
+      "color": ["#ffffff"]
+    },
+    {
+      "kind": "finger-montipora",
+      "name": "Finger corals",
+      "count": 6,
+      "bands": [1, 4],
+      "size": [0.3, 0.5],
+      "color": ["#ffffff"]
+    },
+    {
+      "kind": "tube-sponge",
+      "name": "Tube sponges",
+      "count": 5,
+      "bands": [1, 4],
+      "size": [0.12, 0.2],
+      "color": ["#ffffff"]
+    },
+    {
+      "kind": "plating-montipora",
+      "name": "Plating montipora",
+      "count": 4,
+      "bands": [1, 3],
+      "size": [0.35, 0.55],
+      "color": ["#ffffff"]
+    },
+    {
+      "kind": "coral-rubble",
+      "name": "Rubble on the sand",
+      "count": 14,
+      "bands": [0, 4],
+      "size": [0.25, 0.45],
+      "color": ["#ffffff"]
     }
   ],
   "fauna": [
@@ -185,6 +231,10 @@
     {
       "species": "neon-tetra",
       "count": 18
+    },
+    {
+      "species": "red-sea-star",
+      "count": 2
     }
   ],
   "visitors": [
