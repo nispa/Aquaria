@@ -666,6 +666,19 @@ fluorescence; the scans are left out of the tanks.
       replaces the still starfish in the Hero, the Tropical reef, the
       Home reef and the lagoon.
 
+## M. Next (noted 2026-10-26, not started)
+
+- [ ] More fish made in Blender, with the fish maker (K): the species that
+      still have only their procedural body (yellow tang, butterflyfish,
+      moorish idol, emperor angelfish, three-bar damsel, purple tang, neon
+      tetra, dwarf gourami) and the clownfish, whose model was downloaded.
+      Which first is the user's choice.
+- [ ] Remove the procedural generators no bundled object uses since the
+      retired table (10468df): every plant generator in
+      `render/floraRenderer.ts`, `render/objectBake.ts` and
+      `render/sceneryGeometry.ts`, and the prop generators but rock, shell
+      and pebble; then the `recipe` of a plant goes too.
+
 ## Ideas to discuss
 
 Raised by the user, not planned yet.
