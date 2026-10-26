@@ -83,11 +83,14 @@ export function plantPatch(
         for (int i = 0; i < ${String(MAX_PARTING)}; i++) {
           if (i >= uPartingCount) break;
           vec4 fish = uParting[i];
+          // Tentacles bend aside round the fish, sideways and mostly near
+          // their tips; pushed straight out every way, the anemone swelled.
           vec3 away = mvPosition.xyz - fish.xyz;
           float distance = length(away);
-          if (distance < fish.w && distance > 0.0001) {
-            float push = 1.0 - distance / fish.w;
-            mvPosition.xyz += away / distance * push * push * fish.w * 0.7 * aSway;
+          float aside = length(away.xz);
+          if (distance < fish.w && aside > 0.0001) {
+            float push = 1.0 - smoothstep(0.0, fish.w, distance);
+            mvPosition.xz += away.xz / aside * push * fish.w * 0.35 * aSway * aSway;
           }
         }`;
   return {

@@ -6,7 +6,7 @@ const anemone = { x: 0, z: -1, base: 0.3, height: 0.2 };
 const out = () => Array.from({ length: 3 }, () => new Vector4());
 
 describe("partingFish", () => {
-  it("parts the tentacles around a fish in an anemone, by the fish's size", () => {
+  it("parts the tentacles only round a fish's own body, not a ball around it", () => {
     const parting = out();
 
     const count = partingFish(
@@ -18,8 +18,18 @@ describe("partingFish", () => {
     expect([count, parting[0]?.x, parting[0]?.w]).toEqual([
       1,
       0.05,
-      expect.closeTo(0.15) as number,
+      expect.closeTo(0.045) as number,
     ]);
+  });
+
+  it("leaves out a crab walking over the anemone", () => {
+    const count = partingFish(
+      [{ position: new Vector3(0.05, 0.4, -1), length: 0.1, walking: true }],
+      [anemone],
+      out(),
+    );
+
+    expect(count).toBe(0);
   });
 
   it("leaves out a fish swimming far above the anemone", () => {

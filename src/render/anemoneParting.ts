@@ -14,14 +14,19 @@ export interface PartingSwimmer {
   readonly position: Vector3;
   /** Body length, m. */
   readonly length: number;
+  /** Walking on the bottom (a crab): it climbs over tentacles, it does not part them. */
+  readonly walking?: boolean;
 }
 
 /** Tentacles reach out this many anemone heights from its middle. */
 const REACH = 1.2;
 /** A fish this many anemone heights above its base still brushes the tips. */
 const ABOVE = 1.5;
-/** Tentacles part this many body lengths around a fish. */
-const RADIUS_PER_LENGTH = 1.5;
+/**
+ * Tentacles part this many body lengths around a fish: its own body and a
+ * little more, so they brush it. Wider, the anemone swelled into a ball.
+ */
+const RADIUS_PER_LENGTH = 0.45;
 
 /**
  * The fish among the tentacles of an anemone, written into `out` as
@@ -36,6 +41,7 @@ export function partingFish(
   let count = 0;
   for (const swimmer of fish) {
     if (count >= out.length) break;
+    if (swimmer.walking === true) continue;
     const { x, y, z } = swimmer.position;
     for (const anemone of anemones) {
       const reach = anemone.height * REACH;
