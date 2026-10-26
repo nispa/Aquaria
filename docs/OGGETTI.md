@@ -134,7 +134,8 @@ piatti e fa i polipi a stella verdi. Le colonie vengono da `scripts/blender/colo
 ramificati (acropora, il corallo cavolfiore `pocillopora`, la
 `table-acropora`, il corallo a dita `finger-montipora`) fino a punte di un altro colore, con i calici dei polipi
 dipinti in una texture; un corallo cervello vivo (`platygyra`) ripiegato
-in creste e valli a meandri; una spugna a tubi; e il corallo torcia, una pianta i cui
+in creste e valli a meandri; una spugna a tubi; i detriti di corallo, pezzi
+sbiancati e spezzati sparsi sulla sabbia; e il corallo torcia, una pianta i cui
 tentacoli ondeggiano uno per uno come quelli degli anemoni.
 
 ### `tint`: il colore tinge il modello

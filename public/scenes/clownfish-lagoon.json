@@ -38,9 +38,10 @@
     "rise": 0.1,
     "dunes": 0.6,
     "material": {
-      "id": "fine-sand",
-      "tileSize": 0.8
-    }
+      "id": "coarse-sand",
+      "tileSize": 0.35
+    },
+    "contact": 0.55
   },
   "lights": {
     "channels": {
@@ -215,6 +216,14 @@
       "on": "rockwork",
       "color": ["#ffffff"],
       "size": [0.05, 0.09]
+    },
+    {
+      "kind": "coral-rubble",
+      "name": "Rubble on the sand",
+      "count": 7,
+      "bands": [0, 4],
+      "color": ["#ffffff"],
+      "size": [0.06, 0.12]
     }
   ],
   "fauna": [

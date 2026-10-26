@@ -35,9 +35,10 @@
   "floor": {
     "color": "#b9b09c",
     "material": {
-      "id": "fine-sand",
-      "tileSize": 0.8
-    }
+      "id": "coarse-sand",
+      "tileSize": 0.5
+    },
+    "contact": 0.55
   },
   "flora": [
     {
@@ -224,6 +225,14 @@
       "on": "rockwork",
       "color": ["#ffffff"],
       "size": [0.08, 0.16]
+    },
+    {
+      "kind": "coral-rubble",
+      "name": "Rubble on the sand",
+      "count": 18,
+      "bands": [0, 4],
+      "color": ["#ffffff"],
+      "size": [0.1, 0.2]
     }
   ],
   "fauna": [

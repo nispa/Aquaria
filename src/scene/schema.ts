@@ -531,6 +531,11 @@ export const sceneSchema = z
       rise: z.number().min(0).max(0.5).default(0),
       /** The sand dunes: 1 for the usual ones of a tank this size, 0 for a flat floor. */
       dunes: z.number().min(0).max(2).default(1),
+      /**
+       * Contact shadows: how much the sand darkens round the foot of the
+       * rock and of what stands on it, 0 none to 1 black.
+       */
+      contact: unit.default(0),
     }),
     /** LED channels and daily cycle; the recommended reef setup when absent. */
     lights: lightsSchema,

@@ -44,6 +44,7 @@ import { obstaclesOf, type Obstacle } from "../sim/obstacles";
 import { placesOf, type Place } from "../sim/places";
 import { createLightMixer, cycleHour, daylight } from "../sim/lightCycle";
 import { createBlockwork } from "../sim/blockwork";
+import { contactShade, propFootprints, rockFootprints } from "./contactShade";
 import { layoutFlora, layoutProps, propTraitsOf, type RockSurface } from "../sim/layout";
 import type { ObstacleField } from "../sim/obstacles";
 import { createRockwork, LOOSE_ROCK, type Rockwork } from "../sim/rockwork";
@@ -469,6 +470,19 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       halfWidthAt,
       ridge ?? blockTops,
     );
+    if (scene.floor.contact > 0) {
+      const standing = [...(ridge?.rocks ?? []), ...items];
+      environment.setContactShade(
+        contactShade(
+          scene.tank,
+          [
+            ...(blockwork === undefined ? [] : rockFootprints(blockwork, scene.tank)),
+            ...propFootprints(standing),
+          ],
+          scene.floor.contact,
+        ),
+      );
+    }
     places = placesOf(plants, [...(ridge?.rocks ?? []), ...items], floor);
     anemones = places
       .filter((place) => place.tags.includes("anemone"))

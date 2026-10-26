@@ -17,6 +17,9 @@ Aquaria picks one per colony (docs/OBJECTS.md):
 - a tube sponge: a few tubes rising from the rock, each open at the top
   with a darker inside, their skin dotted with pores;
 
+- coral rubble: broken pieces of dead branches lying in a loose patch on
+  the sand, bleached cream and grey, some crusted pink with coralline;
+
 - a torch coral (Euphyllia glabrescens): a few short stalks of skeleton,
   each crowned by long tentacles with round tips that sway one by one, as
   the anemones' do (`_STRAND`, one value per tentacle), so it is a plant
@@ -133,6 +136,19 @@ TORCH_MORPHS = [
     {"stalk": "#5a4a52", "tentacle": "#9a7aa8", "tip": "#80f0ff"},
 ]
 TEXTURE_SIZE = 512
+
+# Coral rubble, m: pieces 1 to 4 cm long in a patch about 16 cm across.
+RUBBLE_PIECES = 22
+RUBBLE_PATCH = 0.08
+RUBBLE_LENGTH = (0.008, 0.028)
+RUBBLE_RADIUS = (0.004, 0.008)
+RUBBLE_SIDES = 6
+# Each morph: bleached skeleton, weathered, and the coralline crust some pieces wear.
+RUBBLE_MORPHS = [
+    {"bleached": "#d8d0bc", "weathered": "#9a9282", "crust": "#a88290"},
+    {"bleached": "#cfc8b8", "weathered": "#88837a", "crust": "#987482"},
+    {"bleached": "#ddd4c0", "weathered": "#a89e88", "crust": "#b08898"},
+]
 
 # Tube sponge, m: tubes up to 14 cm tall from a base 8 cm across.
 SPONGE_TUBES = (3, 6)
@@ -314,6 +330,44 @@ def smoothstep_scalar(edge0, edge1, x):
     return t * t * (3 - 2 * t)
 
 
+# Coral rubble
+
+
+def rubble(morph, offset, rng):
+    """Pieces of broken branch lying on the sand: short tubes, a few forked, each its own shade."""
+    mesh = bmesh.new()
+    colors = {}
+    bleached, weathered, crust = (linear(morph[key]) for key in ("bleached", "weathered", "crust"))
+    for _ in range(RUBBLE_PIECES):
+        angle, share = rng.uniform(0, 2 * math.pi), math.sqrt(rng.random())
+        centre = Vector((RUBBLE_PATCH * share * math.cos(angle), RUBBLE_PATCH * share * math.sin(angle), 0.0))
+        heading = rng.uniform(0, 2 * math.pi)
+        # Lying down, a little tilted: one end resting on the sand, the other on something.
+        axis = Vector((math.cos(heading), math.sin(heading), rng.uniform(-0.15, 0.25))).normalized()
+        length = rng.uniform(*RUBBLE_LENGTH)
+        radius = rng.uniform(*RUBBLE_RADIUS)
+        roll = rng.random()
+        color = crust if roll < 0.1 else mix(bleached, weathered, rng.random() * 0.8)
+        start = centre - axis * (length / 2) + Vector((0, 0, radius * 0.8))
+        rings = []
+        for step in range(3):
+            share_along = step / 2
+            ring = ring_around(mesh, start + axis * (length * share_along), axis,
+                               radius * (1 - 0.25 * share_along), RUBBLE_SIDES)
+            for vertex in ring:
+                colors[vertex] = mix(color, weathered, 0.2 * rng.random())
+            rings.append(ring)
+        for lower, upper in zip(rings, rings[1:]):
+            join_rings(mesh, lower, upper)
+        # Broken ends: flat caps.
+        for ring, end in ((rings[0], start), (rings[-1], start + axis * length)):
+            middle = mesh.verts.new(end)
+            colors[middle] = weathered
+            cap(mesh, ring, middle)
+    bmesh.ops.translate(mesh, verts=mesh.verts, vec=(offset, 0, 0))
+    return mesh, colors
+
+
 # Tube sponge
 
 
@@ -466,6 +520,15 @@ def build_sponge():
         mesh.free()
 
 
+def build_rubble():
+    rng = random.Random(SEED)
+    material = leaf_material("coral-rubble", 0.85)
+    for index, morph in enumerate(RUBBLE_MORPHS):
+        mesh, colors = rubble(morph, index * VARIANT_SPACING * 0.1, rng)
+        plant_object(f"coral-rubble-{index}", mesh, colors, {point: 0.0 for point in mesh.verts}, material)
+        mesh.free()
+
+
 def build_torch():
     rng = random.Random(SEED)
     material = leaf_material("torch-coral", 0.35)
@@ -482,6 +545,8 @@ for name in BRANCHING:
         build(name, build_branching(name))
 if not ONLY or "platygyra" in ONLY:
     build("platygyra", build_brain)
+if not ONLY or "coral-rubble" in ONLY:
+    build("coral-rubble", build_rubble)
 if not ONLY or "tube-sponge" in ONLY:
     build("tube-sponge", build_sponge)
 if not ONLY or "torch-coral" in ONLY:

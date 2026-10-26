@@ -174,6 +174,12 @@ change its shape:
 - `dunes` is how strong the dunes are: `1` is the usual (default), `0` a
   flat floor, `2` twice as high.
 
+A third, `contact`, darkens the sand round the foot of the rock and of
+the corals standing on it, as little light reaches there: `0` none
+(default), `1` black. The Home reef and the Clownfish lagoon say `0.55`.
+The shade fades out 8 cm from the foot; pebbles and shells smaller than
+6 cm cast none.
+
 `backdrop` says what is behind the tank. A `gradient` is open water: the
 sand runs on into the distance, towards a far wall of color. A `panel` is
 a home tank: a panel glued to the back glass, and the sand ends there.

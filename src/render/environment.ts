@@ -1,12 +1,16 @@
 import {
   AdditiveBlending,
   Color,
+  DataTexture,
   DoubleSide,
   Group,
+  LinearFilter,
   Mesh,
   MeshStandardMaterial,
   PlaneGeometry,
+  RedFormat,
   ShaderMaterial,
+  UnsignedByteType,
   Vector2,
   type BufferGeometry,
   type Material,
@@ -16,13 +20,17 @@ import type { Rng } from "../core/rng";
 import type { Scene } from "../scene/schema";
 import type { FloorHeight } from "../sim/terrain";
 import { CAUSTICS_GLSL } from "./shaders/caustics";
+import type { ContactGrid } from "./contactShade";
 import { causticsPatch } from "./shaders/causticsPatch";
+import { contactShadePatch, type ContactShadeUniforms } from "./shaders/contactShadePatch";
 import { patchMaterial, type ShaderPatch } from "./shaders/patch";
 import { surfacePatch } from "./shaders/surfacePatch";
 import { WAVE_SURFACE_FRAGMENT, WAVE_SURFACE_VERTEX } from "./shaders/waveSurface";
 import type { SurfaceLibrary } from "./surfaceLibrary";
 import type { WaterUniforms } from "./uniforms";
 
+/** The largest value a byte of a texture holds. */
+const BYTE = 255;
 /** How far the sand, surface and backdrop extend beyond the tank, in tank sizes. */
 const EXTENT = 6;
 /**
@@ -62,6 +70,8 @@ export interface Environment {
   setLightShaftsVisible(visible: boolean): void;
   /** The surface moved by waves (the "waves" feature), or the plain rippling one. */
   setWavesVisible(visible: boolean): void;
+  /** Darkens the sand round what stands on it (render/contactShade), when the scene asks for it. */
+  setContactShade(grid: ContactGrid): void;
   dispose(): void;
 }
 
@@ -105,6 +115,7 @@ function floor(
   water: WaterUniforms,
   surfaces: SurfaceLibrary,
   tracker: Tracker,
+  contact: ContactShadeUniforms,
 ): Mesh {
   const closed = isClosed(scene);
   const halfWidth = scene.tank.width / 2;
@@ -130,6 +141,7 @@ function floor(
     [
       sand === undefined ? SAND_GRAIN : surfacePatch(surfaces.get(sand.id), "top", sand),
       causticsPatch(water),
+      ...(scene.floor.contact > 0 ? [contactShadePatch(contact)] : []),
     ],
   );
   tracker.geometries.push(geometry);
@@ -386,13 +398,18 @@ export function createEnvironment(
   object.name = "environment";
   const tracker: Tracker = { geometries: [], materials: [] };
   const shafts = lightShafts(scene, water, rng, tracker);
+  const contact: ContactShadeUniforms = {
+    uContactShade: { value: null },
+    uContactArea: { value: [0, 0, 1, 1] },
+  };
+  let contactTexture: DataTexture | undefined;
   const plainSurface = surface(scene, water, tracker);
   const wavySurface = waveSurface(scene, water, tracker);
   wavySurface.visible = false;
   const openWater = isClosed(scene) ? undefined : backdrop(scene, water, tracker);
   object.add(
     openWater ?? panel(scene, water, tracker),
-    floor(scene, floorHeight, water, surfaces, tracker),
+    floor(scene, floorHeight, water, surfaces, tracker, contact),
     plainSurface,
     wavySurface,
     shafts,
@@ -409,7 +426,26 @@ export function createEnvironment(
       wavySurface.visible = visible;
       plainSurface.visible = !visible;
     },
+    setContactShade(grid) {
+      const light = new Uint8Array(grid.values.length);
+      grid.values.forEach((value, index) => {
+        light[index] = Math.round(value * BYTE);
+      });
+      contactTexture?.dispose();
+      contactTexture = new DataTexture(light, grid.columns, grid.rows, RedFormat, UnsignedByteType);
+      contactTexture.magFilter = LinearFilter;
+      contactTexture.minFilter = LinearFilter;
+      contactTexture.needsUpdate = true;
+      contact.uContactShade.value = contactTexture;
+      contact.uContactArea.value = [
+        grid.minX,
+        grid.minZ,
+        grid.columns * grid.cell,
+        grid.rows * grid.cell,
+      ];
+    },
     dispose() {
+      contactTexture?.dispose();
       tracker.geometries.forEach((geometry) => {
         geometry.dispose();
       });

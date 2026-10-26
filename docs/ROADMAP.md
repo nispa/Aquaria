@@ -646,8 +646,11 @@ fluorescence; the scans are left out of the tanks.
 
 ### L3. Sand
 
-- [ ] Grain, coral rubble and small shells; contact shadows where rock
-      and corals meet the sand.
+- [x] Grain, coral rubble and small shells; contact shadows where rock
+      and corals meet the sand: `floor.contact` (render/contactShade, a
+      grid over the floor from the blocks on it and what stands on the
+      sand), `coral-rubble` from `scripts/blender/colonies.py`, coarse
+      sand in the Home reef and the Clownfish lagoon.
 
 ### L4. Movement
 

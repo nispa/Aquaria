@@ -1,0 +1,23 @@
+{
+  "name": "Coral rubble",
+  "category": "object",
+  "model": "model.glb",
+  "color": ["#ffffff", "#f4f0e8", "#ece8e0"],
+  "traits": {
+    "collision": {
+      "solid": false
+    },
+    "tags": ["rubble"],
+    "placement": {
+      "on": ["sand"],
+      "bands": [0, 4],
+      "size": [0.1, 0.2],
+      "clearance": 0.04
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py",
+    "license": "CC0-1.0"
+  }
+}

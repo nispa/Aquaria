@@ -382,8 +382,7 @@ export function layoutProps(
           : spotAt(chosen, rockwork);
       // Drawn in this order, color then size, so every scene keeps its layout.
       const color = drawColor(spec.color, entryRng);
-      const size =
-        chosen?.size ?? entryRng.range(...(spec.size ?? placement.size ?? DEFAULT_SIZE));
+      const size = chosen?.size ?? entryRng.range(...(spec.size ?? placement.size ?? DEFAULT_SIZE));
       const onRock = rockwork !== undefined && spot.elevation !== undefined;
       return {
         kind: spec.kind,

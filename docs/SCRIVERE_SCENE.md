@@ -179,6 +179,12 @@ rimpiccioliscono con lei, così una nano non ha dune di 12 cm. Due campi di
 - `dunes` è quanto sono forti le dune: `1` è il solito (predefinito), `0`
   un fondo piatto, `2` alte il doppio.
 
+Un terzo, `contact`, scurisce la sabbia ai piedi della roccia e dei
+coralli che ci stanno sopra, perché lì arriva poca luce: `0` niente
+(predefinito), `1` nero. La Home reef e la Clownfish lagoon dicono `0.55`.
+L'ombra sfuma a 8 cm dal piede; ciottoli e conchiglie sotto i 6 cm non ne
+fanno.
+
 `backdrop` dice cosa c'è dietro la vasca. Un `gradient` è acqua aperta: la
 sabbia continua in lontananza, verso un muro di colore lontano. Un `panel`
 è una vasca di casa: un pannello incollato al vetro di fondo, e la sabbia

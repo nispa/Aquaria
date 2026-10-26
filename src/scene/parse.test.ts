@@ -202,6 +202,19 @@ describe("parseScene", () => {
     expect(scene.floor).toMatchObject({ rise: 0, dunes: 1 });
   });
 
+  it("casts no contact shadows on the sand unless the scene asks", () => {
+    const scene = parseScene(sceneFixture(), catalog);
+
+    expect(scene.floor.contact).toBe(0);
+  });
+
+  it("rejects contact shadows darker than black", () => {
+    const input = sceneFixture();
+    input.floor = { ...input.floor, contact: 1.5 };
+
+    expect(() => parseScene(input, catalog)).toThrow(/floor\.contact/);
+  });
+
   it("rejects a floor rising more than half the tank height", () => {
     const input = sceneFixture();
     input.floor = { ...input.floor, rise: 0.6 };
