@@ -228,44 +228,44 @@
       }
     },
     {
-      "kind": "staghorn-coral",
+      "kind": "acropora",
       "count": 6,
-      "color": ["#ff8a3c", "#ff7040", "#ffa055"]
+      "color": ["#ffffff"]
     },
     {
-      "kind": "grooved-brain-coral",
+      "kind": "platygyra",
       "count": 3,
-      "color": ["#c9b27a", "#a8b87a", "#d0a070"]
+      "color": ["#ffffff"]
     },
     {
-      "kind": "maze-coral",
+      "kind": "platygyra",
       "count": 3,
-      "color": ["#c9a070", "#b8b07a", "#d6b48a"]
+      "color": ["#ffffff"]
     },
     {
-      "kind": "cauliflower-coral",
+      "kind": "pocillopora",
       "count": 5,
-      "color": ["#e39aa6", "#d98a6a", "#c9a0d0"]
+      "color": ["#ffffff"]
     },
     {
-      "kind": "finger-coral",
+      "kind": "finger-montipora",
       "count": 4,
-      "color": ["#9d8fd6", "#7fb8c9", "#c9b88a"]
+      "color": ["#ffffff"]
     },
     {
-      "kind": "sheet-coral",
+      "kind": "plating-montipora",
       "count": 4,
-      "color": ["#d8a070", "#c98a5a", "#b8a080"]
+      "color": ["#ffffff"]
     },
     {
-      "kind": "tabletop-coral",
+      "kind": "table-acropora",
       "count": 3,
-      "color": ["#9fc0a8", "#b8c890", "#a0b8c8"]
+      "color": ["#ffffff"]
     },
     {
-      "kind": "glove-sponge",
+      "kind": "tube-sponge",
       "count": 4,
-      "color": ["#d8803a", "#6f7fd8", "#c8a048"]
+      "color": ["#ffffff"]
     },
     {
       "kind": "fan-coral",
@@ -288,75 +288,75 @@
       }
     },
     {
-      "kind": "cauliflower-coral",
+      "kind": "pocillopora",
       "name": "Cauliflower corals on the rock",
       "count": 19,
       "on": "rockwork",
-      "color": ["#e88aa0", "#ffb07a", "#c9a0e0"],
+      "color": ["#ffffff"],
       "size": [0.16, 0.3],
       "bands": [1, 2]
     },
     {
-      "kind": "finger-coral",
+      "kind": "finger-montipora",
       "name": "Finger corals on the rock",
       "count": 14,
       "on": "rockwork",
-      "color": ["#8fd0d8", "#a090e0", "#d8c080"],
+      "color": ["#ffffff"],
       "size": [0.16, 0.32],
       "bands": [1, 2]
     },
     {
-      "kind": "sheet-coral",
-      "name": "Plates on the rock",
+      "kind": "plating-montipora",
+      "name": "Plating montipora on the rock",
       "count": 11,
       "on": "rockwork",
-      "color": ["#e0a868", "#c8b878"],
+      "color": ["#ffffff"],
       "size": [0.2, 0.35],
       "bands": [1, 2]
     },
     {
-      "kind": "maze-coral",
+      "kind": "platygyra",
       "name": "Brain corals on the rock",
       "count": 8,
       "on": "rockwork",
-      "color": ["#c9a070", "#b8b07a"],
+      "color": ["#ffffff"],
       "size": [0.18, 0.3],
       "bands": [1, 2]
     },
     {
-      "kind": "staghorn-coral",
-      "name": "Staghorn on the rock",
+      "kind": "acropora",
+      "name": "Acropora on the rock",
       "count": 8,
       "on": "rockwork",
-      "color": ["#ff8a3c", "#ffa055"],
+      "color": ["#ffffff"],
       "size": [0.3, 0.5],
       "bands": [1, 2]
     },
     {
-      "kind": "glove-sponge",
-      "name": "Sponges on the rock",
+      "kind": "tube-sponge",
+      "name": "Tube sponges on the rock",
       "count": 7,
       "on": "rockwork",
-      "color": ["#d8803a", "#6f7fd8"],
-      "size": [0.18, 0.3],
+      "color": ["#ffffff"],
+      "size": [0.108, 0.18],
       "bands": [1, 2]
     },
     {
-      "kind": "cauliflower-coral",
+      "kind": "pocillopora",
       "name": "Corals on the pillars",
       "count": 5,
       "on": "rockwork",
       "bands": [3, 4],
-      "color": ["#e88aa0", "#c9a0e0"],
+      "color": ["#ffffff"],
       "size": [0.14, 0.24]
     },
     {
-      "kind": "tabletop-coral",
+      "kind": "table-acropora",
       "name": "Outcrop: table corals",
       "count": 3,
       "on": "rockwork",
       "bands": [0, 4],
-      "color": ["#9fc0a8", "#b8c890"],
+      "color": ["#ffffff"],
       "at": [
         {
           "x": 2.15,
@@ -376,12 +376,12 @@
       ]
     },
     {
-      "kind": "sheet-coral",
+      "kind": "plating-montipora",
       "name": "Outcrop: plate corals",
       "count": 3,
       "on": "rockwork",
       "bands": [0, 4],
-      "color": ["#e0a868", "#d89058"],
+      "color": ["#ffffff"],
       "at": [
         {
           "x": 2.34,
@@ -401,12 +401,12 @@
       ]
     },
     {
-      "kind": "staghorn-coral",
+      "kind": "acropora",
       "name": "Outcrop: staghorn",
       "count": 3,
       "on": "rockwork",
       "bands": [0, 4],
-      "color": ["#ff8a3c", "#ffa055"],
+      "color": ["#ffffff"],
       "at": [
         {
           "x": 1.962,
@@ -426,12 +426,12 @@
       ]
     },
     {
-      "kind": "glove-sponge",
+      "kind": "tube-sponge",
       "name": "Outcrop: sponges",
       "count": 4,
       "on": "rockwork",
       "bands": [0, 4],
-      "color": ["#6f7fd8", "#8f6fd0", "#d8803a"],
+      "color": ["#ffffff"],
       "at": [
         {
           "x": 2.046,
@@ -456,12 +456,12 @@
       ]
     },
     {
-      "kind": "cauliflower-coral",
+      "kind": "pocillopora",
       "name": "Outcrop: cauliflower corals",
       "count": 3,
       "on": "rockwork",
       "bands": [0, 4],
-      "color": ["#e88aa0", "#ffb07a"],
+      "color": ["#ffffff"],
       "at": [
         {
           "x": 1.791,
@@ -481,12 +481,12 @@
       ]
     },
     {
-      "kind": "finger-coral",
+      "kind": "finger-montipora",
       "name": "Outcrop: finger corals",
       "count": 2,
       "on": "rockwork",
       "bands": [0, 4],
-      "color": ["#a090e0", "#8fd0d8"],
+      "color": ["#ffffff"],
       "at": [
         {
           "x": 2.02,

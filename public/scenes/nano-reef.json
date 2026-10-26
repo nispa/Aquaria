@@ -104,44 +104,44 @@
   ],
   "props": [
     {
-      "kind": "cauliflower-coral",
+      "kind": "pocillopora",
       "count": 2,
       "on": "rockwork",
       "bands": [0, 4],
-      "color": ["#e88aa0", "#ffb07a"],
+      "color": ["#ffffff"],
       "size": [0.09, 0.13]
     },
     {
-      "kind": "maze-coral",
+      "kind": "platygyra",
       "count": 1,
       "on": "rockwork",
       "bands": [0, 4],
-      "color": ["#c9a070"],
+      "color": ["#ffffff"],
       "size": [0.1, 0.1]
     },
     {
-      "kind": "staghorn-coral",
+      "kind": "acropora",
       "count": 2,
       "on": "rockwork",
       "bands": [0, 4],
-      "color": ["#ff8a3c"],
+      "color": ["#ffffff"],
       "size": [0.12, 0.16]
     },
     {
-      "kind": "sheet-coral",
+      "kind": "plating-montipora",
       "count": 1,
       "on": "rockwork",
       "bands": [0, 4],
-      "color": ["#e0a868"],
+      "color": ["#ffffff"],
       "size": [0.1, 0.1]
     },
     {
-      "kind": "glove-sponge",
+      "kind": "tube-sponge",
       "count": 1,
       "on": "rockwork",
       "bands": [0, 4],
-      "color": ["#6f7fd8"],
-      "size": [0.08, 0.08]
+      "color": ["#ffffff"],
+      "size": [0.048, 0.048]
     },
     {
       "kind": "shell",

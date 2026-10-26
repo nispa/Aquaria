@@ -108,21 +108,21 @@
       }
     },
     {
-      "kind": "staghorn-coral",
+      "kind": "acropora",
       "count": 2,
-      "color": ["#ff8a3c", "#ffa055"],
+      "color": ["#ffffff"],
       "bands": [1, 2],
       "size": [0.3, 0.5]
     },
     {
-      "kind": "grooved-brain-coral",
+      "kind": "platygyra",
       "count": 3,
-      "color": ["#c9b27a", "#a8b87a"]
+      "color": ["#ffffff"]
     },
     {
-      "kind": "tabletop-coral",
+      "kind": "table-acropora",
       "count": 2,
-      "color": ["#9fc0a8", "#b8c890"]
+      "color": ["#ffffff"]
     },
     {
       "kind": "fan-coral",
@@ -146,58 +146,58 @@
       }
     },
     {
-      "kind": "cauliflower-coral",
+      "kind": "pocillopora",
       "count": 10,
-      "color": ["#e88aa0", "#ffb07a", "#c9a0e0"],
+      "color": ["#ffffff"],
       "on": "rockwork",
       "size": [0.2, 0.35],
       "bands": [2, 3],
       "name": "Cauliflower corals on the rock"
     },
     {
-      "kind": "finger-coral",
+      "kind": "finger-montipora",
       "count": 8,
-      "color": ["#8fd0d8", "#a090e0", "#d8c080"],
+      "color": ["#ffffff"],
       "on": "rockwork",
       "size": [0.2, 0.35],
       "bands": [2, 3],
       "name": "Finger corals on the rock"
     },
     {
-      "kind": "sheet-coral",
+      "kind": "plating-montipora",
       "count": 6,
-      "color": ["#e0a868", "#c8b878"],
+      "color": ["#ffffff"],
       "on": "rockwork",
       "size": [0.25, 0.4],
       "bands": [2, 3],
-      "name": "Plates on the rock"
+      "name": "Plating montipora on the rock"
     },
     {
-      "kind": "maze-coral",
+      "kind": "platygyra",
       "count": 5,
-      "color": ["#c9a070", "#b8b07a"],
+      "color": ["#ffffff"],
       "on": "rockwork",
       "size": [0.2, 0.32],
       "bands": [2, 3],
       "name": "Brain corals on the rock"
     },
     {
-      "kind": "staghorn-coral",
+      "kind": "acropora",
       "count": 6,
-      "color": ["#ff8a3c", "#f2c14e"],
+      "color": ["#ffffff"],
       "on": "rockwork",
       "size": [0.3, 0.5],
       "bands": [2, 3],
-      "name": "Staghorn on the rock"
+      "name": "Acropora on the rock"
     },
     {
-      "kind": "glove-sponge",
+      "kind": "tube-sponge",
       "count": 4,
-      "color": ["#d8803a", "#6f7fd8"],
+      "color": ["#ffffff"],
       "on": "rockwork",
-      "size": [0.2, 0.32],
+      "size": [0.12, 0.192],
       "bands": [2, 3],
-      "name": "Sponges on the rock"
+      "name": "Tube sponges on the rock"
     }
   ],
   "fauna": [

@@ -640,8 +640,9 @@ fluorescence; the scans are left out of the tanks.
       large (`scripts/blender/colonies.py`): acropora, cauliflower coral
       (pocillopora), table acropora, finger coral (montipora digitata),
       a living brain coral, the torch coral and a tube sponge. No scans
-      left in the Home reef and the Clownfish lagoon; the Hero and the
-      Tropical reef keep theirs for now. The table acropora is heavy
+      left in any bundled scene: the Hero, the Tropical reef and the Nano
+      reef wear the living corals too (the user, 2026-10-26). The scans
+      stay in the catalog for scenes that ask for them. The table acropora is heavy
       (850 KB).
 
 ### L3. Sand
