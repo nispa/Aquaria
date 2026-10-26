@@ -1,4 +1,5 @@
 import type { Rng } from "../core/rng";
+import type { TankSize } from "../scene/tankMeasures";
 
 /**
  * The sounds of the aquarium, as plain numbers: Web Audio plays them (see
@@ -17,38 +18,83 @@ export interface Bubble {
   readonly level: number;
 }
 
-/** Bubbling water sends a bubble about this often, s; still water far less often. */
-const BUBBLING_GAP: readonly [number, number] = [0.08, 0.7];
-const STILL_GAP: readonly [number, number] = [1.5, 6];
-const BUBBLE_HZ: readonly [number, number] = [380, 1100];
-const BUBBLE_RISE: readonly [number, number] = [1.3, 1.9];
-const BUBBLE_SECONDS: readonly [number, number] = [0.04, 0.12];
-const BUBBLE_LEVEL: readonly [number, number] = [0.015, 0.05];
+type Range = readonly [number, number];
+
+/**
+ * How the water of a tank sounds: its bubbles and the steady hush under
+ * them. A home tank hums softly with its pump and bubbles now and then
+ * near the glass; the open sea is a low, far rumble where a bubble is rare.
+ */
+export interface Ambience {
+  /** Wait between bubbles, s, when the water bubbles and when it is still. */
+  readonly bubblingGap: Range;
+  readonly stillGap: Range;
+  readonly bubbleHz: Range;
+  readonly bubbleLevel: Range;
+  /** Looped noise, filtered: low-passed to a rumble, or band-passed to a soft rush. */
+  readonly hush: {
+    readonly filter: "lowpass" | "bandpass";
+    readonly hz: number;
+    readonly q: number;
+    /** Gain when the water bubbles, and when it is still. */
+    readonly bubblingLevel: number;
+    readonly stillLevel: number;
+  };
+}
+
+const BUBBLE_RISE: Range = [1.3, 1.9];
+const BUBBLE_SECONDS: Range = [0.04, 0.12];
+
+/** A home tank: the pump's soft rush, a bubble now and then, close by. */
+const HOME_TANK: Ambience = {
+  bubblingGap: [0.6, 3.5],
+  stillGap: [4, 14],
+  bubbleHz: [500, 1200],
+  bubbleLevel: [0.006, 0.018],
+  hush: { filter: "bandpass", hz: 380, q: 0.6, bubblingLevel: 0.012, stillLevel: 0.006 },
+};
+
+/** The sound of the water by the size of the tank. */
+export const AMBIENCES: Readonly<Record<TankSize, Ambience>> = {
+  nano: HOME_TANK,
+  small: HOME_TANK,
+  medium: HOME_TANK,
+  // A big tank: deeper water, the pump farther off, bubbles a little lower and rarer.
+  large: {
+    bubblingGap: [1.5, 6],
+    stillGap: [6, 20],
+    bubbleHz: [350, 900],
+    bubbleLevel: [0.005, 0.014],
+    hush: { filter: "lowpass", hz: 300, q: 0.5, bubblingLevel: 0.012, stillLevel: 0.008 },
+  },
+  // The open sea, heard from under the water: a low rumble, and only now and then a bubble.
+  ocean: {
+    bubblingGap: [5, 16],
+    stillGap: [12, 40],
+    bubbleHz: [220, 600],
+    bubbleLevel: [0.004, 0.012],
+    hush: { filter: "lowpass", hz: 160, q: 0.4, bubblingLevel: 0.016, stillLevel: 0.012 },
+  },
+};
 
 /** The next bubble of the ambient bubbling, drawn from `rng`. */
-export function nextBubble(rng: Rng, bubbling: boolean): Bubble {
-  const [shortest, longest] = bubbling ? BUBBLING_GAP : STILL_GAP;
+export function nextBubble(
+  rng: Rng,
+  bubbling: boolean,
+  ambience: Ambience = AMBIENCES.medium,
+): Bubble {
+  const [shortest, longest] = bubbling ? ambience.bubblingGap : ambience.stillGap;
   // Squaring the draw bunches bubbles into little bursts with pauses between.
   const gap = shortest + (longest - shortest) * rng.next() ** 2;
-  const startHz = rng.range(BUBBLE_HZ[0], BUBBLE_HZ[1]);
+  const startHz = rng.range(ambience.bubbleHz[0], ambience.bubbleHz[1]);
   return {
     delaySeconds: gap,
     startHz,
     endHz: startHz * rng.range(BUBBLE_RISE[0], BUBBLE_RISE[1]),
     seconds: rng.range(BUBBLE_SECONDS[0], BUBBLE_SECONDS[1]),
-    level: rng.range(BUBBLE_LEVEL[0], BUBBLE_LEVEL[1]),
+    level: rng.range(ambience.bubbleLevel[0], ambience.bubbleLevel[1]),
   };
 }
-
-/** The steady hush of moving water under the bubbles. */
-export const WATER_HUSH = {
-  /** Band of the filtered noise, Hz. */
-  centerHz: 520,
-  q: 0.7,
-  /** Gain when the water bubbles, and when it is still. */
-  bubblingLevel: 0.035,
-  stillLevel: 0.018,
-} as const;
 
 /** A tap on the glass: a dull thud and a little click. */
 export const TAP_SOUND = {

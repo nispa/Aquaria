@@ -1,10 +1,11 @@
 import type { Rng } from "../core/rng";
+import type { TankSize } from "../scene/tankMeasures";
 import {
+  AMBIENCES,
   FEED_SOUND,
   nextBubble,
   SWITCH_SOUNDS,
   TAP_SOUND,
-  WATER_HUSH,
   type SwitchSoundId,
 } from "./recipes";
 
@@ -23,6 +24,8 @@ export interface SoundBoard {
   play(id: SoundId): void;
   /** Whether the water bubbles (more bubbles) or is still. */
   setBubbling(bubbling: boolean): void;
+  /** The size of the tank, which the water's sound follows (recipes' AMBIENCES). */
+  setTankSize(size: TankSize): void;
   /** 0 silent .. 1 full. */
   setVolume(volume: number): void;
   setEnabled(enabled: boolean): void;
@@ -41,6 +44,8 @@ export function createSoundBoard(rng: Rng): SoundBoard {
   let context: AudioContext | undefined;
   let master: GainNode | undefined;
   let hush: GainNode | undefined;
+  let hushFilter: BiquadFilterNode | undefined;
+  let ambience = AMBIENCES.medium;
   let noise: AudioBuffer | undefined;
   let bubbling = true;
   let volume = 1;
@@ -83,14 +88,22 @@ export function createSoundBoard(rng: Rng): SoundBoard {
   };
 
   const scheduleBubble = (): void => {
-    const bubble = nextBubble(rng, bubbling);
+    const bubble = nextBubble(rng, bubbling, ambience);
     bubbleTimer = window.setTimeout(() => {
       if (enabled) tone(bubble.startHz, bubble.endHz, bubble.seconds, bubble.level);
       scheduleBubble();
     }, bubble.delaySeconds * MS_PER_SECOND);
   };
 
-  const hushLevel = (): number => (bubbling ? WATER_HUSH.bubblingLevel : WATER_HUSH.stillLevel);
+  const hushLevel = (): number =>
+    bubbling ? ambience.hush.bubblingLevel : ambience.hush.stillLevel;
+
+  const tuneHush = (): void => {
+    if (hushFilter === undefined) return;
+    hushFilter.type = ambience.hush.filter;
+    hushFilter.frequency.value = ambience.hush.hz;
+    hushFilter.Q.value = ambience.hush.q;
+  };
 
   const ramp = (node: GainNode | undefined, level: number): void => {
     if (context === undefined || node === undefined) return;
@@ -110,17 +123,15 @@ export function createSoundBoard(rng: Rng): SoundBoard {
       noise = context.createBuffer(1, context.sampleRate * NOISE_SECONDS, context.sampleRate);
       const samples = noise.getChannelData(0);
       for (let index = 0; index < samples.length; index += 1) samples[index] = rng.range(-1, 1);
-      // The water's hush: looped noise, band-passed down to a soft rush.
+      // The water's hush: looped noise, filtered down to a rumble or a soft rush.
       const source = context.createBufferSource();
       source.buffer = noise;
       source.loop = true;
-      const filter = context.createBiquadFilter();
-      filter.type = "bandpass";
-      filter.frequency.value = WATER_HUSH.centerHz;
-      filter.Q.value = WATER_HUSH.q;
+      hushFilter = context.createBiquadFilter();
+      tuneHush();
       hush = context.createGain();
       hush.gain.value = hushLevel();
-      source.connect(filter).connect(hush).connect(master);
+      source.connect(hushFilter).connect(hush).connect(master);
       source.start();
       scheduleBubble();
     },
@@ -147,6 +158,11 @@ export function createSoundBoard(rng: Rng): SoundBoard {
     },
     setBubbling(next) {
       bubbling = next;
+      ramp(hush, hushLevel());
+    },
+    setTankSize(size) {
+      ambience = AMBIENCES[size];
+      tuneHush();
       ramp(hush, hushLevel());
     },
     setVolume(next) {

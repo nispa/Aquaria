@@ -116,7 +116,7 @@ import {
   withGroup,
   type SceneIndex,
 } from "../scene/sceneIndex";
-import { canResize, resizeScene } from "../scene/tankSize";
+import { canResize, resizeScene, sceneSize } from "../scene/tankSize";
 import { readScenePictures, scenePictureUrl, writeScenePicture } from "../scene/scenePictures";
 import type { SceneChoice, SceneChoiceGroup } from "../ui/panel";
 import { createSimulation, type Simulation } from "../sim/simulation";
@@ -652,6 +652,7 @@ async function start(): Promise<void> {
    */
   const mountScene = (shown: Scene): { simulation: Simulation; view: AquariumView } => {
     sounds.setBubbling(shown.water.bubbles);
+    sounds.setTankSize(sceneSize(shown));
     const rng = createRng(options.seed ?? shown.seed);
     // The simulation sees the sizes as drawn; the catalog keeps the real ones.
     const sized = displayCatalog(

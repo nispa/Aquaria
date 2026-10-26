@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "../core/rng";
-import { nextBubble, SWITCH_SOUNDS } from "./recipes";
+import { AMBIENCES, nextBubble, SWITCH_SOUNDS } from "./recipes";
 
 describe("bubbles", () => {
   it("rise in pitch, briefly and softly", () => {
@@ -24,6 +24,39 @@ describe("bubbles", () => {
 
   it("are the same for the same seed", () => {
     expect(nextBubble(createRng(5), true)).toEqual(nextBubble(createRng(5), true));
+  });
+});
+
+describe("the water's sound by the size of the tank", () => {
+  const meanGap = (size: keyof typeof AMBIENCES) => {
+    const rng = createRng(3);
+    return (
+      Array.from({ length: 200 }, () => nextBubble(rng, true, AMBIENCES[size]).delaySeconds).reduce(
+        (sum, delay) => sum + delay,
+        0,
+      ) / 200
+    );
+  };
+
+  it("rumbles low in the open sea, under a home tank's hush", () => {
+    expect(AMBIENCES.ocean.hush.filter).toBe("lowpass");
+    expect(AMBIENCES.ocean.hush.hz).toBeLessThan(AMBIENCES.nano.hush.hz);
+  });
+
+  it("bubbles far less often in the open sea than in a home tank", () => {
+    expect(meanGap("ocean")).toBeGreaterThan(meanGap("medium") * 3);
+  });
+
+  it("keeps the hush of every tank subtle", () => {
+    for (const ambience of Object.values(AMBIENCES)) {
+      expect(ambience.hush.bubblingLevel).toBeLessThan(0.02);
+    }
+  });
+
+  it("keeps every bubble soft", () => {
+    for (const ambience of Object.values(AMBIENCES)) {
+      expect(ambience.bubbleLevel[1]).toBeLessThan(0.03);
+    }
   });
 });
 
