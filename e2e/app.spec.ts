@@ -720,8 +720,8 @@ test.describe("scene editor's Scene tab", () => {
   });
 
   test("turns the reef ridge into blocks", async ({ page }) => {
-    // The home reef is the bundled scene with a procedural ridge.
-    await openSceneTab(page, "home-reef");
+    // The tropical reef is a bundled scene with a procedural ridge.
+    await openSceneTab(page, "reef");
 
     await sceneTab(page).getByRole("button", { name: "Convert the ridge to blocks" }).click();
     await page.getByRole("button", { name: "Save as a new scene" }).click();
