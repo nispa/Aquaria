@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "../core/rng";
-import { AMBIENCES, nextBubble, recordingLevel, SWITCH_SOUNDS } from "./recipes";
+import { AMBIENCES, CLASSIC_AMBIENCE, nextBubble, recordingLevel, SWITCH_SOUNDS } from "./recipes";
 
 describe("bubbles", () => {
   it("rise in pitch, briefly and softly", () => {
@@ -53,6 +53,24 @@ describe("the water's sound by the size of the tank", () => {
     }
   });
 
+  it("keeps the open sea's rumble low, calmer than a home tank's rush", () => {
+    expect(AMBIENCES.ocean.hush.bubblingLevel).toBeLessThanOrEqual(
+      AMBIENCES.medium.hush.bubblingLevel,
+    );
+  });
+
+  it("keeps the first sound of the aquarium, bubbling briskly, for those who liked it", () => {
+    const rng = createRng(4);
+    const meanGap = (ambience: typeof CLASSIC_AMBIENCE) =>
+      Array.from({ length: 200 }, () => nextBubble(rng, true, ambience).delaySeconds).reduce(
+        (sum, delay) => sum + delay,
+        0,
+      ) / 200;
+
+    expect(meanGap(CLASSIC_AMBIENCE)).toBeLessThan(meanGap(AMBIENCES.medium));
+    expect(CLASSIC_AMBIENCE.hush).toMatchObject({ filter: "bandpass", hz: 520 });
+  });
+
   it("keeps every bubble soft", () => {
     for (const ambience of Object.values(AMBIENCES)) {
       expect(ambience.bubbleLevel[1]).toBeLessThan(0.03);
@@ -61,8 +79,9 @@ describe("the water's sound by the size of the tank", () => {
 });
 
 describe("a recorded ambience", () => {
-  it("plays fuller in a bigger tank, as more water sounds", () => {
-    expect(recordingLevel(1, "ocean")).toBeGreaterThan(recordingLevel(1, "nano"));
+  it("keeps a big tank and the open sea as calm as a home tank, to relax by", () => {
+    expect(recordingLevel(1, "large")).toBeLessThanOrEqual(recordingLevel(1, "medium"));
+    expect(recordingLevel(1, "ocean")).toBeLessThanOrEqual(recordingLevel(1, "medium"));
   });
 
   it("stays as subtle as the synthesized hush", () => {

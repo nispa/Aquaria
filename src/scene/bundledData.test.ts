@@ -20,6 +20,7 @@ import { parseCatalog, parseScene } from "./parse";
 import { parseSceneIndex } from "./sceneIndex";
 import { parseLookIndex, parseSceneLook, sceneLookUrl } from "./sceneLook";
 import {
+  parseSoundIndex,
   parseSoundManifest,
   SOUND_MANIFEST_FILE,
   soundFileUrl,
@@ -252,6 +253,12 @@ describe("bundled data files", () => {
       url === undefined || existsSync(new URL(`../../public/${url}`, import.meta.url));
 
     expect([present, credited]).toEqual([true, true]);
+  });
+
+  it("lists every sound folder in the sound index, and nothing else", () => {
+    const listed = parseSoundIndex(readJson(`../../public/${SOUNDS_FOLDER}/index.json`));
+
+    expect([...listed].sort()).toEqual([...soundFolders].sort());
   });
 
   it.each(soundFolders)("credits the %s sound in ASSETS.md", (id) => {

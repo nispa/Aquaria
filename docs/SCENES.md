@@ -346,9 +346,16 @@ Three come with Aquaria, all CC0: `underwater-sea` (the Hero, the Tropical
 reef, Aquaria), `aquarium-pump` (the Home reef, the lagoon, the Nano
 reef) and `small-stream` (the Planted tank, the Iwagumi). A folder holds
 the audio file, a loop, and a `sound.json` with its name, file, `level`
-(0..1) and credit; the bigger the tank, the fuller it plays. A recording
-that cannot be loaded is skipped with a warning and the rush is
-synthesized. Every recording is listed in `ASSETS.md`.
+(0..1) and credit, and `public/sounds/index.json` lists the folders. Big
+tanks and the open sea are watched to relax by, so they sound calmer than
+a home tank, never louder. A recording that cannot be loaded is skipped
+with a warning and the rush is synthesized. Every recording is listed in
+`ASSETS.md`.
+
+The viewer may choose another sound in the panel's System tab, Sound,
+Water: the scene's own (named after what it plays), any recording, the
+synthesized water, or the aquarium's first sound, bubbling briskly. The
+choice is kept for every scene.
 
 ## A species
 

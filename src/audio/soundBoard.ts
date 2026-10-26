@@ -3,6 +3,7 @@ import type { Rng } from "../core/rng";
 import type { TankSize } from "../scene/tankMeasures";
 import {
   AMBIENCES,
+  CLASSIC_AMBIENCE,
   FEED_SOUND,
   nextBubble,
   recordingLevel,
@@ -28,6 +29,8 @@ export interface SoundBoard {
   setBubbling(bubbling: boolean): void;
   /** The size of the tank, which the water's sound follows (recipes' AMBIENCES). */
   setTankSize(size: TankSize): void;
+  /** The aquarium's first sound (recipes' CLASSIC_AMBIENCE) instead of the tank's own. */
+  setClassic(classic: boolean): void;
   /**
    * A recording that loops instead of the synthesized hush, at its
    * manifest's `level`; undefined goes back to the hush. One that cannot be
@@ -55,6 +58,8 @@ export function createSoundBoard(rng: Rng, logger?: Logger): SoundBoard {
   let hushFilter: BiquadFilterNode | undefined;
   let ambience = AMBIENCES.medium;
   let size: TankSize = "medium";
+  let classic = false;
+  const ambienceNow = (): typeof ambience => (classic ? CLASSIC_AMBIENCE : AMBIENCES[size]);
   let recordingUrl: string | undefined;
   let recordingManifestLevel = 1;
   let recording: { source: AudioBufferSourceNode; gain: GainNode } | undefined;
@@ -216,10 +221,16 @@ export function createSoundBoard(rng: Rng, logger?: Logger): SoundBoard {
     },
     setTankSize(next) {
       size = next;
-      ambience = AMBIENCES[next];
+      ambience = ambienceNow();
       tuneHush();
       ramp(hush, hushLevel());
       ramp(recording?.gain, recordingLevel(recordingManifestLevel, size));
+    },
+    setClassic(next) {
+      classic = next;
+      ambience = ambienceNow();
+      tuneHush();
+      ramp(hush, hushLevel());
     },
     setRecording(url, level = 1) {
       if (url === recordingUrl && level === recordingManifestLevel) return;

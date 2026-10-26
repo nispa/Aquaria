@@ -358,9 +358,16 @@ Con Aquaria ne arrivano tre, tutte CC0: `underwater-sea` (l'Hero, il
 Tropical reef, Aquaria), `aquarium-pump` (la Home reef, la laguna, il Nano
 reef) e `small-stream` (la Planted tank, l'Iwagumi). Una cartella contiene
 il file audio, un loop, e un `sound.json` con nome, file, `level` (0..1) e
-crediti; più la vasca è grande, più suona pieno. Una registrazione che non
-si carica viene saltata con un avviso e il fruscio viene sintetizzato. Ogni
-registrazione è elencata in `ASSETS.md`.
+crediti, e `public/sounds/index.json` elenca le cartelle. Le vasche grandi
+e il mare aperto si guardano per rilassarsi, quindi suonano più calmi di
+una vasca di casa, mai più forti. Una registrazione che non si carica viene
+saltata con un avviso e il fruscio viene sintetizzato. Ogni registrazione è
+elencata in `ASSETS.md`.
+
+Chi guarda può scegliere un altro suono nella scheda Sistema del pannello,
+Suono, Acqua: quello della scena (con il nome di cosa suona), una qualsiasi
+registrazione, l'acqua sintetizzata, o il primo suono dell'acquario, con le
+bolle fitte. La scelta vale per tutte le scene.
 
 ## Una specie
 

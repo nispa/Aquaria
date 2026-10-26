@@ -60,33 +60,47 @@ export const AMBIENCES: Readonly<Record<TankSize, Ambience>> = {
   small: HOME_TANK,
   medium: HOME_TANK,
   // A big tank: deeper water, the pump farther off, bubbles a little lower and rarer.
+  // Big tanks are watched to relax by: they stay as calm as a home tank, never louder.
   large: {
     bubblingGap: [1.5, 6],
     stillGap: [6, 20],
     bubbleHz: [350, 900],
-    bubbleLevel: [0.005, 0.014],
-    hush: { filter: "lowpass", hz: 300, q: 0.5, bubblingLevel: 0.012, stillLevel: 0.008 },
+    bubbleLevel: [0.004, 0.011],
+    hush: { filter: "lowpass", hz: 300, q: 0.5, bubblingLevel: 0.009, stillLevel: 0.006 },
   },
-  // The open sea, heard from under the water: a low rumble, and only now and then a bubble.
+  // The open sea, heard from under the water: a low, quiet rumble, and only now and then a bubble.
   ocean: {
     bubblingGap: [5, 16],
     stillGap: [12, 40],
     bubbleHz: [220, 600],
-    bubbleLevel: [0.004, 0.012],
-    hush: { filter: "lowpass", hz: 160, q: 0.4, bubblingLevel: 0.016, stillLevel: 0.012 },
+    bubbleLevel: [0.003, 0.009],
+    hush: { filter: "lowpass", hz: 160, q: 0.4, bubblingLevel: 0.009, stillLevel: 0.007 },
   },
 };
 
 /**
+ * The aquarium's first sound, kept for those who liked it: water bubbling
+ * briskly over a soft rush of noise, the same in every tank.
+ */
+export const CLASSIC_AMBIENCE: Ambience = {
+  bubblingGap: [0.08, 0.7],
+  stillGap: [1.5, 6],
+  bubbleHz: [380, 1100],
+  bubbleLevel: [0.015, 0.05],
+  hush: { filter: "bandpass", hz: 520, q: 0.7, bubblingLevel: 0.035, stillLevel: 0.018 },
+};
+
+/**
  * A recorded ambience (scene/soundManifest) plays this loud by the size of
- * the tank: recordings are normalized loud, and more water sounds fuller.
+ * the tank: recordings are normalized loud. Big tanks and the open sea are
+ * watched to relax by, so they play softer than a home tank, not fuller.
  */
 const RECORDING_GAIN: Readonly<Record<TankSize, number>> = {
   nano: 0.1,
   small: 0.11,
-  medium: 0.13,
-  large: 0.17,
-  ocean: 0.24,
+  medium: 0.12,
+  large: 0.09,
+  ocean: 0.08,
 };
 
 /** How loud a recording with its manifest's `level` plays in a tank of this size. */

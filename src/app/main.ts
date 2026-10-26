@@ -119,8 +119,12 @@ import {
 import { canResize, resizeScene, sceneSize } from "../scene/tankSize";
 import { parseRetiredObjects, retireObjects, type RetiredObjects } from "../scene/retiredObjects";
 import {
+  chosenSound,
+  parseSoundIndex,
   parseSoundManifest,
+  SCENE_SOUND,
   SOUND_MANIFEST_FILE,
+  soundChoices,
   soundFileUrl,
   SOUNDS_FOLDER,
 } from "../scene/soundManifest";
@@ -230,22 +234,42 @@ function showError(error: unknown): void {
   document.body.dataset.state = "error";
 }
 
-/** The recorded ambience a scene names, if any; one that cannot be read is skipped with a warning. */
-async function recordedAmbience(
-  id: string | undefined,
-): Promise<{ readonly url: string; readonly level: number } | undefined> {
-  if (id === undefined) return undefined;
+interface RecordedSound {
+  readonly id: string;
+  readonly name: string;
+  readonly url: string;
+  readonly level: number;
+}
+
+/** The recorded ambiences of `sounds/`; one that cannot be read is skipped with a warning. */
+async function loadSounds(): Promise<RecordedSound[]> {
+  let ids: readonly string[];
   try {
-    const json = await fetchJson(`${SOUNDS_FOLDER}/${id}/${SOUND_MANIFEST_FILE}`);
-    const manifest = parseSoundManifest(json, id);
-    return { url: soundFileUrl(id, manifest), level: manifest.level };
+    ids = parseSoundIndex(await fetchJson(`${SOUNDS_FOLDER}/index.json`));
   } catch (error) {
-    logger.warn("The scene's recorded ambience could not be read; the hush is synthesized.", {
-      id,
+    logger.warn("The recorded sounds could not be listed; the water is synthesized.", {
       error: String(error),
     });
-    return undefined;
+    return [];
   }
+  const found = await Promise.all(
+    ids.map(async (id): Promise<RecordedSound | undefined> => {
+      try {
+        const manifest = parseSoundManifest(
+          await fetchJson(`${SOUNDS_FOLDER}/${id}/${SOUND_MANIFEST_FILE}`),
+          id,
+        );
+        return { id, name: manifest.name, url: soundFileUrl(id, manifest), level: manifest.level };
+      } catch (error) {
+        logger.warn("A recorded sound could not be read and is left out.", {
+          id,
+          error: String(error),
+        });
+        return undefined;
+      }
+    }),
+  );
+  return found.filter((sound) => sound !== undefined);
 }
 
 /** Names for the panel's scene list; a scene that fails to load is listed by its id. */
@@ -584,13 +608,14 @@ async function start(): Promise<void> {
 
   const options = parseLaunchOptions(window.location.search);
   let settings = loadSettings();
-  const [indexData, catalogData, materialIds, { objects, retired }, fileEffects] =
+  const [indexData, catalogData, materialIds, { objects, retired }, fileEffects, recordings] =
     await Promise.all([
       fetchJson("scenes/index.json"),
       fetchJson("species.json"),
       loadMaterialIds(),
       loadObjects(),
       loadFileEffects(),
+      loadSounds(),
     ]);
   // Aquaria's own effects, then those made of files.
   const effects = [...EFFECTS, ...fileEffects];
@@ -679,6 +704,16 @@ async function start(): Promise<void> {
   window.addEventListener("pointerdown", unlockSound);
   window.addEventListener("keydown", unlockSound);
 
+  /** The scene the water's sound belongs to, and what it plays: the viewer's choice. */
+  let soundingScene: Scene | undefined;
+  const playWaterSound = (): void => {
+    const chosen = chosenSound(settings.waterSound, soundingScene?.ambience, recordings);
+    sounds.setClassic(chosen.kind === "classic");
+    const recording =
+      chosen.kind === "recording" ? recordings.find((sound) => sound.id === chosen.id) : undefined;
+    sounds.setRecording(recording?.url, recording?.level);
+  };
+
   // Shapes are kept for the whole visit: scenery rebuilds and scene switches reuse them.
   const shapes = createShapeLibrary();
 
@@ -690,9 +725,8 @@ async function start(): Promise<void> {
   const mountScene = (shown: Scene): { simulation: Simulation; view: AquariumView } => {
     sounds.setBubbling(shown.water.bubbles);
     sounds.setTankSize(sceneSize(shown));
-    void recordedAmbience(shown.ambience).then((found) => {
-      sounds.setRecording(found?.url, found?.level);
-    });
+    soundingScene = shown;
+    playWaterSound();
     const rng = createRng(options.seed ?? shown.seed);
     // The simulation sees the sizes as drawn; the catalog keeps the real ones.
     const sized = displayCatalog(
@@ -952,6 +986,8 @@ async function start(): Promise<void> {
       autoResolution: autoResolutionOf(settings),
       sound: soundOf(settings),
       volume: volumeOf(settings),
+      waterSounds: soundChoices(recordings, scene.ambience),
+      waterSound: settings.waterSound ?? SCENE_SOUND,
       showFps: settings.showFps,
       realistic: settings.realistic === true,
       msaaSamples: settings.msaaSamples ?? DEFAULT_MSAA_SAMPLES,
@@ -1119,6 +1155,10 @@ async function start(): Promise<void> {
       onVolumeChange(volume) {
         sounds.setVolume(volume);
         update({ volume });
+      },
+      onWaterSoundChange(choice) {
+        update({ waterSound: choice === SCENE_SOUND ? undefined : choice });
+        playWaterSound();
       },
       onTorchToggle() {
         torchOn = !torchOn;

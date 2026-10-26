@@ -48,6 +48,14 @@ export const settingsSchema = z.object({
   /** Sound volume 0..1; DEFAULT_VOLUME when absent. */
   volume: z.number().min(0).max(1).optional(),
   /**
+   * Which sound the water makes (scene/soundManifest): the scene's own
+   * when absent, a recording's id, "synth" or "classic".
+   */
+  waterSound: z
+    .string()
+    .regex(/^[a-z0-9-]+$/)
+    .optional(),
+  /**
    * Realistic mode: fish keep the hours of their species (resting at night)
    * and the playful spells (hypnosis, tickling) are off. Absent = off.
    */

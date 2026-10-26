@@ -12,6 +12,7 @@ import { createSceneryCards, type DrawSceneryPortraits } from "./sceneryCards";
 import { openSceneryPicker } from "./sceneryPicker";
 import type { AddableScenery, SceneryEntry } from "../scene/scenery";
 import type { Species } from "../scene/schema";
+import type { SoundChoice } from "../scene/soundManifest";
 import { TANK_SIZE_MEASURES, TANK_SIZES, type TankSize } from "../scene/tankMeasures";
 import type { PanelTab } from "../scene/settings";
 
@@ -98,6 +99,9 @@ export interface PanelState {
   /** Whether the aquarium makes its sounds, and how loud, 0..1. */
   readonly sound: boolean;
   readonly volume: number;
+  /** The sounds the water may make, named after what plays, and the one chosen. */
+  readonly waterSounds: readonly SoundChoice[];
+  readonly waterSound: string;
   readonly showFps: boolean;
   /** Fish keep their hours and the playful spells are off. */
   readonly realistic: boolean;
@@ -203,6 +207,7 @@ export interface PanelCallbacks {
   onPointingToggle(): void;
   onSoundChange(enabled: boolean): void;
   onVolumeChange(volume: number): void;
+  onWaterSoundChange(choice: string): void;
   onSectionToggle(sectionId: string, open: boolean): void;
   onTabChange(tab: PanelTab): void;
 }
@@ -544,7 +549,16 @@ export function createPanel(
     callbacks.onVolumeChange(Number(volume.value) / PERCENT);
   });
   volumeRow.append(element("span", "panel__label", "Volume"), volume, volumeValue);
-  sound.append(soundRow, volumeRow);
+  const waterRow = select(
+    "Water",
+    state.waterSounds.map((choice) => [choice.value, choice.label] as const),
+    state.waterSound,
+  );
+  waterRow.input.name = "water-sound";
+  waterRow.input.addEventListener("change", () => {
+    callbacks.onWaterSoundChange(waterRow.input.value);
+  });
+  sound.append(soundRow, volumeRow, waterRow.row);
 
   const quality = section("quality", "Screen");
   const resolutionRow = element("label", "panel__row");
