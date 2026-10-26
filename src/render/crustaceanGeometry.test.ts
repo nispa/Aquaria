@@ -38,3 +38,29 @@ describe("crustacean geometry", () => {
     expect([...values].sort()).toEqual([0, 1]);
   });
 });
+
+describe("starfish geometry", () => {
+  it("spreads five arms about one body length across, lying flat", () => {
+    const box = bounds(createCrustaceanGeometry("starfish"));
+
+    expect(box.max.x - box.min.x).toBeGreaterThan(0.85);
+    expect(box.max.z - box.min.z).toBeGreaterThan(0.85);
+    expect(box.max.y - box.min.y).toBeLessThan(0.2);
+  });
+
+  it("bends its arms more towards their tips, so they ripple as it creeps", () => {
+    const geometry = createCrustaceanGeometry("starfish");
+    const fin = geometry.getAttribute("aFin");
+    const position = geometry.getAttribute("position");
+    let middle = 0;
+    let tips = 0;
+    for (let index = 0; index < fin.count; index += 1) {
+      const reach = Math.hypot(position.getX(index), position.getZ(index));
+      if (reach < 0.05) middle = Math.max(middle, fin.getX(index));
+      if (reach > 0.4) tips = Math.max(tips, fin.getX(index));
+    }
+
+    expect(middle).toBe(0);
+    expect(tips).toBeGreaterThan(0.8);
+  });
+});

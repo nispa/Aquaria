@@ -212,6 +212,24 @@
         }
       ],
       "on": "rockwork"
+    },
+    {
+      "kind": "sarcophyton",
+      "name": "Sarcophyton on the rock",
+      "count": 5,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "height": [0.18, 0.3],
+      "color": ["#ffffff"]
+    },
+    {
+      "kind": "xenia",
+      "name": "Xenia on the rock",
+      "count": 8,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "height": [0.1, 0.16],
+      "color": ["#ffffff"]
     }
   ],
   "props": [
@@ -277,15 +295,6 @@
       "kind": "shell",
       "count": 5,
       "color": ["#f3e6d4", "#e8d2b8"]
-    },
-    {
-      "kind": "starfish",
-      "count": 1,
-      "color": "#e8612c",
-      "material": {
-        "id": "reef-rock",
-        "tileSize": 0.12
-      }
     },
     {
       "kind": "pocillopora",
@@ -525,6 +534,10 @@
     {
       "species": "sardine",
       "count": 20
+    },
+    {
+      "species": "red-sea-star",
+      "count": 2
     }
   ],
   "visitors": [

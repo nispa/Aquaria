@@ -137,15 +137,6 @@
       "color": ["#f3e6d4", "#e8d2b8"]
     },
     {
-      "kind": "starfish",
-      "count": 1,
-      "color": "#e8612c",
-      "material": {
-        "id": "reef-rock",
-        "tileSize": 0.12
-      }
-    },
-    {
       "kind": "pocillopora",
       "count": 10,
       "color": ["#ffffff"],
@@ -228,6 +219,10 @@
     {
       "species": "sardine",
       "count": 20
+    },
+    {
+      "species": "red-sea-star",
+      "count": 2
     }
   ],
   "visitors": [

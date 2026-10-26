@@ -70,8 +70,11 @@ const proceduralFishBody = z.object({
 const proceduralCrustaceanBody = z.object({
   type: z.literal("procedural"),
   category: z.literal("crustacean"),
-  /** Crustacean body shapes: shrimp, crab, hermit crab. */
-  shape: z.enum(["shrimp", "crab", "hermit-crab"]),
+  /**
+   * Bodies that walk on the bottom: shrimp, crab, hermit crab, and the
+   * starfish, which is no crustacean but creeps the same way.
+   */
+  shape: z.enum(["shrimp", "crab", "hermit-crab", "starfish"]),
   pattern: z.enum(["solid", "translucent", "spotted", "banded"]).default("solid"),
   colors: bodyColors,
 });

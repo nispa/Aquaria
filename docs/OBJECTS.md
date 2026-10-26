@@ -133,7 +133,9 @@ the finger coral `finger-montipora`)
 forking to tips of another colour, their corallites a painted texture; a
 living brain coral (`platygyra`) folded into meandering ridges and
 valleys; a tube sponge; coral rubble, broken bleached pieces lying on
-the sand; and the torch coral, a plant whose tentacles sway one by one
+the sand; the soft corals, plants that sway in the current: a leather
+coral (`sarcophyton`) furred with polyps, and `xenia` with feathery
+tentacles; and the torch coral, a plant whose tentacles sway one by one
 like the anemones'.
 
 ### `tint`: the color tints the model

@@ -30,7 +30,22 @@ export const CRUSTACEAN_PROPORTIONS: Readonly<Record<CrustaceanShape, Crustacean
     rostrumLength: 0.06,
     antennaeLength: 0.15,
   },
+  starfish: {
+    height: 0.1,
+    thickness: 1,
+    rostrumLength: 0,
+    antennaeLength: 0,
+  },
 };
+
+const STAR_ARMS = 5;
+/** Points along each arm, from the middle out to the tip. */
+const STAR_STEPS = 8;
+/** Half the width of an arm at its root, and how high its ridge stands there, body lengths. */
+const STAR_ARM_WIDTH = 0.11;
+const STAR_RIDGE = 0.09;
+/** Arms stiff near the middle, bending more towards their tips: their aFin. */
+const STAR_BEND = 1.5;
 
 const CARAPACE_SEGMENTS = { width: 16, height: 12 } as const;
 const ABDOMEN_SEGMENTS = 5;
@@ -203,8 +218,68 @@ function buildLegs(proportions: CrustaceanProportions): BufferGeometry {
   return flatPart(legVertices);
 }
 
-/** Builds procedural geometry for crustaceans (shrimp, crab, hermit crab). */
+/**
+ * A starfish: five arms spreading flat from the middle, one body length
+ * across, each with a rounded ridge along its back, tapering to its tip. Its
+ * arms bend more towards their tips (aFin from 0 in the middle to 1).
+ */
+function buildStarfish(): BufferGeometry {
+  const positions: number[] = [];
+  const fins: number[] = [];
+  const point = (x: number, y: number, z: number, reach: number): void => {
+    positions.push(x, y, z);
+    fins.push(Math.min(reach / 0.5, 1) ** STAR_BEND);
+  };
+  for (let arm = 0; arm < STAR_ARMS; arm += 1) {
+    const angle = (arm / STAR_ARMS) * Math.PI * 2;
+    const along = [Math.cos(angle), Math.sin(angle)] as const;
+    const across = [-Math.sin(angle), Math.cos(angle)] as const;
+    // Each slice of the arm: its left edge, its ridge and its right edge on top, one point below.
+    const slice = (step: number): number[][] => {
+      const reach = (step / STAR_STEPS) * 0.5;
+      const taper = 1 - (step / STAR_STEPS) * 0.8;
+      const half = STAR_ARM_WIDTH * taper;
+      const ridge = STAR_RIDGE * taper;
+      const at = (side: number, height: number): number[] => [
+        along[0] * reach + across[0] * side,
+        height,
+        along[1] * reach + across[1] * side,
+        reach,
+      ];
+      return [at(-half, ridge * 0.15), at(0, ridge), at(half, ridge * 0.15), at(0, 0)];
+    };
+    for (let step = 0; step < STAR_STEPS; step += 1) {
+      const [nearLeft, nearRidge, nearRight, nearBelow] = slice(step);
+      const [farLeft, farRidge, farRight, farBelow] = slice(step + 1);
+      const quads = [
+        [nearLeft, farLeft, farRidge, nearRidge],
+        [nearRidge, farRidge, farRight, nearRight],
+        [nearRight, farRight, farBelow, nearBelow],
+        [nearBelow, farBelow, farLeft, nearLeft],
+      ];
+      for (const [a, b, c, d] of quads) {
+        for (const corner of [a, b, c, a, c, d]) {
+          const [x = 0, y = 0, z = 0, reach = 0] = corner ?? [];
+          point(x, y, z, reach);
+        }
+      }
+    }
+  }
+  const geometry = new BufferGeometry();
+  geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
+  geometry.setAttribute(
+    "uv",
+    new Float32BufferAttribute(new Array<number>((positions.length / 3) * 2).fill(0), 2),
+  );
+  geometry.setAttribute("aFin", new Float32BufferAttribute(fins, 1));
+  geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
+/** Builds procedural geometry for the bottom walkers (shrimp, crab, hermit crab, starfish). */
 export function createCrustaceanGeometry(shape: CrustaceanShape): BufferGeometry {
+  if (shape === "starfish") return buildStarfish();
   const proportions = CRUSTACEAN_PROPORTIONS[shape];
 
   // Currently detailed for shrimp; crabs will specialize accordingly

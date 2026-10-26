@@ -20,6 +20,11 @@ Aquaria picks one per colony (docs/OBJECTS.md):
 - coral rubble: broken pieces of dead branches lying in a loose patch on
   the sand, bleached cream and grey, some crusted pink with coralline;
 
+- soft corals that sway in the current, plants to Aquaria like the torch
+  coral: a leather coral (Sarcophyton), a stalk carrying a wide, folded
+  cap furred with tiny polyps; and xenia, pale stalks each crowned by
+  feathery tentacles that wave one by one;
+
 - a torch coral (Euphyllia glabrescens): a few short stalks of skeleton,
   each crowned by long tentacles with round tips that sway one by one, as
   the anemones' do (`_STRAND`, one value per tentacle), so it is a plant
@@ -136,6 +141,33 @@ TORCH_MORPHS = [
     {"stalk": "#5a4a52", "tentacle": "#9a7aa8", "tip": "#80f0ff"},
 ]
 TEXTURE_SIZE = 512
+
+# Leather coral, m: a cap about 14 cm across on a stalk 5 cm tall.
+LEATHER_STALK = 0.05
+LEATHER_CAP = 0.07
+LEATHER_RINGS = 10
+LEATHER_SEGMENTS = 48
+LEATHER_FOLDS = 7
+LEATHER_POLYPS = 260
+LEATHER_POLYP = 0.008
+# Each morph: stalk, cap, polyps.
+LEATHER_MORPHS = [
+    {"stalk": "#d8c8a0", "cap": "#c8b47a", "polyp": "#e8e0b0"},
+    {"stalk": "#c8b8a0", "cap": "#a89a7a", "polyp": "#9ae0a0"},
+    {"stalk": "#d0b8b0", "cap": "#c8a0a0", "polyp": "#f0d8e0"},
+]
+
+# Xenia, m: stalks about 6 cm tall, each with a crown of eight feathery tentacles.
+XENIA_STALKS = 9
+XENIA_STALK = (0.03, 0.06)
+XENIA_ARMS = 8
+XENIA_ARM = 0.022
+XENIA_PINNULES = 5
+XENIA_MORPHS = [
+    {"stalk": "#e0dcd0", "arm": "#c8d8d8", "tip": "#f0fff8"},
+    {"stalk": "#d8d0c8", "arm": "#b8a8d0", "tip": "#e8e0ff"},
+    {"stalk": "#d8d8c8", "arm": "#c0d0a0", "tip": "#f0ffe0"},
+]
 
 # Coral rubble, m: pieces 1 to 4 cm long in a patch about 16 cm across.
 RUBBLE_PIECES = 22
@@ -328,6 +360,107 @@ def brain(morph, offset, seed):
 def smoothstep_scalar(edge0, edge1, x):
     t = min(max((x - edge0) / (edge1 - edge0), 0.0), 1.0)
     return t * t * (3 - 2 * t)
+
+
+# Soft corals
+
+
+def leather(morph, offset, rng):
+    """A stalk, a wide cap folded in waves at its rim, and the polyps furring its top."""
+    mesh = bmesh.new()
+    colors, sway, strands = {}, {}, {}
+    stalk, cap_color, polyp = (linear(morph[key]) for key in ("stalk", "cap", "polyp"))
+    phase = rng.uniform(0, 2 * math.pi)
+
+    def mark(vertex, color, weight, strand=0.0):
+        colors[vertex], sway[vertex], strands[vertex] = color, weight, strand
+
+    lower = ring_around(mesh, Vector((0, 0, -0.004)), Vector((0, 0, 1)), 0.022, 12)
+    upper = ring_around(mesh, Vector((0, 0, LEATHER_STALK)), Vector((0, 0, 1)), 0.016, 12)
+    for vertex in lower + upper:
+        mark(vertex, stalk, 0.0)
+    join_rings(mesh, lower, upper)
+    rings = []
+    for ring in range(1, LEATHER_RINGS + 1):
+        share = ring / LEATHER_RINGS
+        loop = []
+        for step in range(LEATHER_SEGMENTS):
+            angle = 2 * math.pi * step / LEATHER_SEGMENTS
+            fold = 0.012 * share**2 * math.sin(LEATHER_FOLDS * angle + phase)
+            r = LEATHER_CAP * share
+            point = mesh.verts.new((r * math.cos(angle), r * math.sin(angle),
+                                    LEATHER_STALK + 0.01 * (1 - share**2) + fold - 0.008 * share**3))
+            mark(point, mix(cap_color, stalk, 0.5 * share**4), 0.15 * share**2)
+            loop.append(point)
+        rings.append(loop)
+    top = mesh.verts.new((0, 0, LEATHER_STALK + 0.012))
+    mark(top, cap_color, 0.0)
+    for step in range(LEATHER_SEGMENTS):
+        mesh.faces.new((top, rings[0][step], rings[0][(step + 1) % LEATHER_SEGMENTS]))
+    for inner, outer in zip(rings, rings[1:]):
+        join_rings(mesh, outer, inner)
+    # The polyps: tiny upright strands all over the cap, each its own rhythm.
+    for index in range(LEATHER_POLYPS):
+        angle, share = rng.uniform(0, 2 * math.pi), math.sqrt(rng.random()) * 0.92
+        r = LEATHER_CAP * share
+        fold = 0.012 * share**2 * math.sin(LEATHER_FOLDS * angle + phase)
+        base = Vector((r * math.cos(angle), r * math.sin(angle),
+                       LEATHER_STALK + 0.01 * (1 - share**2) + fold - 0.008 * share**3))
+        strand = (index * 0.6180339887) % 1.0
+        foot = [mesh.verts.new(base + Vector((0.0012 * math.cos(a), 0.0012 * math.sin(a), 0))) for a in (0, 2.09, 4.19)]
+        tip = mesh.verts.new(base + Vector((0, 0, LEATHER_POLYP * rng.uniform(0.7, 1.2))))
+        for vertex in foot:
+            mark(vertex, polyp, 0.15 * share**2, strand)
+        mark(tip, polyp, 0.6 + 0.4 * share, strand)
+        for step in range(3):
+            mesh.faces.new((foot[step], foot[(step + 1) % 3], tip))
+    bmesh.ops.translate(mesh, verts=mesh.verts, vec=(offset, 0, 0))
+    return mesh, colors, sway, strands
+
+
+def xenia(morph, offset, rng):
+    """Pale stalks, each crowned by feathery tentacles: a spine with little pinnules down both sides."""
+    mesh = bmesh.new()
+    colors, sway, strands = {}, {}, {}
+    stalk_color, arm_color, tip_color = (linear(morph[key]) for key in ("stalk", "arm", "tip"))
+    count = 0
+    for stalk in range(XENIA_STALKS):
+        angle = 2 * math.pi * stalk / XENIA_STALKS + rng.uniform(-0.3, 0.3)
+        reach = 0.0 if stalk == 0 else rng.uniform(0.01, 0.03)
+        lean = rng.uniform(0.0, 0.35)
+        foot = Vector((reach * math.cos(angle), reach * math.sin(angle), -0.003))
+        axis = Vector((math.sin(lean) * math.cos(angle), math.sin(lean) * math.sin(angle), math.cos(lean)))
+        height = rng.uniform(*XENIA_STALK)
+        lower = ring_around(mesh, foot, axis, 0.004, 6)
+        crown = foot + axis * height
+        upper = ring_around(mesh, crown, axis, 0.005, 6)
+        for vertex in lower + upper:
+            colors[vertex], sway[vertex], strands[vertex] = stalk_color, 0.0, 0.0
+        join_rings(mesh, lower, upper)
+        for arm in range(XENIA_ARMS):
+            spread = 2 * math.pi * arm / XENIA_ARMS + rng.uniform(-0.15, 0.15)
+            out = Vector((math.cos(spread), math.sin(spread), 0.0))
+            direction = (axis * 0.8 + out).normalized()
+            strand = (count * 0.6180339887) % 1.0
+            count += 1
+            side = direction.cross(axis)
+            side = side.normalized() if side.length > 1e-4 else Vector((1, 0, 0))
+            previous = None
+            for step in range(XENIA_PINNULES + 1):
+                share = step / XENIA_PINNULES
+                centre = crown + direction * (XENIA_ARM * share) + axis * (0.004 * math.sin(share * math.pi))
+                width = 0.0035 * (1 - 0.6 * share)
+                left = mesh.verts.new(centre + side * width)
+                right = mesh.verts.new(centre - side * width)
+                for vertex in (left, right):
+                    colors[vertex] = mix(arm_color, tip_color, share)
+                    sway[vertex] = share**1.3
+                    strands[vertex] = strand
+                if previous is not None:
+                    mesh.faces.new((previous[0], previous[1], right, left))
+                previous = (left, right)
+    bmesh.ops.translate(mesh, verts=mesh.verts, vec=(offset, 0, 0))
+    return mesh, colors, sway, strands
 
 
 # Coral rubble
@@ -529,6 +662,18 @@ def build_rubble():
         mesh.free()
 
 
+def build_soft(name, builder, morphs):
+    def build_it():
+        rng = random.Random(SEED)
+        material = leaf_material(name, 0.5)
+        for index, morph in enumerate(morphs):
+            mesh, colors, sway, strands = builder(morph, index * VARIANT_SPACING * 0.2, rng)
+            plant_object(f"{name}-{index}", mesh, colors, sway, material, extra={"_STRAND": strands})
+            mesh.free()
+
+    return build_it
+
+
 def build_torch():
     rng = random.Random(SEED)
     material = leaf_material("torch-coral", 0.35)
@@ -545,6 +690,10 @@ for name in BRANCHING:
         build(name, build_branching(name))
 if not ONLY or "platygyra" in ONLY:
     build("platygyra", build_brain)
+if not ONLY or "sarcophyton" in ONLY:
+    build("sarcophyton", build_soft("sarcophyton", leather, LEATHER_MORPHS))
+if not ONLY or "xenia" in ONLY:
+    build("xenia", build_soft("xenia", xenia, XENIA_MORPHS))
 if not ONLY or "coral-rubble" in ONLY:
     build("coral-rubble", build_rubble)
 if not ONLY or "tube-sponge" in ONLY:

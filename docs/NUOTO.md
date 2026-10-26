@@ -160,7 +160,10 @@ posto basso, come una conchiglia, lo becca restando a piedi.
 | `fright`      | `"flee"` | `"shell"`: si chiude nel guscio invece di scappare        |
 
 Un granchio è `"sideways": true, "swims": false`: scappa, si nasconde e
-mangia a piedi, e torna indietro senza girarsi. Un paguro è
+mangia a piedi, e torna indietro senza girarsi. La stella marina rossa
+striscia allo stesso modo, circa 10 cm al minuto con lunghe pause: il suo
+corpo è la forma procedurale `starfish` (cinque braccia, le punte che si
+piegano mentre va), elencata con le forme dei crostacei. Un paguro è
 `"swims": false, "fright": "shell"`: quando ha paura si ritira nel guscio
 dove si trova e resta fermo finché non si calma.
 
@@ -173,7 +176,7 @@ dove si trova e resta fermo finché non si calma.
 | `hover`       | pesce pagliaccio, royal gramma, gourami nano                                  |
 | `glide`       | idolo moresco, pesce angelo imperatore, pesce angelo d'acqua dolce            |
 | `patrol`      | pesce farfalla, barramundi                                                    |
-| `crawl`       | gamberetto red cherry, granchio d'acqua dolce, paguro                         |
+| `crawl`       | gamberetto red cherry, granchio d'acqua dolce, paguro, stella marina rossa    |
 
 ## Cosa fanno i pesci durante il giorno
 

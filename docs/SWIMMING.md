@@ -134,6 +134,10 @@ changing direction now and then.
 
 ### `crawl`: walking on the bottom
 
+The red sea star creeps the same way, about 10 cm a minute with long
+stops: its body is the procedural `starfish` shape (five arms, their tips
+bending as it goes), listed with the crustaceans' shapes.
+
 Shrimps, crabs, hermit crabs. The animal walks on the sand and over the
 rock, stops to pick at the ground, then sets off another way. The current
 does not move it.
@@ -168,7 +172,7 @@ where it stands and stays still until it calms down.
 | `hover`       | clownfish, royal gramma, dwarf gourami                                                |
 | `glide`       | moorish idol, emperor angelfish, freshwater angelfish                                 |
 | `patrol`      | butterflyfish, barramundi                                                             |
-| `crawl`       | red cherry shrimp, freshwater crab, hermit crab                                       |
+| `crawl`       | red cherry shrimp, freshwater crab, hermit crab, red sea star                         |
 
 ## What fish do all day
 

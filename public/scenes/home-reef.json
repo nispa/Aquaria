@@ -82,6 +82,24 @@
       "bands": [0, 3],
       "height": [0.1, 0.16],
       "color": ["#ffffff"]
+    },
+    {
+      "kind": "sarcophyton",
+      "name": "Sarcophyton on the rock",
+      "count": 4,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "height": [0.1, 0.16],
+      "color": ["#ffffff"]
+    },
+    {
+      "kind": "xenia",
+      "name": "Xenia on the rock",
+      "count": 6,
+      "on": "rockwork",
+      "bands": [0, 4],
+      "height": [0.06, 0.1],
+      "color": ["#ffffff"]
     }
   ],
   "props": [
@@ -185,16 +203,6 @@
       "bands": [0, 2]
     },
     {
-      "kind": "starfish",
-      "count": 1,
-      "color": "#e8612c",
-      "bands": [0, 2],
-      "material": {
-        "id": "reef-rock",
-        "tileSize": 0.12
-      }
-    },
-    {
       "kind": "encrusting-montipora",
       "name": "Montipora on the rock",
       "count": 24,
@@ -259,6 +267,10 @@
     {
       "species": "hermit-crab",
       "count": 3
+    },
+    {
+      "species": "red-sea-star",
+      "count": 2
     }
   ],
   "lights": {

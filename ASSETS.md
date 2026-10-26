@@ -77,6 +77,8 @@ Made in code with Blender by the scripts in `scripts/blender/`.
 | Finger coral (living)      | `public/assets/objects/finger-montipora/`      | https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py          | Aquaria | CC0     |
 | Tube sponge                | `public/assets/objects/tube-sponge/`           | https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py          | Aquaria | CC0     |
 | Coral rubble               | `public/assets/objects/coral-rubble/`          | https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py          | Aquaria | CC0     |
+| Leather coral (living)     | `public/assets/objects/sarcophyton/`           | https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py          | Aquaria | CC0     |
+| Xenia                      | `public/assets/objects/xenia/`                 | https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py          | Aquaria | CC0     |
 | Seiryu stones              | `public/assets/objects/seiryu-stone/`          | https://github.com/nispa/Aquaria/blob/main/scripts/blender/seiryu.py            | Aquaria | CC0     |
 | Branching driftwood        | `public/assets/objects/branching-driftwood/`   | https://github.com/nispa/Aquaria/blob/main/scripts/blender/driftwood.py         | Aquaria | CC0     |
 | Rotala                     | `public/assets/objects/rotala/`                | https://github.com/nispa/Aquaria/blob/main/scripts/blender/freshwater_plants.py | Aquaria | CC0     |

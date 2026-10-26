@@ -91,7 +91,10 @@
         "speed": 0.3,
         "roamBodyLengths": 1.5,
         "home": "anemone",
-        "dive": { "inSeconds": [5, 12], "outSeconds": [3, 8] }
+        "dive": {
+          "inSeconds": [5, 12],
+          "outSeconds": [3, 8]
+        }
       },
       "activities": {
         "inspect": {
@@ -616,10 +619,22 @@
       },
       "model": "guppy",
       "coloring": [
-        { "id": "half-black-red", "weight": 3 },
-        { "id": "blue-grass", "weight": 2 },
-        { "id": "full-red", "weight": 2 },
-        { "id": "yellow-cobra", "weight": 2 }
+        {
+          "id": "half-black-red",
+          "weight": 3
+        },
+        {
+          "id": "blue-grass",
+          "weight": 2
+        },
+        {
+          "id": "full-red",
+          "weight": 2
+        },
+        {
+          "id": "yellow-cobra",
+          "weight": 2
+        }
       ],
       "length": {
         "mean": 0.04,
@@ -667,9 +682,18 @@
       },
       "model": "platy",
       "coloring": [
-        { "id": "red-wagtail", "weight": 2 },
-        { "id": "mickey-mouse", "weight": 2 },
-        { "id": "blue", "weight": 1 }
+        {
+          "id": "red-wagtail",
+          "weight": 2
+        },
+        {
+          "id": "mickey-mouse",
+          "weight": 2
+        },
+        {
+          "id": "blue",
+          "weight": 1
+        }
       ],
       "length": {
         "mean": 0.05,
@@ -856,10 +880,22 @@
       },
       "model": "red-cherry-shrimp",
       "coloring": [
-        { "id": "cherry", "weight": 3 },
-        { "id": "blue-dream", "weight": 2 },
-        { "id": "yellow", "weight": 2 },
-        { "id": "black-rose", "weight": 1 }
+        {
+          "id": "cherry",
+          "weight": 3
+        },
+        {
+          "id": "blue-dream",
+          "weight": 2
+        },
+        {
+          "id": "yellow",
+          "weight": 2
+        },
+        {
+          "id": "black-rose",
+          "weight": 1
+        }
       ],
       "maxCount": 20,
       "length": {
@@ -1016,6 +1052,56 @@
             "starfish": 0.3
           }
         },
+        "rest": {
+          "weight": 1
+        }
+      }
+    },
+    {
+      "id": "red-sea-star",
+      "name": "Red sea star",
+      "body": {
+        "type": "procedural",
+        "category": "crustacean",
+        "shape": "starfish",
+        "pattern": "spotted",
+        "colors": {
+          "base": "#d8401e",
+          "accent": "#f06a2a",
+          "detail": "#7a160c"
+        }
+      },
+      "length": {
+        "mean": 0.09,
+        "standardDeviation": 0.015
+      },
+      "speed": {
+        "cruise": 0.004,
+        "max": 0.008
+      },
+      "schooling": 0,
+      "maxCount": 4,
+      "bands": [0, 4],
+      "heightRange": [0, 0.1],
+      "behavior": {
+        "appetite": 0.1,
+        "curiosity": 0,
+        "shyness": 0,
+        "hiding": 0,
+        "torch": 0
+      },
+      "swim": {
+        "style": "crawl",
+        "swims": false,
+        "sideways": true,
+        "speed": 0.8,
+        "walkSeconds": [15, 40],
+        "stopSeconds": [10, 40],
+        "turnAngle": 0.6,
+        "turnJitter": 0.1,
+        "rideHeight": 0.01
+      },
+      "activities": {
         "rest": {
           "weight": 1
         }

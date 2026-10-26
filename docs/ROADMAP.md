@@ -655,12 +655,16 @@ fluorescence; the scans are left out of the tanks.
 
 ### L4. Movement
 
-- [ ] Soft corals (leather, xenia, zoanthid polyps) swaying in the
-      current, on the strands of I3.
-- [ ] Starfish that creep slowly over the sand and the rock (the
-      user, 2026-10-26), instead of lying still as props: a species with
-      the `crawl` style of the shrimps and crabs, very slow, its arms
-      rippling as it goes.
+- [x] Soft corals (leather, xenia) swaying in the current, on the
+      strands of I3: `sarcophyton` and `xenia` from
+      `scripts/blender/colonies.py`, each polyp or tentacle its own
+      rhythm. Zoanthids stay still, lying along the rock.
+- [x] Starfish that creep slowly over the sand and the rock (the
+      user, 2026-10-26), instead of lying still as props: the red sea
+      star, a `crawl` species about 10 cm a minute, its body the
+      procedural `starfish` shape whose arm tips bend as it goes. It
+      replaces the still starfish in the Hero, the Tropical reef, the
+      Home reef and the lagoon.
 
 ## Ideas to discuss
 
