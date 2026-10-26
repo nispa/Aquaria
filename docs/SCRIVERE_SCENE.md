@@ -237,7 +237,19 @@ Aquaria suddivide i triangoli della roccia quante volte servono agli
 alveoli, al massimo tre, quindi i blocchi grandi costano di più.
 
 Le colonne della scena Hero le genera `scripts/hero_pillars.py`: cambia lì
-le colonne e rilancialo su `public/scenes/hero.json`.
+le colonne e rilancialo su `public/scenes/hero.json`. La roccia viva della
+Home reef e della Clownfish lagoon viene da `scripts/aquascape.py`: cumuli
+di rocce impilate, archi da attraversare a nuoto, sporgenze sopra la
+sabbia e grotte scavate sotto, un layout per scena:
+
+```bash
+python scripts/aquascape.py public/scenes/home-reef.json
+pnpm exec prettier --write public/scenes/home-reef.json
+```
+
+Coralli e anemoni con `"on": "rockwork"` poggiano sulla roccia dove chi
+guarda ne vede la superficie, i blocchi levigati, non sugli spigoli dei
+blocchi.
 
 ### Le luci
 

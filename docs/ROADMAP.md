@@ -617,8 +617,11 @@ support for corals on top).
 - [x] Coralline algae and encrusting growth that follow the rock's
       hollows and edges, not round patches: the pits' rims (`aCavity`
       in the growth shader).
-- [ ] The Home reef and the Clownfish lagoon rebuilt with block rock in
-      the editor: arches, ledges and caves, corals on top.
+- [x] The Home reef and the Clownfish lagoon rebuilt with block rock:
+      arches, ledges and caves, corals on top (`scripts/aquascape.py`,
+      one layout per scene). Corals stand on the smoothed surface
+      (`surfaceAt` in `sim/blockwork.ts`), not on the blocks' corners.
+      Wide plate corals still overhang narrow crests.
 
 ### L2. Coral cover
 
