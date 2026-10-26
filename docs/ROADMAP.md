@@ -634,6 +634,9 @@ fluorescence; the scans are left out of the tanks.
 - [ ] Small and encrusting corals (zoanthids, encrusting montipora,
       polyps) scattered by the hundred, so the rock disappears under
       them as in a mature tank; instanced, light enough for phones.
+      Started: zoanthids and encrusting montipora
+      (`scripts/blender/corals.py`), lying along the rock (`hug`), 124
+      of them on the Home reef. Still to do: star and other polyps.
 - [ ] Colonies at the scale of a home tank: many small ones, a few large.
 
 ### L3. Sand

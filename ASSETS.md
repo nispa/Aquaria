@@ -65,6 +65,8 @@ Made in code with Blender by the scripts in `scripts/blender/`.
 | Magnificent anemone   | `public/assets/objects/magnificent-anemone/`   | https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py           | Aquaria | CC0     |
 | Carpet anemone        | `public/assets/objects/carpet-anemone/`        | https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py           | Aquaria | CC0     |
 | Long-tentacle anemone | `public/assets/objects/long-tentacle-anemone/` | https://github.com/nispa/Aquaria/blob/main/scripts/blender/anemone.py           | Aquaria | CC0     |
+| Zoanthids             | `public/assets/objects/zoanthids/`             | https://github.com/nispa/Aquaria/blob/main/scripts/blender/corals.py            | Aquaria | CC0     |
+| Encrusting montipora  | `public/assets/objects/encrusting-montipora/`  | https://github.com/nispa/Aquaria/blob/main/scripts/blender/corals.py            | Aquaria | CC0     |
 | Seiryu stones         | `public/assets/objects/seiryu-stone/`          | https://github.com/nispa/Aquaria/blob/main/scripts/blender/seiryu.py            | Aquaria | CC0     |
 | Branching driftwood   | `public/assets/objects/branching-driftwood/`   | https://github.com/nispa/Aquaria/blob/main/scripts/blender/driftwood.py         | Aquaria | CC0     |
 | Rotala                | `public/assets/objects/rotala/`                | https://github.com/nispa/Aquaria/blob/main/scripts/blender/freshwater_plants.py | Aquaria | CC0     |

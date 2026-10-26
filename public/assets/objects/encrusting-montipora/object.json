@@ -1,0 +1,26 @@
+{
+  "name": "Encrusting montipora",
+  "category": "object",
+  "model": "model.glb",
+  "color": ["#ffffff", "#ffe8d8", "#f0e8ff"],
+  "traits": {
+    "tint": {
+      "strength": 0.15
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["coral"],
+    "placement": {
+      "bands": [0, 4],
+      "size": [0.12, 0.3],
+      "hug": true,
+      "on": ["rock", "sand"]
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/corals.py",
+    "license": "CC0-1.0"
+  }
+}

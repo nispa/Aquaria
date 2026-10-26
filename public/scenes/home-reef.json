@@ -183,6 +183,30 @@
         "id": "reef-rock",
         "tileSize": 0.12
       }
+    },
+    {
+      "kind": "encrusting-montipora",
+      "name": "Montipora on the rock",
+      "count": 24,
+      "on": "rockwork",
+      "color": ["#ffffff"],
+      "size": [0.08, 0.18]
+    },
+    {
+      "kind": "zoanthids",
+      "name": "Zoanthids on the rock",
+      "count": 50,
+      "on": "rockwork",
+      "color": ["#ffffff"],
+      "size": [0.07, 0.14]
+    },
+    {
+      "kind": "zoanthids",
+      "name": "More zoanthids on the rock",
+      "count": 50,
+      "on": "rockwork",
+      "color": ["#ffffff"],
+      "size": [0.05, 0.1]
     }
   ],
   "fauna": [
