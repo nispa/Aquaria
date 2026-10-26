@@ -1,0 +1,26 @@
+{
+  "name": "Tube sponge",
+  "category": "object",
+  "model": "model.glb",
+  "color": ["#ffffff", "#f8f4ff", "#f4fff8"],
+  "traits": {
+    "collision": {
+      "across": 0.4,
+      "up": 0.6,
+      "along": 0.4,
+      "sink": -0.02,
+      "lift": 0
+    },
+    "tags": ["sponge", "shelter"],
+    "placement": {
+      "on": ["rock", "sand"],
+      "bands": [1, 4],
+      "size": [0.06, 0.12]
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py",
+    "license": "CC0-1.0"
+  }
+}

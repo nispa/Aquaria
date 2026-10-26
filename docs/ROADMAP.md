@@ -631,18 +631,18 @@ again, made in Blender like the fish and plants, with painted textures:
 living tissue over the skeleton, polyps, colour running from base to tip,
 fluorescence; the scans are left out of the tanks.
 
-- [ ] Small and encrusting corals (zoanthids, encrusting montipora,
-      polyps) scattered by the hundred, so the rock disappears under
-      them as in a mature tank; instanced, light enough for phones.
-      Started: zoanthids and encrusting montipora
-      (`scripts/blender/corals.py`), lying along the rock (`hug`), 124
-      of them on the Home reef. Still to do: star and other polyps.
-- [ ] Colonies at the scale of a home tank: many small ones, a few large.
-      Started (`scripts/blender/colonies.py`): acropora, cauliflower
-      coral (pocillopora), table acropora, a living brain coral and the
-      torch coral replace the staghorn, cauliflower, table and brain
-      scans in the Home reef and the lagoon. Still scans: finger and
-      sheet corals, glove sponge. The table acropora is heavy (850 KB).
+- [x] Small and encrusting corals scattered by the hundred, so the rock
+      disappears under them as in a mature tank: zoanthids, encrusting
+      and plating montipora, green star polyps
+      (`scripts/blender/corals.py`), lying along the rock (`hug`); 136
+      of them on the Home reef.
+- [x] Colonies at the scale of a home tank, many small ones and a few
+      large (`scripts/blender/colonies.py`): acropora, cauliflower coral
+      (pocillopora), table acropora, finger coral (montipora digitata),
+      a living brain coral, the torch coral and a tube sponge. No scans
+      left in the Home reef and the Clownfish lagoon; the Hero and the
+      Tropical reef keep theirs for now. The table acropora is heavy
+      (850 KB).
 
 ### L3. Sand
 

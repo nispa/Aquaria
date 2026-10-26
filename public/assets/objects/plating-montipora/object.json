@@ -1,0 +1,25 @@
+{
+  "name": "Plating montipora",
+  "category": "object",
+  "model": "model.glb",
+  "color": ["#ffffff", "#f8f4ff", "#f4fff8"],
+  "traits": {
+    "tint": {
+      "strength": 0.15
+    },
+    "collision": {
+      "solid": false
+    },
+    "tags": ["coral"],
+    "placement": {
+      "on": ["rock", "sand"],
+      "bands": [0, 4],
+      "size": [0.12, 0.25]
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/corals.py",
+    "license": "CC0-1.0"
+  }
+}

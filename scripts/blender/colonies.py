@@ -14,6 +14,9 @@ Aquaria picks one per colony (docs/OBJECTS.md):
 - a brain coral (Platygyra): a low dome whose surface folds into
   meandering ridges and valleys, the valleys one colour, the ridges another;
 
+- a tube sponge: a few tubes rising from the rock, each open at the top
+  with a darker inside, their skin dotted with pores;
+
 - a torch coral (Euphyllia glabrescens): a few short stalks of skeleton,
   each crowned by long tentacles with round tips that sway one by one, as
   the anemones' do (`_STRAND`, one value per tentacle), so it is a plant
@@ -54,7 +57,8 @@ CUPS_AROUND = 8
 # how often they fork and how far apart (`fork`, radians), how much they
 # turn up as they grow (`rise`; the last forks by `tip_rise` when it is
 # set), how far the tip colour reaches (`tip`),
-# and the morphs: base, body and tip.
+# how much the last forks narrow to a point (`taper`, 0 blunt), and the
+# morphs: base, body and tip.
 BRANCHING = {
     # Staghorn and bush acropora: a colony about 30 cm across.
     "acropora": {
@@ -74,6 +78,16 @@ BRANCHING = {
             {"base": "#8a5a6a", "body": "#d880a0", "tip": "#f8c0d8"},
             {"base": "#5a6a48", "body": "#9ab878", "tip": "#e0f0a0"},
             {"base": "#8a7058", "body": "#d8b090", "tip": "#f8e0c0"},
+        ],
+    },
+    # Finger coral (Montipora digitata): short, thick, blunt fingers rising from the base.
+    "finger-montipora": {
+        "trunks": 7, "stalk": 0.0, "lean": (0.1, 0.6), "length": 0.06, "radius": 0.012,
+        "forks": 2, "fork": (0.3, 0.5), "rise": 0.25, "tip": 0.015, "taper": 0.15,
+        "morphs": [
+            {"base": "#6a4a3a", "body": "#c87a4a", "tip": "#f0b080"},
+            {"base": "#4a5a48", "body": "#7aa088", "tip": "#c0e8c0"},
+            {"base": "#5a4a5a", "body": "#a080a8", "tip": "#e0c0e8"},
         ],
     },
     # Table acropora: a short stalk, then branches spreading flat all round, their tips turned up.
@@ -120,6 +134,21 @@ TORCH_MORPHS = [
 ]
 TEXTURE_SIZE = 512
 
+# Tube sponge, m: tubes up to 14 cm tall from a base 8 cm across.
+SPONGE_TUBES = (3, 6)
+SPONGE_HEIGHT = (0.07, 0.14)
+SPONGE_RADIUS = (0.012, 0.02)
+SPONGE_SIDES = 14
+SPONGE_RINGS = 10
+# How thick a tube's wall is, as a share of its radius.
+SPONGE_WALL = 0.25
+# Each morph: skin, and the darker inside of the tubes.
+SPONGE_MORPHS = [
+    {"skin": "#7a4a9a", "inside": "#3a2050"},
+    {"skin": "#d8a838", "inside": "#7a5018"},
+    {"skin": "#d86a3a", "inside": "#6a2a18"},
+]
+
 
 def ring_around(mesh, centre, axis, radius, sides):
     """Points in a circle of `radius` round `axis` at `centre`, and their angles."""
@@ -158,7 +187,7 @@ def acro_branch(mesh, colors, kind, morph, rng, start, direction, length, radius
     heading = direction.normalized()
     for segment in range(ACRO_SEGMENTS + 1):
         share = segment / ACRO_SEGMENTS
-        r = radius * (1 - 0.3 * share) * (1 - (0.75 * share**3 if terminal else 0.0))
+        r = radius * (1 - 0.3 * share) * (1 - (kind.get("taper", 0.75) * share**3 if terminal else 0.0))
         ring = ring_around(mesh, point, heading, r, ACRO_SIDES)
         along = travelled + length * share
         to_tip = length * (1 - share) if terminal else kind["tip"] * 10
@@ -285,6 +314,59 @@ def smoothstep_scalar(edge0, edge1, x):
     return t * t * (3 - 2 * t)
 
 
+# Tube sponge
+
+
+def sponge_tube(mesh, colors, morph, rng, foot, axis, height, radius):
+    """A tube: its wall bulging a little as it rises, open at the top, its inside darker."""
+    skin, inside = linear(morph["skin"]), linear(morph["inside"])
+    outer, inner = [], []
+    for ring in range(SPONGE_RINGS + 1):
+        share = ring / SPONGE_RINGS
+        centre = foot + axis * (height * share)
+        r = radius * (1 + 0.15 * math.sin(share * math.pi * rng.uniform(1.5, 2.5)) + 0.1 * share)
+        ring_points = ring_around(mesh, centre, axis, r, SPONGE_SIDES)
+        for vertex in ring_points:
+            # Pores: darker specks scattered over the skin.
+            speck = noise.noise(vertex.co * 900) > 0.45
+            colors[vertex] = mix(skin, inside, 0.45 if speck else 0.0)
+        outer.append(ring_points)
+    # The inside wall, from the lip down a third of the tube.
+    for ring in range(SPONGE_RINGS, int(SPONGE_RINGS * 0.6), -1):
+        share = ring / SPONGE_RINGS
+        centre = foot + axis * (height * share)
+        r = radius * (1 - SPONGE_WALL) * (1 + 0.1 * share)
+        ring_points = ring_around(mesh, centre, axis, r, SPONGE_SIDES)
+        for vertex in ring_points:
+            colors[vertex] = mix(inside, skin, 0.3 * (share - 0.6) / 0.4)
+        inner.append(ring_points)
+    for lower, upper in zip(outer, outer[1:]):
+        join_rings(mesh, lower, upper)
+    # The lip joins the outside to the inside; the inside goes down to a dark floor.
+    join_rings(mesh, outer[-1], inner[0])
+    for upper, lower in zip(inner, inner[1:]):
+        join_rings(mesh, upper, lower)
+    bottom = mesh.verts.new(foot + axis * (height * 0.6))
+    colors[bottom] = inside
+    cap(mesh, inner[-1], bottom)
+
+
+def sponge(morph, offset, rng):
+    mesh = bmesh.new()
+    colors = {}
+    tubes = rng.randint(*SPONGE_TUBES)
+    spin = rng.uniform(0, 2 * math.pi)
+    for tube in range(tubes):
+        angle = spin + 2 * math.pi * tube / tubes
+        reach = 0.0 if tube == 0 else rng.uniform(0.015, 0.03)
+        lean = 0.0 if tube == 0 else rng.uniform(0.1, 0.35)
+        foot = Vector((reach * math.cos(angle), reach * math.sin(angle), -0.004))
+        axis = Vector((math.sin(lean) * math.cos(angle), math.sin(lean) * math.sin(angle), math.cos(lean)))
+        sponge_tube(mesh, colors, morph, rng, foot, axis, rng.uniform(*SPONGE_HEIGHT), rng.uniform(*SPONGE_RADIUS))
+    bmesh.ops.translate(mesh, verts=mesh.verts, vec=(offset, 0, 0))
+    return mesh, colors
+
+
 # Torch coral
 
 
@@ -375,6 +457,15 @@ def build_brain():
         mesh.free()
 
 
+def build_sponge():
+    rng = random.Random(SEED)
+    material = leaf_material("tube-sponge", 0.7)
+    for index, morph in enumerate(SPONGE_MORPHS):
+        mesh, colors = sponge(morph, index * VARIANT_SPACING * 0.2, rng)
+        plant_object(f"tube-sponge-{index}", mesh, colors, {point: 0.0 for point in mesh.verts}, material)
+        mesh.free()
+
+
 def build_torch():
     rng = random.Random(SEED)
     material = leaf_material("torch-coral", 0.35)
@@ -391,5 +482,7 @@ for name in BRANCHING:
         build(name, build_branching(name))
 if not ONLY or "platygyra" in ONLY:
     build("platygyra", build_brain)
+if not ONLY or "tube-sponge" in ONLY:
+    build("tube-sponge", build_sponge)
 if not ONLY or "torch-coral" in ONLY:
     build("torch-coral", build_torch)

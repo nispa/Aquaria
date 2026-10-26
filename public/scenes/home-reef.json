@@ -121,17 +121,17 @@
       "size": [0.07, 0.14]
     },
     {
-      "kind": "finger-coral",
+      "kind": "finger-montipora",
       "count": 6,
       "on": "rockwork",
-      "color": ["#8fd0d8", "#a090e0", "#d8c080"],
+      "color": ["#ffffff"],
       "size": [0.1, 0.18]
     },
     {
-      "kind": "sheet-coral",
+      "kind": "plating-montipora",
       "count": 4,
       "on": "rockwork",
-      "color": ["#e0a868", "#c8b878", "#a0c078"],
+      "color": ["#ffffff"],
       "size": [0.1, 0.18]
     },
     {
@@ -149,11 +149,11 @@
       "size": [0.22, 0.3]
     },
     {
-      "kind": "glove-sponge",
+      "kind": "tube-sponge",
       "count": 3,
       "on": "rockwork",
-      "color": ["#6f7fd8", "#d8803a", "#c84a4a"],
-      "size": [0.07, 0.12]
+      "color": ["#ffffff"],
+      "size": [0.05, 0.08]
     },
     {
       "kind": "fan-coral",
@@ -216,6 +216,14 @@
       "on": "rockwork",
       "color": ["#ffffff"],
       "size": [0.05, 0.1]
+    },
+    {
+      "kind": "star-polyps",
+      "name": "Star polyps on the rock",
+      "count": 12,
+      "on": "rockwork",
+      "color": ["#ffffff"],
+      "size": [0.08, 0.16]
     }
   ],
   "fauna": [

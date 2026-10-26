@@ -1,0 +1,29 @@
+{
+  "name": "Finger coral (living)",
+  "category": "object",
+  "model": "model.glb",
+  "color": ["#ffffff", "#f8f4ff", "#f4fff8"],
+  "traits": {
+    "tint": {
+      "strength": 0.15
+    },
+    "collision": {
+      "across": 0.45,
+      "up": 0.5,
+      "along": 0.45,
+      "sink": -0.02,
+      "lift": 0
+    },
+    "tags": ["coral", "shelter"],
+    "placement": {
+      "on": ["rock", "sand"],
+      "bands": [1, 4],
+      "size": [0.1, 0.22]
+    }
+  },
+  "credit": {
+    "author": "Aquaria",
+    "source": "https://github.com/nispa/Aquaria/blob/main/scripts/blender/colonies.py",
+    "license": "CC0-1.0"
+  }
+}

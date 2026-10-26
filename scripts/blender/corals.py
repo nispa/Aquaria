@@ -13,14 +13,20 @@ per colony (docs/OBJECTS.md):
 - encrusting montipora (Montipora): a thin plate that spreads over the rock
   in lobes, its surface pitted with tiny polyps and its growing edge paler.
   The pits are a grey texture painted here (`texture`), which Aquaria
-  multiplies by the points' colours.
+  multiplies by the points' colours;
+
+- plating montipora (Montipora capricornis): the same plates, stacked in a
+  whorl that climbs as it turns, each tilted up towards the light;
+
+- green star polyps (Pachyclavularia): a purple mat that spreads over the
+  rock, crowded with tiny green stars of eight thin tentacles.
 
 Colours live in the points, so the `tint` trait can shift a colony a little
 and make it glow under actinic light, as live corals do.
 
 Run with Blender 5.2 in the background, from the repository root:
 
-    blender --background --python scripts/blender/corals.py
+    blender --background --python scripts/blender/corals.py [-- zoanthids ...]
 
 then compress each model.glb with glTF Transform (meshopt, --join false
 --flatten false, --texture-compress webp).
@@ -34,6 +40,7 @@ import sys
 import bmesh
 import bpy
 import numpy as np
+from mathutils import Matrix, Vector
 
 sys.path.insert(0, os.path.dirname(__file__))
 from paintkit import fbm, image, smoothstep  # noqa: E402
@@ -71,6 +78,30 @@ MONTI_MORPHS = [
 TEXTURE_SIZE = 512
 # Polyps across the texture, which spans the whole plate.
 POLYP_CELLS = 70
+
+# Plating montipora: plates in a whorl, each smaller and higher than the last,
+# turned this far round and tilted this far up (radians), m.
+PLATES = 4
+PLATE_TURN = 2.1
+PLATE_TILT = (0.25, 0.5)
+PLATE_RISE = 0.025
+PLATE_MORPHS = [
+    {"plate": "#8a5a3a", "edge": "#e0b880"},
+    {"plate": "#4a6a3e", "edge": "#b8d890"},
+    {"plate": "#6a4a6a", "edge": "#c8a0d0"},
+]
+
+# Green star polyps, m: a mat about 14 cm across.
+GSP_RADIUS = 0.07
+GSP_POLYPS = 150
+GSP_STALK = 0.006
+GSP_ARMS = 8
+GSP_ARM = 0.0045
+GSP_MORPHS = [
+    {"mat": "#5a3a6a", "stalk": "#6a5a7a", "star": "#7af07a", "centre": "#e0ffb0"},
+    {"mat": "#4a3a5a", "stalk": "#5a6a6a", "star": "#5ae0c8", "centre": "#c8fff0"},
+    {"mat": "#5a4a3a", "stalk": "#7a6a4a", "star": "#c8f05a", "centre": "#f8ffc0"},
+]
 
 
 def zoa_polyp(mesh, colors, morph, x, y, radius, height, lean):
@@ -165,9 +196,18 @@ def monti_outline(seed):
 
 
 def montipora(morph, offset, seed):
-    """The plate: a disc of rings rising to a low dome, its rim curling up; a thin edge band down to the rock."""
+    """One encrusting plate, as its own mesh."""
     mesh = leaf_mesh()
     colors = {}
+    monti_plate(mesh, colors, morph, seed, Matrix.Translation((offset, 0, 0)))
+    return mesh, colors
+
+
+def monti_plate(mesh, colors, morph, seed, placed, scale=1.0):
+    """The plate: a disc of rings rising to a low dome, its rim curling up; a thin edge band down to the rock.
+
+    `placed` moves it where it goes; `scale` shrinks it in the plane.
+    """
     plate, edge = linear(morph["plate"]), linear(morph["edge"])
     outline = monti_outline(seed)
     rings = []
@@ -176,16 +216,16 @@ def montipora(morph, offset, seed):
         loop = []
         for step in range(MONTI_SEGMENTS):
             angle = 2 * math.pi * step / MONTI_SEGMENTS
-            r = MONTI_RADIUS * share * outline(angle)
+            r = MONTI_RADIUS * scale * share * outline(angle)
             ripple = 0.004 * math.sin(r * 90 + angle * 3 + seed) * share
             curl = 0.01 * share**6
             height = MONTI_THICKNESS + 0.012 * (1 - share**2) + ripple + curl
-            point = mesh.verts.new((offset + r * math.cos(angle), r * math.sin(angle), height))
+            point = mesh.verts.new(placed @ Vector((r * math.cos(angle), r * math.sin(angle), height)))
             colors[point] = mix(plate, edge, (share - 0.8) / 0.2)
             leaf_spot(mesh, point, 0.5 + r * math.cos(angle) / (2 * MONTI_RADIUS), 0.5 + r * math.sin(angle) / (2 * MONTI_RADIUS))
             loop.append(point)
         rings.append(loop)
-    centre = mesh.verts.new((offset, 0, MONTI_THICKNESS + 0.012))
+    centre = mesh.verts.new(placed @ Vector((0, 0, MONTI_THICKNESS + 0.012)))
     colors[centre] = plate
     leaf_spot(mesh, centre, 0.5, 0.5)
     for step in range(MONTI_SEGMENTS):
@@ -197,14 +237,77 @@ def montipora(morph, offset, seed):
     # The edge band, down to the rock, in the growing edge's colour.
     rim = rings[-1]
     foot = []
+    lift = placed.inverted()
     for point in rim:
-        lower = mesh.verts.new((point.co.x, point.co.y, 0.0))
+        local = lift @ point.co
+        lower = mesh.verts.new(placed @ Vector((local.x, local.y, 0.0)))
         colors[lower] = edge
         leaf_spot(mesh, lower, 0.99, 0.5)
         foot.append(lower)
     for step in range(MONTI_SEGMENTS):
         following = (step + 1) % MONTI_SEGMENTS
         mesh.faces.new((rim[step], foot[step], foot[following], rim[following]))
+
+
+def plating(morph, offset, rng):
+    """A whorl of plates climbing as it turns, each tilted up and a little smaller than the last."""
+    mesh = leaf_mesh()
+    colors = {}
+    turn = rng.uniform(0, 2 * math.pi)
+    for index in range(PLATES):
+        turn += PLATE_TURN + rng.uniform(-0.3, 0.3)
+        reach = 0.035 * (1 - index / PLATES)
+        placed = (
+            Matrix.Translation((offset + reach * math.cos(turn), reach * math.sin(turn), index * PLATE_RISE))
+            @ Matrix.Rotation(turn, 4, "Z")
+            @ Matrix.Rotation(rng.uniform(*PLATE_TILT), 4, "Y")
+        )
+        monti_plate(mesh, colors, morph, rng.uniform(0, 100), placed, scale=0.75 - 0.1 * index)
+    return mesh, colors
+
+
+def star_polyps(morph, offset, rng):
+    """The mat, then the polyps: a short stalk each, topped by a star of thin tentacles."""
+    mesh = bmesh.new()
+    colors = {}
+    mat, stalk, star, centre_color = (linear(morph[key]) for key in ("mat", "stalk", "star", "centre"))
+    outline = monti_outline(rng.uniform(0, 100))
+    sides = 40
+    middle = mesh.verts.new((offset, 0, 0.003))
+    colors[middle] = mat
+    edge = []
+    for step in range(sides):
+        angle = 2 * math.pi * step / sides
+        r = GSP_RADIUS * outline(angle)
+        point = mesh.verts.new((offset + r * math.cos(angle), r * math.sin(angle), 0.0))
+        colors[point] = mat
+        edge.append(point)
+    for step in range(sides):
+        mesh.faces.new((edge[step], edge[(step + 1) % sides], middle))
+    for _ in range(GSP_POLYPS):
+        angle, share = rng.uniform(0, 2 * math.pi), math.sqrt(rng.random()) * 0.92
+        r = GSP_RADIUS * outline(angle) * share
+        foot = Vector((offset + r * math.cos(angle), r * math.sin(angle), 0.002))
+        top = foot + Vector((rng.uniform(-0.001, 0.001), rng.uniform(-0.001, 0.001), GSP_STALK * rng.uniform(0.7, 1.3)))
+        # The stalk: a thin three-sided column.
+        base = [mesh.verts.new(foot + Vector((0.0012 * math.cos(a), 0.0012 * math.sin(a), 0))) for a in (0, 2.09, 4.19)]
+        hub = mesh.verts.new(top)
+        for vertex in base:
+            colors[vertex] = stalk
+        colors[hub] = centre_color
+        for step in range(3):
+            mesh.faces.new((base[step], base[(step + 1) % 3], hub))
+        # The star: thin arms out from the hub, each a narrow triangle lying nearly flat.
+        spin = rng.uniform(0, 2 * math.pi)
+        for arm in range(GSP_ARMS):
+            a = spin + 2 * math.pi * arm / GSP_ARMS
+            out = Vector((math.cos(a), math.sin(a), 0.25))
+            side = Vector((-math.sin(a), math.cos(a), 0)) * 0.0007
+            left, right = mesh.verts.new(top + side), mesh.verts.new(top - side)
+            tip = mesh.verts.new(top + out * GSP_ARM * rng.uniform(0.8, 1.2))
+            colors[left] = colors[right] = centre_color
+            colors[tip] = star
+            mesh.faces.new((left, right, tip))
     return mesh, colors
 
 
@@ -253,5 +356,36 @@ def build_montipora():
     export(os.path.join(OBJECTS, "encrusting-montipora", "model.glb"))
 
 
-build_zoanthids()
-build_montipora()
+def build_plating():
+    clear_scene()
+    rng = random.Random(SEED)
+    material = leaf_material("plating-montipora", 0.55, image("plating-polyps", montipora_texture()))
+    for index, morph in enumerate(PLATE_MORPHS):
+        mesh, colors = plating(morph, index * VARIANT_SPACING * 0.2, rng)
+        plant_object(f"plating-montipora-{index}", mesh, colors, {point: 0.0 for point in mesh.verts}, material)
+        mesh.free()
+    export(os.path.join(OBJECTS, "plating-montipora", "model.glb"))
+
+
+def build_star_polyps():
+    clear_scene()
+    rng = random.Random(SEED)
+    material = leaf_material("star-polyps", 0.5)
+    for index, morph in enumerate(GSP_MORPHS):
+        mesh, colors = star_polyps(morph, index * VARIANT_SPACING * 0.1, rng)
+        plant_object(f"star-polyps-{index}", mesh, colors, {point: 0.0 for point in mesh.verts}, material)
+        mesh.free()
+    export(os.path.join(OBJECTS, "star-polyps", "model.glb"))
+
+
+BUILDERS = {
+    "zoanthids": build_zoanthids,
+    "encrusting-montipora": build_montipora,
+    "plating-montipora": build_plating,
+    "star-polyps": build_star_polyps,
+}
+# Only the corals named after `--`, or all of them.
+ONLY = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
+for name, builder in BUILDERS.items():
+    if not ONLY or name in ONLY:
+        builder()
