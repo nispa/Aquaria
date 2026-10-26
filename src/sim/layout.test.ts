@@ -701,3 +701,65 @@ describe("model objects", () => {
     expect([plant?.generator, plant?.model]).toEqual(["kelp", "assets/objects/kelp/model.glb"]);
   });
 });
+
+describe("encrusting objects lying along the rock", () => {
+  /** Rock rising to the right: 0.5 m up for every metre across. */
+  const slope: RockSurface = {
+    randomPoint: () => [0, -0.5],
+    heightAt: (x) => 0.3 + 0.5 * x,
+  };
+  const encrusting = createObjectCatalog([
+    [
+      "crust",
+      parseObjectManifest(
+        {
+          name: "Crust",
+          category: "object",
+          model: "model.glb",
+          traits: { placement: { hug: true, size: [0.2, 0.2] } },
+          credit: { author: "Aquaria", source: "https://example.com/crust", license: "CC0-1.0" },
+        },
+        "crust",
+      ).manifest,
+    ],
+  ]);
+
+  it("turns an encrusting object's top to face out of a sloping rock", () => {
+    const [crust] = layoutProps(
+      encrusting,
+      tank,
+      [{ kind: "crust", count: 1, color: "#ffffff", on: "rockwork" }],
+      createRng(3),
+      undefined,
+      slope,
+    );
+
+    expect(crust?.up?.[0]).toBeCloseTo(-0.5 / Math.hypot(0.5, 1), 2);
+    expect(crust?.up?.[1]).toBeCloseTo(1 / Math.hypot(0.5, 1), 2);
+    expect(crust?.up?.[2]).toBeCloseTo(0, 2);
+  });
+
+  it("keeps an object that does not hug the rock upright", () => {
+    const [coral] = layoutProps(
+      objects,
+      tank,
+      [{ kind: "brain-coral", count: 1, color: "#b89a5e", on: "rockwork" }],
+      createRng(3),
+      undefined,
+      slope,
+    );
+
+    expect(coral?.up).toBeUndefined();
+  });
+
+  it("keeps an encrusting object on the sand upright", () => {
+    const [crust] = layoutProps(
+      encrusting,
+      tank,
+      [{ kind: "crust", count: 1, color: "#ffffff" }],
+      createRng(3),
+    );
+
+    expect(crust?.up).toBeUndefined();
+  });
+});

@@ -118,6 +118,14 @@ A scene entry can override any of it.
 the side walls: hairgrass and moss say `0.02`, so a carpet grows right up
 to the glass.
 
+`hug` (default `false`) lays it along the rock it grows on, its top facing
+out of the slope, as an encrusting coral does: the encrusting montipora and
+the zoanthids say `true`. On the sand it stays upright.
+
+The zoanthids and the encrusting montipora are made by
+`scripts/blender/corals.py`: polyps whose discs carry the colours, and a
+plate whose tiny polyp pits are a grey texture multiplied by its colours.
+
 ### `tint`: the color tints the model
 
 The item's color multiplies the model's own colors. Made for the coral

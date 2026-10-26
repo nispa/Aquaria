@@ -121,6 +121,16 @@ valori.
 dalle pareti laterali: hairgrass e muschio dicono `0.02`, così un tappeto
 arriva fino al vetro.
 
+`hug` (predefinito `false`) lo stende lungo la roccia su cui cresce, con la
+parte superiore rivolta fuori dal pendio, come un corallo incrostante: la
+montipora incrostante e gli zoantidi dicono `true`. Sulla sabbia resta
+dritto.
+
+Gli zoantidi e la montipora incrostante li fa
+`scripts/blender/corals.py`: polipi i cui dischi portano i colori, e una
+lamina i cui minuscoli polipi sono una texture grigia moltiplicata per i
+suoi colori.
+
 ### `tint`: il colore tinge il modello
 
 Il colore dell'elemento moltiplica i colori del modello. Pensato per le

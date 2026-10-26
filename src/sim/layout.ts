@@ -87,10 +87,41 @@ export interface Prop {
   readonly material?: SurfaceMaterialSpec;
   /** Height of the base above the sand, m, when set on rockwork. */
   readonly elevation?: number;
+  /**
+   * The direction its top faces (a unit vector) when it lies along a
+   * sloping rock (the placement trait's `hug`); straight up when absent.
+   */
+  readonly up?: readonly [number, number, number];
   /** What the item is to fish; see scene/tags. */
   readonly tags: readonly string[];
   /** How much its color tints its model (the `tint` trait); none keeps the model's colors. */
   readonly tint?: number;
+}
+
+/** The steepest an object lies along the rock, radians: past it, it would hang off a wall. */
+const MAX_HUG_TILT = (70 * Math.PI) / 180;
+
+/**
+ * Which way the rock faces under an object `size` wide: the slope across
+ * its width, from the rock's heights on either side. A slope steeper than
+ * MAX_HUG_TILT is taken as that steep.
+ */
+function rockFacing(
+  rock: RockSurface,
+  x: number,
+  z: number,
+  size: number,
+): readonly [number, number, number] {
+  const half = size / 2;
+  const acrossSlope = (rock.heightAt(x + half, z) - rock.heightAt(x - half, z)) / size;
+  const alongSlope = (rock.heightAt(x, z + half) - rock.heightAt(x, z - half)) / size;
+  const steepness = Math.hypot(acrossSlope, alongSlope);
+  const limit = Math.tan(MAX_HUG_TILT);
+  const scale = steepness > limit ? limit / steepness : 1;
+  const nx = -acrossSlope * scale;
+  const nz = -alongSlope * scale;
+  const length = Math.hypot(nx, 1, nz);
+  return [nx / length, 1 / length, nz / length];
 }
 
 const SEED_RANGE = 2 ** 32;
@@ -349,6 +380,11 @@ export function layoutProps(
         chosen === undefined
           ? drawSpot(entryRng, depth, halfWidthAt, surface, placement.clearance)
           : spotAt(chosen, rockwork);
+      // Drawn in this order, color then size, so every scene keeps its layout.
+      const color = drawColor(spec.color, entryRng);
+      const size =
+        chosen?.size ?? entryRng.range(...(spec.size ?? placement.size ?? DEFAULT_SIZE));
+      const onRock = rockwork !== undefined && spot.elevation !== undefined;
       return {
         kind: spec.kind,
         source: { section: "props", entry: index, item },
@@ -356,9 +392,10 @@ export function layoutProps(
         ...(traits.model === undefined ? {} : { model: traits.model }),
         shape: traits.shape,
         solid: traits.solid,
-        color: drawColor(spec.color, entryRng),
+        color,
         ...spot,
-        size: chosen?.size ?? entryRng.range(...(spec.size ?? placement.size ?? DEFAULT_SIZE)),
+        size,
+        ...(placement.hug && onRock ? { up: rockFacing(rockwork, spot.x, spot.z, size) } : {}),
         rotation: drawRotation(chosen, entryRng),
         seed: Math.floor(entryRng.next() * SEED_RANGE),
         ...(spec.material === undefined ? {} : { material: spec.material }),

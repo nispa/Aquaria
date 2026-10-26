@@ -253,8 +253,11 @@ export function createPropRenderer(
   }
 
   const matrix = new Matrix4();
+  const UP = new Vector3(0, 1, 0);
   const rotation = new Quaternion();
   const euler = new Euler();
+  const lean = new Quaternion();
+  const facing = new Vector3();
   const position = new Vector3();
   const scale = new Vector3();
   const starfish: { mesh: InstancedMesh; props: Prop[] }[] = [];
@@ -263,6 +266,11 @@ export function createPropRenderer(
     const base = floor(prop.x, prop.z) + (prop.elevation ?? 0);
     position.set(prop.x, base + prop.shape.sink * prop.size, prop.z);
     rotation.setFromEuler(euler.set(0, prop.rotation + turn, 0));
+    // An encrusting coral turns its top to face out of the rock, after its own turn.
+    if (prop.up !== undefined) {
+      lean.setFromUnitVectors(UP, facing.set(prop.up[0], prop.up[1], prop.up[2]));
+      rotation.premultiply(lean);
+    }
     scale.setScalar(prop.size);
     matrix.compose(position, rotation, scale);
     mesh.setMatrixAt(index, matrix);

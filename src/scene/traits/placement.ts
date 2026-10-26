@@ -28,5 +28,10 @@ export const placement = defineTrait({
      * where chance puts it: a carpet grows right up to the glass.
      */
     clearance: z.number().min(0).max(1).default(0.2),
+    /**
+     * Lies along the rock it grows on, its top facing out of the slope,
+     * as an encrusting coral does; on the sand it stays upright.
+     */
+    hug: z.boolean().default(false),
   }),
 });
