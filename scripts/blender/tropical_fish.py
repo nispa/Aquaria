@@ -1,4 +1,7 @@
-"""Gives the four tropical fish their own swim clip back, in Blender.
+"""Gives the powder blue tang its own swim clip back, in Blender.
+
+The school's clownfish, moorish idol and yellow tang were replaced by
+recipes (fish.json), so only the blue tang is extracted.
 
     blender --background --python scripts/blender/tropical_fish.py -- <scene.gltf> <output folder>
 
@@ -40,10 +43,7 @@ DEFAULT_OUTPUT = os.path.join(ROOT, "public", "assets", "species")
 # The species folder each fish goes to, and the prefix of its bones in the
 # school (the first fish of each species, the one Aquaria shows).
 FISH = {
-    "clownfish": "Clown1",
     "blue-tang": "blue_tang1",
-    "moorish-idol": "moorish1",
-    "yellow-tang": "Yellow1",
 }
 # The school's animation is keyed thirty times a second.
 FPS = 30

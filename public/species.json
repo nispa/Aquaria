@@ -69,6 +69,7 @@
         }
       },
       "model": "clownfish",
+      "coloring": "ocellaris",
       "length": {
         "mean": 0.11,
         "standardDeviation": 0.012
@@ -161,6 +162,7 @@
         }
       },
       "model": "yellow-tang",
+      "coloring": "classic",
       "length": {
         "mean": 0.18,
         "standardDeviation": 0.02
@@ -308,6 +310,7 @@
         }
       },
       "model": "moorish-idol",
+      "coloring": "classic",
       "length": {
         "mean": 0.2,
         "standardDeviation": 0.02
@@ -501,6 +504,7 @@
         }
       },
       "model": "neon-tetra",
+      "coloring": "classic",
       "length": {
         "mean": 0.035,
         "standardDeviation": 0.003

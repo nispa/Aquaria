@@ -671,10 +671,10 @@ fluorescence; the scans are left out of the tanks.
 - [x] The species that had only their procedural body, made with the fish
       maker (K): three-bar damsel, purple tang, dwarf gourami and emperor
       angelfish (adult), each a `fish.json` drawn after photographs.
-- [ ] Our own models for the species whose model was downloaded: yellow
-      tang, moorish idol, neon tetra (an animated school model), the
-      copperband butterflyfish, blue tang and the clownfish. Which first is
-      the user's choice.
+- [x] Our own recipes in place of downloaded models: yellow tang (the
+      purple tang's shape), moorish idol, neon tetra and clownfish.
+- [ ] The copperband butterflyfish and the powder blue tang, still
+      downloaded models (textured, with eyes, mouth and gills of their own).
 - [ ] Remove the procedural generators no bundled object uses since the
       retired table (10468df): every plant generator in
       `render/floraRenderer.ts`, `render/objectBake.ts` and

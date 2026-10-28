@@ -125,7 +125,7 @@ quando nuota spinge con la coda e le pettorali remano insieme, più piano;
 in uno scatto le chiude contro il corpo; per frenare le apre tutte e due,
 e in virata apre quella all'interno della curva. Questo vale per tutti i
 pesci: lo stesso shader muove le pinne di ogni modello e di ogni corpo
-disegnato. A un modello basta dire dove sono, come il pesce pagliaccio:
+disegnato. A un modello scaricato basta dire dove sono, per esempio:
 
 ```json
 "fins": {
@@ -176,8 +176,9 @@ costruisce a mano.
 ### Da una ricetta
 
 Guppy, platy, pesce angelo, royal gramma, sardina, rasbora arlecchino,
-damigella a tre bande, chirurgo viola, gourami nano e pesce angelo
-imperatore sono ricette: un
+damigella a tre bande, chirurgo viola, chirurgo giallo, gourami nano,
+pesce angelo imperatore, idolo moresco, neon e pesce pagliaccio sono
+ricette: un
 `fish.json` nella loro cartella dice com'è il pesce, e
 `scripts/blender/fishbuild.py` lo costruisce in Blender. Quella del
 platy, accorciata:

@@ -1,0 +1,264 @@
+{
+  "name": "Neon tetra",
+  "description": "A neon tetra (Paracheirodon innesi): a small, slender, spindle-shaped body with a big eye and a forked tail, an electric blue line from the eye to the back of the body, red along the lower half from the middle to the tail, a silvery belly and clear fins.",
+  "body": {
+    "top": [
+      [0.36, 0.015],
+      [0.34, 0.035],
+      [0.3, 0.06],
+      [0.22, 0.085],
+      [0.12, 0.1],
+      [0.02, 0.1],
+      [-0.08, 0.085],
+      [-0.15, 0.06],
+      [-0.2, 0.04]
+    ],
+    "bottom": [
+      [0.36, 0],
+      [0.34, -0.02],
+      [0.3, -0.045],
+      [0.22, -0.07],
+      [0.12, -0.085],
+      [0.02, -0.085],
+      [-0.08, -0.07],
+      [-0.15, -0.05],
+      [-0.2, -0.035]
+    ],
+    "thickness": {
+      "half": 0.05,
+      "rise": 0.3,
+      "power": 0.5,
+      "taper": 0.6,
+      "taperFrom": 0.35,
+      "min": 0.012
+    },
+    "roundness": 1
+  },
+  "eye": {
+    "x": 0.29,
+    "z": 0.02,
+    "radius": 0.04,
+    "depth": 0.55,
+    "rim": "#9ab0b8",
+    "iris": "#8fd0e0",
+    "pupil": "#060606",
+    "irisEdge": [55, 65],
+    "pupilEdge": [30, 36]
+  },
+  "mouth": {
+    "reach": 0.04,
+    "drop": 0.015
+  },
+  "gills": {
+    "edge": 0.22,
+    "top": 0.06,
+    "bottom": -0.06
+  },
+  "fins": [
+    {
+      "id": "caudal",
+      "type": "tail",
+      "root": 0.006,
+      "baseHeight": 0.06,
+      "outline": [
+        [-0.205, 0.035],
+        [-0.3, 0.1],
+        [-0.4, 0.15],
+        [-0.42, 0.14],
+        [-0.33, 0.04],
+        [-0.3, 0],
+        [-0.33, -0.04],
+        [-0.42, -0.14],
+        [-0.4, -0.15],
+        [-0.3, -0.1],
+        [-0.205, -0.035]
+      ],
+      "steps": [180, 40],
+      "ruffle": 0.003
+    },
+    {
+      "id": "dorsal",
+      "type": "body",
+      "upper": true,
+      "start": 0.04,
+      "end": -0.03,
+      "outline": [
+        [0.02, 0.17],
+        [-0.02, 0.19],
+        [-0.05, 0.13],
+        [-0.05, 0.1]
+      ],
+      "steps": [80, 20]
+    },
+    {
+      "id": "anal",
+      "type": "body",
+      "upper": false,
+      "start": -0.02,
+      "end": -0.14,
+      "outline": [
+        [-0.04, -0.13],
+        [-0.1, -0.14],
+        [-0.15, -0.08]
+      ],
+      "steps": [80, 20]
+    },
+    {
+      "id": "pelvic",
+      "type": "pelvic",
+      "root": [0.1, 0.02, -0.085],
+      "base": [-0.02, 0],
+      "edge": {
+        "fan": {
+          "length": 0.05,
+          "angles": [-25, -70]
+        }
+      },
+      "out": 0.01,
+      "steps": [16, 6]
+    },
+    {
+      "id": "pectoral",
+      "type": "pectoral",
+      "root": [0.22, -0.02],
+      "base": [-0.004, 0.035],
+      "length": 0.07,
+      "angles": [20, -40]
+    }
+  ],
+  "texture": {
+    "size": 1024,
+    "ownStep": 8,
+    "parts": {
+      "body": [0, 0, 1, 0.42],
+      "caudal": [0, 0.44, 0.5, 0.4],
+      "dorsal": [0.52, 0.44, 0.3, 0.3],
+      "anal": [0.84, 0.44, 0.16, 0.16],
+      "pelvic": [0.84, 0.62, 0.12, 0.1],
+      "pectoral": [0.52, 0.76, 0.12, 0.1]
+    }
+  },
+  "materials": {
+    "skin": {
+      "roughness": 0.3,
+      "metallic": 0.05
+    },
+    "fins": {
+      "roughness": 0.5,
+      "metallic": 0
+    },
+    "eyes": {
+      "roughness": 0.05,
+      "metallic": 0
+    }
+  },
+  "strains": [
+    {
+      "id": "classic",
+      "name": "Classic",
+      "body": [
+        {
+          "type": "fill",
+          "color": "#d8dcdc"
+        },
+        {
+          "type": "patch",
+          "color": "#5a6452",
+          "amount": 0.8,
+          "bands": [
+            {
+              "axis": "up",
+              "range": [0.45, 0.95]
+            }
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#ff2a2a",
+          "amount": 0.95,
+          "softness": 0.025,
+          "points": [
+            [0.06, 0.025],
+            [-0.21, 0.03],
+            [-0.21, -0.04],
+            [-0.1, -0.075],
+            [0.06, -0.09]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#48f4ff",
+          "amount": 1,
+          "softness": 0.006,
+          "points": [
+            [0.27, 0.07],
+            [0.1, 0.085],
+            [-0.12, 0.065],
+            [-0.18, 0.045],
+            [-0.12, 0.018],
+            [0.1, 0.02],
+            [0.27, 0.025]
+          ]
+        },
+        {
+          "type": "scales",
+          "size": 0.014,
+          "rim": 0.05
+        }
+      ]
+    }
+  ],
+  "finPaint": {
+    "caudal": {
+      "rayed": {
+        "web": "#eef2f2",
+        "ray": "#ffffff",
+        "root": "#e05050",
+        "alphaRoot": 0.4,
+        "alphaEdge": 0.08,
+        "rays": 20,
+        "rootShare": 0.2
+      }
+    },
+    "dorsal": {
+      "rayed": {
+        "web": "#eef2f2",
+        "ray": "#ffffff",
+        "root": "#e4eaea",
+        "alphaRoot": 0.3,
+        "alphaEdge": 0.08,
+        "rays": 10
+      }
+    },
+    "anal": {
+      "rayed": {
+        "web": "#eef2f2",
+        "ray": "#ffffff",
+        "root": "#e4eaea",
+        "alphaRoot": 0.3,
+        "alphaEdge": 0.08,
+        "rays": 12
+      }
+    },
+    "pelvic": {
+      "rayed": {
+        "web": "#eef2f2",
+        "ray": "#ffffff",
+        "root": "#e4eaea",
+        "alphaRoot": 0.3,
+        "alphaEdge": 0.08,
+        "rays": 6
+      }
+    },
+    "pectoral": {
+      "rayed": {
+        "web": "#eef2f2",
+        "ray": "#ffffff",
+        "root": "#e4eaea",
+        "alphaRoot": 0.3,
+        "alphaEdge": 0.08,
+        "rays": 10
+      }
+    }
+  }
+}

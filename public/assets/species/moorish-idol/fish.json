@@ -1,0 +1,333 @@
+{
+  "name": "Moorish idol",
+  "description": "A moorish idol (Zanclus cornutus): a flat disc of a body with a long tube of a snout, the dorsal fin a tall sickle trailing a long white streamer, white with two broad black bars (through the eye to the pelvic fins, and from the soft dorsal to the anal fin), yellow towards the tail, an orange saddle on the snout and a black tail edged in white.",
+  "body": {
+    "top": [
+      [0.36, 0.01],
+      [0.32, 0.03],
+      [0.27, 0.06],
+      [0.22, 0.12],
+      [0.15, 0.2],
+      [0.07, 0.24],
+      [-0.02, 0.22],
+      [-0.1, 0.15],
+      [-0.17, 0.08],
+      [-0.21, 0.05]
+    ],
+    "bottom": [
+      [0.36, -0.005],
+      [0.32, -0.02],
+      [0.27, -0.05],
+      [0.21, -0.11],
+      [0.13, -0.17],
+      [0.04, -0.19],
+      [-0.05, -0.15],
+      [-0.13, -0.09],
+      [-0.21, -0.04]
+    ],
+    "thickness": {
+      "half": 0.05,
+      "rise": 0.35,
+      "power": 0.6,
+      "taper": 0.7,
+      "taperFrom": 0.3,
+      "min": 0.01
+    },
+    "roundness": 1.2
+  },
+  "eye": {
+    "x": 0.19,
+    "z": 0.07,
+    "radius": 0.03,
+    "depth": 0.6,
+    "rim": "#1a1a1c",
+    "iris": "#6a5a3a",
+    "pupil": "#060606",
+    "irisEdge": [55, 65],
+    "pupilEdge": [30, 36]
+  },
+  "mouth": {
+    "reach": 0.03,
+    "drop": 0.012
+  },
+  "gills": {
+    "edge": 0.12,
+    "top": 0.14,
+    "bottom": -0.12
+  },
+  "fins": [
+    {
+      "id": "dorsal",
+      "type": "body",
+      "upper": true,
+      "start": 0.1,
+      "end": -0.17,
+      "outline": [
+        [0.07, 0.34],
+        [0, 0.46],
+        [-0.1, 0.56],
+        [-0.22, 0.62],
+        [-0.42, 0.665],
+        [-0.26, 0.6],
+        [-0.17, 0.44],
+        [-0.15, 0.3],
+        [-0.18, 0.18],
+        [-0.2, 0.1]
+      ],
+      "steps": [160, 40]
+    },
+    {
+      "id": "anal",
+      "type": "body",
+      "upper": false,
+      "start": 0.02,
+      "end": -0.17,
+      "outline": [
+        [0, -0.3],
+        [-0.06, -0.36],
+        [-0.13, -0.32],
+        [-0.18, -0.2],
+        [-0.2, -0.08]
+      ],
+      "steps": [120, 24]
+    },
+    {
+      "id": "caudal",
+      "type": "tail",
+      "root": 0.006,
+      "baseHeight": 0.07,
+      "outline": [
+        [-0.215, 0.04],
+        [-0.27, 0.08],
+        [-0.33, 0.11],
+        [-0.345, 0.09],
+        [-0.31, 0.03],
+        [-0.305, 0],
+        [-0.31, -0.03],
+        [-0.345, -0.09],
+        [-0.33, -0.11],
+        [-0.27, -0.08],
+        [-0.215, -0.04]
+      ],
+      "steps": [160, 32],
+      "ruffle": 0.003
+    },
+    {
+      "id": "pelvic",
+      "type": "pelvic",
+      "root": [0.1, 0.02, -0.19],
+      "base": [-0.03, 0],
+      "edge": {
+        "fan": {
+          "length": 0.1,
+          "angles": [-45, -75],
+          "roundness": 0.3
+        }
+      },
+      "out": 0.012,
+      "steps": [16, 10]
+    },
+    {
+      "id": "pectoral",
+      "type": "pectoral",
+      "root": [0.12, -0.03],
+      "base": [-0.005, 0.05],
+      "length": 0.08,
+      "angles": [20, -40]
+    }
+  ],
+  "texture": {
+    "size": 1024,
+    "ownStep": 8,
+    "parts": {
+      "body": [0, 0, 1, 0.42],
+      "caudal": [0, 0.44, 0.3, 0.3],
+      "dorsal": [0.32, 0.44, 0.48, 0.54],
+      "anal": [0.82, 0.44, 0.16, 0.3],
+      "pelvic": [0.82, 0.76, 0.08, 0.12],
+      "pectoral": [0, 0.76, 0.12, 0.1]
+    }
+  },
+  "materials": {
+    "skin": {
+      "roughness": 0.4,
+      "metallic": 0.1
+    },
+    "fins": {
+      "roughness": 0.5,
+      "metallic": 0
+    },
+    "eyes": {
+      "roughness": 0.05,
+      "metallic": 0
+    }
+  },
+  "strains": [
+    {
+      "id": "classic",
+      "name": "Classic",
+      "body": [
+        {
+          "type": "fill",
+          "color": "#f4f2e8"
+        },
+        {
+          "type": "shape",
+          "color": "#f2d020",
+          "amount": 0.9,
+          "softness": 0.03,
+          "points": [
+            [-0.08, 0.22],
+            [-0.22, 0.07],
+            [-0.22, -0.07],
+            [-0.1, -0.15]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#121214",
+          "amount": 0.96,
+          "softness": 0.006,
+          "points": [
+            [0.25, 0.11],
+            [0.14, 0.25],
+            [0.07, 0.25],
+            [0.05, -0.2],
+            [0.14, -0.2],
+            [0.25, -0.08]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#121214",
+          "amount": 0.96,
+          "softness": 0.006,
+          "points": [
+            [-0.04, 0.23],
+            [-0.11, 0.18],
+            [-0.12, -0.12],
+            [-0.05, -0.17]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#f08a20",
+          "amount": 0.9,
+          "softness": 0.01,
+          "points": [
+            [0.3, 0.045],
+            [0.25, 0.09],
+            [0.22, 0.08],
+            [0.27, 0.03]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#121214",
+          "amount": 0.9,
+          "softness": 0.005,
+          "points": [
+            [0.37, 0.03],
+            [0.34, 0.03],
+            [0.34, -0.025],
+            [0.37, -0.025]
+          ]
+        },
+        {
+          "type": "scales",
+          "size": 0.014,
+          "rim": 0.04
+        }
+      ]
+    }
+  ],
+  "finPaint": {
+    "dorsal": {
+      "rayed": {
+        "web": "#f4f2e8",
+        "ray": "#ffffff",
+        "root": "#ece8dc",
+        "alphaRoot": 0.95,
+        "alphaEdge": 0.85,
+        "rays": 16
+      },
+      "layers": [
+        {
+          "type": "shape",
+          "color": "#121214",
+          "amount": 0.95,
+          "points": [
+            [0.12, 0.2],
+            [0, 0.2],
+            [-0.04, 0.36],
+            [0.06, 0.38]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#121214",
+          "amount": 0.95,
+          "points": [
+            [-0.03, 0.2],
+            [-0.11, 0.16],
+            [-0.16, 0.3],
+            [-0.08, 0.36]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#f2d020",
+          "amount": 0.7,
+          "points": [
+            [-0.11, 0.16],
+            [-0.21, 0.08],
+            [-0.2, 0.2],
+            [-0.16, 0.28]
+          ]
+        }
+      ]
+    },
+    "anal": {
+      "rayed": {
+        "web": "#121214",
+        "ray": "#2a2a2c",
+        "root": "#121214",
+        "alphaRoot": 0.95,
+        "alphaEdge": 0.85,
+        "rays": 16,
+        "edgeColor": "#e8e6dc"
+      }
+    },
+    "caudal": {
+      "rayed": {
+        "web": "#121214",
+        "ray": "#2a2a2c",
+        "root": "#3a3a30",
+        "alphaRoot": 0.95,
+        "alphaEdge": 0.85,
+        "rays": 16,
+        "edgeColor": "#f0eee4"
+      }
+    },
+    "pelvic": {
+      "rayed": {
+        "web": "#121214",
+        "ray": "#2a2a2c",
+        "root": "#121214",
+        "alphaRoot": 0.95,
+        "alphaEdge": 0.85,
+        "rays": 6
+      }
+    },
+    "pectoral": {
+      "rayed": {
+        "web": "#f0eee4",
+        "ray": "#ffffff",
+        "root": "#e8e4d8",
+        "alphaRoot": 0.35,
+        "alphaEdge": 0.1,
+        "rays": 12
+      }
+    }
+  }
+}

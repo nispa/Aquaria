@@ -122,7 +122,7 @@ swimming, it pushes with its tail and the pectoral fins row along together,
 more gently; in a dash it folds them against its body; to brake it spreads
 both, and in a turn it spreads the one on the inside. This holds for every
 fish: the same shader moves the fins of every model and every drawn body.
-A model only has to say where they are, like the clownfish:
+A downloaded model only has to say where they are, for example:
 
 ```json
 "fins": {
@@ -172,8 +172,8 @@ animation, `scripts/blender/barramundi.py` shapes it by hand.
 ### From a recipe
 
 The guppy, platy, angelfish, royal gramma, sardine, harlequin rasbora,
-three-bar damsel, purple tang, dwarf gourami and emperor angelfish are
-recipes: a
+three-bar damsel, purple tang, yellow tang, dwarf gourami, emperor
+angelfish, moorish idol, neon tetra and clownfish are recipes: a
 `fish.json` in their folder says what the fish is, and
 `scripts/blender/fishbuild.py` builds it in Blender. The platy's, cut
 short:

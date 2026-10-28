@@ -1,48 +1,43 @@
 {
   "name": "Yellow tang",
   "file": "model.glb",
-  "forward": "+z",
+  "forward": "+x",
   "up": "+y",
   "swimAmplitude": 0.045,
   "mouth": {
-    "jaw": {
-      "start": 0.44,
-      "line": -0.066,
-      "drop": 0.02
-    }
+    "morphTarget": "MouthOpen"
   },
   "eyes": {
-    "painted": {
-      "center": [0.301, 0.046],
-      "radius": 0.024,
-      "pupil": 0.67,
-      "iris": "#e8e6a0"
-    }
+    "bones": ["Eye.L", "Eye.R"],
+    "turn": 20
   },
   "gills": {
-    "edge": 0.235,
-    "top": 0.11,
-    "bottom": -0.12,
-    "curve": 2
+    "edge": 0.24,
+    "top": 0.125,
+    "bottom": -0.19
   },
   "fins": {
     "pectoral": {
       "root": [
-        [0.235, -0.08],
-        [0.195, -0.122]
+        [0.234, -0.019],
+        [0.24, -0.098]
       ],
-      "side": 0.075,
-      "front": 0.245,
-      "back": 0.1,
-      "top": 0.03,
-      "bottom": -0.13,
-      "rest": 35,
-      "sweep": 42
+      "side": 0.089,
+      "front": 0.253,
+      "back": 0.07,
+      "top": -0.006,
+      "bottom": -0.124
+    }
+  },
+  "colorings": {
+    "classic": {
+      "name": "Classic",
+      "texture": "colorings/classic.webp"
     }
   },
   "credit": {
-    "author": "LasquetiSpice",
-    "source": "https://sketchfab.com/3d-models/animated-swimming-tropical-fish-school-loop-62ccf83b35c744d7b5ffb7be80d4ea99",
-    "license": "CC-BY-4.0"
+    "author": "Aquaria (fish.json, built by scripts/blender/fishbuild.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/public/assets/species/yellow-tang/fish.json",
+    "license": "CC0-1.0"
   }
 }

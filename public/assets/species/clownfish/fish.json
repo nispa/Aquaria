@@ -1,0 +1,340 @@
+{
+  "name": "Clownfish",
+  "description": "A clownfish (Amphiprion ocellaris): a small, oval body with a rounded tail and a notched dorsal fin, bright orange with three white bars edged in thin black (behind the eye, in the middle bulging forward, at the root of the tail), the fins orange with black edges.",
+  "body": {
+    "top": [
+      [0.36, 0.02],
+      [0.34, 0.05],
+      [0.3, 0.09],
+      [0.22, 0.13],
+      [0.12, 0.155],
+      [0.02, 0.155],
+      [-0.08, 0.13],
+      [-0.15, 0.09],
+      [-0.2, 0.06],
+      [-0.22, 0.05]
+    ],
+    "bottom": [
+      [0.36, 0],
+      [0.34, -0.03],
+      [0.3, -0.07],
+      [0.22, -0.11],
+      [0.12, -0.13],
+      [0.02, -0.13],
+      [-0.08, -0.11],
+      [-0.15, -0.075],
+      [-0.22, -0.045]
+    ],
+    "thickness": {
+      "half": 0.07,
+      "rise": 0.25,
+      "power": 0.5,
+      "taper": 0.6,
+      "taperFrom": 0.35,
+      "min": 0.016
+    },
+    "roundness": 1
+  },
+  "eye": {
+    "x": 0.28,
+    "z": 0.04,
+    "radius": 0.036,
+    "depth": 0.55,
+    "rim": "#3a1a08",
+    "iris": "#e0701e",
+    "pupil": "#060404",
+    "irisEdge": [55, 65],
+    "pupilEdge": [30, 36]
+  },
+  "mouth": {
+    "reach": 0.045,
+    "drop": 0.022
+  },
+  "gills": {
+    "edge": 0.19,
+    "top": 0.11,
+    "bottom": -0.1
+  },
+  "fins": [
+    {
+      "id": "caudal",
+      "type": "tail",
+      "root": 0.006,
+      "baseHeight": 0.08,
+      "outline": [
+        [-0.225, 0.045],
+        [-0.29, 0.1],
+        [-0.36, 0.12],
+        [-0.4, 0.09],
+        [-0.42, 0.03],
+        [-0.42, -0.03],
+        [-0.4, -0.09],
+        [-0.36, -0.12],
+        [-0.29, -0.1],
+        [-0.225, -0.045]
+      ],
+      "steps": [160, 36],
+      "ruffle": 0.003
+    },
+    {
+      "id": "dorsal",
+      "type": "body",
+      "upper": true,
+      "start": 0.15,
+      "end": -0.19,
+      "outline": [
+        [0.16, 0.2],
+        [0.1, 0.23],
+        [0.04, 0.2],
+        [-0.02, 0.19],
+        [-0.08, 0.25],
+        [-0.16, 0.24],
+        [-0.22, 0.15],
+        [-0.23, 0.08]
+      ],
+      "steps": [160, 24]
+    },
+    {
+      "id": "anal",
+      "type": "body",
+      "upper": false,
+      "start": -0.02,
+      "end": -0.19,
+      "outline": [
+        [-0.05, -0.22],
+        [-0.12, -0.24],
+        [-0.19, -0.18],
+        [-0.22, -0.08]
+      ],
+      "steps": [100, 24]
+    },
+    {
+      "id": "pelvic",
+      "type": "pelvic",
+      "root": [0.17, 0.02, -0.13],
+      "base": [-0.03, 0],
+      "edge": {
+        "fan": {
+          "length": 0.09,
+          "angles": [-40, -70],
+          "roundness": 0.4
+        }
+      },
+      "out": 0.014,
+      "steps": [16, 10]
+    },
+    {
+      "id": "pectoral",
+      "type": "pectoral",
+      "root": [0.2, -0.02],
+      "base": [-0.005, 0.05],
+      "length": 0.09,
+      "angles": [20, -40],
+      "roundness": 0.6
+    }
+  ],
+  "texture": {
+    "size": 1024,
+    "ownStep": 8,
+    "parts": {
+      "body": [0, 0, 1, 0.42],
+      "caudal": [0, 0.44, 0.5, 0.4],
+      "dorsal": [0.52, 0.44, 0.3, 0.3],
+      "anal": [0.84, 0.44, 0.16, 0.16],
+      "pelvic": [0.84, 0.62, 0.12, 0.1],
+      "pectoral": [0.52, 0.76, 0.12, 0.1]
+    }
+  },
+  "materials": {
+    "skin": {
+      "roughness": 0.35,
+      "metallic": 0.2
+    },
+    "fins": {
+      "roughness": 0.5,
+      "metallic": 0
+    },
+    "eyes": {
+      "roughness": 0.05,
+      "metallic": 0
+    }
+  },
+  "strains": [
+    {
+      "id": "ocellaris",
+      "name": "Ocellaris",
+      "body": [
+        {
+          "type": "fill",
+          "color": "#f26a10"
+        },
+        {
+          "type": "patch",
+          "color": "#e05808",
+          "amount": 0.4,
+          "bands": [
+            {
+              "axis": "up",
+              "range": [0.4, 0.95]
+            }
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#141010",
+          "amount": 0.9,
+          "softness": 0.003,
+          "points": [
+            [0.258, 0.168],
+            [0.192, 0.173],
+            [0.157, -0.002],
+            [0.182, -0.143],
+            [0.253, -0.133],
+            [0.223, -0.007]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#f8f8f4",
+          "amount": 0.98,
+          "softness": 0.003,
+          "points": [
+            [0.25, 0.16],
+            [0.2, 0.165],
+            [0.165, 0],
+            [0.19, -0.135],
+            [0.245, -0.125],
+            [0.215, 0]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#141010",
+          "amount": 0.9,
+          "softness": 0.003,
+          "points": [
+            [0.058, 0.178],
+            [-0.038, 0.178],
+            [-0.018, 0.023],
+            [-0.058, -0.148],
+            [0.038, -0.148],
+            [0.058, -0.002]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#f8f8f4",
+          "amount": 0.98,
+          "softness": 0.003,
+          "points": [
+            [0.05, 0.17],
+            [-0.03, 0.17],
+            [-0.01, 0.02],
+            [-0.05, -0.14],
+            [0.03, -0.14],
+            [0.05, 0]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#141010",
+          "amount": 0.9,
+          "softness": 0.003,
+          "points": [
+            [-0.157, 0.098],
+            [-0.213, 0.078],
+            [-0.213, -0.068],
+            [-0.157, -0.083]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#f8f8f4",
+          "amount": 0.98,
+          "softness": 0.003,
+          "points": [
+            [-0.165, 0.09],
+            [-0.205, 0.07],
+            [-0.205, -0.06],
+            [-0.165, -0.075]
+          ]
+        },
+        {
+          "type": "scales",
+          "size": 0.016,
+          "rim": 0.06
+        }
+      ]
+    }
+  ],
+  "finPaint": {
+    "caudal": {
+      "rayed": {
+        "web": "#f07418",
+        "ray": "#f8903a",
+        "root": "#f26a10",
+        "alphaRoot": 0.95,
+        "alphaEdge": 0.9,
+        "rays": 18,
+        "edgeColor": "#141010"
+      }
+    },
+    "dorsal": {
+      "rayed": {
+        "web": "#f07418",
+        "ray": "#f8903a",
+        "root": "#f26a10",
+        "alphaRoot": 0.95,
+        "alphaEdge": 0.9,
+        "rays": 20,
+        "edgeColor": "#141010"
+      },
+      "layers": [
+        {
+          "type": "shape",
+          "color": "#f8f8f4",
+          "amount": 0.95,
+          "points": [
+            [0.05, 0.14],
+            [-0.04, 0.14],
+            [-0.05, 0.22],
+            [0.04, 0.22]
+          ]
+        }
+      ]
+    },
+    "anal": {
+      "rayed": {
+        "web": "#f07418",
+        "ray": "#f8903a",
+        "root": "#f26a10",
+        "alphaRoot": 0.95,
+        "alphaEdge": 0.9,
+        "rays": 14,
+        "edgeColor": "#141010"
+      }
+    },
+    "pelvic": {
+      "rayed": {
+        "web": "#f07418",
+        "ray": "#f8903a",
+        "root": "#f26a10",
+        "alphaRoot": 0.95,
+        "alphaEdge": 0.9,
+        "rays": 6,
+        "edgeColor": "#141010"
+      }
+    },
+    "pectoral": {
+      "rayed": {
+        "web": "#f07418",
+        "ray": "#f8903a",
+        "root": "#f26a10",
+        "alphaRoot": 0.8,
+        "alphaEdge": 0.6,
+        "rays": 12,
+        "edgeColor": "#141010"
+      }
+    }
+  }
+}

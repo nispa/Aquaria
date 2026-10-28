@@ -1,33 +1,43 @@
 {
   "name": "Neon tetra",
   "file": "model.glb",
-  "forward": "+z",
+  "forward": "+x",
   "up": "+y",
   "swimAmplitude": 0.08,
   "mouth": {
-    "jaw": {
-      "start": 0.45,
-      "line": 0.006,
-      "drop": 0.015
-    }
+    "morphTarget": "MouthOpen"
   },
   "eyes": {
-    "painted": {
-      "center": [0.423, 0.007],
-      "radius": 0.026,
-      "pupil": 0.8,
-      "iris": "#8fd0e0"
-    }
+    "bones": ["Eye.L", "Eye.R"],
+    "turn": 20
   },
   "gills": {
-    "edge": 0.32,
-    "top": 0.044,
-    "bottom": -0.072,
-    "curve": 8
+    "edge": 0.31,
+    "top": 0.053,
+    "bottom": -0.101
+  },
+  "fins": {
+    "pectoral": {
+      "root": [
+        [0.305, -0.027],
+        [0.31, -0.072]
+      ],
+      "side": 0.081,
+      "front": 0.323,
+      "back": 0.209,
+      "top": -0.014,
+      "bottom": -0.097
+    }
+  },
+  "colorings": {
+    "classic": {
+      "name": "Classic",
+      "texture": "colorings/classic.webp"
+    }
   },
   "credit": {
-    "author": "BlueMesh",
-    "source": "https://sketchfab.com/3d-models/paracheirodon-innesi---tetra-neon-2fabf5db754746b7b81ebfa0bbe99161",
-    "license": "CC-BY-4.0"
+    "author": "Aquaria (fish.json, built by scripts/blender/fishbuild.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/public/assets/species/neon-tetra/fish.json",
+    "license": "CC0-1.0"
   }
 }

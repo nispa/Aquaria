@@ -1,0 +1,272 @@
+{
+  "name": "Yellow tang",
+  "description": "A yellow tang (Zebrasoma flavescens): a tall, flat, almost round body with a long pointed snout and a small mouth, tall dorsal and anal fins, all bright lemon yellow, with the white scalpel spine at the root of the tail.",
+  "body": {
+    "top": [
+      [0.36, 0.01],
+      [0.33, 0.04],
+      [0.28, 0.09],
+      [0.22, 0.16],
+      [0.14, 0.22],
+      [0.04, 0.24],
+      [-0.06, 0.2],
+      [-0.14, 0.12],
+      [-0.2, 0.06],
+      [-0.23, 0.045]
+    ],
+    "bottom": [
+      [0.36, -0.005],
+      [0.33, -0.03],
+      [0.27, -0.08],
+      [0.18, -0.15],
+      [0.08, -0.2],
+      [-0.02, -0.2],
+      [-0.1, -0.15],
+      [-0.17, -0.08],
+      [-0.23, -0.04]
+    ],
+    "thickness": {
+      "half": 0.055,
+      "rise": 0.25,
+      "power": 0.5,
+      "taper": 0.7,
+      "taperFrom": 0.3,
+      "min": 0.01
+    },
+    "roundness": 1.2
+  },
+  "eye": {
+    "x": 0.24,
+    "z": 0.085,
+    "radius": 0.032,
+    "depth": 0.6,
+    "rim": "#c8a010",
+    "iris": "#2a2410",
+    "pupil": "#060604",
+    "irisEdge": [55, 65],
+    "pupilEdge": [30, 36]
+  },
+  "mouth": {
+    "reach": 0.04,
+    "drop": 0.015
+  },
+  "gills": {
+    "edge": 0.17,
+    "top": 0.12,
+    "bottom": -0.12
+  },
+  "fins": [
+    {
+      "id": "dorsal",
+      "type": "body",
+      "upper": true,
+      "start": 0.2,
+      "end": -0.2,
+      "outline": [
+        [0.17, 0.3],
+        [0.08, 0.36],
+        [-0.02, 0.36],
+        [-0.1, 0.32],
+        [-0.17, 0.24],
+        [-0.22, 0.15],
+        [-0.23, 0.07]
+      ],
+      "steps": [160, 24]
+    },
+    {
+      "id": "anal",
+      "type": "body",
+      "upper": false,
+      "start": 0.06,
+      "end": -0.2,
+      "outline": [
+        [0.03, -0.29],
+        [-0.06, -0.32],
+        [-0.14, -0.27],
+        [-0.2, -0.18],
+        [-0.23, -0.07]
+      ],
+      "steps": [120, 24]
+    },
+    {
+      "id": "caudal",
+      "type": "tail",
+      "root": 0.006,
+      "baseHeight": 0.08,
+      "outline": [
+        [-0.235, 0.04],
+        [-0.3, 0.1],
+        [-0.38, 0.15],
+        [-0.4, 0.14],
+        [-0.37, 0.05],
+        [-0.365, 0],
+        [-0.37, -0.05],
+        [-0.4, -0.14],
+        [-0.38, -0.15],
+        [-0.3, -0.1],
+        [-0.235, -0.04]
+      ],
+      "steps": [180, 40],
+      "ruffle": 0.003
+    },
+    {
+      "id": "pelvic",
+      "type": "pelvic",
+      "root": [0.16, 0.02, -0.19],
+      "base": [-0.03, 0],
+      "edge": {
+        "fan": {
+          "length": 0.08,
+          "angles": [-35, -65]
+        }
+      },
+      "out": 0.012,
+      "steps": [16, 8]
+    },
+    {
+      "id": "pectoral",
+      "type": "pectoral",
+      "root": [0.17, -0.02],
+      "base": [-0.005, 0.06],
+      "length": 0.12,
+      "angles": [25, -35]
+    }
+  ],
+  "texture": {
+    "size": 1024,
+    "ownStep": 8,
+    "parts": {
+      "body": [0, 0, 1, 0.42],
+      "caudal": [0, 0.44, 0.36, 0.3],
+      "dorsal": [0.38, 0.44, 0.62, 0.3],
+      "anal": [0.38, 0.76, 0.4, 0.2],
+      "pelvic": [0.8, 0.76, 0.1, 0.16],
+      "pectoral": [0, 0.76, 0.12, 0.1]
+    }
+  },
+  "materials": {
+    "skin": {
+      "roughness": 0.4,
+      "metallic": 0.1
+    },
+    "fins": {
+      "roughness": 0.5,
+      "metallic": 0
+    },
+    "eyes": {
+      "roughness": 0.05,
+      "metallic": 0
+    }
+  },
+  "strains": [
+    {
+      "id": "classic",
+      "name": "Classic",
+      "body": [
+        {
+          "type": "fill",
+          "color": "#f6d21a"
+        },
+        {
+          "type": "patch",
+          "color": "#e8b40c",
+          "amount": 0.45,
+          "bands": [
+            {
+              "axis": "up",
+              "range": [0.35, 0.95]
+            }
+          ]
+        },
+        {
+          "type": "patch",
+          "color": "#fbe46a",
+          "amount": 0.4,
+          "bands": [
+            {
+              "axis": "up",
+              "range": [-0.3, -0.9]
+            }
+          ]
+        },
+        {
+          "type": "noise",
+          "color": "#f0c010",
+          "scale": 30,
+          "seed": 3,
+          "range": [0.5, 0.8],
+          "amount": 0.25
+        },
+        {
+          "type": "shape",
+          "color": "#f6f4ea",
+          "amount": 0.95,
+          "softness": 0.004,
+          "points": [
+            [-0.17, 0.012],
+            [-0.205, 0.006],
+            [-0.205, -0.006],
+            [-0.17, -0.012]
+          ]
+        },
+        {
+          "type": "scales",
+          "size": 0.015,
+          "rim": 0.05
+        }
+      ]
+    }
+  ],
+  "finPaint": {
+    "dorsal": {
+      "rayed": {
+        "web": "#f4cc18",
+        "ray": "#f8dc50",
+        "root": "#eebe12",
+        "alphaRoot": 0.97,
+        "alphaEdge": 0.9,
+        "rays": 28
+      }
+    },
+    "anal": {
+      "rayed": {
+        "web": "#f4cc18",
+        "ray": "#f8dc50",
+        "root": "#eebe12",
+        "alphaRoot": 0.97,
+        "alphaEdge": 0.9,
+        "rays": 24
+      }
+    },
+    "caudal": {
+      "rayed": {
+        "web": "#f4cc18",
+        "ray": "#f8dc50",
+        "root": "#eebe12",
+        "alphaRoot": 0.95,
+        "alphaEdge": 0.85,
+        "rays": 18
+      }
+    },
+    "pelvic": {
+      "rayed": {
+        "web": "#f4cc18",
+        "ray": "#f8dc50",
+        "root": "#eebe12",
+        "alphaRoot": 0.9,
+        "alphaEdge": 0.8,
+        "rays": 6
+      }
+    },
+    "pectoral": {
+      "rayed": {
+        "web": "#f6d838",
+        "ray": "#fae070",
+        "root": "#f0c818",
+        "alphaRoot": 0.6,
+        "alphaEdge": 0.35,
+        "rays": 14
+      }
+    }
+  }
+}
