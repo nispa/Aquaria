@@ -357,6 +357,8 @@
           "detail": "#0e1a3a"
         }
       },
+      "model": "emperor-angelfish",
+      "coloring": "adult",
       "length": {
         "mean": 0.3,
         "standardDeviation": 0.03
@@ -409,6 +411,8 @@
           "accent": "#121212"
         }
       },
+      "model": "three-bar-damsel",
+      "coloring": "classic",
       "length": {
         "mean": 0.07,
         "standardDeviation": 0.008
@@ -452,6 +456,8 @@
           "accent": "#ffd21f"
         }
       },
+      "model": "purple-tang",
+      "coloring": "classic",
       "length": {
         "mean": 0.22,
         "standardDeviation": 0.02
@@ -741,6 +747,8 @@
           "detail": "#1f3f8a"
         }
       },
+      "model": "dwarf-gourami",
+      "coloring": "classic",
       "length": {
         "mean": 0.07,
         "standardDeviation": 0.007

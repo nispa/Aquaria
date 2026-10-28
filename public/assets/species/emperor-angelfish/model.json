@@ -1,0 +1,41 @@
+{
+  "name": "Emperor angelfish",
+  "file": "model.glb",
+  "forward": "+x",
+  "up": "+y",
+  "mouth": {
+    "morphTarget": "MouthOpen"
+  },
+  "eyes": {
+    "bones": ["Eye.L", "Eye.R"]
+  },
+  "gills": {
+    "edge": 0.288,
+    "top": 0.135,
+    "bottom": -0.168
+  },
+  "fins": {
+    "pectoral": {
+      "root": [
+        [0.269, -0.016],
+        [0.275, -0.092]
+      ],
+      "side": 0.099,
+      "front": 0.288,
+      "back": 0.138,
+      "top": -0.004,
+      "bottom": -0.116
+    }
+  },
+  "colorings": {
+    "adult": {
+      "name": "Adult",
+      "texture": "colorings/adult.webp"
+    }
+  },
+  "credit": {
+    "author": "Aquaria (fish.json, built by scripts/blender/fishbuild.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/public/assets/species/emperor-angelfish/fish.json",
+    "license": "CC0-1.0"
+  }
+}

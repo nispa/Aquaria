@@ -1,0 +1,43 @@
+{
+  "name": "Three-bar damsel",
+  "file": "model.glb",
+  "forward": "+x",
+  "up": "+y",
+  "swimAmplitude": 0.06,
+  "mouth": {
+    "morphTarget": "MouthOpen"
+  },
+  "eyes": {
+    "bones": ["Eye.L", "Eye.R"],
+    "turn": 20
+  },
+  "gills": {
+    "edge": 0.287,
+    "top": 0.11,
+    "bottom": -0.144
+  },
+  "fins": {
+    "pectoral": {
+      "root": [
+        [0.268, -0.004],
+        [0.274, -0.08]
+      ],
+      "side": 0.106,
+      "front": 0.287,
+      "back": 0.124,
+      "top": 0.009,
+      "bottom": -0.109
+    }
+  },
+  "colorings": {
+    "classic": {
+      "name": "Classic",
+      "texture": "colorings/classic.webp"
+    }
+  },
+  "credit": {
+    "author": "Aquaria (fish.json, built by scripts/blender/fishbuild.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/public/assets/species/three-bar-damsel/fish.json",
+    "license": "CC0-1.0"
+  }
+}

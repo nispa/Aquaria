@@ -171,8 +171,9 @@ animation, `scripts/blender/barramundi.py` shapes it by hand.
 
 ### From a recipe
 
-The guppy, platy, angelfish, royal gramma, sardine and harlequin rasbora
-are recipes: a
+The guppy, platy, angelfish, royal gramma, sardine, harlequin rasbora,
+three-bar damsel, purple tang, dwarf gourami and emperor angelfish are
+recipes: a
 `fish.json` in their folder says what the fish is, and
 `scripts/blender/fishbuild.py` builds it in Blender. The platy's, cut
 short:

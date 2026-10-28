@@ -1,0 +1,420 @@
+{
+  "name": "Dwarf gourami",
+  "description": "A dwarf gourami (Trichogaster lalius): a deep, oval, flat-sided body with a small upturned mouth, a long low dorsal fin, a long anal fin, a rounded tail and the pelvic fins drawn out into two long feelers; orange-red crossed by narrow slanted turquoise bars, the throat and chest blue, the fins orange dotted and edged in blue.",
+  "body": {
+    "top": [
+      [0.36, 0.03],
+      [0.34, 0.06],
+      [0.29, 0.1],
+      [0.21, 0.15],
+      [0.11, 0.18],
+      [0.01, 0.18],
+      [-0.08, 0.15],
+      [-0.15, 0.1],
+      [-0.2, 0.07],
+      [-0.22, 0.06]
+    ],
+    "bottom": [
+      [0.36, 0.015],
+      [0.34, -0.02],
+      [0.29, -0.07],
+      [0.2, -0.13],
+      [0.1, -0.16],
+      [0, -0.16],
+      [-0.09, -0.13],
+      [-0.16, -0.09],
+      [-0.22, -0.055]
+    ],
+    "thickness": {
+      "half": 0.06,
+      "rise": 0.25,
+      "power": 0.5,
+      "taper": 0.65,
+      "taperFrom": 0.3,
+      "min": 0.012
+    },
+    "roundness": 1
+  },
+  "eye": {
+    "x": 0.29,
+    "z": 0.045,
+    "radius": 0.036,
+    "depth": 0.55,
+    "rim": "#5a2a1a",
+    "iris": "#c84a28",
+    "pupil": "#070505",
+    "irisEdge": [55, 65],
+    "pupilEdge": [30, 36]
+  },
+  "mouth": {
+    "reach": 0.04,
+    "drop": 0.015
+  },
+  "gills": {
+    "edge": 0.22,
+    "top": 0.1,
+    "bottom": -0.1
+  },
+  "fins": [
+    {
+      "id": "dorsal",
+      "type": "body",
+      "upper": true,
+      "start": 0.02,
+      "end": -0.2,
+      "outline": [
+        [0, 0.22],
+        [-0.08, 0.24],
+        [-0.16, 0.22],
+        [-0.24, 0.16],
+        [-0.26, 0.1]
+      ],
+      "steps": [120, 24]
+    },
+    {
+      "id": "anal",
+      "type": "body",
+      "upper": false,
+      "start": 0.13,
+      "end": -0.2,
+      "outline": [
+        [0.1, -0.22],
+        [0, -0.25],
+        [-0.1, -0.26],
+        [-0.2, -0.22],
+        [-0.26, -0.14],
+        [-0.26, -0.08]
+      ],
+      "steps": [140, 24]
+    },
+    {
+      "id": "caudal",
+      "type": "tail",
+      "root": 0.006,
+      "baseHeight": 0.1,
+      "outline": [
+        [-0.225, 0.055],
+        [-0.3, 0.12],
+        [-0.38, 0.15],
+        [-0.42, 0.12],
+        [-0.44, 0.05],
+        [-0.445, 0],
+        [-0.44, -0.05],
+        [-0.42, -0.12],
+        [-0.38, -0.15],
+        [-0.3, -0.12],
+        [-0.225, -0.055]
+      ],
+      "steps": [180, 40],
+      "ruffle": 0.004
+    },
+    {
+      "id": "pelvic",
+      "type": "filament",
+      "points": {
+        "left": [
+          [0.2, 0.025, -0.13],
+          [0.19, 0.04, -0.25],
+          [0.14, 0.05, -0.38],
+          [0.06, 0.05, -0.5]
+        ],
+        "right": [
+          [0.2, 0.025, -0.13],
+          [0.19, 0.04, -0.24],
+          [0.15, 0.05, -0.36],
+          [0.08, 0.05, -0.46]
+        ]
+      },
+      "width": [0.01, 0.003],
+      "steps": [40, 2]
+    },
+    {
+      "id": "pectoral",
+      "type": "pectoral",
+      "root": [0.22, -0.02],
+      "base": [-0.004, 0.05],
+      "length": 0.09,
+      "angles": [20, -40]
+    }
+  ],
+  "texture": {
+    "size": 1024,
+    "ownStep": 8,
+    "parts": {
+      "body": [0, 0, 1, 0.42],
+      "caudal": [0, 0.44, 0.36, 0.3],
+      "dorsal": [0.38, 0.44, 0.62, 0.3],
+      "anal": [0.38, 0.76, 0.4, 0.2],
+      "pelvic": [0.8, 0.76, 0.18, 0.06],
+      "pectoral": [0, 0.76, 0.12, 0.1]
+    }
+  },
+  "materials": {
+    "skin": {
+      "roughness": 0.35,
+      "metallic": 0.2
+    },
+    "fins": {
+      "roughness": 0.5,
+      "metallic": 0
+    },
+    "eyes": {
+      "roughness": 0.05,
+      "metallic": 0
+    }
+  },
+  "strains": [
+    {
+      "id": "classic",
+      "name": "Classic",
+      "body": [
+        {
+          "type": "fill",
+          "color": "#e8582c"
+        },
+        {
+          "type": "patch",
+          "color": "#c0401e",
+          "amount": 0.4,
+          "bands": [
+            {
+              "axis": "up",
+              "range": [0.4, 0.95]
+            }
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#4fb0dc",
+          "amount": 0.8581318834601583,
+          "softness": 0.006,
+          "points": [
+            [0.152, 0.22],
+            [0.169, 0],
+            [0.188, -0.22],
+            [0.179, -0.22],
+            [0.155, 0],
+            [0.144, 0.22]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#4fb0dc",
+          "amount": 0.6655568557165362,
+          "softness": 0.006,
+          "points": [
+            [0.102, 0.22],
+            [0.127, 0],
+            [0.153, -0.22],
+            [0.142, -0.22],
+            [0.111, 0],
+            [0.092, 0.22]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#4fb0dc",
+          "amount": 0.7147929674548995,
+          "softness": 0.006,
+          "points": [
+            [0.06, 0.22],
+            [0.078, 0],
+            [0.1, -0.22],
+            [0.085, -0.22],
+            [0.061, 0],
+            [0.046, 0.22]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#4fb0dc",
+          "amount": 0.7436229214275363,
+          "softness": 0.006,
+          "points": [
+            [0.022, 0.22],
+            [0.047, 0],
+            [0.063, -0.22],
+            [0.051, -0.22],
+            [0.03, 0],
+            [0.009, 0.22]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#4fb0dc",
+          "amount": 0.7727978776082386,
+          "softness": 0.006,
+          "points": [
+            [-0.019, 0.22],
+            [0.009, 0],
+            [0.025, -0.22],
+            [0.016, -0.22],
+            [-0.001, 0],
+            [-0.029, 0.22]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#4fb0dc",
+          "amount": 0.6290702191316849,
+          "softness": 0.006,
+          "points": [
+            [-0.062, 0.22],
+            [-0.047, 0],
+            [-0.027, -0.22],
+            [-0.039, -0.22],
+            [-0.067, 0],
+            [-0.074, 0.22]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#4fb0dc",
+          "amount": 0.8152283224813772,
+          "softness": 0.006,
+          "points": [
+            [-0.122, 0.22],
+            [-0.094, 0],
+            [-0.058, -0.22],
+            [-0.067, -0.22],
+            [-0.115, 0],
+            [-0.13, 0.22]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#4fb0dc",
+          "amount": 0.8843945697342952,
+          "softness": 0.006,
+          "points": [
+            [-0.171, 0.22],
+            [-0.143, 0],
+            [-0.107, -0.22],
+            [-0.122, -0.22],
+            [-0.155, 0],
+            [-0.185, 0.22]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#4fb0dc",
+          "amount": 0.7846556311401798,
+          "softness": 0.006,
+          "points": [
+            [-0.219, 0.22],
+            [-0.181, 0],
+            [-0.154, -0.22],
+            [-0.164, -0.22],
+            [-0.196, 0],
+            [-0.229, 0.22]
+          ]
+        },
+        {
+          "type": "shape",
+          "color": "#3f86d6",
+          "amount": 0.9,
+          "softness": 0.03,
+          "points": [
+            [0.34, 0],
+            [0.24, 0],
+            [0.1, -0.08],
+            [0.06, -0.2],
+            [0.36, -0.2]
+          ]
+        },
+        {
+          "type": "scales",
+          "size": 0.016,
+          "rim": 0.07
+        }
+      ]
+    }
+  ],
+  "finPaint": {
+    "dorsal": {
+      "rayed": {
+        "web": "#d24a26",
+        "ray": "#e86a3a",
+        "root": "#c8401e",
+        "alphaRoot": 0.9,
+        "alphaEdge": 0.6,
+        "rays": 16,
+        "edgeColor": "#e8603a"
+      },
+      "layers": [
+        {
+          "type": "dots",
+          "color": "#4fb0dc",
+          "cell": 0.018,
+          "radius": 0.0045,
+          "seed": 3,
+          "chance": [0.6, 0.5],
+          "fade": [0.05, 0.2]
+        }
+      ]
+    },
+    "anal": {
+      "rayed": {
+        "web": "#e0602c",
+        "ray": "#f07a40",
+        "root": "#d8502a",
+        "alphaRoot": 0.9,
+        "alphaEdge": 0.7,
+        "rays": 24,
+        "edgeColor": "#5ab0e8"
+      },
+      "layers": [
+        {
+          "type": "dots",
+          "color": "#4fb0dc",
+          "cell": 0.02,
+          "radius": 0.0045,
+          "seed": 5,
+          "chance": [0.45, 0.35],
+          "fade": [0.05, 0.2]
+        }
+      ]
+    },
+    "caudal": {
+      "rayed": {
+        "web": "#d85a2a",
+        "ray": "#f07a40",
+        "root": "#d04a24",
+        "alphaRoot": 0.85,
+        "alphaEdge": 0.55,
+        "rays": 18
+      },
+      "layers": [
+        {
+          "type": "dots",
+          "color": "#4fb0dc",
+          "cell": 0.018,
+          "radius": 0.0045,
+          "seed": 7,
+          "chance": [0.55, 0.45],
+          "fade": [0.05, 0.2]
+        }
+      ]
+    },
+    "pelvic": {
+      "rayed": {
+        "web": "#e8702e",
+        "ray": "#f08a40",
+        "root": "#e06028",
+        "alphaRoot": 0.95,
+        "alphaEdge": 0.9,
+        "rays": 1
+      }
+    },
+    "pectoral": {
+      "rayed": {
+        "web": "#f08a5a",
+        "ray": "#f8b090",
+        "root": "#e8703c",
+        "alphaRoot": 0.3,
+        "alphaEdge": 0.08,
+        "rays": 10
+      }
+    }
+  }
+}

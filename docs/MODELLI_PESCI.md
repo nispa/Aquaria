@@ -175,8 +175,9 @@ costruisce a mano.
 
 ### Da una ricetta
 
-Guppy, platy, pesce angelo, royal gramma, sardina e rasbora arlecchino
-sono ricette: un
+Guppy, platy, pesce angelo, royal gramma, sardina, rasbora arlecchino,
+damigella a tre bande, chirurgo viola, gourami nano e pesce angelo
+imperatore sono ricette: un
 `fish.json` nella loro cartella dice com'è il pesce, e
 `scripts/blender/fishbuild.py` lo costruisce in Blender. Quella del
 platy, accorciata:

@@ -1,0 +1,41 @@
+{
+  "name": "Dwarf gourami",
+  "file": "model.glb",
+  "forward": "+x",
+  "up": "+y",
+  "mouth": {
+    "morphTarget": "MouthOpen"
+  },
+  "eyes": {
+    "bones": ["Eye.L", "Eye.R"]
+  },
+  "gills": {
+    "edge": 0.318,
+    "top": 0.286,
+    "bottom": 0.04
+  },
+  "fins": {
+    "pectoral": {
+      "root": [
+        [0.313, 0.169],
+        [0.318, 0.108]
+      ],
+      "side": 0.091,
+      "front": 0.33,
+      "back": 0.196,
+      "top": 0.182,
+      "bottom": 0.083
+    }
+  },
+  "colorings": {
+    "classic": {
+      "name": "Classic",
+      "texture": "colorings/classic.webp"
+    }
+  },
+  "credit": {
+    "author": "Aquaria (fish.json, built by scripts/blender/fishbuild.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/public/assets/species/dwarf-gourami/fish.json",
+    "license": "CC0-1.0"
+  }
+}

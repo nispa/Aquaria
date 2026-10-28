@@ -1,0 +1,41 @@
+{
+  "name": "Purple tang",
+  "file": "model.glb",
+  "forward": "+x",
+  "up": "+y",
+  "mouth": {
+    "morphTarget": "MouthOpen"
+  },
+  "eyes": {
+    "bones": ["Eye.L", "Eye.R"]
+  },
+  "gills": {
+    "edge": 0.24,
+    "top": 0.125,
+    "bottom": -0.19
+  },
+  "fins": {
+    "pectoral": {
+      "root": [
+        [0.234, -0.019],
+        [0.24, -0.098]
+      ],
+      "side": 0.089,
+      "front": 0.253,
+      "back": 0.07,
+      "top": -0.006,
+      "bottom": -0.124
+    }
+  },
+  "colorings": {
+    "classic": {
+      "name": "Classic",
+      "texture": "colorings/classic.webp"
+    }
+  },
+  "credit": {
+    "author": "Aquaria (fish.json, built by scripts/blender/fishbuild.py)",
+    "source": "https://github.com/nispa/Aquaria/blob/main/public/assets/species/purple-tang/fish.json",
+    "license": "CC0-1.0"
+  }
+}
