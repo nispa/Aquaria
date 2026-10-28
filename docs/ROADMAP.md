@@ -675,7 +675,7 @@ fluorescence; the scans are left out of the tanks.
       purple tang's shape), moorish idol, neon tetra and clownfish.
 - [ ] The copperband butterflyfish and the powder blue tang, still
       downloaded models (textured, with eyes, mouth and gills of their own).
-- [ ] Remove the procedural generators no bundled object uses since the
+- [x] Remove the procedural generators no bundled object uses since the
       retired table (10468df): every plant generator in
       `render/floraRenderer.ts`, `render/objectBake.ts` and
       `render/sceneryGeometry.ts`, and the prop generators but rock, shell

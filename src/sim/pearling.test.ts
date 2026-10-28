@@ -8,6 +8,7 @@ const lights: Lights = lightsSchema.parse({ cycle: { sunrise: 8, sunset: 20, ram
 
 const plant = (x: number, z: number, height: number): Plant => ({
   kind: "rotala",
+  model: "assets/objects/rotala/model.glb",
   sway: 0.05,
   color: "#ffffff",
   x,

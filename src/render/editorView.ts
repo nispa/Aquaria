@@ -289,14 +289,7 @@ export function createEditorView(options: EditorViewOptions): EditorView {
     setScenery(plants, items) {
       flora?.dispose();
       props?.dispose();
-      flora = createFloraRenderer(
-        plants,
-        water,
-        loaders.loadModel,
-        options.logger,
-        undefined,
-        options.floor,
-      );
+      flora = createFloraRenderer(plants, water, loaders.loadModel, options.logger, options.floor);
       props = createPropRenderer(
         items,
         water,

@@ -82,9 +82,15 @@ A short but complete one:
   "backdrop": { "type": "gradient", "top": "#1a86a8", "bottom": "#021a2a" },
   "floor": { "color": "#d8c49a" },
   "flora": [
-    { "kind": "kelp", "count": 10, "bands": [3, 4], "height": [1.4, 2.7], "color": "#5a9a3e" },
+    {
+      "kind": "ribbon-kelp",
+      "count": 10,
+      "bands": [3, 4],
+      "height": [1.4, 2.7],
+      "color": "#5a9a3e",
+    },
   ],
-  "props": [{ "kind": "brain-coral", "count": 4, "color": "#b8a05a" }],
+  "props": [{ "kind": "platygyra", "count": 4, "color": "#b8a05a" }],
   "fauna": [{ "species": "sardine", "count": 45 }],
 }
 ```
@@ -105,12 +111,12 @@ A short but complete one:
 of the same kind:
 
 ```json
-{ "kind": "driftwood", "count": 3, "bands": [1, 2], "color": "#5a4636" }
+{ "kind": "branching-driftwood", "count": 3, "bands": [1, 2], "color": "#5a4636" }
 ```
 
-- `kind` is the name of a folder in `public/assets/objects/`: `kelp`,
-  `seagrass`, `anemone`, `carpet`, `fern`, `stem`, `rock`, `shell`,
-  `brain-coral`, `driftwood`, `pebble` and more. Look at the folder for the
+- `kind` is the name of a folder in `public/assets/objects/`: `ribbon-kelp`,
+  `turtle-grass`, `bubble-tip-anemone`, `hairgrass`, `java-fern`, `rotala`,
+  `rock`, `shell`, `platygyra`, `branching-driftwood`, `pebble` and more. Look at the folder for the
   full list. A new folder is a new kind.
 - `count`, `bands` and `color` say how many, where and in what color.
   `color` can also be a list: each item picks one.

@@ -32,8 +32,6 @@ export interface ObjectModelVariant {
 
 type Attribute = BufferAttribute | InterleavedBufferAttribute;
 
-const MIDRIB = 0.5;
-
 function isMesh(object: Object3D): object is Mesh {
   return (object as Partial<Mesh>).isMesh === true;
 }
@@ -154,14 +152,6 @@ export function swayAttribute(
   return new BufferAttribute(weights, 1);
 }
 
-/** Ensures a plant geometry has `aAcross` for `plantPatch` (0.5 = midrib). */
-function ensureAcrossAttribute(geometry: BufferGeometry): void {
-  if (geometry.hasAttribute("aAcross")) return;
-  const count = geometry.getAttribute("position").count;
-  const across = new Float32Array(count).fill(MIDRIB);
-  geometry.setAttribute("aAcross", new BufferAttribute(across, 1));
-}
-
 function collectMeshes(node: Object3D): Mesh[] {
   const meshes: Mesh[] = [];
   node.traverse((child) => {
@@ -246,7 +236,6 @@ function prepareVariant(
       part.geometry.setAttribute("aSway", swayAttribute(part.geometry, swayAttributeName));
       const strands = strandAttribute(part.geometry);
       if (strands !== undefined) part.geometry.setAttribute("aStrand", strands);
-      ensureAcrossAttribute(part.geometry);
     }
     if (!part.geometry.hasAttribute("normal")) part.geometry.computeVertexNormals();
     part.geometry.computeBoundingBox();
@@ -257,7 +246,7 @@ function prepareVariant(
 
 /**
  * Prepares a loaded glTF scene for instanced rendering as a plant (1 unit
- * tall, standing on `y = 0`, with `aSway` and `aAcross` attributes) or an
+ * tall, standing on `y = 0`, with an `aSway` attribute) or an
  * object (1 unit across in X/Z, standing on `y = 0`). The loaded scene is
  * left untouched so the caller can dispose its raw resources.
  */

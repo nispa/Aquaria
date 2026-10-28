@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ALLOWED_MODEL_LICENSES } from "./modelManifest";
 import { formatIssues, SceneValidationError } from "./parse";
-import { colorOrPalette, hexColor, PLANT_GENERATORS, PROP_GENERATORS } from "./schema";
+import { colorOrPalette, hexColor, PROP_GENERATORS } from "./schema";
 import { parseTraits, type ObjectTraits } from "./traits";
 
 /**
@@ -17,8 +17,8 @@ export const OBJECT_MANIFEST_FILE = "object.json";
 /** All asset paths must stay inside this folder of the site. */
 const ASSETS_ROOT = "assets";
 
-/** Aquaria's generators: the procedural plants and objects it draws in code. */
-export const GENERATORS = [...PLANT_GENERATORS, ...PROP_GENERATORS] as const;
+/** Aquaria's generators: the objects it still draws in code. */
+export const GENERATORS = PROP_GENERATORS;
 
 const SEED_MAX = 2 ** 32 - 1;
 /** A plain stone grey, for an object that sets no color. */

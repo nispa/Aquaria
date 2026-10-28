@@ -23,21 +23,7 @@ import {
   type ObjectModelVariant,
 } from "./objectModel";
 import type { ShapeSource } from "./sceneryShapes";
-import {
-  branchCoralGeometry,
-  brainCoralGeometry,
-  fanCoralGeometry,
-  rockGeometry,
-  driftwoodGeometry,
-  dragonStoneGeometry,
-  leatherCoralGeometry,
-  mossCushionGeometry,
-  mushroomCoralGeometry,
-  pebbleGeometry,
-  shellGeometry,
-  starfishGeometry,
-  tableCoralGeometry,
-} from "./sceneryGeometry";
+import { pebbleGeometry, rockGeometry, shellGeometry } from "./sceneryGeometry";
 import { causticsPatch } from "./shaders/causticsPatch";
 import { fluorescencePatch } from "./shaders/fluorescencePatch";
 import { patchMaterial, type ShaderPatch } from "./shaders/patch";
@@ -55,8 +41,6 @@ interface PropStyle {
   /** Thin shapes are seen from both sides. */
   readonly doubleSided: boolean;
   readonly castShadow: boolean;
-  /** Glows under actinic light (living corals). */
-  readonly fluorescent: boolean;
 }
 
 export const PROP_STYLES: Readonly<Record<PropGenerator, PropStyle>> = {
@@ -67,16 +51,6 @@ export const PROP_STYLES: Readonly<Record<PropGenerator, PropStyle>> = {
     flatShading: true,
     doubleSided: false,
     castShadow: true,
-    fluorescent: false,
-  },
-  starfish: {
-    variants: 4,
-    build: starfishGeometry,
-    roughness: 0.75,
-    flatShading: false,
-    doubleSided: false,
-    castShadow: false,
-    fluorescent: false,
   },
   shell: {
     variants: 3,
@@ -85,88 +59,6 @@ export const PROP_STYLES: Readonly<Record<PropGenerator, PropStyle>> = {
     flatShading: false,
     doubleSided: true,
     castShadow: true,
-    fluorescent: false,
-  },
-  "brain-coral": {
-    variants: 3,
-    build: brainCoralGeometry,
-    roughness: 0.85,
-    flatShading: false,
-    doubleSided: false,
-    castShadow: true,
-    fluorescent: true,
-  },
-  "branch-coral": {
-    variants: 4,
-    build: branchCoralGeometry,
-    roughness: 0.8,
-    flatShading: false,
-    doubleSided: false,
-    castShadow: true,
-    fluorescent: true,
-  },
-  "fan-coral": {
-    variants: 3,
-    build: fanCoralGeometry,
-    roughness: 0.8,
-    flatShading: false,
-    doubleSided: false,
-    castShadow: true,
-    fluorescent: true,
-  },
-  "table-coral": {
-    variants: 3,
-    build: tableCoralGeometry,
-    roughness: 0.8,
-    flatShading: false,
-    doubleSided: false,
-    castShadow: true,
-    fluorescent: true,
-  },
-  "mushroom-coral": {
-    variants: 3,
-    build: mushroomCoralGeometry,
-    roughness: 0.6,
-    flatShading: false,
-    doubleSided: false,
-    castShadow: false,
-    fluorescent: true,
-  },
-  "leather-coral": {
-    variants: 3,
-    build: leatherCoralGeometry,
-    roughness: 0.75,
-    flatShading: false,
-    doubleSided: false,
-    castShadow: true,
-    fluorescent: true,
-  },
-  driftwood: {
-    variants: 4,
-    build: driftwoodGeometry,
-    roughness: 0.9,
-    flatShading: false,
-    doubleSided: false,
-    castShadow: true,
-    fluorescent: false,
-  },
-  "dragon-stone": {
-    variants: 4,
-    build: dragonStoneGeometry,
-    roughness: 0.95,
-    flatShading: false,
-    doubleSided: false,
-    castShadow: true,
-    fluorescent: false,
-  },
-  moss: {
-    variants: 3,
-    build: mossCushionGeometry,
-    roughness: 1,
-    flatShading: false,
-    doubleSided: false,
-    castShadow: true,
-    fluorescent: false,
   },
   pebble: {
     variants: 4,
@@ -175,12 +67,9 @@ export const PROP_STYLES: Readonly<Record<PropGenerator, PropStyle>> = {
     flatShading: false,
     doubleSided: false,
     castShadow: false,
-    fluorescent: false,
   },
 };
 
-/** Starfish creep: one full turn takes this many seconds. */
-const STARFISH_TURN_SECONDS = 1800;
 /** Seeds the shape variants so they look the same whatever the scene holds. */
 const VARIANT_SEED = 7919;
 
@@ -191,8 +80,6 @@ export function propGeometry(generator: PropGenerator, variant: number): BufferG
 
 export interface PropRenderer {
   readonly object: Group;
-  /** Turns the starfish, very slowly. Allocation-free. */
-  update(timeSeconds: number): void;
   /** Resolves when every model-only prop has loaded or failed. */
   settled(): Promise<void>;
   dispose(): void;
@@ -207,7 +94,7 @@ interface Placed {
 const surfaceKey = (material: Prop["material"]): string =>
   material === undefined ? "plain" : `${material.id}|${material.tileSize}|${material.displacement}`;
 
-/** Rocks, starfish, shells, corals and 3D model props: instanced by kind, color and shape. */
+/** Rocks, shells, pebbles and 3D model props: instanced by kind, color and shape. */
 export function createPropRenderer(
   items: readonly Prop[],
   water: WaterUniforms,
@@ -260,12 +147,11 @@ export function createPropRenderer(
   const facing = new Vector3();
   const position = new Vector3();
   const scale = new Vector3();
-  const starfish: { mesh: InstancedMesh; props: Prop[] }[] = [];
 
-  const place = (mesh: InstancedMesh, index: number, prop: Prop, turn: number): void => {
+  const place = (mesh: InstancedMesh, index: number, prop: Prop): void => {
     const base = floor(prop.x, prop.z) + (prop.elevation ?? 0);
     position.set(prop.x, base + prop.shape.sink * prop.size, prop.z);
-    rotation.setFromEuler(euler.set(0, prop.rotation + turn, 0));
+    rotation.setFromEuler(euler.set(0, prop.rotation, 0));
     // An encrusting coral turns its top to face out of the rock, after its own turn.
     if (prop.up !== undefined) {
       lean.setFromUnitVectors(UP, facing.set(prop.up[0], prop.up[1], prop.up[2]));
@@ -314,7 +200,7 @@ export function createPropRenderer(
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         variantMembers.forEach((prop, index) => {
-          place(mesh, index, prop, 0);
+          place(mesh, index, prop);
         });
         mesh.computeBoundingSphere();
         object.add(mesh);
@@ -332,7 +218,6 @@ export function createPropRenderer(
       surface === undefined
         ? [causticsPatch(water)]
         : [surfacePatch(surfaces.get(surface.id), "triplanar", surface), causticsPatch(water)];
-    if (style.fluorescent) patches.push(fluorescencePatch(water));
     const material = patchMaterial(
       new MeshStandardMaterial({
         color: new Color(first.prop.color),
@@ -351,12 +236,9 @@ export function createPropRenderer(
     mesh.castShadow = style.castShadow;
     mesh.receiveShadow = true;
     members.forEach(({ prop }, index) => {
-      place(mesh, index, prop, 0);
+      place(mesh, index, prop);
     });
     mesh.computeBoundingSphere();
-    if (first.generator === "starfish") {
-      starfish.push({ mesh, props: members.map(({ prop }) => prop) });
-    }
     object.add(mesh);
     disposables.push(material, mesh);
   }
@@ -394,16 +276,6 @@ export function createPropRenderer(
 
   return {
     object,
-    update(timeSeconds) {
-      const turn = (timeSeconds / STARFISH_TURN_SECONDS) * Math.PI * 2;
-      for (const group of starfish) {
-        for (let index = 0; index < group.props.length; index += 1) {
-          const prop = group.props[index];
-          if (prop !== undefined) place(group.mesh, index, prop, turn);
-        }
-        group.mesh.instanceMatrix.needsUpdate = true;
-      }
-    },
     settled: () => Promise.all(loading).then(() => undefined),
     dispose() {
       disposed = true;

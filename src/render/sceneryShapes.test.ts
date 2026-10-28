@@ -3,7 +3,7 @@ import { buildShape, shapeKey } from "./sceneryShapes";
 
 describe("scenery shapes", () => {
   it("builds the same shape every time it is asked", () => {
-    const request = { kind: "prop", generator: "brain-coral", variant: 1 } as const;
+    const request = { kind: "prop", generator: "shell", variant: 1 } as const;
 
     const first = buildShape(request).getAttribute("position").array;
     const second = buildShape(request).getAttribute("position").array;

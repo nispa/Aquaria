@@ -3,10 +3,8 @@ import type { ObjectCatalog } from "../scene/objectCatalog";
 import { objectModelUrl, type ObjectManifest } from "../scene/objectManifest";
 import type { ItemRef } from "../scene/sceneryEditing";
 import {
-  PLANT_GENERATORS,
   PROP_GENERATORS,
   type FloraSpec,
-  type PlantGenerator,
   type PropGenerator,
   type PropSpec,
   type SurfaceMaterialSpec,
@@ -27,10 +25,8 @@ import { bandDepthRange, type TankSize } from "./tank";
 export interface Plant {
   /** The object it is (its folder in public/assets/objects). */
   readonly kind: string;
-  /** How it is drawn: one of Aquaria's plant generators, when it has a recipe. */
-  readonly generator?: PlantGenerator;
-  /** Path under `public/` to its `.glb` 3D model, when it has one. */
-  readonly model?: string;
+  /** Path under `public/` to its `.glb` 3D model. */
+  readonly model: string;
   /** How far its tips sway, m (the `sway` trait); 0 when it does not. */
   readonly sway: number;
   /** Pace of the slow swaying (the `sway` trait's `speed`, when not 1). */
@@ -48,7 +44,7 @@ export interface Plant {
   readonly rotation: number;
   /** Offset so neighbouring plants do not sway in lockstep, radians. */
   readonly swayPhase: number;
-  /** Seeds the renderer's per-plant details (blade jitter), independent of other plants. */
+  /** Seeds the renderer's per-plant details (shape variant), independent of other plants. */
   readonly seed: number;
   /** The shape variant its spot names; else the renderer draws one from `seed`. */
   readonly variant?: number;
@@ -131,33 +127,26 @@ const DEFAULT_SIZE: readonly [number, number] = [0.2, 0.5];
 /** An object without a collision trait: fish swim through it. */
 const NO_COLLISION = { ...TRAITS.collision.schema.parse({}), solid: false };
 
-const isPlantGenerator = (id: string): id is PlantGenerator =>
-  (PLANT_GENERATORS as readonly string[]).includes(id);
 const isPropGenerator = (id: string): id is PropGenerator =>
   (PROP_GENERATORS as readonly string[]).includes(id);
 
 interface PlantTraits {
   readonly object: ObjectManifest;
-  readonly generator?: PlantGenerator;
-  readonly model?: string;
+  readonly model: string;
   readonly sway: number;
   readonly swaySpeed?: number;
   readonly swayAttribute?: string;
 }
 
-/** What the layout needs of a plant object; undefined when Aquaria cannot draw it. */
+/** What the layout needs of a plant object; undefined when it has no model to draw. */
 function plantOf(id: string, object: ObjectManifest | undefined): PlantTraits | undefined {
   if (object?.category !== "plant") return undefined;
-  const rawGenerator = object.recipe?.generator;
-  const generator =
-    rawGenerator !== undefined && isPlantGenerator(rawGenerator) ? rawGenerator : undefined;
   const model = objectModelUrl(id, object);
-  if (generator === undefined && model === undefined) return undefined;
+  if (model === undefined) return undefined;
   const sway = object.traits.sway;
   return {
     object,
-    ...(generator === undefined ? {} : { generator }),
-    ...(model === undefined ? {} : { model }),
+    model,
     sway: sway?.amount ?? 0,
     ...(sway !== undefined && sway.speed !== 1 ? { swaySpeed: sway.speed } : {}),
     ...(sway !== undefined && sway.attribute !== SWAY_ATTRIBUTE
@@ -337,8 +326,7 @@ export function layoutFlora(
       return {
         kind: spec.kind,
         source: { section: "flora", entry: index, item },
-        ...(plant.generator === undefined ? {} : { generator: plant.generator }),
-        ...(plant.model === undefined ? {} : { model: plant.model }),
+        model: plant.model,
         sway: plant.sway,
         ...(plant.swaySpeed === undefined ? {} : { swaySpeed: plant.swaySpeed }),
         ...(plant.swayAttribute === undefined ? {} : { swayAttribute: plant.swayAttribute }),

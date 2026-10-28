@@ -493,7 +493,7 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
         height: place.height,
       }));
     obstacles = obstaclesOf([...(ridge?.rocks ?? []), ...items], floor);
-    flora = createFloraRenderer(plants, water, loaders.loadModel, logger, options.shapes, floor);
+    flora = createFloraRenderer(plants, water, loaders.loadModel, logger, floor);
     props = createPropRenderer(
       [...(ridge?.rocks ?? []), ...items],
       water,
@@ -706,7 +706,6 @@ export function createAquariumView(options: AquariumViewOptions): AquariumView {
       rig.apply(light);
       fixture.update(light);
       water.uTime.value = simulation.timeSeconds;
-      props?.update(simulation.timeSeconds);
       fish.update(simulation.fish, simulation.timeSeconds - animatedTime);
       food.update(simulation.food.pellets);
       visitors.update(simulation.visitors, simulation.timeSeconds - animatedTime);

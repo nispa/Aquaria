@@ -659,13 +659,12 @@ describe("model objects", () => {
     );
 
     expect([
-      plant?.generator,
       plant?.model,
       plant?.sway,
       plant?.swaySpeed,
       plant?.swayAttribute,
       plant?.tags,
-    ]).toEqual([undefined, "assets/objects/vallisneria/model.glb", 0.12, 1.5, "_BEND", ["plant"]]);
+    ]).toEqual(["assets/objects/vallisneria/model.glb", 0.12, 1.5, "_BEND", ["plant"]]);
   });
 
   it("places an object made of a 3D model alone, with its collision shape and tags", () => {

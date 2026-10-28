@@ -4,8 +4,9 @@ _English version: [OBJECTS.md](OBJECTS.md)._
 
 Ogni pianta e oggetto della vasca è una cartella: un `object.json` che
 dice cos'è e, se vuoi, un modello 3D che si apre con Blender o con un
-qualsiasi visore glTF. Senza modello, Aquaria disegna l'oggetto da sola
-con uno dei suoi generatori, ogni volta un po' diverso.
+qualsiasi visore glTF. Pochi oggetti semplici (rocce, conchiglie, ciottoli)
+non hanno bisogno di un modello: Aquaria li disegna da sola con uno dei suoi
+generatori, ogni volta un po' diversi.
 
 Una cartella nuova è un tipo nuovo di oggetto, usabile in qualsiasi scena.
 Niente codice.
@@ -49,7 +50,7 @@ Quello delle rocce:
 | `name`     | Il nome nel pannello e nell'editor                                                                     |
 | `category` | `plant` (ondeggia, ha un'altezza) o `object` (ha una misura)                                           |
 | `model`    | Un file `.glb` o `.gltf` nella cartella                                                                |
-| `recipe`   | Quale generatore di Aquaria lo disegna, e se vuoi `seeds` e `params`                                   |
+| `recipe`   | Quale generatore di Aquaria (`rock`, `shell`, `pebble`) lo disegna, e se vuoi `seeds` e `params`       |
 | `color`    | Il suo colore, o una lista tra cui scegliere. `tipColor` colora le punte di una pianta                 |
 | `material` | Una texture di superficie (`file`: il percorso di un `material.json`, più `tileSize` e `displacement`) |
 | `traits`   | Cos'altro deve sapere Aquaria, vedi sotto                                                              |

@@ -2,13 +2,6 @@ import { Color, type Vector4 } from "three";
 import type { WaterUniforms } from "../uniforms";
 import type { ShaderPatch } from "./patch";
 
-export interface LeafStyle {
-  /** Parallel veins across a blade; 0 for round shapes such as tentacles. */
-  readonly veins: number;
-  /** How dark the veins are, 0..1. */
-  readonly veinStrength: number;
-}
-
 /** Most fish the tentacles of anemones part around at once. */
 export const MAX_PARTING = 6;
 
@@ -33,22 +26,19 @@ const TIP_START = 0.55;
  * tentacle) moves at its own phase and pace, in a wave running from the
  * root to the tip; the whole anemone slowly opens and closes; and the
  * tentacles part around the fish among them.
- * Leaves get procedural detail: a midrib and parallel veins, a slightly
- * different tone per blade, and thin-tissue translucency at grazing angles.
+ * Leaves get a slightly different tone per blade and thin-tissue
+ * translucency at grazing angles; the model's own textures carry the veins.
  *
  * Instance attributes: aSwayPhase (radians), aHeight (m).
- * Vertex attributes: aAcross (0..1 across a blade, 0.5 on the midrib),
- * aSway (0..1 per-vertex sway weight, from `_SWAY` or height).
+ * Vertex attributes: aSway (0..1 per-vertex sway weight, from `_SWAY` or height).
  * Uniforms: uTime, uCurrent, uLightColor (from WaterUniforms);
  * uSwayAmount (m, 0..0.5); uSwaySpeed (pace multiplier, > 0, default 1);
- * uVeins (count, 0..12); uVeinStrength (0..1);
  * uTipColor (linear RGB) and uTipAmount (0..1): leaves turn to this color near the top.
  * The blade geometry spans y = 0..1 before instance scaling.
  */
 export function plantPatch(
   water: WaterUniforms,
   uSwayAmount: { value: number },
-  leaf: LeafStyle,
   tipColor?: Color,
   swaySpeed = 1,
   strands?: StrandUniforms,
@@ -100,15 +90,12 @@ export function plantPatch(
       ...(strands ?? {}),
       uSwayAmount,
       uSwaySpeed: { value: swaySpeed },
-      uVeins: { value: leaf.veins },
-      uVeinStrength: { value: leaf.veinStrength },
       uTipColor: { value: tipColor ?? new Color() },
       uTipAmount: { value: tipColor === undefined ? 0 : 1 },
     },
     vertexHead: /* glsl */ `
       attribute float aSwayPhase;
       attribute float aHeight;
-      attribute float aAcross;
       attribute float aSway;
       ${strands === undefined ? "" : "attribute float aStrand;"}
       ${strands === undefined ? "" : `uniform vec4 uParting[${String(MAX_PARTING)}];`}
@@ -118,7 +105,6 @@ export function plantPatch(
       uniform float uSwayAmount;
       uniform float uSwaySpeed;
       varying float vAlongBlade;
-      varying float vAcrossBlade;
       varying float vBladeTone;
     `,
     vertex: [
@@ -126,7 +112,6 @@ export function plantPatch(
         "#include <project_vertex>",
         /* glsl */ `
         vAlongBlade = position.y;
-        vAcrossBlade = aAcross;
         // A stable pseudo-random tone per blade, from its sway phase.
         vBladeTone = fract(sin(aSwayPhase * 12.9898) * 43758.5453);
         vec4 mvPosition = vec4(transformed, 1.0);
@@ -147,13 +132,10 @@ export function plantPatch(
       ],
     ],
     fragmentHead: /* glsl */ `
-      uniform float uVeins;
-      uniform float uVeinStrength;
       uniform vec3 uTipColor;
       uniform float uTipAmount;
       // uLightColor is declared by the caustics patch, which plants always use.
       varying float vAlongBlade;
-      varying float vAcrossBlade;
       varying float vBladeTone;
     `,
     fragment: [
@@ -168,15 +150,6 @@ export function plantPatch(
           uTipColor * (0.85 + 0.3 * vBladeTone),
           uTipAmount * smoothstep(${TIP_START.toFixed(2)}, 1.0, vAlongBlade)
         );
-        if (uVeins > 0.0) {
-          float across = vAcrossBlade - 0.5;
-          float midrib = 1.0 - smoothstep(0.0, 0.035, abs(across));
-          float veins = pow(abs(sin(across * 3.14159 * uVeins)), 12.0);
-          // Edges are thinner and paler; veins run darker along the blade.
-          float edge = smoothstep(0.35, 0.5, abs(across));
-          diffuseColor.rgb *= 1.0 - uVeinStrength * (0.6 * midrib + 0.35 * (1.0 - veins));
-          diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.25, edge);
-        }
         `,
       ],
       [

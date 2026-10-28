@@ -236,33 +236,11 @@ const surfaceMaterial = z.object({
   displacement: z.number().min(0).max(0.2).default(0),
 });
 
-/** Aquaria's plant generators: the plants it draws in code (an object's `recipe`). */
-export const PLANT_GENERATORS = [
-  "kelp",
-  "seagrass",
-  "anemone",
-  "bush",
-  "carpet",
-  "fern",
-  "stem",
-] as const;
-
-/** Aquaria's object generators: the objects it draws in code (an object's `recipe`). */
-export const PROP_GENERATORS = [
-  "rock",
-  "starfish",
-  "shell",
-  "brain-coral",
-  "branch-coral",
-  "fan-coral",
-  "table-coral",
-  "mushroom-coral",
-  "leather-coral",
-  "driftwood",
-  "dragon-stone",
-  "moss",
-  "pebble",
-] as const;
+/**
+ * Aquaria's object generators: the objects it still draws in code (an
+ * object's `recipe`). Plants and corals are models made in Blender.
+ */
+export const PROP_GENERATORS = ["rock", "shell", "pebble"] as const;
 
 /** One color, or a palette: each item then takes one of the colors. */
 export const colorOrPalette = z.union([hexColor, z.array(hexColor).min(1)]);
@@ -608,7 +586,6 @@ export type SpeciesCatalog = z.output<typeof speciesCatalogSchema>;
 export type Species = z.output<typeof speciesSchema>;
 export type SceneInput = z.input<typeof sceneSchema>;
 export type Scene = z.output<typeof sceneSchema>;
-export type PlantGenerator = (typeof PLANT_GENERATORS)[number];
 export type PropGenerator = (typeof PROP_GENERATORS)[number];
 export type FloraSpec = z.output<typeof flora>;
 export type PropSpec = z.output<typeof prop>;

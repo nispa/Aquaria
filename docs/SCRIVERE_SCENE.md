@@ -86,9 +86,15 @@ Breve ma completa:
   "backdrop": { "type": "gradient", "top": "#1a86a8", "bottom": "#021a2a" },
   "floor": { "color": "#d8c49a" },
   "flora": [
-    { "kind": "kelp", "count": 10, "bands": [3, 4], "height": [1.4, 2.7], "color": "#5a9a3e" },
+    {
+      "kind": "ribbon-kelp",
+      "count": 10,
+      "bands": [3, 4],
+      "height": [1.4, 2.7],
+      "color": "#5a9a3e",
+    },
   ],
-  "props": [{ "kind": "brain-coral", "count": 4, "color": "#b8a05a" }],
+  "props": [{ "kind": "platygyra", "count": 4, "color": "#b8a05a" }],
   "fauna": [{ "species": "sardine", "count": 45 }],
 }
 ```
@@ -109,12 +115,12 @@ Breve ma completa:
 dello stesso tipo:
 
 ```json
-{ "kind": "driftwood", "count": 3, "bands": [1, 2], "color": "#5a4636" }
+{ "kind": "branching-driftwood", "count": 3, "bands": [1, 2], "color": "#5a4636" }
 ```
 
-- `kind` è il nome di una cartella in `public/assets/objects/`: `kelp`,
-  `seagrass`, `anemone`, `carpet`, `fern`, `stem`, `rock`, `shell`,
-  `brain-coral`, `driftwood`, `pebble` e altri. L'elenco completo è la
+- `kind` è il nome di una cartella in `public/assets/objects/`: `ribbon-kelp`,
+  `turtle-grass`, `bubble-tip-anemone`, `hairgrass`, `java-fern`, `rotala`,
+  `rock`, `shell`, `platygyra`, `branching-driftwood`, `pebble` e altri. L'elenco completo è la
   cartella stessa. Una cartella nuova è un tipo nuovo.
 - `count`, `bands` e `color` dicono quanti, dove e di che colore. `color`
   può essere anche una lista: ogni elemento ne sceglie uno.

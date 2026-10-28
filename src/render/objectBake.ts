@@ -1,18 +1,9 @@
-import { BufferAttribute, BufferGeometry, Color, Euler, Matrix4, Quaternion, Vector3 } from "three";
-import { createRng } from "../core/rng";
+import { BufferAttribute, BufferGeometry, Color } from "three";
 import type { ObjectManifest } from "../scene/objectManifest";
-import {
-  PLANT_GENERATORS,
-  PROP_GENERATORS,
-  type BlocksSpec,
-  type PlantGenerator,
-  type PropGenerator,
-} from "../scene/schema";
+import { PROP_GENERATORS, type BlocksSpec, type PropGenerator } from "../scene/schema";
 import { TRAITS, type ObjectTraits } from "../scene/traits";
-import { SWAY_ATTRIBUTE } from "../scene/traits/sway";
 import { createBlockwork } from "../sim/blockwork";
 import { blockMesh } from "./blockMesh";
-import { FLORA_STYLES, GOLDEN_ANGLE, plantShapeGeometry } from "./floraRenderer";
 import { PROP_STYLES, propGeometry } from "./propRenderer";
 
 const GLB_MAGIC = 0x46546c67;
@@ -24,8 +15,6 @@ const COMPONENT_UNSIGNED_INT = 5125;
 const TARGET_ARRAY_BUFFER = 34962;
 const TARGET_ELEMENT_ARRAY_BUFFER = 34963;
 
-/** Default height (m) for a baked plant whose placement trait sets no size. */
-const DEFAULT_PLANT_HEIGHT = 0.6;
 /** Default diameter (m) for a baked prop whose placement trait sets no size. */
 const DEFAULT_PROP_SIZE = 0.35;
 /** Gap between side-by-side seed variants in a baked `.glb`, as a multiple of their span. */
@@ -34,8 +23,6 @@ const VARIANT_GAP = 1.6;
 const BLOCK_SMOOTHING = 3;
 const BLOCK_ROUGHNESS = 0.18;
 
-const isPlantGenerator = (id: string): id is PlantGenerator =>
-  (PLANT_GENERATORS as readonly string[]).includes(id);
 const isPropGenerator = (id: string): id is PropGenerator =>
   (PROP_GENERATORS as readonly string[]).includes(id);
 
@@ -45,7 +32,6 @@ interface BakedVariant {
   readonly positions: Float32Array;
   readonly normals: Float32Array;
   readonly uvs?: Float32Array;
-  readonly sway?: Float32Array;
   readonly indices: Uint32Array;
 }
 
@@ -54,7 +40,6 @@ interface BakedDocument {
   readonly color: string;
   readonly roughness: number;
   readonly doubleSided: boolean;
-  readonly swayAttributeName?: string;
   readonly traits: ObjectTraits;
   readonly variants: readonly BakedVariant[];
 }
@@ -63,7 +48,7 @@ function primaryColor(color: ObjectManifest["color"]): string {
   return typeof color === "string" ? color : (color[0] ?? "#8a8178");
 }
 
-/** The middle of a placement range (`size` for objects, `height` for plants), m. */
+/** The middle of an object's placement `size` range, m. */
 function nominalSize(range: readonly [number, number] | undefined, fallback: number): number {
   return range === undefined ? fallback : (range[0] + range[1]) / 2;
 }
@@ -90,103 +75,6 @@ function indicesOf(geometry: BufferGeometry): Uint32Array {
   const out = new Uint32Array(index.count);
   for (let i = 0; i < index.count; i += 1) out[i] = index.getX(i);
   return out;
-}
-
-/**
- * Merges the blades of one procedural plant variant into a single geometry
- * at real size in meters, with `_SWAY` weights from each blade's local `y`
- * (0 at the root to 1 at the tip) before the blade is tilted and scaled.
- */
-function bakePlantVariant(
-  generator: PlantGenerator,
-  height: number,
-  variantIndex: number,
-  translationX: number,
-): BakedVariant {
-  const style = FLORA_STYLES[generator];
-  const baseGeometry = plantShapeGeometry(style, 4231 + variantIndex);
-  baseGeometry.computeVertexNormals();
-  const basePositions = floatArrayOf(baseGeometry, "position", 3);
-  const baseNormals = floatArrayOf(baseGeometry, "normal", 3);
-  const baseUvs = baseGeometry.hasAttribute("uv") ? floatArrayOf(baseGeometry, "uv", 2) : undefined;
-  const baseIndices = indicesOf(baseGeometry);
-  const vertexCount = basePositions.length / 3;
-  const baseSway = new Float32Array(vertexCount);
-  for (let i = 0; i < vertexCount; i += 1) {
-    baseSway[i] = Math.min(Math.max(basePositions[i * 3 + 1] ?? 0, 0), 1);
-  }
-  baseGeometry.dispose();
-
-  const totalVertices = vertexCount * style.blades;
-  const positions = new Float32Array(totalVertices * 3);
-  const normals = new Float32Array(totalVertices * 3);
-  const uvs = baseUvs === undefined ? undefined : new Float32Array(totalVertices * 2);
-  const sway = new Float32Array(totalVertices);
-  const indices = new Uint32Array(baseIndices.length * style.blades);
-
-  const rng = createRng(1000 + variantIndex * 97);
-  const matrix = new Matrix4();
-  const rotation = new Quaternion();
-  const euler = new Euler();
-  const position = new Vector3();
-  const scale = new Vector3();
-  const vertex = new Vector3();
-  const normal = new Vector3();
-
-  for (let blade = 0; blade < style.blades; blade += 1) {
-    const x = rng.range(-style.spread, style.spread);
-    const z = rng.range(-style.spread, style.spread);
-    const bladeHeight = height * rng.range(0.7, 1);
-    position.set(x, 0, z);
-    euler.set(rng.range(style.tilt[0], style.tilt[1]), blade * GOLDEN_ANGLE, 0, "YXZ");
-    rotation.setFromEuler(euler);
-    const scaledByHeight = style.shape !== "blade" && style.shape !== "tentacle";
-    const width = style.width * rng.range(0.8, 1.2) * (scaledByHeight ? bladeHeight : 1);
-    scale.set(width, bladeHeight, style.shape === "blade" ? 1 : width);
-    matrix.compose(position, rotation, scale);
-
-    const vOffset = blade * vertexCount;
-    for (let i = 0; i < vertexCount; i += 1) {
-      vertex
-        .set(
-          basePositions[i * 3] ?? 0,
-          basePositions[i * 3 + 1] ?? 0,
-          basePositions[i * 3 + 2] ?? 0,
-        )
-        .applyMatrix4(matrix);
-      positions[(vOffset + i) * 3] = vertex.x;
-      positions[(vOffset + i) * 3 + 1] = Math.max(vertex.y, 0);
-      positions[(vOffset + i) * 3 + 2] = vertex.z;
-
-      normal
-        .set(baseNormals[i * 3] ?? 0, baseNormals[i * 3 + 1] ?? 0, baseNormals[i * 3 + 2] ?? 0)
-        .transformDirection(matrix);
-      normals[(vOffset + i) * 3] = normal.x;
-      normals[(vOffset + i) * 3 + 1] = normal.y;
-      normals[(vOffset + i) * 3 + 2] = normal.z;
-
-      if (uvs !== undefined && baseUvs !== undefined) {
-        uvs[(vOffset + i) * 2] = baseUvs[i * 2] ?? 0;
-        uvs[(vOffset + i) * 2 + 1] = baseUvs[i * 2 + 1] ?? 0;
-      }
-      sway[vOffset + i] = baseSway[i] ?? 0;
-    }
-
-    const iOffset = blade * baseIndices.length;
-    for (let i = 0; i < baseIndices.length; i += 1) {
-      indices[iOffset + i] = (baseIndices[i] ?? 0) + vOffset;
-    }
-  }
-
-  return {
-    name: `variant_${String(variantIndex)}`,
-    translation: [translationX, 0, 0],
-    positions,
-    normals,
-    ...(uvs === undefined ? {} : { uvs }),
-    sway,
-    indices,
-  };
 }
 
 function bakePropVariant(
@@ -224,16 +112,6 @@ function minMaxVec3(values: Float32Array): { readonly min: number[]; readonly ma
     }
   }
   return { min, max };
-}
-
-function minMaxScalar(values: Float32Array): { readonly min: number[]; readonly max: number[] } {
-  let min = Infinity;
-  let max = -Infinity;
-  for (const v of values) {
-    if (v < min) min = v;
-    if (v > max) max = v;
-  }
-  return { min: [min], max: [max] };
 }
 
 function serializeGlb(doc: BakedDocument): Uint8Array {
@@ -293,20 +171,6 @@ function serializeGlb(doc: BakedDocument): Uint8Array {
         componentType: COMPONENT_FLOAT,
         count: variant.uvs.length / 2,
         type: "VEC2",
-      });
-    }
-
-    if (variant.sway !== undefined && doc.swayAttributeName !== undefined) {
-      const swayView = appendBytes(variant.sway, TARGET_ARRAY_BUFFER);
-      const swayBounds = minMaxScalar(variant.sway);
-      attributes[doc.swayAttributeName] = accessors.length;
-      accessors.push({
-        bufferView: swayView,
-        componentType: COMPONENT_FLOAT,
-        count: variant.sway.length,
-        type: "SCALAR",
-        min: swayBounds.min,
-        max: swayBounds.max,
       });
     }
 
@@ -390,7 +254,7 @@ function serializeGlb(doc: BakedDocument): Uint8Array {
 /**
  * Bakes an object's procedural recipe into a binary glTF 2.0 (`.glb`) buffer
  * with `variantCount` seed variants side by side at real size in meters, a
- * standard PBR material, `_SWAY` vertex weights on plants, and the manifest's
+ * standard PBR material, and the manifest's
  * `traits` in `scenes[0].extras.traits` so a round trip through Blender keeps them.
  */
 export function bakeObjectGlb(id: string, manifest: ObjectManifest, variantCount = 3): Uint8Array {
@@ -399,24 +263,6 @@ export function bakeObjectGlb(id: string, manifest: ObjectManifest, variantCount
     throw new Error(`Object "${id}" has no recipe to bake.`);
   }
   const color = primaryColor(manifest.color);
-
-  if (isPlantGenerator(generator)) {
-    const height = nominalSize(manifest.traits.placement?.height, DEFAULT_PLANT_HEIGHT);
-    const step = height * VARIANT_GAP;
-    const swayAttributeName = manifest.traits.sway?.attribute ?? SWAY_ATTRIBUTE;
-    const variants = Array.from({ length: variantCount }, (_, index) =>
-      bakePlantVariant(generator, height, index, (index - (variantCount - 1) / 2) * step),
-    );
-    return serializeGlb({
-      name: id,
-      color,
-      roughness: 0.7,
-      doubleSided: true,
-      swayAttributeName,
-      traits: manifest.traits,
-      variants,
-    });
-  }
 
   if (isPropGenerator(generator)) {
     const style = PROP_STYLES[generator];

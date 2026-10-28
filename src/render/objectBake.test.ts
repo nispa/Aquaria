@@ -1,15 +1,8 @@
-import {
-  Box3,
-  type BufferAttribute,
-  type Mesh,
-  type MeshStandardMaterial,
-  type Object3D,
-} from "three";
+import { Box3, type Mesh, type Object3D } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { describe, expect, it } from "vitest";
 import { encodeRuns } from "../scene/blocks";
 import { bundledObjects } from "../scene/objectFixtures";
-import { parseObjectManifest } from "../scene/objectManifest";
 import type { BlocksSpec } from "../scene/schema";
 import { bakeBlockworkGlb, bakeObjectGlb } from "./objectBake";
 import { extractModelTraits, prepareObjectModel } from "./objectModel";
@@ -33,49 +26,6 @@ function meshesOf(root: Object3D): Mesh[] {
 
 describe("bakeObjectGlb", () => {
   const objects = bundledObjects();
-  // No bundled plant is drawn by a recipe any more; this one is, as an object.json may ask.
-  const kelp = parseObjectManifest(
-    {
-      name: "Kelp",
-      category: "plant",
-      color: ["#7a9a34", "#5f8a2e", "#9aa83e"],
-      recipe: { generator: "kelp" },
-      traits: { sway: { amount: 0.18 }, placement: { height: [1.0, 2.2] } },
-    },
-    "kelp",
-  ).manifest;
-
-  it("bakes a plant recipe into a valid .glb with 3 variants, PBR material, _SWAY and traits in extras", async () => {
-    const glb = bakeObjectGlb("kelp", kelp, 3);
-    const scene = await parseGlb(glb);
-    const meshes = meshesOf(scene);
-    const firstGeometry = meshes[0]?.geometry;
-    const sway = (firstGeometry?.getAttribute("_SWAY") ?? firstGeometry?.getAttribute("_sway")) as
-      BufferAttribute | undefined;
-    const material = meshes[0]?.material as MeshStandardMaterial | undefined;
-    const traits = extractModelTraits(scene, "kelp");
-    const variants = prepareObjectModel(scene, "plant");
-
-    // GLB header starts with "glTF" (0x46546c67).
-    expect(new DataView(glb.buffer, glb.byteOffset, 4).getUint32(0, true)).toBe(0x46546c67);
-    expect(meshes).toHaveLength(3);
-    expect(sway).toBeDefined();
-    expect(sway?.count).toBeGreaterThan(0);
-    expect(material?.isMeshStandardMaterial).toBe(true);
-    expect(traits).toEqual(kelp.traits);
-    expect(variants).toHaveLength(3);
-  });
-
-  it("bakes a plant at the height its placement trait gives it", async () => {
-    const shortest = kelp.traits.placement?.height?.[0];
-    if (shortest === undefined) throw new Error("Missing kelp height.");
-
-    const scene = await parseGlb(bakeObjectGlb("kelp", kelp, 1));
-    const bounds = new Box3().setFromObject(scene);
-
-    expect(bounds.max.y - bounds.min.y).toBeGreaterThan(shortest);
-  });
-
   it("bakes a prop recipe into a valid .glb at real size in meters with traits in extras", async () => {
     const rock = objects.get("rock");
     if (rock === undefined) throw new Error("Missing bundled rock object.");
@@ -87,6 +37,8 @@ describe("bakeObjectGlb", () => {
     const variants = prepareObjectModel(scene, "object");
     const bounds = new Box3().setFromObject(meshes[0]!);
 
+    // GLB header starts with "glTF" (0x46546c67).
+    expect(new DataView(glb.buffer, glb.byteOffset, 4).getUint32(0, true)).toBe(0x46546c67);
     expect(meshes).toHaveLength(3);
     expect(bounds.max.y).toBeGreaterThan(0.15);
     expect(bounds.max.x - bounds.min.x).toBeGreaterThan(0.15);

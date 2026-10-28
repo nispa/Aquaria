@@ -4,8 +4,9 @@ _Italian version: [OGGETTI.md](OGGETTI.md)._
 
 Every plant and object in the tank is a folder: an `object.json` that says
 what it is, and, if you like, a 3D model that Blender or any glTF viewer
-can open. Without a model, Aquaria draws the object itself with one of its
-generators, a little different each time.
+can open. A few simple objects (rocks, shells, pebbles) need no model:
+Aquaria draws them itself with one of its generators, a little different
+each time.
 
 A new folder is a new kind of object, usable in any scene. No code needed.
 
@@ -42,16 +43,16 @@ The rocks':
 }
 ```
 
-| Field      | What it is                                                                                    |
-| ---------- | --------------------------------------------------------------------------------------------- |
-| `name`     | The name in the panel and in the editor                                                       |
-| `category` | `plant` (sways, has a height) or `object` (has a size)                                        |
-| `model`    | A `.glb` or `.gltf` file in the folder                                                        |
-| `recipe`   | Which of Aquaria's generators draws it, and optionally `seeds` and `params`                   |
-| `color`    | Its color, or a list of colors to pick from. `tipColor` tints the tips of a plant             |
-| `material` | A surface texture (`file`: the path to a `material.json`, plus `tileSize` and `displacement`) |
-| `traits`   | What else Aquaria should know, see below                                                      |
-| `credit`   | Needed with a model made by someone else: author, source and license                          |
+| Field      | What it is                                                                                              |
+| ---------- | ------------------------------------------------------------------------------------------------------- |
+| `name`     | The name in the panel and in the editor                                                                 |
+| `category` | `plant` (sways, has a height) or `object` (has a size)                                                  |
+| `model`    | A `.glb` or `.gltf` file in the folder                                                                  |
+| `recipe`   | Which of Aquaria's generators (`rock`, `shell`, `pebble`) draws it, and optionally `seeds` and `params` |
+| `color`    | Its color, or a list of colors to pick from. `tipColor` tints the tips of a plant                       |
+| `material` | A surface texture (`file`: the path to a `material.json`, plus `tileSize` and `displacement`)           |
+| `traits`   | What else Aquaria should know, see below                                                                |
+| `credit`   | Needed with a model made by someone else: author, source and license                                    |
 
 An object needs a `model` or a `recipe`. With both, Aquaria draws the
 recipe and other programs see the model.
