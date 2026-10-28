@@ -1,6 +1,6 @@
 {
   "name": "aquaria",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "A data-driven, real-time 3D renderer for aquatic environments, built for full-screen displays up to 4K LED walls.",
   "private": true,
   "type": "module",
